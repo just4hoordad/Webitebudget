@@ -91,7 +91,10 @@ STRICT RULES:
 
 Include exactly 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
 Each day has Breakfast, Lunch, and Dinner.
-For each meal, list only ingredients from the grocery list above with quantities.`,
+For each meal:
+- List only ingredients from the grocery list above with quantities
+- Calculate and include the calorie count for each meal
+- Distribute daily calories: ~25% breakfast, ~35% lunch, ~40% dinner (totaling ${calories} kcal/day)`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -102,10 +105,13 @@ For each meal, list only ingredients from the grocery list above with quantities
               properties: {
                 day: { type: "string" },
                 breakfast: { type: "string" },
+                breakfast_calories: { type: "number" },
                 breakfast_ingredients: { type: "string" },
                 lunch: { type: "string" },
+                lunch_calories: { type: "number" },
                 lunch_ingredients: { type: "string" },
                 dinner: { type: "string" },
+                dinner_calories: { type: "number" },
                 dinner_ingredients: { type: "string" }
               }
             }
@@ -255,17 +261,17 @@ For each meal, list only ingredients from the grocery list above with quantities
                  <div key={`${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
                    <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
                      <span>{day.breakfast}</span>
                      {day.breakfast_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.breakfast_ingredients}</p>}
                    </div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Lunch {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
                      <span>{day.lunch}</span>
                      {day.lunch_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.lunch_ingredients}</p>}
                    </div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Dinner {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
                      <span>{day.dinner}</span>
                      {day.dinner_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.dinner_ingredients}</p>}
                    </div>
