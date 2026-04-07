@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Loader2, RefreshCw, Euro, Flame } from "lucide-react";
 import DayMeals from "../components/DayMeals";
+import GroceryList from "../components/GroceryList";
 import ShoppingList from "../components/ShoppingList";
 import NutritionSummary from "../components/NutritionSummary";
 import StoreComparison from "../components/StoreComparison";
@@ -201,8 +202,9 @@ Return ONLY valid JSON in this exact format:
       </div>
 
       <Tabs defaultValue="meals" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 h-12 rounded-xl">
+        <TabsList className="w-full grid grid-cols-4 h-12 rounded-xl">
           <TabsTrigger value="meals" className="rounded-lg">Meals</TabsTrigger>
+          <TabsTrigger value="grocery" className="rounded-lg">Grocery</TabsTrigger>
           <TabsTrigger value="shopping" className="rounded-lg">Shopping</TabsTrigger>
           <TabsTrigger value="nutrition" className="rounded-lg">Nutrition</TabsTrigger>
         </TabsList>
@@ -212,6 +214,10 @@ Return ONLY valid JSON in this exact format:
             const meals = mealPlan?.days?.[day] || [];
             return <DayMeals key={day} day={day} meals={meals} />;
           })}
+        </TabsContent>
+
+        <TabsContent value="grocery" className="space-y-6 mt-6">
+          <GroceryList items={mealPlan?.shoppingList || []} />
         </TabsContent>
 
         <TabsContent value="shopping" className="space-y-6 mt-6">
