@@ -80,9 +80,23 @@ function StoreCard({ store }) {
   );
 }
 
-export default function ShoppingList({ shoppingList = [], items, tips }) {
-  // Support both flat items array and grouped shoppingList format
-  const list = shoppingList.length > 0 ? shoppingList : [];
+export default function ShoppingList({ shoppingList = [], tips }) {
+  // If flat array (has 'store' string field), group by store
+  const isFlat = shoppingList.length > 0 && typeof shoppingList[0].store === 'string' && !shoppingList[0].items;
+  const list = isFlat
+    ? Object.entries(
+        shoppingList.reduce((acc, item) => {
+          const s = item.store || 'Other';
+          if (!acc[s]) acc[s] = [];
+          acc[s].push(item);
+          return acc;
+        }, {})
+      ).map(([storeName, items]) => ({
+        store: storeName,
+        items,
+        totalCost: items.reduce((sum, i) => sum + (i.price || 0), 0),
+      }))
+    : shoppingList;
   const total = list.reduce((sum, s) => sum + (s.totalCost || 0), 0);
 
   return (
@@ -95,7 +109,7 @@ export default function ShoppingList({ shoppingList = [], items, tips }) {
 
       {/* Store cards */}
       <div className="space-y-4">
-        {shoppingList.map((store, i) => (
+        {list.map((store, i) => (
           <StoreCard key={i} store={store} />
         ))}
       </div>
