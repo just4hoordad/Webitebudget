@@ -15,6 +15,8 @@ export default function MealPlan() {
   const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
   const [removedItems, setRemovedItems] = useState(new Set());
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(false);
 
   useEffect(() => {
     generateGroceries();
@@ -65,6 +67,51 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
 
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
+    setWeeklyPlan(null);
+  };
+
+  const generateWeeklyPlan = async () => {
+    const availableItems = groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => item.name)
+    ).join(", ");
+
+    setLoadingPlan(true);
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Create a 4-week meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
+Use ONLY these available groceries: ${availableItems}.
+Organize by week (Week 1–4), each week has 7 days, each day has Breakfast, Lunch, Dinner.
+Keep meals simple, realistic, and varied.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          weeks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                week: { type: "number" },
+                days: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      day: { type: "string" },
+                      breakfast: { type: "string" },
+                      lunch: { type: "string" },
+                      dinner: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    setWeeklyPlan(result);
+    setLoadingPlan(false);
   };
 
   return (
@@ -136,9 +183,39 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
             </div>
           ))}
 
+          {/* Generate Weekly Plan Button */}
+          <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
+            <div>
+              <h3 className="font-heading font-semibold">4-Week Meal Plan</h3>
+              <p className="text-sm text-muted-foreground">Generate a personalized 4-week diet based on your grocery list.</p>
+            </div>
+            <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
+              {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating Plan...</> : "Generate 4-Week Meal Plan"}
+            </Button>
+          </div>
+
+          {/* Weekly Plan Display */}
+          {weeklyPlan?.weeks?.map((week) => (
+            <div key={week.week} className="bg-card border border-border rounded-xl overflow-hidden">
+              <div className="bg-primary px-5 py-3">
+                <h2 className="font-heading font-semibold text-primary-foreground">Week {week.week}</h2>
+              </div>
+              <div className="divide-y divide-border">
+                {week.days?.map((day, idx) => (
+                  <div key={idx} className="px-5 py-3 grid grid-cols-4 gap-3 text-sm">
+                    <div className="font-semibold text-foreground">{day.day}</div>
+                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>{day.breakfast}</div>
+                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>{day.lunch}</div>
+                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>{day.dinner}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
           <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
-              Regenerate List
+              Regenerate Grocery List
             </Button>
           </div>
         </>
