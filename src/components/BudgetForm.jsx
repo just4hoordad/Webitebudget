@@ -21,6 +21,7 @@ const DIETS = [
   { id: "high-protein", name: "High Protein", icon: Beef },
   { id: "pescatarian", name: "Pescatarian", icon: Fish },
   { id: "gluten-free", name: "Gluten Free", icon: Wheat },
+  { id: "halal", name: "Halal", icon: Users },
 ];
 
 export default function BudgetForm() {
