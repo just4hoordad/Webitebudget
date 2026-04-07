@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell } from "lucide-react";
 
 const STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -12,6 +12,13 @@ const STORES = [
   { id: "edeka", name: "Edeka", color: "bg-amber-100 text-amber-700 border-amber-200" },
   { id: "penny", name: "Penny", color: "bg-orange-100 text-orange-700 border-orange-200" },
   { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
+];
+
+const CALORIE_GOALS = [
+  { id: "lose", name: "Lose Weight", kcal: 1600, icon: TrendingDown, desc: "~1600 kcal/day" },
+  { id: "maintain", name: "Maintain", kcal: 2000, icon: Minus, desc: "~2000 kcal/day" },
+  { id: "gain", name: "Gain Weight", kcal: 2500, icon: TrendingUp, desc: "~2500 kcal/day" },
+  { id: "muscle", name: "Build Muscle", kcal: 2800, icon: Dumbbell, desc: "~2800 kcal/day" },
 ];
 
 const DIETS = [
@@ -29,6 +36,7 @@ export default function BudgetForm() {
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedDiet, setSelectedDiet] = useState("balanced");
+  const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
 
   const toggleStore = (storeId) => {
@@ -40,11 +48,13 @@ export default function BudgetForm() {
   };
 
   const handleGenerate = () => {
+    const goalKcal = CALORIE_GOALS.find(g => g.id === calorieGoal)?.kcal || 2000;
     const params = new URLSearchParams({
       budget: budget[0],
       stores: selectedStores.join(","),
       diet: selectedDiet,
       people: people,
+      calories: goalKcal,
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -115,6 +125,31 @@ export default function BudgetForm() {
         </div>
       </div>
 
+      {/* Calorie Goal */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-foreground">Calorie Goal</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {CALORIE_GOALS.map((goal) => {
+            const Icon = goal.icon;
+            return (
+              <button
+                key={goal.id}
+                onClick={() => setCalorieGoal(goal.id)}
+                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                  calorieGoal === goal.id
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{goal.name}</span>
+                <span className={`text-xs ${ calorieGoal === goal.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{goal.desc}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Diet Type */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-foreground">Diet Preference</label>
@@ -139,7 +174,6 @@ export default function BudgetForm() {
         </div>
       </div>
 
-      {/* Generate Button */}
       <Button
         onClick={handleGenerate}
         disabled={selectedStores.length === 0}
