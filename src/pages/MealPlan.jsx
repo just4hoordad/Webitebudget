@@ -79,42 +79,35 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a 4-week meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
-Use ONLY these available groceries: ${availableItems}.
-Organize by week (Week 1 to 4). Each week MUST have exactly 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. Every single day must be included. Each day has Breakfast, Lunch, Dinner.
-For each meal, list the ingredients used with exact quantities (e.g. "100g chicken breast, 2 eggs, 50g oats").
-Keep meals simple, realistic, and varied.`,
+      prompt: `Create a 7-day meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
+You MUST use ONLY these grocery items: ${availableItems}. Do NOT use any ingredient not in this list.
+Include exactly 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+Each day has Breakfast, Lunch, and Dinner.
+For each meal, list the exact ingredients and quantities used (e.g. "100g chicken breast, 2 eggs").`,
       response_json_schema: {
         type: "object",
         properties: {
-          weeks: {
+          days: {
             type: "array",
             items: {
               type: "object",
               properties: {
-                week: { type: "number" },
-                days: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      day: { type: "string" },
-                      breakfast: { type: "string" },
-                      breakfast_ingredients: { type: "string" },
-                      lunch: { type: "string" },
-                      lunch_ingredients: { type: "string" },
-                      dinner: { type: "string" },
-                      dinner_ingredients: { type: "string" }
-                    }
-                  }
-                }
+                day: { type: "string" },
+                breakfast: { type: "string" },
+                breakfast_ingredients: { type: "string" },
+                lunch: { type: "string" },
+                lunch_ingredients: { type: "string" },
+                dinner: { type: "string" },
+                dinner_ingredients: { type: "string" }
               }
             }
           }
         }
       }
     });
-    setWeeklyPlan(result);
+    // Repeat the same week 4 times
+    const weeks = [1, 2, 3, 4].map(w => ({ week: w, days: result.days }));
+    setWeeklyPlan({ weeks });
     setLoadingPlan(false);
   };
 
