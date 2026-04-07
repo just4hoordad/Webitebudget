@@ -1,0 +1,31 @@
+{
+  "name": "MealPlan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "diet": {
+      "type": "string"
+    },
+    "budget": {
+      "type": "number"
+    },
+    "calories": {
+      "type": "number"
+    },
+    "people": {
+      "type": "number"
+    },
+    "stores": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "name",
+    "plan"
+  ]
+}

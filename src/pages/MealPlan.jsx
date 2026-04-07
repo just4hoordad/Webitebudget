@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, ShoppingBasket, X } from "lucide-react";
+import { ArrowLeft, Loader2, ShoppingBasket, X, Save } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 export default function MealPlan() {
   const params = new URLSearchParams(window.location.search);
@@ -17,6 +18,7 @@ export default function MealPlan() {
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     generateGroceries();
@@ -114,6 +116,27 @@ For each meal, list only ingredients from the grocery list above with quantities
     // Store the single week (can be repeated for 4 weeks by user if needed)
     setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
+  };
+
+  const saveMealPlan = async () => {
+    if (!weeklyPlan) return;
+    setSaving(true);
+    try {
+      await base44.entities.MealPlan.create({
+        name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
+        diet,
+        budget: parseFloat(budget),
+        calories: parseFloat(calories),
+        people: parseFloat(people),
+        stores,
+        plan: weeklyPlan.weeks[0]
+      });
+      toast.success("Meal plan saved!");
+    } catch (error) {
+      toast.error("Failed to save meal plan");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -248,13 +271,17 @@ For each meal, list only ingredients from the grocery list above with quantities
                  </div>
                ))}
              </div>
-             <div className="bg-muted px-5 py-3">
+             <div className="bg-muted px-5 py-3 flex items-center justify-between">
                <p className="text-xs text-muted-foreground">💡 Repeat this weekly plan for 4 weeks to build your 4-week meal schedule.</p>
+               <Button onClick={saveMealPlan} disabled={saving} size="sm" className="gap-2">
+                 <Save className="h-4 w-4" />
+                 {saving ? "Saving..." : "Save Plan"}
+               </Button>
              </div>
-           </div>
-          )}
+             </div>
+             )}
 
-          <div className="pb-8">
+             <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
               Regenerate Grocery List
             </Button>
