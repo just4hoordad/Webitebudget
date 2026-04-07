@@ -28,14 +28,19 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a list of groceries for a ${diet} diet for ${people} person(s) in Germany with a monthly budget of €${budget}.
+      prompt: `Generate a grocery list for a ${diet} diet for ${people} person(s) in Germany with a STRICT monthly budget of €${budget}.
 The target is ~${calories} kcal/day per person.
 
-For EACH item, find the CHEAPEST price across these stores: ${stores}.
-Only list the cheapest option for each product (show which store it's from).
-Return realistic German supermarket products with accurate prices.
-Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks).
-Make sure the total cost fits within the €${budget} monthly budget.`,
+CRITICAL REQUIREMENTS:
+1. The TOTAL estimated cost MUST be as close as possible to €${budget} (ideally within ±5% of budget)
+2. For EACH item, find the CHEAPEST price across these stores: ${stores}
+3. Only list the cheapest option for each product (show which store it's from)
+4. Return realistic German supermarket products with accurate prices
+5. Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks)
+6. Prioritize cost-effective ingredients to maximize nutrition while hitting the budget target
+7. If the total is below budget, add more items; if above, remove less essential items
+
+The grocery list must last exactly 1 month and support a balanced ${diet} diet at ~${calories} kcal/day.`,
       response_json_schema: {
         type: "object",
         properties: {
