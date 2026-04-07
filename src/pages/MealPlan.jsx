@@ -176,39 +176,36 @@ For each meal, list only ingredients from the grocery list above with quantities
 
           {/* Categories */}
           {groceries?.categories?.map((category) => (
-            <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="bg-secondary px-5 py-3">
-                <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
-                  {category.name}
-                </h2>
-              </div>
-              <div className="divide-y divide-border">
-                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
-                    </div>
-                    <div className="flex items-center gap-3 ml-4">
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
-                      </div>
-                      <button
-                        onClick={() => removeItem(category.name, item.name)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-muted px-5 py-3">
-                <p className="text-xs text-muted-foreground">💡 Repeat this weekly plan for 4 weeks to build your 4-week meal schedule.</p>
-              </div>
-            </div>
-          )}
+           <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="bg-secondary px-5 py-3">
+               <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
+                 {category.name}
+               </h2>
+             </div>
+             <div className="divide-y divide-border">
+               {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
+                 <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
+                   <div className="flex-1">
+                     <p className="font-medium text-foreground">{item.name}</p>
+                     <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
+                   </div>
+                   <div className="flex items-center gap-3 ml-4">
+                     <div className="text-right">
+                       <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                       {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                     </div>
+                     <button
+                       onClick={() => removeItem(category.name, item.name)}
+                       className="text-muted-foreground hover:text-destructive transition-colors"
+                     >
+                       <X className="h-4 w-4" />
+                     </button>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+          ))}
 
           {/* Generate Weekly Plan Button */}
           {!weeklyPlan && (
