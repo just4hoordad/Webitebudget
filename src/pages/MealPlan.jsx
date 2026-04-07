@@ -233,7 +233,11 @@ Return ONLY valid JSON in this exact format:
 
         <TabsContent value="meals" className="space-y-6 mt-6">
           {DAYS.map((day) => {
-            const meals = mealPlan?.days?.[day] || [];
+            // Try exact match first, then case-insensitive
+            const daysObj = mealPlan?.days || {};
+            const meals = daysObj[day] ||
+              daysObj[day.toLowerCase()] ||
+              Object.entries(daysObj).find(([k]) => k.toLowerCase() === day.toLowerCase())?.[1] || [];
             return <DayMeals key={day} day={day} meals={meals} />;
           })}
         </TabsContent>
@@ -253,7 +257,10 @@ Return ONLY valid JSON in this exact format:
 
         <TabsContent value="nutrition" className="space-y-6 mt-6">
           {mealPlan?.nutrition && (
-            <NutritionSummary nutrition={mealPlan.nutrition} />
+            <NutritionSummary nutrition={{
+              ...mealPlan.nutrition,
+              dailyCalories: mealPlan.nutrition.dailyCalories ?? mealPlan.nutrition.calories,
+            }} />
           )}
           {mealPlan?.tips && mealPlan.tips.length > 0 && (
             <div className="bg-secondary/50 rounded-2xl p-5">
