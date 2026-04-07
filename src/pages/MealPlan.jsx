@@ -105,8 +105,8 @@ For each meal, list the exact ingredients and quantities used (e.g. "100g chicke
         }
       }
     });
-    // Repeat the same week 4 times
-    const weeks = [1, 2, 3, 4].map(w => ({ week: w, days: result.days }));
+    // Repeat the same week 4 times (spread to ensure unique array references)
+    const weeks = [1, 2, 3, 4].map(w => ({ week: w, days: [...(result.days || [])] }));
     setWeeklyPlan({ weeks });
     setLoadingPlan(false);
   };
@@ -199,7 +199,7 @@ For each meal, list the exact ingredients and quantities used (e.g. "100g chicke
               </div>
               <div className="divide-y divide-border">
                 {week.days?.map((day, idx) => (
-                  <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
+                  <div key={`${week.week}-${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
                     <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
                     <div className="text-muted-foreground col-span-4 sm:col-span-1">
                       <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>
