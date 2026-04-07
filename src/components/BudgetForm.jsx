@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell } from "lucide-react";
 
 const STORES = [
@@ -143,7 +142,7 @@ export default function BudgetForm() {
               >
                 <Icon className="h-4 w-4" />
                 <span>{goal.name}</span>
-                <span className={`text-xs ${ calorieGoal === goal.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{goal.desc}</span>
+                <span className={`text-xs ${calorieGoal === goal.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{goal.desc}</span>
               </button>
             );
           })}
@@ -174,6 +173,7 @@ export default function BudgetForm() {
         </div>
       </div>
 
+      {/* Generate Button */}
       <Button
         onClick={handleGenerate}
         disabled={selectedStores.length === 0}
