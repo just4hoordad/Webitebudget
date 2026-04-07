@@ -78,12 +78,12 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
-        .map(item => item.name)
+        .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a complete 7-day meal plan using ONLY these ingredients: ${availableItems}
+      prompt: `Create a complete 7-day meal plan for 4-week rotation using ONLY these ingredients with their quantities: ${availableItems}
 
 YOU MUST INCLUDE ALL 7 DAYS:
 Day 1: Monday
@@ -98,11 +98,21 @@ Diet type: ${diet}
 Target calories per day: ${calories} kcal
 Number of people: ${people}
 
-For EACH of the 7 days, provide breakfast, lunch, and dinner with calorie counts.
-Calorie distribution per day: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
-Use ONLY ingredients from the provided list.
+IMPORTANT REQUIREMENTS:
+1. Use ONLY the ingredients listed above
+2. For each meal, specify EXACTLY how much of each ingredient is used
+3. The grocery list provided contains quantities for a full month - your 7-day plan will repeat 4 times
+4. Do NOT use more of any ingredient than what's provided in the monthly grocery list
+5. Distribute ingredient usage evenly across the 4-week cycle
 
-IMPORTANT: Return exactly 7 days with no gaps or missing days.`,
+For EACH of the 7 days, provide breakfast, lunch, and dinner with:
+- Meal name
+- Exact calorie count
+- List of ingredients with precise quantities used
+
+Calorie distribution per day: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+
+RETURN EXACTLY 7 days with no gaps or missing days.`,
       response_json_schema: {
         type: "object",
         properties: {
