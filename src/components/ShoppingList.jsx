@@ -80,8 +80,10 @@ function StoreCard({ store }) {
   );
 }
 
-export default function ShoppingList({ shoppingList, tips }) {
-  const total = shoppingList.reduce((sum, s) => sum + (s.totalCost || 0), 0);
+export default function ShoppingList({ shoppingList = [], items, tips }) {
+  // Support both flat items array and grouped shoppingList format
+  const list = shoppingList.length > 0 ? shoppingList : [];
+  const total = list.reduce((sum, s) => sum + (s.totalCost || 0), 0);
 
   return (
     <div className="space-y-5">

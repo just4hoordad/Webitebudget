@@ -248,7 +248,7 @@ Return ONLY valid JSON in this exact format:
 
         <TabsContent value="shopping" className="space-y-6 mt-6">
           <StoreComparison storeBreakdown={mealPlan?.storeBreakdown} />
-          <ShoppingList items={mealPlan?.shoppingList || []} />
+          <ShoppingList shoppingList={mealPlan?.shoppingList || []} tips={mealPlan?.tips} />
         </TabsContent>
 
         <TabsContent value="nutrition" className="space-y-6 mt-6">
