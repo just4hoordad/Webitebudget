@@ -111,9 +111,8 @@ For each meal, list only ingredients from the grocery list above with quantities
         }
       }
     });
-    // Repeat the same week 4 times (spread to ensure unique array references)
-    const weeks = [1, 2, 3, 4].map(w => ({ week: w, days: [...(result.days || [])] }));
-    setWeeklyPlan({ weeks });
+    // Store the single week (can be repeated for 4 weeks by user if needed)
+    setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
   };
 
@@ -205,50 +204,58 @@ For each meal, list only ingredients from the grocery list above with quantities
                   </div>
                 ))}
               </div>
+              <div className="bg-muted px-5 py-3">
+                <p className="text-xs text-muted-foreground">💡 Repeat this weekly plan for 4 weeks to build your 4-week meal schedule.</p>
+              </div>
             </div>
-          ))}
+          )}
 
           {/* Generate Weekly Plan Button */}
-          <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
-            <div>
-              <h3 className="font-heading font-semibold">4-Week Meal Plan</h3>
-              <p className="text-sm text-muted-foreground">Generate a personalized 4-week diet based on your grocery list.</p>
-            </div>
-            <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-              {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating Plan...</> : "Generate 4-Week Meal Plan"}
-            </Button>
-          </div>
+          {!weeklyPlan && (
+           <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
+             <div>
+               <h3 className="font-heading font-semibold">4-Week Meal Plan</h3>
+               <p className="text-sm text-muted-foreground">Generate a personalized 4-week diet based on your grocery list.</p>
+             </div>
+             <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
+               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating Plan...</> : "Generate 4-Week Meal Plan"}
+             </Button>
+           </div>
+          )}
 
           {/* Weekly Plan Display */}
-          {weeklyPlan?.weeks?.map((week) => (
-            <div key={week.week} className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="bg-primary px-5 py-3">
-                <h2 className="font-heading font-semibold text-primary-foreground">Week {week.week}</h2>
-              </div>
-              <div className="divide-y divide-border">
-                {week.days?.map((day, idx) => (
-                  <div key={`${week.week}-${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
-                    <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
-                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                      <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>
-                      <span>{day.breakfast}</span>
-                      {day.breakfast_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.breakfast_ingredients}</p>}
-                    </div>
-                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                      <span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>
-                      <span>{day.lunch}</span>
-                      {day.lunch_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.lunch_ingredients}</p>}
-                    </div>
-                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                      <span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>
-                      <span>{day.dinner}</span>
-                      {day.dinner_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.dinner_ingredients}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          {weeklyPlan?.weeks?.[0] && (
+           <div className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="bg-primary px-5 py-3">
+               <h2 className="font-heading font-semibold text-primary-foreground">Your Weekly Meal Plan</h2>
+             </div>
+             <div className="divide-y divide-border">
+               {weeklyPlan.weeks[0].days?.map((day, idx) => (
+                 <div key={`${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
+                   <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
+                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>
+                     <span>{day.breakfast}</span>
+                     {day.breakfast_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.breakfast_ingredients}</p>}
+                   </div>
+                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>
+                     <span>{day.lunch}</span>
+                     {day.lunch_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.lunch_ingredients}</p>}
+                   </div>
+                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                     <span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>
+                     <span>{day.dinner}</span>
+                     {day.dinner_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.dinner_ingredients}</p>}
+                   </div>
+                 </div>
+               ))}
+             </div>
+             <div className="bg-muted px-5 py-3">
+               <p className="text-xs text-muted-foreground">💡 Repeat this weekly plan for 4 weeks to build your 4-week meal schedule.</p>
+             </div>
+           </div>
+          )}
 
           <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
