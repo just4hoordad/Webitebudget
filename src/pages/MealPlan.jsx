@@ -66,58 +66,62 @@ Return ONLY valid JSON in this exact format:
   "tips": ["string"]
 }`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          weeklyBudget: { type: "number" },
-          totalWeeklyCost: { type: "number" },
-          days: { type: "object" },
-          shoppingList: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                quantity: { type: "string" },
-                price: { type: "number" },
-                store: { type: "string" },
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            weeklyBudget: { type: "number" },
+            totalWeeklyCost: { type: "number" },
+            days: { type: "object" },
+            shoppingList: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  quantity: { type: "string" },
+                  price: { type: "number" },
+                  store: { type: "string" },
+                },
               },
             },
-          },
-          nutrition: {
-            type: "object",
-            properties: {
-              calories: { type: "number" },
-              caloriesTarget: { type: "number" },
-              protein: { type: "number" },
-              proteinTarget: { type: "number" },
-              carbs: { type: "number" },
-              carbsTarget: { type: "number" },
-              fat: { type: "number" },
-              fatTarget: { type: "number" },
-            },
-          },
-          storeBreakdown: {
-            type: "array",
-            items: {
+            nutrition: {
               type: "object",
               properties: {
-                id: { type: "string" },
-                name: { type: "string" },
-                total: { type: "number" },
+                calories: { type: "number" },
+                caloriesTarget: { type: "number" },
+                protein: { type: "number" },
+                proteinTarget: { type: "number" },
+                carbs: { type: "number" },
+                carbsTarget: { type: "number" },
+                fat: { type: "number" },
+                fatTarget: { type: "number" },
               },
             },
+            storeBreakdown: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  name: { type: "string" },
+                  total: { type: "number" },
+                },
+              },
+            },
+            tips: { type: "array", items: { type: "string" } },
           },
-          tips: { type: "array", items: { type: "string" } },
         },
-      },
-      model: "gemini_3_flash",
-    });
-
-    setMealPlan(result);
-    setLoading(false);
+        model: "gemini_3_flash",
+      });
+      setMealPlan(result);
+    } catch (err) {
+      setError("Failed to generate meal plan. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
