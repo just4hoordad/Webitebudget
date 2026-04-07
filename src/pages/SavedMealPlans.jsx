@@ -92,11 +92,32 @@ export default function SavedMealPlans() {
                 </button>
               </div>
               {plan.plan?.days && (
-                <div className="text-xs text-muted-foreground bg-muted/50 rounded p-3 max-h-48 overflow-y-auto">
-                  <p className="font-medium mb-1">7-Day Meal Plan:</p>
-                  {plan.plan.days.map((day, idx) => (
-                    <p key={idx}><strong>{day.day}:</strong> {day.breakfast} • {day.lunch} • {day.dinner}</p>
-                  ))}
+                <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
+                  <div className="bg-primary px-5 py-3">
+                    <h3 className="font-heading font-semibold text-primary-foreground">7-Day Meal Plan</h3>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {plan.plan.days.map((day, idx) => (
+                      <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
+                        <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
+                        <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                          <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
+                          <span>{day.breakfast}</span>
+                          {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                        </div>
+                        <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                          <span className="font-medium text-foreground block text-xs mb-0.5">Lunch {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
+                          <span>{day.lunch}</span>
+                          {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                        </div>
+                        <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                          <span className="font-medium text-foreground block text-xs mb-0.5">Dinner {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
+                          <span>{day.dinner}</span>
+                          {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
