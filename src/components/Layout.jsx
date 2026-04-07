@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Salad, Home, BookOpen } from "lucide-react";
+import { ShoppingCart, Home, BookMarked } from "lucide-react";
 
 export default function Layout() {
   const location = useLocation();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
+    { path: "/saved-plans", label: "Saved Plans", icon: BookMarked },
   ];
 
   return (
