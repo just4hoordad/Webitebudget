@@ -35,21 +35,31 @@ export default function MealPlan() {
     const freshParams = new URLSearchParams(window.location.search);
     const freshPlanType = freshParams.get("planType") || "weekly";
     const freshIngredients = freshParams.get("ingredients") || "";
-    const freshBudget = freshParams.get("budget") || budget;
-    const freshDiet = freshParams.get("diet") || diet;
-    const freshPeople = freshParams.get("people") || people;
+    const freshBudget = freshParams.get("budget") || "150";
+    const freshDiet = freshParams.get("diet") || "balanced";
+    const freshPeople = freshParams.get("people") || "1";
+    const freshStores = freshParams.get("stores") || "aldi,lidl";
+    const freshCalories = freshParams.get("calories") || "2000";
 
     const isMonthly = freshPlanType === "monthly";
+    const weeklyBudget = (parseFloat(freshBudget) / 4.33).toFixed(0);
+    const storeList = freshStores.split(",").join(", ");
     const ingredientHint = freshIngredients ? `\n\nYou MUST use ONLY these ingredients to build the meal plan: ${freshIngredients}. Do not add other ingredients.` : "";
     const repeatNote = !isMonthly ? "\n\nIMPORTANT: This is a WEEKLY plan for budget savings — repeat the same meals on multiple days (e.g. same lunch 3-4 days in a row). Keep variety only between Breakfast/Lunch/Dinner types." : "";
 
-    const prompt = `You are a nutrition and budget expert for students living in Germany. 
-Create a detailed 7-day meal plan (Monday to Sunday) with 3 meals per day (Breakfast, Lunch, Dinner).${repeatNote}${ingredientHint}
+    const prompt = `You are a nutrition and budget expert for students living in Germany.
+Create a detailed 7-day meal plan (Monday to Sunday) with 3 meals per day (Breakfast, Lunch, Dinner).
+
+STRICT REQUIREMENTS — follow all of these exactly:
+- Diet type: ${freshDiet} (ONLY suggest meals that fit this diet. If high-protein, every meal must be protein-rich. If vegan, NO animal products.)
+- Weekly budget: €${weeklyBudget} for ${freshPeople} person(s). Total cost of all meals must stay within this budget.
+- Target calories per day: ${freshCalories} kcal. Every day must average approximately ${freshCalories} kcal.
+- Shopping ONLY at these stores: ${storeList}. Do NOT suggest stores outside this list.${repeatNote}${ingredientHint}
 
 Also provide:
-1. A consolidated weekly shopping list with item name, quantity, estimated price, and which store is cheapest for that item
-2. Daily average nutrition (calories, protein g, carbs g, fat g) with recommended targets
-3. A cost breakdown per store showing total weekly cost if you shopped there
+1. A consolidated weekly shopping list — only items available at: ${storeList}
+2. Daily average nutrition targeting ${freshCalories} kcal/day
+3. A cost breakdown only for these stores: ${storeList}
 
 Return ONLY valid JSON in this exact format:
 {
