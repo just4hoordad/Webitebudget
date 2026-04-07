@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Salad, Home } from "lucide-react";
+import { ShoppingCart, Salad, Home, BookOpen } from "lucide-react";
 
 export default function Layout() {
   const location = useLocation();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
+    { path: "/recipes", label: "Recipes", icon: BookOpen },
     { path: "/meal-plan", label: "Meal Plan", icon: Salad },
   ];
 

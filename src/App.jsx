@@ -9,6 +9,7 @@ import MealPlan from './pages/MealPlan';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import Recipes from './pages/Recipes';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -39,6 +40,7 @@ const AuthenticatedApp = () => {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/meal-plan" element={<MealPlan />} />
+        <Route path="/recipes" element={<Recipes />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
