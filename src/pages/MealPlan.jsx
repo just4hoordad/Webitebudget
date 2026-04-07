@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, ShoppingBasket } from "lucide-react";
+import { ArrowLeft, Loader2, ShoppingBasket, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function MealPlan() {
@@ -12,14 +12,16 @@ export default function MealPlan() {
   const people = params.get("people") || 1;
   const calories = params.get("calories") || 2000;
 
-  const [groceries, setGroceries] = useState([]);
+  const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [removedItems, setRemovedItems] = useState(new Set());
 
   useEffect(() => {
     generateGroceries();
   }, []);
 
   const generateGroceries = async () => {
+    setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Generate a list of groceries for a ${diet} diet for ${people} person(s) in Germany with a monthly budget of €${budget}.
@@ -61,6 +63,10 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
     setLoading(false);
   };
 
+  const removeItem = (categoryName, itemName) => {
+    setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
@@ -92,13 +98,13 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
               <span className="font-heading font-semibold text-foreground">Estimated Total</span>
             </div>
             <span className="font-heading text-2xl font-bold text-primary">
-              €{groceries.total_estimated_cost?.toFixed(2)}
+              €{groceries?.total_estimated_cost?.toFixed(2)}
               <span className="text-sm font-normal text-muted-foreground ml-1">/ month</span>
             </span>
           </div>
 
           {/* Categories */}
-          {groceries.categories?.map((category) => (
+          {groceries?.categories?.map((category) => (
             <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="bg-secondary px-5 py-3">
                 <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
@@ -106,17 +112,23 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
                 </h2>
               </div>
               <div className="divide-y divide-border">
-                {category.items?.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors">
+                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
                     <div className="flex-1">
                       <p className="font-medium text-foreground">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
                     </div>
-                    <div className="text-right ml-4">
-                      <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                      {item.store && (
-                        <p className="text-xs text-muted-foreground">{item.store}</p>
-                      )}
+                    <div className="flex items-center gap-3 ml-4">
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                      </div>
+                      <button
+                        onClick={() => removeItem(category.name, item.name)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
