@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckSquare, Square, ShoppingCart, ExternalLink, RotateCcw, Euro } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,24 +11,33 @@ const ONLINE_STORES = [
 
 export default function GroceryList({ items = [] }) {
   const [checked, setChecked] = useState({});
+  const [pinnedItems, setPinnedItems] = useState([]);
 
-  const toggleItem = (index) => {
-    setChecked((prev) => ({ ...prev, [index]: !prev[index] }));
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("bb_pinned_groceries") || "[]");
+    setPinnedItems(stored);
+  }, []);
+
+  const clearPinned = () => {
+    localStorage.removeItem("bb_pinned_groceries");
+    setPinnedItems([]);
   };
 
+  const toggleItem = (index) => setChecked((prev) => ({ ...prev, [index]: !prev[index] }));
   const resetAll = () => setChecked({});
 
+  const allItems = [...items, ...pinnedItems];
+  const checkedCount = Object.values(checked).filter(Boolean).length;
+
   // Group items by store
-  const grouped = items.reduce((acc, item, i) => {
+  const grouped = allItems.reduce((acc, item, i) => {
     const store = item.store || "Other";
     if (!acc[store]) acc[store] = [];
     acc[store].push({ ...item, index: i });
     return acc;
   }, {});
-
-  const checkedCount = Object.values(checked).filter(Boolean).length;
-  const total = items.reduce((sum, item) => sum + (item.price || 0), 0);
-  const savedAmount = items
+  const total = allItems.reduce((sum, item) => sum + (item.price || 0), 0);
+  const savedAmount = allItems
     .filter((_, i) => checked[i])
     .reduce((sum, item) => sum + (item.price || 0), 0);
 
@@ -39,7 +48,7 @@ export default function GroceryList({ items = [] }) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-heading font-semibold">Grocery List</h3>
-            <p className="text-sm text-muted-foreground">{checkedCount} of {items.length} items checked</p>
+            <p className="text-sm text-muted-foreground">{checkedCount} of {allItems.length} items checked</p>
           </div>
           <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={resetAll}>
             <RotateCcw className="h-3.5 w-3.5" />
@@ -50,7 +59,7 @@ export default function GroceryList({ items = [] }) {
         <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${items.length ? (checkedCount / items.length) * 100 : 0}%` }}
+            style={{ width: `${allItems.length ? (checkedCount / allItems.length) * 100 : 0}%` }}
           />
         </div>
 
@@ -106,6 +115,16 @@ export default function GroceryList({ items = [] }) {
           </div>
         ))}
       </div>
+
+      {/* Pinned from recipes */}
+      {pinnedItems.length > 0 && (
+        <div className="bg-secondary/30 border border-border rounded-2xl p-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{pinnedItems.length} ingredients</span> added from recipes
+          </p>
+          <button onClick={clearPinned} className="text-xs text-destructive hover:underline">Clear</button>
+        </div>
+      )}
 
       {/* Online store links */}
       <div className="bg-secondary/40 border border-border rounded-2xl p-5 space-y-3">

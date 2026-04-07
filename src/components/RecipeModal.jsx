@@ -1,4 +1,5 @@
-import { X, Clock, Flame, Euro, Users, ChefHat, ArrowRight } from "lucide-react";
+import { X, Clock, Flame, Euro, ChefHat, ArrowRight, Heart, ShoppingCart, Check } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -9,21 +10,39 @@ const MACRO_COLORS = {
   fiber: "bg-purple-100 text-purple-700",
 };
 
-export default function RecipeModal({ recipe, onClose }) {
+export default function RecipeModal({ recipe, onClose, isFavorite, onToggleFavorite }) {
   const navigate = useNavigate();
+  const [addedToGrocery, setAddedToGrocery] = useState(false);
 
   if (!recipe) return null;
 
-  const handleAddToPlan = () => {
+  const primaryDiet = Array.isArray(recipe.diet) ? recipe.diet[0] : recipe.diet;
+
+  const handleAddToMealPlan = () => {
     const params = new URLSearchParams({
       budget: "150",
       stores: "aldi,lidl",
-      diet: recipe.diet || "balanced",
+      diet: primaryDiet || "balanced",
       people: "1",
       calories: recipe.calories || 2000,
     });
     navigate(`/meal-plan?${params.toString()}`);
     onClose();
+  };
+
+  const handleAddToGrocery = () => {
+    const existing = JSON.parse(localStorage.getItem("bb_pinned_groceries") || "[]");
+    const newItems = (recipe.ingredients || []).map((ing) => ({
+      name: ing,
+      quantity: "1x",
+      price: parseFloat((recipe.cost / (recipe.ingredients?.length || 1)).toFixed(2)),
+      store: "Any",
+      fromRecipe: recipe.name,
+    }));
+    const merged = [...existing, ...newItems];
+    localStorage.setItem("bb_pinned_groceries", JSON.stringify(merged));
+    setAddedToGrocery(true);
+    setTimeout(() => setAddedToGrocery(false), 2500);
   };
 
   return (
@@ -34,13 +53,27 @@ export default function RecipeModal({ recipe, onClose }) {
       >
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4 sticky top-0 bg-background border-b border-border z-10">
-          <div className="pr-8">
+          <div className="pr-4 flex-1">
             <h2 className="font-heading font-bold text-xl">{recipe.name}</h2>
             <p className="text-sm text-muted-foreground mt-0.5">{recipe.description}</p>
+            {Array.isArray(recipe.diet) && recipe.diet.length > 1 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {recipe.diet.map((d) => (
+                  <span key={d} className="text-xs bg-secondary px-2 py-0.5 rounded-full capitalize">{d}</span>
+                ))}
+              </div>
+            )}
           </div>
-          <button onClick={onClose} className="rounded-xl p-2 hover:bg-secondary transition-colors shrink-0">
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleFavorite && (
+              <button onClick={onToggleFavorite} className={`p-2 rounded-xl transition-colors ${isFavorite ? "text-rose-500" : "text-muted-foreground hover:text-rose-400"}`}>
+                <Heart className={`h-5 w-5 ${isFavorite ? "fill-rose-500" : ""}`} />
+              </button>
+            )}
+            <button onClick={onClose} className="rounded-xl p-2 hover:bg-secondary transition-colors">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
@@ -101,12 +134,22 @@ export default function RecipeModal({ recipe, onClose }) {
             </div>
           )}
 
-          {/* CTA */}
-          <Button onClick={handleAddToPlan} className="w-full rounded-xl gap-2 font-heading font-semibold">
-            <ChefHat className="h-4 w-4" />
-            Generate Meal Plan with this Diet
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {/* CTAs */}
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handleAddToGrocery}
+              variant="outline"
+              className="w-full rounded-xl gap-2 font-heading font-semibold"
+            >
+              {addedToGrocery ? <Check className="h-4 w-4 text-green-600" /> : <ShoppingCart className="h-4 w-4" />}
+              {addedToGrocery ? "Added to grocery list!" : "Add ingredients to grocery list"}
+            </Button>
+            <Button onClick={handleAddToMealPlan} className="w-full rounded-xl gap-2 font-heading font-semibold">
+              <ChefHat className="h-4 w-4" />
+              Generate Meal Plan with this Diet
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

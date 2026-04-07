@@ -37,7 +37,7 @@ Diet type: ${diet}
 IMPORTANT: Use REAL current approximate prices from German discount/grocery stores (${stores.split(",").join(", ")}). 
 Focus on budget-friendly staples popular in Germany: bread, Quark, oats, potatoes, seasonal vegetables, legumes, pasta, rice, eggs, etc.
 
-For each meal provide: name, short description, main ingredients, estimated cost per serving in euros, calories, prep time in minutes, and meal type (Breakfast/Lunch/Dinner).
+For each meal provide: name, short description, main ingredients (array of strings), step-by-step cooking instructions (array of strings), estimated cost per serving in euros, calories, prep time in minutes, meal type (Breakfast/Lunch/Dinner), and nutrition object with protein/carbs/fat/fiber in grams.
 
 Also provide:
 1. A consolidated weekly shopping list with item name, quantity, estimated price, and which store is cheapest for that item
@@ -50,7 +50,7 @@ Return ONLY valid JSON in this exact format:
   "totalWeeklyCost": number,
   "days": {
     "Monday": [
-      {"name": "string", "description": "string", "ingredients": ["string"], "cost": number, "calories": number, "prepTime": number, "type": "Breakfast"}
+      {"name": "string", "description": "string", "ingredients": ["string"], "instructions": ["string"], "cost": number, "calories": number, "prepTime": number, "type": "Breakfast", "nutrition": {"protein": number, "carbs": number, "fat": number, "fiber": number}}
     ]
   },
   "shoppingList": [
