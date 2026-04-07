@@ -115,6 +115,7 @@ Return ONLY valid JSON in this exact format:
           tips: { type: "array", items: { type: "string" } },
         },
       },
+      model: "gemini_3_flash",
       add_context_from_internet: true,
     });
 
