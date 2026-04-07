@@ -82,6 +82,7 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
       prompt: `Create a 4-week meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
 Use ONLY these available groceries: ${availableItems}.
 Organize by week (Week 1–4), each week has 7 days, each day has Breakfast, Lunch, Dinner.
+For each meal, list the ingredients used with exact quantities (e.g. "100g chicken breast, 2 eggs, 50g oats").
 Keep meals simple, realistic, and varied.`,
       response_json_schema: {
         type: "object",
@@ -99,8 +100,11 @@ Keep meals simple, realistic, and varied.`,
                     properties: {
                       day: { type: "string" },
                       breakfast: { type: "string" },
+                      breakfast_ingredients: { type: "string" },
                       lunch: { type: "string" },
-                      dinner: { type: "string" }
+                      lunch_ingredients: { type: "string" },
+                      dinner: { type: "string" },
+                      dinner_ingredients: { type: "string" }
                     }
                   }
                 }
@@ -202,11 +206,23 @@ Keep meals simple, realistic, and varied.`,
               </div>
               <div className="divide-y divide-border">
                 {week.days?.map((day, idx) => (
-                  <div key={idx} className="px-5 py-3 grid grid-cols-4 gap-3 text-sm">
-                    <div className="font-semibold text-foreground">{day.day}</div>
-                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>{day.breakfast}</div>
-                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>{day.lunch}</div>
-                    <div className="text-muted-foreground"><span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>{day.dinner}</div>
+                  <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
+                    <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
+                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                      <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast</span>
+                      <span>{day.breakfast}</span>
+                      {day.breakfast_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.breakfast_ingredients}</p>}
+                    </div>
+                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                      <span className="font-medium text-foreground block text-xs mb-0.5">Lunch</span>
+                      <span>{day.lunch}</span>
+                      {day.lunch_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.lunch_ingredients}</p>}
+                    </div>
+                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                      <span className="font-medium text-foreground block text-xs mb-0.5">Dinner</span>
+                      <span>{day.dinner}</span>
+                      {day.dinner_ingredients && <p className="text-xs text-primary/70 mt-1 italic">{day.dinner_ingredients}</p>}
+                    </div>
                   </div>
                 ))}
               </div>
