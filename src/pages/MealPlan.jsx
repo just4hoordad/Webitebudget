@@ -132,14 +132,7 @@ YOU MUST RETURN ALL 7 DAYS. DO NOT RETURN FEWER THAN 7 DAYS.`,
         }
       }
     });
-    // Validate we have exactly 7 days
-    if (!result.days || result.days.length !== 7) {
-      toast.error(`Expected 7 days, got ${result.days?.length || 0}. Retrying...`);
-      setTimeout(() => generateWeeklyPlan(), 2000);
-      setLoadingPlan(false);
-      return;
-    }
-    setWeeklyPlan({ weeks: [{ week: 1, days: result.days }] });
+    setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
   };
 
