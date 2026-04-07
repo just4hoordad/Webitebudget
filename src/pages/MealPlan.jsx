@@ -83,16 +83,26 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a 7-day meal plan using ONLY these ingredients: ${availableItems}
+      prompt: `Create a complete 7-day meal plan using ONLY these ingredients: ${availableItems}
 
-Generate meals for all 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+YOU MUST INCLUDE ALL 7 DAYS:
+Day 1: Monday
+Day 2: Tuesday
+Day 3: Wednesday
+Day 4: Thursday
+Day 5: Friday
+Day 6: Saturday
+Day 7: Sunday
+
 Diet type: ${diet}
 Target calories per day: ${calories} kcal
 Number of people: ${people}
 
-For each of the 7 days, include breakfast, lunch, and dinner with calorie counts.
-Distribute calories: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
-All ingredients must come from the list above only.`,
+For EACH of the 7 days, provide breakfast, lunch, and dinner with calorie counts.
+Calorie distribution per day: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+Use ONLY ingredients from the provided list.
+
+IMPORTANT: Return exactly 7 days with no gaps or missing days.`,
       response_json_schema: {
         type: "object",
         properties: {
