@@ -92,12 +92,11 @@ export default function SavedMealPlans() {
                 </button>
               </div>
               {plan.plan?.days && (
-                <div className="text-xs text-muted-foreground bg-muted/50 rounded p-3 max-h-24 overflow-y-auto">
-                  <p className="font-medium mb-1">Week preview:</p>
-                  {plan.plan.days.slice(0, 2).map((day, idx) => (
+                <div className="text-xs text-muted-foreground bg-muted/50 rounded p-3 max-h-48 overflow-y-auto">
+                  <p className="font-medium mb-1">7-Day Meal Plan:</p>
+                  {plan.plan.days.map((day, idx) => (
                     <p key={idx}><strong>{day.day}:</strong> {day.breakfast} • {day.lunch} • {day.dinner}</p>
                   ))}
-                  {plan.plan.days.length > 2 && <p>... and more</p>}
                 </div>
               )}
             </div>
