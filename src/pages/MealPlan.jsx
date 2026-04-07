@@ -31,8 +31,16 @@ export default function MealPlan() {
     setLoading(true);
     setError(null);
 
-    const isMonthly = planType === "monthly";
-    const ingredientHint = ingredients ? `\n\nPrioritize using these ingredients the user already has: ${ingredients}.` : "";
+    // Always read fresh params to avoid stale closure
+    const freshParams = new URLSearchParams(window.location.search);
+    const freshPlanType = freshParams.get("planType") || "weekly";
+    const freshIngredients = freshParams.get("ingredients") || "";
+    const freshBudget = freshParams.get("budget") || budget;
+    const freshDiet = freshParams.get("diet") || diet;
+    const freshPeople = freshParams.get("people") || people;
+
+    const isMonthly = freshPlanType === "monthly";
+    const ingredientHint = freshIngredients ? `\n\nYou MUST use ONLY these ingredients to build the meal plan: ${freshIngredients}. Do not add other ingredients.` : "";
     const repeatNote = !isMonthly ? "\n\nIMPORTANT: This is a WEEKLY plan for budget savings — repeat the same meals on multiple days (e.g. same lunch 3-4 days in a row). Keep variety only between Breakfast/Lunch/Dinner types." : "";
 
     const prompt = `You are a nutrition and budget expert for students living in Germany. 
