@@ -142,15 +142,37 @@ For each meal, list only ingredients from the grocery list above with quantities
       ) : (
         <>
           {/* Budget Summary */}
-          <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShoppingBasket className="h-5 w-5 text-primary" />
-              <span className="font-heading font-semibold text-foreground">Estimated Total</span>
+          <div className="space-y-3">
+            <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShoppingBasket className="h-5 w-5 text-primary" />
+                <span className="font-heading font-semibold text-foreground">Estimated Total</span>
+              </div>
+              <span className="font-heading text-2xl font-bold text-primary">
+                €{groceries?.total_estimated_cost?.toFixed(2)}
+                <span className="text-sm font-normal text-muted-foreground ml-1">/ month</span>
+              </span>
             </div>
-            <span className="font-heading text-2xl font-bold text-primary">
-              €{groceries?.total_estimated_cost?.toFixed(2)}
-              <span className="text-sm font-normal text-muted-foreground ml-1">/ month</span>
-            </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card border border-border rounded-xl px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Your Budget</p>
+                <p className="font-heading text-lg font-bold text-foreground">€{parseFloat(budget).toFixed(2)}</p>
+              </div>
+              <div className={`bg-card border rounded-xl px-4 py-3 ${
+                groceries?.total_estimated_cost <= budget
+                  ? 'border-green-200/50'
+                  : 'border-destructive/30'
+              }`}>
+                <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+                <p className={`font-heading text-lg font-bold ${
+                  groceries?.total_estimated_cost <= budget
+                    ? 'text-green-600'
+                    : 'text-destructive'
+                }`}>
+                  €{(parseFloat(budget) - groceries?.total_estimated_cost).toFixed(2)}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Categories */}
