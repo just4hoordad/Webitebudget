@@ -133,7 +133,8 @@ For each meal, list only ingredients from the grocery list above with quantities
       });
       toast.success("Meal plan saved!");
     } catch (error) {
-      toast.error("Failed to save meal plan");
+      console.error("Save error:", error);
+      toast.error("Failed to save meal plan: " + (error?.message || "Unknown error"));
     } finally {
       setSaving(false);
     }
