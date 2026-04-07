@@ -138,7 +138,7 @@ export default function GroceryList({ items = [] }) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => {
-                const selected = allItems.filter((_, i) => checked[i]).map(i => i.name).join(",");
+                const selected = allItems.filter((_, i) => checked[i]).map(item => item.name).join(",");
                 navigate(`/meal-plan?planType=weekly&ingredients=${encodeURIComponent(selected)}`);
               }}
               className="flex flex-col items-center gap-1.5 px-4 py-4 rounded-xl border-2 border-primary/30 bg-card hover:bg-primary/5 transition-colors text-left"
@@ -149,7 +149,7 @@ export default function GroceryList({ items = [] }) {
             </button>
             <button
               onClick={() => {
-                const selected = allItems.filter((_, i) => checked[i]).map(i => i.name).join(",");
+                const selected = allItems.filter((_, i) => checked[i]).map(item => item.name).join(",");
                 navigate(`/meal-plan?planType=monthly&ingredients=${encodeURIComponent(selected)}`);
               }}
               className="flex flex-col items-center gap-1.5 px-4 py-4 rounded-xl border-2 border-border bg-card hover:bg-secondary/50 transition-colors text-left"

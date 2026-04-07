@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,8 +17,9 @@ export default function MealPlan() {
   const [loading, setLoading] = useState(true);
   const [mealPlan, setMealPlan] = useState(null);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(location.search);
   const budget = urlParams.get("budget") || "150";
   const stores = urlParams.get("stores") || "aldi,lidl";
   const diet = urlParams.get("diet") || "balanced";
@@ -126,7 +127,7 @@ Return ONLY valid JSON in this exact format:
 
   useEffect(() => {
     generatePlan();
-  }, []);
+  }, [location.search]);
 
   if (loading) {
     return (
