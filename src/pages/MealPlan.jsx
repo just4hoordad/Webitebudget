@@ -116,7 +116,6 @@ Return ONLY valid JSON in this exact format:
         },
       },
       model: "gemini_3_flash",
-      add_context_from_internet: true,
     });
 
     setMealPlan(result);
