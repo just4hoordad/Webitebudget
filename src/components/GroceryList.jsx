@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Square, ShoppingCart, ExternalLink, RotateCcw, Euro } from "lucide-react";
+import { CheckSquare, Square, ShoppingCart, ExternalLink, RotateCcw, Euro, CalendarDays, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const ONLINE_STORES = [
   { name: "REWE", url: "https://shop.rewe.de", color: "bg-red-100 text-red-700 hover:bg-red-200" },
@@ -12,6 +13,7 @@ const ONLINE_STORES = [
 export default function GroceryList({ items = [] }) {
   const [checked, setChecked] = useState({});
   const [pinnedItems, setPinnedItems] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("bb_pinned_groceries") || "[]");
@@ -123,6 +125,40 @@ export default function GroceryList({ items = [] }) {
             <span className="font-medium text-foreground">{pinnedItems.length} ingredients</span> added from recipes
           </p>
           <button onClick={clearPinned} className="text-xs text-destructive hover:underline">Clear</button>
+        </div>
+      )}
+
+      {/* Generate Meal Plan from selected items */}
+      {checkedCount > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-3">
+          <div>
+            <h3 className="font-heading font-semibold text-sm">🍽️ Generate a Meal Plan</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Based on your {checkedCount} selected ingredient{checkedCount > 1 ? 's' : ''}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                const selected = allItems.filter((_, i) => checked[i]).map(i => i.name).join(",");
+                navigate(`/meal-plan?planType=weekly&ingredients=${encodeURIComponent(selected)}`);
+              }}
+              className="flex flex-col items-center gap-1.5 px-4 py-4 rounded-xl border-2 border-primary/30 bg-card hover:bg-primary/5 transition-colors text-left"
+            >
+              <CalendarDays className="h-5 w-5 text-primary" />
+              <span className="font-heading font-semibold text-sm">Weekly Plan</span>
+              <span className="text-xs text-muted-foreground text-center">Repeat meals 4× — budget-friendly</span>
+            </button>
+            <button
+              onClick={() => {
+                const selected = allItems.filter((_, i) => checked[i]).map(i => i.name).join(",");
+                navigate(`/meal-plan?planType=monthly&ingredients=${encodeURIComponent(selected)}`);
+              }}
+              className="flex flex-col items-center gap-1.5 px-4 py-4 rounded-xl border-2 border-border bg-card hover:bg-secondary/50 transition-colors text-left"
+            >
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <span className="font-heading font-semibold text-sm">Monthly Plan</span>
+              <span className="text-xs text-muted-foreground text-center">Full variety over 4 weeks</span>
+            </button>
+          </div>
         </div>
       )}
 

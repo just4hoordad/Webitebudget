@@ -23,22 +23,19 @@ export default function MealPlan() {
   const stores = urlParams.get("stores") || "aldi,lidl";
   const diet = urlParams.get("diet") || "balanced";
   const people = urlParams.get("people") || "1";
+  const planType = urlParams.get("planType") || "weekly";
+  const ingredients = urlParams.get("ingredients") || "";
 
   const generatePlan = async () => {
     setLoading(true);
     setError(null);
 
+    const isMonthly = planType === "monthly";
+    const ingredientHint = ingredients ? `\n\nPrioritize using these ingredients the user already has: ${ingredients}.` : "";
+    const repeatNote = !isMonthly ? "\n\nIMPORTANT: This is a WEEKLY plan for budget savings — repeat the same meals on multiple days (e.g. same lunch 3-4 days in a row). Keep variety only between Breakfast/Lunch/Dinner types." : "";
+
     const prompt = `You are a nutrition and budget expert for students living in Germany. 
-Create a detailed 7-day meal plan (Monday to Sunday) with 3 meals per day (Breakfast, Lunch, Dinner).
-
-Budget: €${budget}/month for ${people} person(s) (weekly budget: €${(parseFloat(budget) / 4.33).toFixed(2)})
-Preferred stores: ${stores.split(",").join(", ")}
-Diet type: ${diet}
-
-IMPORTANT: Use REAL current approximate prices from German discount/grocery stores (${stores.split(",").join(", ")}). 
-Focus on budget-friendly staples popular in Germany: bread, Quark, oats, potatoes, seasonal vegetables, legumes, pasta, rice, eggs, etc.
-
-For each meal provide: name, short description, main ingredients (array of strings), step-by-step cooking instructions (array of strings), estimated cost per serving in euros, calories, prep time in minutes, meal type (Breakfast/Lunch/Dinner), and nutrition object with protein/carbs/fat/fiber in grams.
+Create a detailed 7-day meal plan (Monday to Sunday) with 3 meals per day (Breakfast, Lunch, Dinner).${repeatNote}${ingredientHint}
 
 Also provide:
 1. A consolidated weekly shopping list with item name, quantity, estimated price, and which store is cheapest for that item
@@ -167,7 +164,7 @@ Return ONLY valid JSON in this exact format:
           <div>
             <h1 className="font-heading text-2xl font-bold">Your Meal Plan</h1>
             <p className="text-sm text-muted-foreground">
-              {diet} diet • €{budget}/month • {people} person(s)
+              {planType === "monthly" ? "Monthly" : "Weekly"} • {diet} diet • €{budget}/month • {people} person(s)
             </p>
           </div>
         </div>
