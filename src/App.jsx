@@ -11,6 +11,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Recipes from './pages/Recipes';
 import DietFromGroceries from './pages/DietFromGroceries';
+import SuggestedGroceries from './pages/SuggestedGroceries';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,6 +44,7 @@ const AuthenticatedApp = () => {
         <Route path="/meal-plan" element={<MealPlan />} />
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/diet-from-groceries" element={<DietFromGroceries />} />
+        <Route path="/suggested-groceries" element={<SuggestedGroceries />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

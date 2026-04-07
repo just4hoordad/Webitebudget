@@ -55,7 +55,7 @@ export default function BudgetForm() {
       people: people,
       calories: goalKcal,
     });
-    navigate(`/meal-plan?${params.toString()}`);
+    navigate(`/suggested-groceries?${params.toString()}`);
   };
 
   return (
