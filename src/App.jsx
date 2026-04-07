@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Recipes from './pages/Recipes';
+import DietFromGroceries from './pages/DietFromGroceries';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Home />} />
         <Route path="/meal-plan" element={<MealPlan />} />
         <Route path="/recipes" element={<Recipes />} />
+        <Route path="/diet-from-groceries" element={<DietFromGroceries />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
