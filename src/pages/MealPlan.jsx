@@ -29,10 +29,12 @@ export default function MealPlan() {
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Generate a list of groceries for a ${diet} diet for ${people} person(s) in Germany with a monthly budget of €${budget}.
-The target is ~${calories} kcal/day per person. Preferred stores: ${stores}.
-Return realistic German supermarket products with approximate prices in euros.
+The target is ~${calories} kcal/day per person.
+
+For EACH item, find the CHEAPEST price across these stores: ${stores}.
+Only list the cheapest option for each product (show which store it's from).
+Return realistic German supermarket products with accurate prices.
 Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks).
-Keep prices realistic for German discount supermarkets like Aldi/Lidl/Rewe.
 Make sure the total cost fits within the €${budget} monthly budget.`,
       response_json_schema: {
         type: "object",
