@@ -125,7 +125,7 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
                       </div>
                       <button
                         onClick={() => removeItem(category.name, item.name)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
