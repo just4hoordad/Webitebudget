@@ -96,6 +96,7 @@ All ingredients must come from the list above only.`,
         properties: {
           days: {
             type: "array",
+            minItems: 7,
             items: {
               type: "object",
               properties: {
