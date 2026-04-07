@@ -81,7 +81,7 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Create a 4-week meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
 Use ONLY these available groceries: ${availableItems}.
-Organize by week (Week 1–4), each week has 7 days, each day has Breakfast, Lunch, Dinner.
+Organize by week (Week 1 to 4). Each week MUST have exactly 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday. Every single day must be included. Each day has Breakfast, Lunch, Dinner.
 For each meal, list the ingredients used with exact quantities (e.g. "100g chicken breast, 2 eggs, 50g oats").
 Keep meals simple, realistic, and varied.`,
       response_json_schema: {
