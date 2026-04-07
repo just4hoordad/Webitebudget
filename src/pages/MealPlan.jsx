@@ -81,20 +81,22 @@ Make sure the total cost fits within the €${budget} monthly budget.`,
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a strict meal planner. Create a 7-day meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
+      prompt: `You are a strict meal planner. Create a COMPLETE 7-day meal plan for a ${diet} diet for ${people} person(s) targeting ${calories} kcal/day.
 
 STRICT RULES:
 1. You are ONLY allowed to use ingredients from this exact list: ${availableItems}
 2. Do NOT include ANY ingredient, spice, oil, condiment, or food not explicitly in that list.
 3. If a meal needs something not in the list, pick a different meal.
 4. Every ingredient listed in the meal ingredients fields MUST be from the list above — no exceptions.
+5. MUST include ALL 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (no skipping days)
+6. Each day MUST have Breakfast, Lunch, and Dinner
 
-Include exactly 7 days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
-Each day has Breakfast, Lunch, and Dinner.
 For each meal:
 - List only ingredients from the grocery list above with quantities
 - Calculate and include the calorie count for each meal
-- Distribute daily calories: ~25% breakfast, ~35% lunch, ~40% dinner (totaling ${calories} kcal/day)`,
+- Distribute daily calories: ~25% breakfast, ~35% lunch, ~40% dinner (totaling ${calories} kcal/day)
+
+RETURN EXACTLY 7 DAY OBJECTS IN THE ARRAY.`,
       response_json_schema: {
         type: "object",
         properties: {
