@@ -9,6 +9,7 @@ import GroceryList from "../components/GroceryList";
 import ShoppingList from "../components/ShoppingList";
 import NutritionSummary from "../components/NutritionSummary";
 import StoreComparison from "../components/StoreComparison";
+import StoreMap from "../components/StoreMap";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -202,9 +203,10 @@ Return ONLY valid JSON in this exact format:
       </div>
 
       <Tabs defaultValue="meals" className="w-full">
-        <TabsList className="w-full grid grid-cols-4 h-12 rounded-xl">
+        <TabsList className="w-full grid grid-cols-5 h-12 rounded-xl">
           <TabsTrigger value="meals" className="rounded-lg">Meals</TabsTrigger>
           <TabsTrigger value="grocery" className="rounded-lg">Grocery</TabsTrigger>
+          <TabsTrigger value="map" className="rounded-lg">Map</TabsTrigger>
           <TabsTrigger value="shopping" className="rounded-lg">Shopping</TabsTrigger>
           <TabsTrigger value="nutrition" className="rounded-lg">Nutrition</TabsTrigger>
         </TabsList>
@@ -218,6 +220,10 @@ Return ONLY valid JSON in this exact format:
 
         <TabsContent value="grocery" className="space-y-6 mt-6">
           <GroceryList items={mealPlan?.shoppingList || []} />
+        </TabsContent>
+
+        <TabsContent value="map" className="mt-6">
+          <StoreMap shoppingList={mealPlan?.shoppingList || []} />
         </TabsContent>
 
         <TabsContent value="shopping" className="space-y-6 mt-6">
