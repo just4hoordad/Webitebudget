@@ -52,12 +52,13 @@ export default function BudgetForm() {
 
   const handleGenerate = () => {
     const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
+    const totalCalories = goalKcal * people;
     const params = new URLSearchParams({
       budget: budget[0],
       stores: selectedStores.join(","),
       diet: selectedDiet,
       people: people,
-      calories: goalKcal,
+      calories: totalCalories,
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
