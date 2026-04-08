@@ -8,6 +8,7 @@ const LANGUAGES = [
   { code: "ar", label: "العربية", flag: "🇸🇦" },
   { code: "ru", label: "Русский", flag: "🇷🇺" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
+  { code: "fa", label: "فارسی", flag: "🇮🇷" },
 ];
 
 const LanguageContext = createContext(null);
