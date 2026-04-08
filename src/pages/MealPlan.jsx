@@ -41,24 +41,14 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a grocery list for a ${diet} diet for ${people} person(s) in Germany with a STRICT monthly budget of €${budget}.
-The target is ~${calories} kcal/day per person.
+      prompt: `Generate a monthly grocery list for a ${diet} diet, ${people} person(s), in Germany. Budget: exactly €${budget}/month (target €${(budget*0.98).toFixed(0)}-€${(budget*1.02).toFixed(0)}). Target: ~${calories} kcal/day. Stores: ${stores}. Language: ${currentLanguage.label}.
 
-IMPORTANT: Return ALL text (item names, category names, quantity descriptions, calorie info) in ${currentLanguage.label} language.
-
-CRITICAL REQUIREMENTS:
-1. Look up REAL, CURRENT prices from these German supermarkets: ${stores}
-2. Use actual product names and exact current prices as found on their websites or apps
-3. For EACH item, find the CHEAPEST price across the selected stores and note which store it's from
-4. TARGET BUDGET: exactly €${budget}. Your total MUST land within ±2% of €${budget} (between €${(budget*0.98).toFixed(2)} and €${(budget*1.02).toFixed(2)})
-5. Start by estimating a base list, then ADD or REMOVE items iteratively until the total is within the ±2% range
-6. If total < €${(budget*0.98).toFixed(2)}: add more items or increase quantities
-7. If total > €${(budget*1.02).toFixed(2)}: remove items or reduce quantities
-8. Prioritize cost-effective, nutritious staples (oats, eggs, legumes, frozen veg, canned goods) to fill budget efficiently
-9. Group items by category — translate category names to ${currentLanguage.label}
-10. Every item must have a realistic price from the listed stores
-
-The grocery list must last exactly 1 month and support a ${diet} diet at ~${calories} kcal/day.`,
+Rules:
+- Use real German supermarket products with real current prices from the listed stores
+- Pick the cheapest store for each item
+- Add enough items so total is as close to €${budget} as possible
+- Group by category, translate category names to ${currentLanguage.label}
+- All text in ${currentLanguage.label}`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {
