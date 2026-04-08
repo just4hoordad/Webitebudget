@@ -212,13 +212,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const saveMealPlan = async () => {
     if (!weeklyPlan) return;
     setSaving(true);
-    const activeItems = getActiveItems();
-    const byStore = activeItems.reduce((acc, item) => {
-      const store = item.store || "Other";
-      if (!acc[store]) acc[store] = [];
-      acc[store].push(item);
-      return acc;
-    }, {});
     try {
       await base44.entities.MealPlan.create({
         name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
@@ -227,7 +220,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         calories: parseFloat(calories),
         people: parseFloat(people),
         stores,
-        plan: { ...weeklyPlan.weeks[0], groceriesByStore: byStore, totalCost: activeTotal }
+        plan: weeklyPlan.weeks[0]
       });
       toast.success("Meal plan saved!");
     } catch (error) {
