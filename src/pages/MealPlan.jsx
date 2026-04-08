@@ -51,7 +51,7 @@ Language: ${currentLanguage.label}.
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
-3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, quantity: "4x 1L").
+3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
 4. Add enough items so the total is as close to €${budget} as possible.
 5. All text in ${currentLanguage.label}.`,
       add_context_from_internet: true,
@@ -73,6 +73,7 @@ Rules:
                     properties: {
                       name: { type: "string" },
                       quantity: { type: "string" },
+                      unit_price: { type: "number" },
                       price: { type: "number" },
                       store: { type: "string" },
                       calories_info: { type: "string" }
@@ -326,6 +327,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                    <div className="flex items-center gap-3 ml-4">
                      <div className="text-right">
                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                       {item.unit_price != null && item.unit_price !== item.price && (
+                         <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} each</p>
+                       )}
                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
                      </div>
                      <button
