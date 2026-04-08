@@ -65,13 +65,16 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
                       price: { type: "number" },
                       store: { type: "string" },
                       calories_info: { type: "string" }
-                    }
+                    },
+                    required: ["name", "quantity", "price", "store"]
                   }
                 }
-              }
+              },
+              required: ["name", "items"]
             }
           }
-        }
+        },
+        required: ["total_estimated_cost", "categories"]
       }
     });
     setGroceries(result);
