@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,20 @@ export default function MealPlan() {
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     generateGroceries();
   }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setWeeklyPlan(null);
+    generateGroceries();
+  }, [currentLanguage.code]);
 
   const generateGroceries = async () => {
     setRemovedItems(new Set());
