@@ -8,7 +8,7 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 export default function MealPlan() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
@@ -34,13 +34,15 @@ export default function MealPlan() {
       prompt: `Generate a grocery list for a ${diet} diet for ${people} person(s) in Germany with a STRICT monthly budget of €${budget}.
 The target is ~${calories} kcal/day per person.
 
+IMPORTANT: Return ALL text (item names, category names, quantity descriptions, calorie info) in ${currentLanguage.label} language.
+
 CRITICAL REQUIREMENTS:
 1. Look up REAL, CURRENT prices from these German supermarkets: ${stores}
 2. Use actual product names and exact current prices as found on their websites or apps
 3. For EACH item, find the CHEAPEST price across the selected stores and note which store it's from
 4. The TOTAL estimated cost MUST be as close as possible to €${budget} (ideally within ±5%)
-5. Return realistic German supermarket products with ACCURATE, REAL prices you find online
-6. Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks)
+5. Return realistic German supermarket products with ACCURATE, REAL prices
+6. Group items by category — translate category names to ${currentLanguage.label}
 7. Prioritize cost-effective ingredients to maximize nutrition while hitting the budget target
 8. If the total is below budget, add more items; if above, remove less essential items
 
@@ -158,6 +160,8 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Create a complete 7-day meal plan that will repeat for exactly 4 weeks (28 days total).
 
+IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
+
 AVAILABLE INGREDIENTS (TOTAL for the entire month = 4 weeks):
 ${availableItems}
 
@@ -170,12 +174,10 @@ CRITICAL RULES:
 2. The quantities listed are the TOTAL available for the ENTIRE MONTH (4 weeks)
 3. Your 7-day plan will be repeated exactly 4 times. So the total ingredient usage across 4 repetitions MUST NOT exceed the listed quantities
 4. For each meal, specify EXACTLY how much of each ingredient is used per day
-5. Verify: (daily usage × 28 days) ≤ total monthly quantity for every ingredient
-6. Distribute all ingredients as evenly as possible — don't waste any
-7. If an ingredient like "Hackfleisch 2.4kg" is available, plan to use exactly 2.4kg across 28 days (e.g. 85g/day)
+5. Distribute all ingredients as evenly as possible
 
 For EACH of the 7 days, provide breakfast, lunch, and dinner with:
-- Meal name
+- Meal name (in ${currentLanguage.label})
 - Exact calorie count
 - List of ingredients with precise quantities used that day
 
