@@ -301,50 +301,38 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             </Button>
           </div>
 
-          {/* Items grouped by store */}
-          {(() => {
-            const allItems = groceries?.categories?.flatMap(cat =>
-              cat.items
-                .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
-                .map(item => ({ ...item, category: cat.name }))
-            ) || [];
-            const byStore = allItems.reduce((acc, item) => {
-              const store = item.store || "Other";
-              if (!acc[store]) acc[store] = [];
-              acc[store].push(item);
-              return acc;
-            }, {});
-            return Object.entries(byStore).map(([store, items]) => (
-              <div key={store} className="bg-card border border-border rounded-xl overflow-hidden">
-                <div className="bg-secondary px-5 py-3">
-                  <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
-                    🛒 {store}
-                  </h2>
-                </div>
-                <div className="divide-y divide-border">
-                  {items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info} · <span className="text-muted-foreground/60">{item.category}</span></p>
-                      </div>
-                      <div className="flex items-center gap-3 ml-4">
-                        <div className="text-right">
-                          <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                        </div>
-                        <button
-                          onClick={() => removeItem(item.category, item.name)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ));
-          })()}
+          {/* Categories */}
+          {groceries?.categories?.map((category) => (
+           <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="bg-secondary px-5 py-3">
+               <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
+                 {category.name}
+               </h2>
+             </div>
+             <div className="divide-y divide-border">
+               {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
+                 <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
+                   <div className="flex-1">
+                     <p className="font-medium text-foreground">{item.name}</p>
+                     <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
+                   </div>
+                   <div className="flex items-center gap-3 ml-4">
+                     <div className="text-right">
+                       <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                       {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                     </div>
+                     <button
+                       onClick={() => removeItem(category.name, item.name)}
+                       className="text-muted-foreground hover:text-destructive transition-colors"
+                     >
+                       <X className="h-4 w-4" />
+                     </button>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+          ))}
 
           {/* Generate Weekly Plan Button */}
           {!weeklyPlan && (
