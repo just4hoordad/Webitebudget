@@ -65,16 +65,13 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
                       price: { type: "number" },
                       store: { type: "string" },
                       calories_info: { type: "string" }
-                    },
-                    required: ["name", "quantity", "price", "store"]
+                    }
                   }
                 }
-              },
-              required: ["name", "items"]
+              }
             }
           }
-        },
-        required: ["total_estimated_cost", "categories"]
+        }
       }
     });
     setGroceries(result);
@@ -311,7 +308,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             </Button>
           </div>
 
-          {/* Items grouped by store - side by side */}
+          {/* Items grouped by store */}
           {(() => {
             const allItems = groceries?.categories?.flatMap(cat =>
               cat.items
@@ -324,35 +321,36 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
               acc[store].push(item);
               return acc;
             }, {});
-            const storeEntries = Object.entries(byStore);
-            return (
-              <div className={`grid gap-4 ${storeEntries.length >= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
-                {storeEntries.map(([store, items]) => (
-                  <div key={store} className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="bg-secondary px-4 py-3 flex items-center justify-between">
-                      <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">🛒 {store}</h2>
-                      <span className="text-xs font-semibold text-primary">€{items.reduce((s, i) => s + (i.price || 0), 0).toFixed(2)}</span>
-                    </div>
-                    <div className="divide-y divide-border">
-                      {items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/30 transition-colors">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-foreground text-sm truncate">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.quantity}</p>
-                          </div>
-                          <div className="flex items-center gap-2 ml-3">
-                            <p className="font-semibold text-foreground text-sm">€{item.price?.toFixed(2)}</p>
-                            <button onClick={() => removeItem(item.category, item.name)} className="text-muted-foreground hover:text-destructive transition-colors">
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
+            return Object.entries(byStore).map(([store, items]) => (
+              <div key={store} className="bg-card border border-border rounded-xl overflow-hidden">
+                <div className="bg-secondary px-5 py-3">
+                  <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
+                    🛒 {store}
+                  </h2>
+                </div>
+                <div className="divide-y divide-border">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info} · <span className="text-muted-foreground/60">{item.category}</span></p>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4">
+                        <div className="text-right">
+                          <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
                         </div>
-                      ))}
+                        <button
+                          onClick={() => removeItem(item.category, item.name)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            );
+            ));
           })()}
 
           {/* Generate Weekly Plan Button */}
