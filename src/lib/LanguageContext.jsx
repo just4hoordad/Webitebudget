@@ -4,13 +4,13 @@ import translations from "./translations";
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
   { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "fa", label: "فارسی", flag: "🇮🇷" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "es", label: "Español", flag: "🇪🇸" },
   { code: "ar", label: "العربية", flag: "🇸🇦" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "fa", label: "فارسی", flag: "🇮🇷" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
   { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
 ];
 
