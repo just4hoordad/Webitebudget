@@ -4,6 +4,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Sparkles, TrendingDown, ShoppingCart, Salad, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const FEATURES_KEYS = [
   { icon: TrendingDown, titleKey: "feature1Title", descKey: "feature1Desc" },
@@ -31,7 +32,13 @@ export default function Home() {
     setDeleting(false);
   };
 
+  const handleRefresh = async () => {
+    const me = await base44.auth.me().catch(() => null);
+    setUser(me);
+  };
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-12">
       {/* Hero */}
       <div className="text-center space-y-4 pt-4">
@@ -111,5 +118,6 @@ export default function Home() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }
