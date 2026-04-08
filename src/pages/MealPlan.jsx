@@ -41,28 +41,19 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a German supermarket pricing expert. Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
+      prompt: `Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
 
-BUDGET: €${budget}/month — the total of ALL items MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}. This is critical.
-CALORIES: ~${calories} kcal/day total for all ${people} person(s)
-STORES: ${stores}
-LANGUAGE: ${currentLanguage.label}
+Budget: €${budget}/month — final total MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}.
+Calories: ~${calories} kcal/day for all ${people} person(s).
+Stores: ${stores}.
+Language: ${currentLanguage.label}.
 
-PRICING RULES (most important):
-- Use ONLY real current prices from these German stores: ${stores}
-- Look up actual shelf prices as of 2024-2025 (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99, REWE Hähnchenbrust 500g = €3.49)
-- Every price must reflect what a customer actually pays at the checkout today
-- Choose the cheapest store for each item
-- The "price" field must be the TOTAL price for the quantity listed (unit price × number of units needed for the month)
-- Example: if you need 4x Aldi Vollmilch 1L at €0.99 each, quantity="4x 1L" and price=3.96
-
-BUDGET RULES (second most important):
-- Start by listing essential items, then keep adding items until the total reaches €${budget}
-- If the total is below €${(budget*0.95).toFixed(0)}, add more items or larger quantities
-- If above €${(budget*1.03).toFixed(0)}, remove items or reduce quantities
-- Final total MUST be within 3% of €${budget}
-
-All text (category names, item names, units) in ${currentLanguage.label}.`,
+Rules:
+1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
+2. Pick the cheapest store for each item.
+3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, quantity: "4x 1L").
+4. Add enough items so the total is as close to €${budget} as possible.
+5. All text in ${currentLanguage.label}.`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {
