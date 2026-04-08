@@ -99,7 +99,7 @@ export default function SavedMealPlans() {
                       <span className="text-sm font-semibold text-primary">Total: €{plan.plan.totalCost.toFixed(2)}</span>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Object.keys(plan.plan.groceriesByStore).length}, minmax(0, 1fr))` }}>
                     {Object.entries(plan.plan.groceriesByStore).map(([store, items]) => (
                       <div key={store} className="border border-border rounded-lg overflow-hidden">
                         <div className="bg-secondary px-3 py-2 flex items-center justify-between">
