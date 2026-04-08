@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, ShoppingBasket, X, Save } from "lucide-react";
+import { ArrowLeft, Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -80,6 +81,66 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
     setWeeklyPlan(null);
+  };
+
+  const getActiveItems = () =>
+    groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => ({ ...item, category: cat.name }))
+    ) || [];
+
+  const exportCSV = () => {
+    const items = getActiveItems();
+    const rows = [["Category", "Item", "Quantity", "Price (€)", "Store", "Calories Info"]];
+    items.forEach(item => rows.push([item.category, item.name, item.quantity, item.price?.toFixed(2), item.store || "", item.calories_info || ""]));
+    rows.push(["", "", "", "", "", ""]);
+    rows.push(["", "TOTAL", "", groceries?.total_estimated_cost?.toFixed(2), "", ""]);
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grocery-list-${diet}-${budget}eur.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    const items = getActiveItems();
+    doc.setFontSize(18);
+    doc.setFont(undefined, "bold");
+    doc.text("BudgetBite Grocery List", 14, 18);
+    doc.setFontSize(10);
+    doc.setFont(undefined, "normal");
+    doc.text(`Diet: ${diet} | Budget: €${budget}/month | ${calories} kcal/day | ${people} person(s)`, 14, 26);
+    doc.text(`Stores: ${stores}`, 14, 32);
+    let y = 42;
+    let currentCategory = "";
+    items.forEach(item => {
+      if (item.category !== currentCategory) {
+        currentCategory = item.category;
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(11);
+        doc.text(currentCategory.toUpperCase(), 14, y);
+        y += 6;
+        doc.setFont(undefined, "normal");
+        doc.setFontSize(9);
+      }
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text(`• ${item.name}`, 16, y);
+      doc.text(item.quantity || "", 90, y);
+      doc.text(`€${item.price?.toFixed(2)}`, 140, y);
+      doc.text(item.store || "", 162, y);
+      y += 6;
+    });
+    y += 4;
+    doc.setFont(undefined, "bold");
+    doc.setFontSize(11);
+    doc.text(`Total: €${groceries?.total_estimated_cost?.toFixed(2)}`, 14, y);
+    doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
   const generateWeeklyPlan = async () => {
@@ -228,6 +289,18 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Export Buttons */}
+          <div className="flex gap-2 justify-end">
+            <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Export CSV
+            </Button>
+            <Button onClick={exportPDF} variant="outline" size="sm" className="gap-2">
+              <FileDown className="h-4 w-4" />
+              Export PDF
+            </Button>
           </div>
 
           {/* Categories */}
