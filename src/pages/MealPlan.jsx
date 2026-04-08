@@ -90,6 +90,8 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
         .map(item => ({ ...item, category: cat.name }))
     ) || [];
 
+  const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
+
   const exportCSV = () => {
     const items = getActiveItems();
     const rows = [["Category", "Item", "Quantity", "Price (€)", "Store", "Calories Info"]];
@@ -261,7 +263,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                 <span className="font-heading font-semibold text-foreground">Estimated Total</span>
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
-                €{groceries?.total_estimated_cost?.toFixed(2)}
+                €{activeTotal.toFixed(2)}
                 <span className="text-sm font-normal text-muted-foreground ml-1">/ month</span>
               </span>
             </div>
@@ -271,17 +273,17 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                 <p className="font-heading text-lg font-bold text-foreground">€{parseFloat(budget).toFixed(2)}</p>
               </div>
               <div className={`bg-card border rounded-xl px-4 py-3 ${
-                groceries?.total_estimated_cost <= budget
+                activeTotal <= budget
                   ? 'border-green-200/50'
                   : 'border-destructive/30'
               }`}>
                 <p className="text-xs text-muted-foreground mb-1">Remaining</p>
                 <p className={`font-heading text-lg font-bold ${
-                  groceries?.total_estimated_cost <= budget
+                  activeTotal <= budget
                     ? 'text-green-600'
                     : 'text-destructive'
                 }`}>
-                  €{(parseFloat(budget) - groceries?.total_estimated_cost).toFixed(2)}
+                  €{(parseFloat(budget) - activeTotal).toFixed(2)}
                 </p>
               </div>
             </div>
