@@ -71,6 +71,7 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
                 className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}

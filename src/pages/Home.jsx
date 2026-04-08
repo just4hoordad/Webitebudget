@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
 import BudgetForm from "../components/BudgetForm";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Sparkles, TrendingDown, ShoppingCart, Salad } from "lucide-react";
+import { Sparkles, TrendingDown, ShoppingCart, Salad, Trash2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
 
 const FEATURES_KEYS = [
   { icon: TrendingDown, titleKey: "feature1Title", descKey: "feature1Desc" },
@@ -10,6 +13,24 @@ const FEATURES_KEYS = [
 
 export default function Home() {
   const { t } = useLanguage();
+  const [user, setUser] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+    setDeleting(true);
+    if (typeof base44.auth.deleteAccount === "function") {
+      await base44.auth.deleteAccount();
+    } else {
+      alert("Account deletion is not available yet. Please contact support.");
+    }
+    setDeleting(false);
+  };
+
   return (
     <div className="space-y-12">
       {/* Hero */}
@@ -69,6 +90,26 @@ export default function Home() {
           <p>{t("tip4")}</p>
         </div>
       </div>
+
+      {/* Account */}
+      {user && (
+        <div className="border border-destructive/20 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-sm text-foreground">{user.full_name || user.email}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10 select-none gap-2"
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleting ? "Deleting..." : "Delete Account"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
