@@ -32,15 +32,18 @@ export default function MealPlan() {
 The target is ~${calories} kcal/day per person.
 
 CRITICAL REQUIREMENTS:
-1. The TOTAL estimated cost MUST be as close as possible to €${budget} (ideally within ±5% of budget)
-2. For EACH item, find the CHEAPEST price across these stores: ${stores}
-3. Only list the cheapest option for each product (show which store it's from)
-4. Return realistic German supermarket products with accurate prices
-5. Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks)
-6. Prioritize cost-effective ingredients to maximize nutrition while hitting the budget target
-7. If the total is below budget, add more items; if above, remove less essential items
+1. Look up REAL, CURRENT prices from these German supermarkets: ${stores}
+2. Use actual product names and exact current prices as found on their websites or apps
+3. For EACH item, find the CHEAPEST price across the selected stores and note which store it's from
+4. The TOTAL estimated cost MUST be as close as possible to €${budget} (ideally within ±5%)
+5. Return realistic German supermarket products with ACCURATE, REAL prices you find online
+6. Group items by category (e.g. Proteins, Vegetables, Grains, Dairy, Snacks)
+7. Prioritize cost-effective ingredients to maximize nutrition while hitting the budget target
+8. If the total is below budget, add more items; if above, remove less essential items
 
-The grocery list must last exactly 1 month and support a balanced ${diet} diet at ~${calories} kcal/day.`,
+The grocery list must last exactly 1 month and support a ${diet} diet at ~${calories} kcal/day.`,
+      add_context_from_internet: true,
+      model: "gemini_3_flash",
       response_json_schema: {
         type: "object",
         properties: {
