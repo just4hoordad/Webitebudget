@@ -7,9 +7,11 @@ const LANGUAGES = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "es", label: "Español", flag: "🇪🇸" },
   { code: "ar", label: "العربية", flag: "🇸🇦" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
   { code: "fa", label: "فارسی", flag: "🇮🇷" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
 ];
 
 const LanguageContext = createContext(null);
