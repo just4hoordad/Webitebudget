@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 import { ShoppingCart, Home, BookMarked } from "lucide-react";
 
 export default function Layout() {
@@ -39,6 +40,7 @@ export default function Layout() {
                 </Link>
               );
             })}
+            <LanguageSwitcher />
           </nav>
         </div>
       </header>

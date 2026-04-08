@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import MealPlan from './pages/MealPlan';
 import SavedMealPlans from './pages/SavedMealPlans';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 const AuthenticatedApp = () => {
@@ -52,12 +53,14 @@ function App() {
 
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }
