@@ -91,6 +91,32 @@ export default function SavedMealPlans() {
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
+              {plan.plan?.groceriesByStore && (
+                <div className="mt-3">
+                  <h4 className="font-heading font-semibold text-sm mb-2">🛒 Grocery List by Store</h4>
+                  <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(plan.plan.groceriesByStore).length, 2)}, 1fr)` }}>
+                    {Object.entries(plan.plan.groceriesByStore).map(([store, items]) => (
+                      <div key={store} className="bg-secondary/40 border border-border rounded-lg overflow-hidden">
+                        <div className="bg-secondary px-3 py-2">
+                          <p className="font-semibold text-xs uppercase tracking-wide">{store}</p>
+                          <p className="text-xs text-muted-foreground">€{items.reduce((s, i) => s + (i.price || 0), 0).toFixed(2)}</p>
+                        </div>
+                        <ul className="divide-y divide-border">
+                          {items.map((item, i) => (
+                            <li key={i} className="px-3 py-1.5 flex justify-between text-xs">
+                              <span className="text-foreground">{item.name} <span className="text-muted-foreground">({item.quantity})</span></span>
+                              <span className="font-medium">€{item.price?.toFixed(2)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  {plan.plan.totalCost && (
+                    <p className="text-sm font-semibold text-primary mt-2">Total: €{plan.plan.totalCost.toFixed(2)}</p>
+                  )}
+                </div>
+              )}
               {plan.plan?.days && (
                 <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
                   <div className="bg-primary px-5 py-3">
