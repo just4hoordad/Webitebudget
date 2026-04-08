@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
@@ -7,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 export default function MealPlan() {
+  const { t } = useLanguage();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
@@ -222,7 +224,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         stores,
         plan: weeklyPlan.weeks[0]
       });
-      toast.success("Meal plan saved!");
+      toast.success(t("planSaved"));
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save meal plan: " + (error?.message || "Unknown error"));
@@ -237,11 +239,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         <Link to="/">
           <Button variant="outline" size="sm" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("back")}
           </Button>
         </Link>
         <div>
-          <h1 className="font-heading text-2xl font-bold">Your Grocery List</h1>
+          <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
           <p className="text-sm text-muted-foreground">
             {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
           </p>
@@ -251,7 +253,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground font-medium">Generating your personalized grocery list...</p>
+          <p className="text-muted-foreground font-medium">{t("generatingGroceries")}</p>
         </div>
       ) : (
         <>
@@ -260,16 +262,16 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBasket className="h-5 w-5 text-primary" />
-                <span className="font-heading font-semibold text-foreground">Estimated Total</span>
+                <span className="font-heading font-semibold text-foreground">{t("estimatedTotal")}</span>
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
                 €{activeTotal.toFixed(2)}
-                <span className="text-sm font-normal text-muted-foreground ml-1">/ month</span>
+                <span className="text-sm font-normal text-muted-foreground ml-1">/ {t("month")}</span>
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-card border border-border rounded-xl px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-1">Your Budget</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("yourBudget")}</p>
                 <p className="font-heading text-lg font-bold text-foreground">€{parseFloat(budget).toFixed(2)}</p>
               </div>
               <div className={`bg-card border rounded-xl px-4 py-3 ${
@@ -277,7 +279,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                   ? 'border-green-200/50'
                   : 'border-destructive/30'
               }`}>
-                <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("remaining")}</p>
                 <p className={`font-heading text-lg font-bold ${
                   activeTotal <= budget
                     ? 'text-green-600'
@@ -293,11 +295,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           <div className="flex gap-2 justify-end">
             <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
               <FileText className="h-4 w-4" />
-              Export CSV
+              {t("exportCSV")}
             </Button>
             <Button onClick={exportPDF} variant="outline" size="sm" className="gap-2">
               <FileDown className="h-4 w-4" />
-              Export PDF
+              {t("exportPDF")}
             </Button>
           </div>
 
@@ -338,11 +340,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           {!weeklyPlan && (
            <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
              <div>
-               <h3 className="font-heading font-semibold">4-Week Meal Plan</h3>
-               <p className="text-sm text-muted-foreground">Generate a personalized 4-week diet based on your grocery list.</p>
+               <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
+               <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
              </div>
              <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating Plan...</> : "Generate 4-Week Meal Plan"}
+               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("generatingPlan")}</> : t("generateWeeklyPlan")}
              </Button>
            </div>
           )}
@@ -351,24 +353,24 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           {weeklyPlan?.weeks?.[0] && (
            <div className="bg-card border border-border rounded-xl overflow-hidden">
              <div className="bg-primary px-5 py-3">
-               <h2 className="font-heading font-semibold text-primary-foreground">Your Weekly Meal Plan</h2>
+               <h2 className="font-heading font-semibold text-primary-foreground">{t("yourWeeklyMealPlan")}</h2>
              </div>
              <div className="divide-y divide-border">
                {weeklyPlan.weeks[0].days?.map((day, idx) => (
                  <div key={`${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
                    <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Breakfast {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("breakfast")} {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
                      <span>{day.breakfast}</span>
                      {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
                    </div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Lunch {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("lunch")} {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
                      <span>{day.lunch}</span>
                      {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
                    </div>
                    <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">Dinner {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
+                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("dinner")} {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
                      <span>{day.dinner}</span>
                      {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
                    </div>
@@ -376,10 +378,10 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                ))}
              </div>
              <div className="bg-muted px-5 py-3 flex items-center justify-between">
-               <p className="text-xs text-muted-foreground">💡 Repeat this weekly plan for 4 weeks to build your 4-week meal schedule.</p>
+               <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
                <Button onClick={saveMealPlan} disabled={saving} size="sm" className="gap-2">
                  <Save className="h-4 w-4" />
-                 {saving ? "Saving..." : "Save Plan"}
+                 {saving ? t("saving") : t("savePlan")}
                </Button>
              </div>
              </div>
@@ -387,7 +389,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
              <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
-              Regenerate Grocery List
+              {t("regenerate")}
             </Button>
           </div>
         </>

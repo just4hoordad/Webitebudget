@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import translations from "./translations";
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -25,8 +26,10 @@ export function LanguageProvider({ children }) {
 
   const currentLanguage = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
+  const t = (key) => translations[language]?.[key] ?? translations.en[key] ?? key;
+
   return (
-    <LanguageContext.Provider value={{ language, currentLanguage, changeLanguage, LANGUAGES }}>
+    <LanguageContext.Provider value={{ language, currentLanguage, changeLanguage, LANGUAGES, t }}>
       {children}
     </LanguageContext.Provider>
   );

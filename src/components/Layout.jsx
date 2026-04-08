@@ -1,13 +1,15 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { ShoppingCart, Home, BookMarked } from "lucide-react";
 
 export default function Layout() {
   const location = useLocation();
+  const { t } = useLanguage();
 
   const navItems = [
-    { path: "/", label: "Home", icon: Home },
-    { path: "/saved-plans", label: "Saved Plans", icon: BookMarked },
+    { path: "/", label: t("home"), icon: Home },
+    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
   ];
 
   return (
@@ -53,7 +55,7 @@ export default function Layout() {
       {/* Footer */}
       <footer className="border-t border-border mt-16">
         <div className="max-w-5xl mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          BudgetBite — Smart meal planning for students in Germany
+          {t("footerText")}
         </div>
       </footer>
     </div>
