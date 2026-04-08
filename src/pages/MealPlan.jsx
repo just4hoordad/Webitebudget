@@ -50,11 +50,13 @@ CRITICAL REQUIREMENTS:
 1. Look up REAL, CURRENT prices from these German supermarkets: ${stores}
 2. Use actual product names and exact current prices as found on their websites or apps
 3. For EACH item, find the CHEAPEST price across the selected stores and note which store it's from
-4. The TOTAL estimated cost MUST be as close as possible to €${budget} (ideally within ±5%)
-5. Return realistic German supermarket products with ACCURATE, REAL prices
-6. Group items by category — translate category names to ${currentLanguage.label}
-7. Prioritize cost-effective ingredients to maximize nutrition while hitting the budget target
-8. If the total is below budget, add more items; if above, remove less essential items
+4. TARGET BUDGET: exactly €${budget}. Your total MUST land within ±2% of €${budget} (between €${(budget*0.98).toFixed(2)} and €${(budget*1.02).toFixed(2)})
+5. Start by estimating a base list, then ADD or REMOVE items iteratively until the total is within the ±2% range
+6. If total < €${(budget*0.98).toFixed(2)}: add more items or increase quantities
+7. If total > €${(budget*1.02).toFixed(2)}: remove items or reduce quantities
+8. Prioritize cost-effective, nutritious staples (oats, eggs, legumes, frozen veg, canned goods) to fill budget efficiently
+9. Group items by category — translate category names to ${currentLanguage.label}
+10. Every item must have a realistic price from the listed stores
 
 The grocery list must last exactly 1 month and support a ${diet} diet at ~${calories} kcal/day.`,
       add_context_from_internet: true,
