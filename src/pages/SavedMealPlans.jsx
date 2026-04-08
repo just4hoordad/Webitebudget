@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2, Calendar, Leaf } from "lucide-react";
+import { Trash2, Calendar, Leaf } from "lucide-react";
 
 export default function SavedMealPlans() {
   const { t } = useLanguage();
@@ -37,17 +37,9 @@ export default function SavedMealPlans() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Link to="/">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            {t("back")}
-          </Button>
-        </Link>
-        <div>
-          <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
-          <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
-        </div>
+      <div>
+        <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
+        <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
       </div>
 
       {loading ? (

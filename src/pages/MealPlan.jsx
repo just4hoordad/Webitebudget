@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
+import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -244,19 +243,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Link to="/">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            {t("back")}
-          </Button>
-        </Link>
-        <div>
-          <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
-          </p>
-        </div>
+      <div>
+        <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
+        <p className="text-sm text-muted-foreground">
+          {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
+        </p>
       </div>
 
       {loading ? (

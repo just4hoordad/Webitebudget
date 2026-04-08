@@ -87,5 +87,6 @@
 
   body {
     @apply bg-background text-foreground font-body;
+    overscroll-behavior-y: none;
   }
 }
