@@ -152,34 +152,30 @@ The grocery list must last exactly 1 month and support a ${diet} diet at ~${calo
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a complete 7-day meal plan for 4-week rotation using ONLY these ingredients with their quantities: ${availableItems}
+      prompt: `Create a complete 7-day meal plan that will repeat for exactly 4 weeks (28 days total).
 
-YOU MUST INCLUDE ALL 7 DAYS:
-Day 1: Monday
-Day 2: Tuesday
-Day 3: Wednesday
-Day 4: Thursday
-Day 5: Friday
-Day 6: Saturday
-Day 7: Sunday
+AVAILABLE INGREDIENTS (TOTAL for the entire month = 4 weeks):
+${availableItems}
 
 Diet type: ${diet}
 Target calories per day: ${calories} kcal
 Number of people: ${people}
 
-IMPORTANT REQUIREMENTS:
-1. Use ONLY the ingredients listed above
-2. For each meal, specify EXACTLY how much of each ingredient is used
-3. The grocery list provided contains quantities for a full month - your 7-day plan will repeat 4 times
-4. Do NOT use more of any ingredient than what's provided in the monthly grocery list
-5. Distribute ingredient usage evenly across the 4-week cycle
+CRITICAL RULES:
+1. Use ONLY the ingredients listed above — no substitutions or additions
+2. The quantities listed are the TOTAL available for the ENTIRE MONTH (4 weeks)
+3. Your 7-day plan will be repeated exactly 4 times. So the total ingredient usage across 4 repetitions MUST NOT exceed the listed quantities
+4. For each meal, specify EXACTLY how much of each ingredient is used per day
+5. Verify: (daily usage × 28 days) ≤ total monthly quantity for every ingredient
+6. Distribute all ingredients as evenly as possible — don't waste any
+7. If an ingredient like "Hackfleisch 2.4kg" is available, plan to use exactly 2.4kg across 28 days (e.g. 85g/day)
 
 For EACH of the 7 days, provide breakfast, lunch, and dinner with:
 - Meal name
 - Exact calorie count
-- List of ingredients with precise quantities used
+- List of ingredients with precise quantities used that day
 
-Calorie distribution per day: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
 
 RETURN EXACTLY 7 days with no gaps or missing days.`,
       response_json_schema: {
