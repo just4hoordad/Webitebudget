@@ -41,14 +41,26 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a monthly grocery list for a ${diet} diet, ${people} person(s), in Germany. Budget: exactly €${budget}/month (target €${(budget*0.98).toFixed(0)}-€${(budget*1.02).toFixed(0)}). Target: ~${calories} kcal/day. Stores: ${stores}. Language: ${currentLanguage.label}.
+      prompt: `You are a German supermarket pricing expert. Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
 
-Rules:
-- Use real German supermarket products with real current prices from the listed stores
-- Pick the cheapest store for each item
-- Add enough items so total is as close to €${budget} as possible
-- Group by category, translate category names to ${currentLanguage.label}
-- All text in ${currentLanguage.label}`,
+BUDGET: €${budget}/month — the total of ALL items MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}. This is critical.
+CALORIES: ~${calories} kcal/day total for all ${people} person(s)
+STORES: ${stores}
+LANGUAGE: ${currentLanguage.label}
+
+PRICING RULES (most important):
+- Use ONLY real current prices from these German stores: ${stores}
+- Look up actual shelf prices as of 2024-2025 (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99, REWE Hähnchenbrust 500g = €3.49)
+- Every price must reflect what a customer actually pays at the checkout today
+- Choose the cheapest store for each item
+
+BUDGET RULES (second most important):
+- Start by listing essential items, then keep adding items until the total reaches €${budget}
+- If the total is below €${(budget*0.95).toFixed(0)}, add more items or larger quantities
+- If above €${(budget*1.03).toFixed(0)}, remove items or reduce quantities
+- Final total MUST be within 3% of €${budget}
+
+All text (category names, item names, units) in ${currentLanguage.label}.`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {
