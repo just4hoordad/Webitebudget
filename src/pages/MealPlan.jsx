@@ -5,6 +5,7 @@ import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-rea
 import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import PullToRefresh from "@/components/PullToRefresh";
 
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
@@ -219,9 +220,13 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     setLoadingPlan(false);
   };
 
+  const [saved, setSaved] = useState(false);
+
   const saveMealPlan = async () => {
-    if (!weeklyPlan) return;
+    if (!weeklyPlan || saved) return;
+    setSaved(true);
     setSaving(true);
+    toast.success(t("planSaved"));
     try {
       await base44.entities.MealPlan.create({
         name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
@@ -232,9 +237,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         stores,
         plan: weeklyPlan.weeks[0]
       });
-      toast.success(t("planSaved"));
     } catch (error) {
-      console.error("Save error:", error);
+      setSaved(false);
       toast.error("Failed to save meal plan: " + (error?.message || "Unknown error"));
     } finally {
       setSaving(false);
@@ -242,6 +246,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   };
 
   return (
+    <PullToRefresh onRefresh={generateGroceries}>
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
@@ -379,10 +384,10 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              </div>
              <div className="bg-muted px-5 py-3 flex items-center justify-between">
                <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
-               <Button onClick={saveMealPlan} disabled={saving} size="sm" className="gap-2">
-                 <Save className="h-4 w-4" />
-                 {saving ? t("saving") : t("savePlan")}
-               </Button>
+               <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
+                   <Save className="h-4 w-4" />
+                   {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
+                 </Button>
              </div>
              </div>
              )}
@@ -395,5 +400,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
+    </PullToRefresh>
   );
 }

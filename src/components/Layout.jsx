@@ -3,12 +3,16 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { ShoppingCart, Home, BookMarked, ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import HomePage from "../pages/Home";
+import SavedMealPlansPage from "../pages/SavedMealPlans";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
+  const TAB_PATHS = ["/", "/saved-plans"];
+  const isTabRoute = TAB_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
     { path: "/", label: t("home"), icon: Home },
@@ -45,17 +49,27 @@ export default function Layout() {
 
       {/* Main content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-28">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.18 }}
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        {/* Always-mounted tab pages — hidden via CSS to preserve state */}
+        <div style={{ display: location.pathname === "/" ? "block" : "none" }}>
+          <HomePage />
+        </div>
+        <div style={{ display: location.pathname === "/saved-plans" ? "block" : "none" }}>
+          <SavedMealPlansPage />
+        </div>
+        {/* Non-tab routes (e.g. /meal-plan) */}
+        {!isTabRoute && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       {/* Bottom Tab Bar */}
