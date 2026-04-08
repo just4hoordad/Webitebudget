@@ -99,18 +99,21 @@ export default function SavedMealPlans() {
                       <span className="text-sm font-semibold text-primary">Total: €{plan.plan.totalCost.toFixed(2)}</span>
                     )}
                   </div>
-                  <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Object.keys(plan.plan.groceriesByStore).length}, minmax(0, 1fr))` }}>
+                  <div className="flex flex-col gap-4">
                     {Object.entries(plan.plan.groceriesByStore).map(([store, items]) => (
                       <div key={store} className="border border-border rounded-lg overflow-hidden">
-                        <div className="bg-secondary px-3 py-2 flex items-center justify-between">
-                          <p className="font-semibold text-xs uppercase tracking-wide">{store}</p>
-                          <p className="text-xs font-semibold text-primary">€{items.reduce((s, i) => s + (i.price || 0), 0).toFixed(2)}</p>
+                        <div className="bg-secondary px-4 py-3 flex items-center justify-between">
+                          <p className="font-heading font-semibold text-sm uppercase tracking-wide">🛒 {store}</p>
+                          <p className="text-sm font-semibold text-primary">€{items.reduce((s, i) => s + (i.price || 0), 0).toFixed(2)}</p>
                         </div>
                         <ul className="divide-y divide-border">
                           {items.map((item, i) => (
-                            <li key={i} className="px-3 py-1.5 flex justify-between text-xs">
-                              <span className="text-foreground">{item.name} <span className="text-muted-foreground">({item.quantity})</span></span>
-                              <span className="font-medium ml-2 shrink-0">€{item.price?.toFixed(2)}</span>
+                            <li key={i} className="px-4 py-2.5 flex justify-between text-sm">
+                              <div>
+                                <span className="text-foreground font-medium">{item.name}</span>
+                                <span className="text-muted-foreground ml-2 text-xs">{item.quantity}</span>
+                              </div>
+                              <span className="font-semibold ml-4 shrink-0">€{item.price?.toFixed(2)}</span>
                             </li>
                           ))}
                         </ul>
