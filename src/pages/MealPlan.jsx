@@ -3,6 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -22,6 +23,7 @@ export default function MealPlan() {
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
+  const groceryListRef = useRef(null);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -111,7 +113,8 @@ Rules:
     rows.push(["", "", "", "", "", ""]);
     rows.push(["", "TOTAL", "", groceries?.total_estimated_cost?.toFixed(2), "", ""]);
     const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    // BOM ensures UTF-8 is recognized correctly (supports Cyrillic, etc.)
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -120,40 +123,30 @@ Rules:
     URL.revokeObjectURL(url);
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    const items = getActiveItems();
-    doc.setFontSize(18);
-    doc.setFont(undefined, "bold");
-    doc.text("BudgetBite Grocery List", 14, 18);
-    doc.setFontSize(10);
-    doc.setFont(undefined, "normal");
-    doc.text(`Diet: ${diet} | Budget: €${budget}/month | ${calories} kcal/day | ${people} person(s)`, 14, 26);
-    doc.text(`Stores: ${stores}`, 14, 32);
-    let y = 42;
-    let currentCategory = "";
-    items.forEach(item => {
-      if (item.category !== currentCategory) {
-        currentCategory = item.category;
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.setFont(undefined, "bold");
-        doc.setFontSize(11);
-        doc.text(currentCategory.toUpperCase(), 14, y);
-        y += 6;
-        doc.setFont(undefined, "normal");
-        doc.setFontSize(9);
-      }
-      if (y > 275) { doc.addPage(); y = 20; }
-      doc.text(`• ${item.name}`, 16, y);
-      doc.text(item.quantity || "", 90, y);
-      doc.text(`€${item.price?.toFixed(2)}`, 140, y);
-      doc.text(item.store || "", 162, y);
-      y += 6;
-    });
-    y += 4;
-    doc.setFont(undefined, "bold");
-    doc.setFontSize(11);
-    doc.text(`Total: €${groceries?.total_estimated_cost?.toFixed(2)}`, 14, y);
+  const exportPDF = async () => {
+    if (!groceryListRef.current) return;
+    const canvas = await html2canvas(groceryListRef.current, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL("image/png");
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let y = 10;
+    let remainingHeight = imgHeight;
+    let sourceY = 0;
+    while (remainingHeight > 0) {
+      const sliceHeight = Math.min(remainingHeight, pageHeight - 20);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = (sliceHeight * canvas.width) / imgWidth;
+      const ctx = sliceCanvas.getContext("2d");
+      ctx.drawImage(canvas, 0, sourceY * canvas.width / imgWidth, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 10, y, imgWidth, sliceHeight);
+      remainingHeight -= sliceHeight;
+      sourceY += sliceHeight;
+      if (remainingHeight > 0) { doc.addPage(); y = 10; }
+    }
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
@@ -310,6 +303,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           </div>
 
           {/* Categories */}
+          <div ref={groceryListRef}>
           {groceries?.categories?.map((category) => (
            <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
              <div className="bg-secondary px-5 py-3">
@@ -348,6 +342,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              </div>
            </div>
           ))}
+          </div>
 
           {/* Generate Weekly Plan Button */}
           {!weeklyPlan && (
