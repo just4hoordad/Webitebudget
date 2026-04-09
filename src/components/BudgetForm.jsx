@@ -139,14 +139,14 @@ export default function BudgetForm() {
               <button
                 key={goal.id}
                 onClick={() => setCalorieGoal(goal.id)}
-                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl text-sm font-medium border transition-all duration-200 overflow-hidden ${
                   calorieGoal === goal.id
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card text-foreground border-border hover:border-primary/40"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                <span>{t(goal.nameKey)}</span>
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="text-center leading-tight">{t(goal.nameKey)}</span>
                 <span className={`text-xs ${calorieGoal === goal.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{goal.desc}</span>
               </button>
             );
@@ -164,13 +164,13 @@ export default function BudgetForm() {
               <button
                 key={diet.id}
                 onClick={() => setSelectedDiet(diet.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 overflow-hidden min-w-0 ${
                   selectedDiet === diet.id
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card text-foreground border-border hover:border-primary/40"
                 }`}
               >
-                <Icon className="h-4 w-4 flex-shrink-0" />
+                <Icon className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t(diet.nameKey)}</span>
               </button>
             );
