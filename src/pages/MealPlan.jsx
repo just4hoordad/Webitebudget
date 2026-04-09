@@ -327,8 +327,10 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                    <div className="flex items-center gap-3 ml-4">
                      <div className="text-right">
                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                       {item.unit_price != null && item.unit_price !== item.price && (
-                         <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} each</p>
+                       {item.unit_price != null && item.unit_price !== item.price ? (
+                         <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}x</p>
+                       ) : (
+                         <p className="text-xs text-muted-foreground">1 item</p>
                        )}
                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
                      </div>
