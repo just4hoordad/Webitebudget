@@ -125,27 +125,21 @@ Rules:
 
   const exportPDF = async () => {
     if (!groceryListRef.current) return;
-    const canvas = await html2canvas(groceryListRef.current, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const imgWidth = pageWidth - 20;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let y = 10;
-    let remainingHeight = imgHeight;
-    let sourceY = 0;
-    while (remainingHeight > 0) {
-      const sliceHeight = Math.min(remainingHeight, pageHeight - 20);
-      const sliceCanvas = document.createElement("canvas");
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceHeight * canvas.width) / imgWidth;
-      const ctx = sliceCanvas.getContext("2d");
-      ctx.drawImage(canvas, 0, sourceY * canvas.width / imgWidth, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
-      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 10, y, imgWidth, sliceHeight);
-      remainingHeight -= sliceHeight;
-      sourceY += sliceHeight;
-      if (remainingHeight > 0) { doc.addPage(); y = 10; }
+    const canvas = await html2canvas(groceryListRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let heightLeft = imgH;
+    let position = 0;
+    doc.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
+    heightLeft -= pageH;
+    while (heightLeft > 0) {
+      position -= pageH;
+      doc.addPage();
+      doc.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
+      heightLeft -= pageH;
     }
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
