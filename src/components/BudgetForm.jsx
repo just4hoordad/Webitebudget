@@ -170,8 +170,8 @@ export default function BudgetForm() {
                     : "bg-card text-foreground border-border hover:border-primary/40"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {t(diet.nameKey)}
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{t(diet.nameKey)}</span>
               </button>
             );
           })}
