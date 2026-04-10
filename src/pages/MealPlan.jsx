@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import GroceryListExport from "@/components/GroceryListExport";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -24,6 +25,7 @@ export default function MealPlan() {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
   const groceryListRef = useRef(null);
+  const exportRef = useRef(null);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -124,8 +126,8 @@ Rules:
   };
 
   const exportPDF = async () => {
-    if (!groceryListRef.current) return;
-    const canvas = await html2canvas(groceryListRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    if (!exportRef.current) return;
+    const canvas = await html2canvas(exportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
     const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
@@ -397,6 +399,18 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
+      {groceries && (
+        <GroceryListExport
+          ref={exportRef}
+          groceries={groceries}
+          activeItems={getActiveItems()}
+          activeTotal={activeTotal}
+          budget={budget}
+          diet={diet}
+          people={people}
+          calories={calories}
+        />
+      )}
     </PullToRefresh>
   );
 }
