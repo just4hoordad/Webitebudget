@@ -127,22 +127,31 @@ Rules:
 
   const exportPDF = async () => {
     if (!exportRef.current) return;
-    const canvas = await html2canvas(exportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+
+    const container = exportRef.current;
+    const sections = container.querySelectorAll('[data-pdf-section]');
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    let heightLeft = imgH;
-    let position = 0;
-    doc.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
-    heightLeft -= pageH;
-    while (heightLeft > 0) {
-      position -= pageH;
-      doc.addPage();
-      doc.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
-      heightLeft -= pageH;
+    const margin = 20;
+    let cursorY = margin;
+    let firstPage = true;
+
+    for (const section of sections) {
+      const canvas = await html2canvas(section, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      if (!firstPage && cursorY + imgH > pageH - margin) {
+        doc.addPage();
+        cursorY = margin;
+      }
+
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, cursorY, imgW, imgH);
+      cursorY += imgH + 8;
+      firstPage = false;
     }
+
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
