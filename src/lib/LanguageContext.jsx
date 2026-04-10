@@ -12,6 +12,7 @@ const LANGUAGES = [
   { code: "ar", label: "العربية", flag: "🇸🇦" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
   { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
+  { code: "tr", label: "Türkçe", flag: "🇹🇷" },
 ];
 
 const LanguageContext = createContext(null);
