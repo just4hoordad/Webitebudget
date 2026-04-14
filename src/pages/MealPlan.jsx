@@ -58,8 +58,7 @@ Rules:
 3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
 4. Add enough items so the total is as close to €${budget} as possible.
 5. All text in ${currentLanguage.label}.`,
-      add_context_from_internet: true,
-      model: "gemini_3_flash",
+      add_context_from_internet: false,
       response_json_schema: {
         type: "object",
         properties: {
