@@ -109,6 +109,12 @@ Rules:
     ) || [];
 
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
+  const totalSaved = getActiveItems().reduce((sum, item) => {
+    if (item.normal_price != null && item.normal_price > item.price) {
+      return sum + (item.normal_price - item.price);
+    }
+    return sum;
+  }, 0);
 
   const exportCSV = () => {
     const items = getActiveItems();

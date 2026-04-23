@@ -2,6 +2,12 @@ import { forwardRef } from "react";
 
 const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, budget, diet, people, calories }, ref) => {
   const remaining = parseFloat(budget) - activeTotal;
+  const totalSaved = activeItems.reduce((sum, item) => {
+    if (item.normal_price != null && item.normal_price > item.price) {
+      return sum + (item.normal_price - item.price);
+    }
+    return sum;
+  }, 0);
 
   return (
     <div
@@ -46,6 +52,13 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
             <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Remaining</div>
             <div style={{ fontSize: "22px", fontWeight: "800", color: remaining >= 0 ? "#16a34a" : "#dc2626" }}>€{remaining.toFixed(2)}</div>
           </div>
+          {totalSaved > 0 && (
+            <div style={{ flex: 1, background: "#fefce8", border: "1px solid #fde68a", borderRadius: "12px", padding: "14px 18px" }}>
+              <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>💰 Total Saved</div>
+              <div style={{ fontSize: "22px", fontWeight: "800", color: "#d97706" }}>€{totalSaved.toFixed(2)}</div>
+              <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "2px" }}>vs. regular prices</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -72,6 +85,7 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
                   <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Store</th>
                   <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Unit Price</th>
                   <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Total</th>
+                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Saved</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,6 +102,9 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
                     </td>
                     <td style={{ padding: "9px 14px", fontSize: "12px", fontWeight: "600", color: "#0f4c35", textAlign: "right", borderBottom: "1px solid #f3f4f6" }}>
                       €{item.price?.toFixed(2)}
+                    </td>
+                    <td style={{ padding: "9px 14px", fontSize: "12px", fontWeight: "600", color: item.normal_price > item.price ? "#d97706" : "#9ca3af", textAlign: "right", borderBottom: "1px solid #f3f4f6" }}>
+                      {item.normal_price != null && item.normal_price > item.price ? `€${(item.normal_price - item.price).toFixed(2)}` : "—"}
                     </td>
                   </tr>
                 ))}
