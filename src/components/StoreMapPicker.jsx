@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { MapPin, X, Check } from "lucide-react";
+import { MapPin, X, Check, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import L from "leaflet";
@@ -28,8 +28,6 @@ const CHAIN_COLORS = {
   globus: "#0d9488",
 };
 
-const KNOWN_CHAINS = Object.keys(CHAIN_COLORS);
-
 const CHAIN_ALIASES = {
   aldi: ["aldi", "aldi nord", "aldi süd", "aldi sud"],
   lidl: ["lidl"],
@@ -53,14 +51,15 @@ function detectChain(name = "") {
   return null;
 }
 
-function createStoreIcon(chain) {
-  const color = CHAIN_COLORS[chain] || "#6b7280";
+function createStoreIcon(chain, isSelected) {
+  const color = isSelected ? "#0f4c35" : (CHAIN_COLORS[chain] || "#6b7280");
+  const border = isSelected ? "3px solid #fff" : "2px solid white";
   return L.divIcon({
     className: "",
-    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);font-size:9px;font-weight:800;"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -34],
+    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 2px 10px rgba(0,0,0,0.4);font-size:9px;font-weight:800;${isSelected ? "outline:2px solid #0f4c35;outline-offset:2px;" : ""}"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -38],
   });
 }
 
@@ -75,12 +74,17 @@ async function fetchNearbyStores(lat, lng) {
       const elLat = el.lat ?? el.center?.lat;
       const elLng = el.lon ?? el.center?.lon;
       if (!elLat || !elLng) return null;
-      return { id: el.id, name: name || chain, chain, lat: elLat, lng: elLng };
+      const address = [
+        el.tags?.["addr:street"],
+        el.tags?.["addr:housenumber"],
+        el.tags?.["addr:city"],
+      ].filter(Boolean).join(" ") || null;
+      return { id: el.id, name: name || chain, chain, lat: elLat, lng: elLng, address };
     })
     .filter(Boolean);
 }
 
-function MapController({ userLocation, stores, selectedStores, onToggleStore, onStoresLoaded, onLoading }) {
+function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
 
@@ -110,10 +114,7 @@ function MapController({ userLocation, stores, selectedStores, onToggleStore, on
     );
   }, [map, onStoresLoaded, onLoading]);
 
-  // Auto-locate on first mount
-  useEffect(() => {
-    locate();
-  }, []);
+  useEffect(() => { locate(); }, []);
 
   return (
     <>
@@ -122,7 +123,6 @@ function MapController({ userLocation, stores, selectedStores, onToggleStore, on
         <button
           onClick={locate}
           disabled={locating}
-          title="Find my location"
           style={{
             display: "flex", alignItems: "center", gap: 6,
             background: "white", border: "2px solid rgba(0,0,0,0.15)",
@@ -140,48 +140,66 @@ function MapController({ userLocation, stores, selectedStores, onToggleStore, on
       </div>
 
       {/* Store markers */}
-      {stores.map((store) => (
-        <Marker
-          key={store.id}
-          position={[store.lat, store.lng]}
-          icon={createStoreIcon(store.chain)}
-          eventHandlers={{ click: () => onToggleStore(store.chain) }}
-        >
-          <Popup closeButton={false}>
-            <div style={{ minWidth: 130, textAlign: "center" }}>
-              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{store.name}</div>
-              <button
-                onClick={() => onToggleStore(store.chain)}
-                style={{
-                  background: selectedStores.includes(store.chain) ? "#0f4c35" : "#e5e7eb",
-                  color: selectedStores.includes(store.chain) ? "#fff" : "#374151",
-                  border: "none", borderRadius: 7, padding: "5px 12px",
-                  fontSize: 11, fontWeight: 700, cursor: "pointer", width: "100%",
-                }}
-              >
-                {selectedStores.includes(store.chain) ? "✓ Selected" : "+ Select"}
-              </button>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      {stores.map((store) => {
+        const isSelected = selectedStoreIds.includes(store.id);
+        return (
+          <Marker
+            key={store.id}
+            position={[store.lat, store.lng]}
+            icon={createStoreIcon(store.chain, isSelected)}
+          >
+            <Popup closeButton={false}>
+              <div style={{ minWidth: 150, textAlign: "center" }}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>{store.name}</div>
+                {store.address && (
+                  <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 6 }}>{store.address}</div>
+                )}
+                <button
+                  onClick={() => onToggleStoreLocation(store)}
+                  style={{
+                    background: isSelected ? "#0f4c35" : "#e5e7eb",
+                    color: isSelected ? "#fff" : "#374151",
+                    border: "none", borderRadius: 7, padding: "5px 12px",
+                    fontSize: 11, fontWeight: 700, cursor: "pointer", width: "100%",
+                  }}
+                >
+                  {isSelected ? "✓ Selected" : "+ Select this store"}
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
     </>
   );
 }
 
-export default function StoreMapPicker({ selectedStores, onToggleStore }) {
+// Props:
+// selectedStoreLocations: array of store objects { id, name, chain, lat, lng, address }
+// onChangeStoreLocations: (newLocations) => void
+// selectedChains: array of chain ids (for the chain-level toggles in BudgetForm)
+// onToggleChain: (chainId) => void
+export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain }) {
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState([]);
   const [loadingStores, setLoadingStores] = useState(false);
-  const [center, setCenter] = useState([51.1657, 10.4515]); // Germany center as default
+  const [center, setCenter] = useState([51.1657, 10.4515]);
 
   const handleStoresLoaded = useCallback((nearby, location) => {
     setStores(nearby);
     if (location) setCenter(location);
   }, []);
 
-  // Unique chains found nearby
-  const nearbyChains = [...new Set(stores.map((s) => s.chain))];
+  const handleToggleStoreLocation = useCallback((store) => {
+    const alreadySelected = selectedStoreLocations.some((s) => s.id === store.id);
+    if (alreadySelected) {
+      onChangeStoreLocations(selectedStoreLocations.filter((s) => s.id !== store.id));
+    } else {
+      onChangeStoreLocations([...selectedStoreLocations, store]);
+    }
+  }, [selectedStoreLocations, onChangeStoreLocations]);
+
+  const selectedStoreIds = selectedStoreLocations.map((s) => s.id);
 
   return (
     <>
@@ -190,7 +208,7 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
         className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 px-3 py-1.5 rounded-lg transition-all duration-200 border border-primary/20"
       >
         <MapPin className="h-3.5 w-3.5" />
-        Map
+        {selectedStoreLocations.length > 0 ? `${selectedStoreLocations.length} pinned` : "Pick on Map"}
       </button>
 
       {open && (
@@ -200,9 +218,13 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div>
-                <h2 className="font-heading font-bold text-base">Nearby Stores</h2>
+                <h2 className="font-heading font-bold text-base">Select Specific Stores</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {loadingStores ? "Finding stores near you…" : stores.length > 0 ? `${stores.length} stores found nearby` : "Allow location to see nearby stores"}
+                  {loadingStores
+                    ? "Finding stores near you…"
+                    : stores.length > 0
+                    ? `${stores.length} stores found — tap a marker to select a specific location`
+                    : "Allow location to see nearby stores"}
                 </p>
               </div>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
@@ -211,17 +233,13 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
             </div>
 
             {/* Map */}
-            <div style={{ height: 380, position: "relative", flexShrink: 0 }}>
+            <div style={{ height: 340, position: "relative", flexShrink: 0 }}>
               {loadingStores && (
-                <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
+                <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
                   Loading nearby stores…
                 </div>
               )}
-              <MapContainer
-                center={center}
-                zoom={13}
-                style={{ height: "100%", width: "100%", zIndex: 0 }}
-              >
+              <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }}>
                 <TileLayer
                   attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                   url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -229,32 +247,45 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
                 />
                 <MapController
                   stores={stores}
-                  selectedStores={selectedStores}
-                  onToggleStore={onToggleStore}
+                  selectedStoreIds={selectedStoreIds}
+                  onToggleStoreLocation={handleToggleStoreLocation}
                   onStoresLoaded={handleStoresLoaded}
                   onLoading={setLoadingStores}
                 />
               </MapContainer>
             </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30 shrink-0">
-              <div className="flex flex-wrap gap-2">
-                {(nearbyChains.length > 0 ? nearbyChains : KNOWN_CHAINS).map((chain) => (
-                  <span
-                    key={chain}
-                    onClick={() => onToggleStore(chain)}
-                    className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border cursor-pointer transition-all select-none ${
-                      selectedStores.includes(chain)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                    }`}
-                  >
-                    {selectedStores.includes(chain) && <Check className="h-3 w-3" />}
-                    {chain.toUpperCase()}
-                  </span>
-                ))}
+            {/* Selected store locations list */}
+            {selectedStoreLocations.length > 0 && (
+              <div className="px-5 py-3 border-t border-border bg-primary/5 shrink-0">
+                <p className="text-xs font-semibold text-primary mb-2">
+                  <Store className="inline h-3.5 w-3.5 mr-1" />
+                  {selectedStoreLocations.length} specific store{selectedStoreLocations.length > 1 ? "s" : ""} selected:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedStoreLocations.map((s) => (
+                    <span
+                      key={s.id}
+                      className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-lg font-medium"
+                    >
+                      {s.name}
+                      {s.address && <span className="opacity-70">· {s.address.split(",")[0]}</span>}
+                      <button onClick={() => handleToggleStoreLocation(s)} className="ml-1 opacity-70 hover:opacity-100">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex items-center justify-end px-5 py-3 border-t border-border bg-muted/30 shrink-0">
+              <p className="text-xs text-muted-foreground flex-1">
+                {selectedStoreLocations.length === 0
+                  ? "Tap a store marker on the map to pin a specific location"
+                  : "These exact stores will be used for your grocery list"}
+              </p>
               <Button size="sm" onClick={() => setOpen(false)} className="ml-3 shrink-0">Done</Button>
             </div>
           </div>

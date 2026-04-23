@@ -45,6 +45,7 @@ export default function BudgetForm() {
   const { t } = useLanguage();
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
+  const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
@@ -60,9 +61,13 @@ export default function BudgetForm() {
   const handleGenerate = () => {
     const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
     const totalCalories = goalKcal * people;
+    // Use pinned specific locations if available, otherwise fall back to chain names
+    const storesParam = selectedStoreLocations.length > 0
+      ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
+      : selectedStores.join(",");
     const params = new URLSearchParams({
       budget: budget[0],
-      stores: selectedStores.join(","),
+      stores: storesParam,
       diet: selectedDiet,
       people: people,
       calories: totalCalories,
@@ -120,23 +125,45 @@ export default function BudgetForm() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
-          <StoreMapPicker selectedStores={selectedStores} onToggleStore={toggleStore} />
+          <StoreMapPicker
+            selectedStoreLocations={selectedStoreLocations}
+            onChangeStoreLocations={setSelectedStoreLocations}
+            selectedChains={selectedStores}
+            onToggleChain={toggleStore}
+          />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {STORES.map((store) => (
-            <button
-              key={store.id}
-              onClick={() => toggleStore(store.id)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                selectedStores.includes(store.id)
-                  ? store.color + " border-current"
-                  : "bg-card text-muted-foreground border-border hover:border-primary/40"
-              }`}
-            >
-              {store.name}
+        {selectedStoreLocations.length > 0 ? (
+          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-primary mb-2">📍 Specific stores pinned from map:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {selectedStoreLocations.map((s) => (
+                <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">
+                  {s.name}
+                  {s.address && <span className="opacity-70 text-xs">· {s.address}</span>}
+                </span>
+              ))}
+            </div>
+            <button onClick={() => setSelectedStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
+              Clear pinned stores
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {STORES.map((store) => (
+              <button
+                key={store.id}
+                onClick={() => toggleStore(store.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                  selectedStores.includes(store.id)
+                    ? store.color + " border-current"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                {store.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Calorie Goal */}
@@ -191,7 +218,7 @@ export default function BudgetForm() {
       {/* Generate Button */}
       <Button
         onClick={handleGenerate}
-        disabled={selectedStores.length === 0}
+        disabled={selectedStoreLocations.length === 0 && selectedStores.length === 0}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 transition-all duration-300"
         size="lg"
       >
