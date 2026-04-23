@@ -15,9 +15,7 @@ const STORES = [
   { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
   { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
   { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
-  { id: "dm", name: "dm", color: "bg-pink-100 text-pink-700 border-pink-200" },
-  { id: "rossmann", name: "Rossmann", color: "bg-rose-100 text-rose-700 border-rose-200" },
-  { id: "müller", name: "Müller", color: "bg-indigo-100 text-indigo-700 border-indigo-200" },
+
   { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
