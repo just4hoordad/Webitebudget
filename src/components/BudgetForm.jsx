@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const STORES = [
@@ -47,6 +47,7 @@ export default function BudgetForm() {
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
+  const [saleHunt, setSaleHunt] = useState(false);
 
   const toggleStore = (storeId) => {
     setSelectedStores((prev) =>
@@ -69,6 +70,7 @@ export default function BudgetForm() {
       diet: selectedDiet,
       people: people,
       calories: totalCalories,
+      saleHunt: saleHunt,
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -79,9 +81,22 @@ export default function BudgetForm() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-foreground">{t("monthlyBudget")}</label>
-          <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-4 py-1.5 rounded-xl">
-            <Euro className="h-5 w-5" />
-            {budget[0]}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSaleHunt((v) => !v)}
+              className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl border transition-all duration-200 ${
+                saleHunt
+                  ? "bg-accent text-accent-foreground border-accent"
+                  : "bg-card text-muted-foreground border-border hover:border-accent/60 hover:text-accent-foreground"
+              }`}
+            >
+              <Tag className="h-4 w-4" />
+              {t("saleHunt")}
+            </button>
+            <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-4 py-1.5 rounded-xl">
+              <Euro className="h-5 w-5" />
+              {budget[0]}
+            </div>
           </div>
         </div>
         <Slider
