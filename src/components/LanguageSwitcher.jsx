@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Globe, Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function LanguageSwitcher() {
@@ -21,8 +21,8 @@ export default function LanguageSwitcher() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
       >
-        <Globe className="h-4 w-4" />
-        <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.code.toUpperCase()}</span>
+        <span className="text-base">{currentLanguage.flag}</span>
+        <span className="hidden sm:inline">{currentLanguage.code.toUpperCase()}</span>
         <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
