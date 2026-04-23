@@ -57,7 +57,8 @@ Rules:
 2. Pick the cheapest store for each item.
 3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
 4. Add enough items so the total is as close to €${budget} as possible.
-5. All text in ${currentLanguage.label}.`,
+5. All text in ${currentLanguage.label}.
+6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {
@@ -79,6 +80,7 @@ Rules:
                       quantity: { type: "string" },
                       unit_price: { type: "number" },
                       price: { type: "number" },
+                      normal_price: { type: "number" },
                       store: { type: "string" },
                       calories_info: { type: "string" }
                     }
@@ -332,6 +334,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                          </>
                        ) : (
                          <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                       )}
+                       {item.normal_price != null && item.normal_price > item.price && (
+                         <p className="text-xs font-medium text-green-600">
+                           saves €{(item.normal_price - item.price).toFixed(2)}
+                         </p>
                        )}
                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
                      </div>
