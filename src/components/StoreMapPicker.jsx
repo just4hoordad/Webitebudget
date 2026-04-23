@@ -246,7 +246,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                   Loading nearby stores…
                 </div>
               )}
-              <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }}>
+              <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} whenReady={(map) => { setTimeout(() => map.target.invalidateSize(), 100); }}>
                 <TileLayer
                   attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                   url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"

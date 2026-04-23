@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const query = `[out:json][timeout:20];(node["shop"="supermarket"](around:${radius},${lat},${lng});way["shop"="supermarket"](around:${radius},${lat},${lng}););out center;`;
 
     const encoded = encodeURIComponent(query);
-    const res = await fetch(`https://overpass.kumi.systems/api/interpreter?data=${encoded}`, {
+    const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encoded}`, {
       method: "GET",
       headers: { "User-Agent": "BudgetBite/1.0 (meal planning app)" },
     });
