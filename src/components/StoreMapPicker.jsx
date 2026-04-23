@@ -114,7 +114,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
     );
   }, [map, onStoresLoaded, onLoading]);
 
-  useEffect(() => { locate(); }, []);
+  // Don't auto-locate — user must click the button
 
   return (
     <>
@@ -125,17 +125,19 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
           disabled={locating}
           style={{
             display: "flex", alignItems: "center", gap: 6,
-            background: "white", border: "2px solid rgba(0,0,0,0.15)",
-            borderRadius: 10, padding: "7px 12px", fontSize: 12,
+            background: stores.length === 0 && !locating ? "#0f4c35" : "white",
+            border: "2px solid rgba(0,0,0,0.15)",
+            borderRadius: 10, padding: "7px 14px", fontSize: 13,
             fontWeight: 700, cursor: locating ? "wait" : "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-            color: locating ? "#9ca3af" : "#0f4c35", whiteSpace: "nowrap",
+            color: stores.length === 0 && !locating ? "#fff" : locating ? "#9ca3af" : "#0f4c35",
+            whiteSpace: "nowrap",
           }}
-        >
+          >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
           </svg>
-          {locating ? "Locating…" : "My Location"}
+          {locating ? "Locating…" : stores.length === 0 ? "📍 Find Stores Near Me" : "My Location"}
         </button>
       </div>
 
@@ -224,7 +226,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                     ? "Finding stores near you…"
                     : stores.length > 0
                     ? `${stores.length} stores found — tap a marker to select a specific location`
-                    : "Allow location to see nearby stores"}
+                    : "Click \"Find Stores Near Me\" on the map to load nearby stores"}
                 </p>
               </div>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
