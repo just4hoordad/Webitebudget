@@ -6,29 +6,15 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { lat, lng, radius = 5000 } = await req.json();
+    const { lat, lng, radius = 3000 } = await req.json();
 
-    const query = `
-      [out:json][timeout:25];
-      (
-        node["shop"="supermarket"](around:${radius},${lat},${lng});
-        node["shop"="grocery"](around:${radius},${lat},${lng});
-        node["shop"="discount"](around:${radius},${lat},${lng});
-        node["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
-        way["shop"="supermarket"](around:${radius},${lat},${lng});
-        way["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
-      );
-      out center;
-    `;
+    // Simple query: just supermarkets with known brands nearby
+    const query = `[out:json][timeout:20];(node["shop"="supermarket"](around:${radius},${lat},${lng});way["shop"="supermarket"](around:${radius},${lat},${lng}););out center;`;
 
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "BudgetBite/1.0",
-        "Accept": "application/json",
-      },
-      body: "data=" + encodeURIComponent(query),
+    const encoded = encodeURIComponent(query);
+    const res = await fetch(`https://overpass.kumi.systems/api/interpreter?data=${encoded}`, {
+      method: "GET",
+      headers: { "User-Agent": "BudgetBite/1.0 (meal planning app)" },
     });
 
     const data = await res.json();
