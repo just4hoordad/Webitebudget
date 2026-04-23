@@ -63,11 +63,14 @@ function LocateControl({ onLocate }) {
         onLocate([latitude, longitude]);
         setLocating(false);
       },
-      () => {
-        alert("Could not get your location. Please allow location access in your browser.");
+      (err) => {
         setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          alert("Location access was denied. Please allow it in your browser settings.");
+        }
+        // For timeout or unavailable errors, silently fail
       },
-      { timeout: 10000 }
+      { timeout: 10000, maximumAge: 60000 }
     );
   }, [map, onLocate]);
 
