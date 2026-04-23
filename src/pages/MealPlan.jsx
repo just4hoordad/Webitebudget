@@ -232,10 +232,14 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
   const saveMealPlan = async () => {
     if (!weeklyPlan || saved) return;
-    setSaved(true);
     setSaving(true);
-    toast.success(t("planSaved"));
     try {
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (!isAuthed) {
+        toast.error("Please log in to save meal plans.");
+        base44.auth.redirectToLogin();
+        return;
+      }
       await base44.entities.MealPlan.create({
         name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
         diet,
@@ -245,8 +249,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         stores,
         plan: { days: weeklyPlan.weeks[0].days }
       });
+      setSaved(true);
+      toast.success(t("planSaved"));
     } catch (error) {
-      setSaved(false);
       toast.error("Failed to save meal plan: " + (error?.message || "Unknown error"));
     } finally {
       setSaving(false);
