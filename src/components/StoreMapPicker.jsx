@@ -1,11 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { MapPin, X, Check, LocateFixed } from "lucide-react";
+import { MapPin, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix default marker icons for Leaflet in Vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -13,30 +12,26 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const STORE_COLORS = {
+const CHAIN_COLORS = {
   aldi: "#1d4ed8",
   lidl: "#ca8a04",
   rewe: "#dc2626",
   edeka: "#d97706",
   penny: "#ea580c",
   netto: "#6b7280",
+  kaufland: "#7c3aed",
+  norma: "#0891b2",
 };
 
-const SAMPLE_STORES = [
-  { id: "aldi-1", chain: "aldi", name: "Aldi Mitte", lat: 52.5244, lng: 13.4105 },
-  { id: "aldi-2", chain: "aldi", name: "Aldi Prenzlauer Berg", lat: 52.5395, lng: 13.4131 },
-  { id: "lidl-1", chain: "lidl", name: "Lidl Mitte", lat: 52.5182, lng: 13.3927 },
-  { id: "lidl-2", chain: "lidl", name: "Lidl Friedrichshain", lat: 52.5154, lng: 13.4543 },
-  { id: "rewe-1", chain: "rewe", name: "REWE Kreuzberg", lat: 52.4988, lng: 13.4028 },
-  { id: "rewe-2", chain: "rewe", name: "REWE Charlottenburg", lat: 52.5063, lng: 13.3033 },
-  { id: "edeka-1", chain: "edeka", name: "Edeka Schöneberg", lat: 52.4882, lng: 13.3599 },
-  { id: "edeka-2", chain: "edeka", name: "Edeka Mitte", lat: 52.5312, lng: 13.3827 },
-  { id: "penny-1", chain: "penny", name: "Penny Neukölln", lat: 52.4777, lng: 13.4374 },
-  { id: "netto-1", chain: "netto", name: "Netto Wedding", lat: 52.5541, lng: 13.3689 },
-];
+const KNOWN_CHAINS = Object.keys(CHAIN_COLORS);
+
+function detectChain(name = "") {
+  const lower = name.toLowerCase();
+  return KNOWN_CHAINS.find((c) => lower.includes(c)) || null;
+}
 
 function createStoreIcon(chain) {
-  const color = STORE_COLORS[chain] || "#6b7280";
+  const color = CHAIN_COLORS[chain] || "#6b7280";
   return L.divIcon({
     className: "",
     html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);font-size:9px;font-weight:800;"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
@@ -46,21 +41,48 @@ function createStoreIcon(chain) {
   });
 }
 
-function LocateControl({ onLocate }) {
+async function fetchNearbyStores(lat, lng, radius = 3000) {
+  const query = `
+    [out:json][timeout:15];
+    (
+      node["shop"="supermarket"](around:${radius},${lat},${lng});
+      node["shop"="discount"](around:${radius},${lat},${lng});
+    );
+    out body;
+  `;
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    body: query,
+  });
+  const data = await res.json();
+  return (data.elements || [])
+    .map((el) => {
+      const name = el.tags?.name || "";
+      const chain = detectChain(el.tags?.brand || name);
+      if (!chain) return null;
+      return { id: el.id, name, chain, lat: el.lat, lng: el.lon };
+    })
+    .filter(Boolean);
+}
+
+function MapController({ userLocation, stores, selectedStores, onToggleStore, onStoresLoaded, onLoading }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
 
-  const handleLocate = useCallback(() => {
+  const locate = useCallback(async () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
       return;
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
         map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
-        onLocate([latitude, longitude]);
+        onLoading(true);
+        const nearby = await fetchNearbyStores(latitude, longitude).catch(() => []);
+        onStoresLoaded(nearby, [latitude, longitude]);
+        onLoading(false);
         setLocating(false);
       },
       (err) => {
@@ -68,47 +90,83 @@ function LocateControl({ onLocate }) {
         if (err.code === err.PERMISSION_DENIED) {
           alert("Location access was denied. Please allow it in your browser settings.");
         }
-        // For timeout or unavailable errors, silently fail
       },
       { timeout: 10000, maximumAge: 60000 }
     );
-  }, [map, onLocate]);
+  }, [map, onStoresLoaded, onLoading]);
+
+  // Auto-locate on first mount
+  useEffect(() => {
+    locate();
+  }, []);
 
   return (
-    <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1000 }}>
-      <button
-        onClick={handleLocate}
-        disabled={locating}
-        title="Find my location"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          background: "white",
-          border: "2px solid rgba(0,0,0,0.15)",
-          borderRadius: 10,
-          padding: "7px 12px",
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: locating ? "wait" : "pointer",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-          color: locating ? "#9ca3af" : "#0f4c35",
-          transition: "all 0.2s",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7" strokeOpacity="0.3"/>
-        </svg>
-        {locating ? "Locating…" : "My Location"}
-      </button>
-    </div>
+    <>
+      {/* Locate button */}
+      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1000 }}>
+        <button
+          onClick={locate}
+          disabled={locating}
+          title="Find my location"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "white", border: "2px solid rgba(0,0,0,0.15)",
+            borderRadius: 10, padding: "7px 12px", fontSize: 12,
+            fontWeight: 700, cursor: locating ? "wait" : "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+            color: locating ? "#9ca3af" : "#0f4c35", whiteSpace: "nowrap",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          </svg>
+          {locating ? "Locating…" : "My Location"}
+        </button>
+      </div>
+
+      {/* Store markers */}
+      {stores.map((store) => (
+        <Marker
+          key={store.id}
+          position={[store.lat, store.lng]}
+          icon={createStoreIcon(store.chain)}
+          eventHandlers={{ click: () => onToggleStore(store.chain) }}
+        >
+          <Popup closeButton={false}>
+            <div style={{ minWidth: 130, textAlign: "center" }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{store.name}</div>
+              <button
+                onClick={() => onToggleStore(store.chain)}
+                style={{
+                  background: selectedStores.includes(store.chain) ? "#0f4c35" : "#e5e7eb",
+                  color: selectedStores.includes(store.chain) ? "#fff" : "#374151",
+                  border: "none", borderRadius: 7, padding: "5px 12px",
+                  fontSize: 11, fontWeight: 700, cursor: "pointer", width: "100%",
+                }}
+              >
+                {selectedStores.includes(store.chain) ? "✓ Selected" : "+ Select"}
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </>
   );
 }
 
 export default function StoreMapPicker({ selectedStores, onToggleStore }) {
   const [open, setOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [loadingStores, setLoadingStores] = useState(false);
+  const [center, setCenter] = useState([51.1657, 10.4515]); // Germany center as default
+
+  const handleStoresLoaded = useCallback((nearby, location) => {
+    setStores(nearby);
+    if (location) setCenter(location);
+  }, []);
+
+  // Unique chains found nearby
+  const nearbyChains = [...new Set(stores.map((s) => s.chain))];
 
   return (
     <>
@@ -128,7 +186,9 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div>
                 <h2 className="font-heading font-bold text-base">Nearby Stores</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Click a store marker to toggle selection</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {loadingStores ? "Finding stores near you…" : stores.length > 0 ? `${stores.length} stores found nearby` : "Allow location to see nearby stores"}
+                </p>
               </div>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
                 <X className="h-5 w-5" />
@@ -137,55 +197,35 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
 
             {/* Map */}
             <div style={{ height: 380, position: "relative", flexShrink: 0 }}>
+              {loadingStores && (
+                <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
+                  Loading nearby stores…
+                </div>
+              )}
               <MapContainer
-                center={[52.52, 13.405]}
-                zoom={12}
+                center={center}
+                zoom={13}
                 style={{ height: "100%", width: "100%", zIndex: 0 }}
-                zoomControl={true}
               >
                 <TileLayer
                   attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                   url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                   subdomains="abcd"
                 />
-                <LocateControl onLocate={setUserLocation} />
-                {SAMPLE_STORES.map((store) => (
-                  <Marker
-                    key={store.id}
-                    position={[store.lat, store.lng]}
-                    icon={createStoreIcon(store.chain)}
-                    eventHandlers={{ click: () => onToggleStore(store.chain) }}
-                  >
-                    <Popup closeButton={false}>
-                      <div style={{ minWidth: 130, textAlign: "center" }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{store.name}</div>
-                        <button
-                          onClick={() => onToggleStore(store.chain)}
-                          style={{
-                            background: selectedStores.includes(store.chain) ? "#0f4c35" : "#e5e7eb",
-                            color: selectedStores.includes(store.chain) ? "#fff" : "#374151",
-                            border: "none",
-                            borderRadius: 7,
-                            padding: "5px 12px",
-                            fontSize: 11,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            width: "100%",
-                          }}
-                        >
-                          {selectedStores.includes(store.chain) ? "✓ Selected" : "+ Select"}
-                        </button>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                <MapController
+                  stores={stores}
+                  selectedStores={selectedStores}
+                  onToggleStore={onToggleStore}
+                  onStoresLoaded={handleStoresLoaded}
+                  onLoading={setLoadingStores}
+                />
               </MapContainer>
             </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30 shrink-0">
               <div className="flex flex-wrap gap-2">
-                {["aldi", "lidl", "rewe", "edeka", "penny", "netto"].map((chain) => (
+                {(nearbyChains.length > 0 ? nearbyChains : KNOWN_CHAINS).map((chain) => (
                   <span
                     key={chain}
                     onClick={() => onToggleStore(chain)}
