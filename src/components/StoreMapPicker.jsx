@@ -99,10 +99,15 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
         const { latitude, longitude } = pos.coords;
         map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
         onLoading(true);
-        const nearby = await fetchNearbyStores(latitude, longitude).catch(() => []);
-        onStoresLoaded(nearby, [latitude, longitude]);
-        onLoading(false);
-        setLocating(false);
+        try {
+          const nearby = await fetchNearbyStores(latitude, longitude);
+          onStoresLoaded(nearby, [latitude, longitude]);
+        } catch (e) {
+          onStoresLoaded([], [latitude, longitude]);
+        } finally {
+          onLoading(false);
+          setLocating(false);
+        }
       },
       (err) => {
         setLocating(false);
@@ -110,7 +115,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
           alert("Location access was denied. Please allow it in your browser settings.");
         }
       },
-      { timeout: 10000, maximumAge: 60000 }
+      { timeout: 15000, maximumAge: 60000 }
     );
   }, [map, onStoresLoaded, onLoading]);
 
