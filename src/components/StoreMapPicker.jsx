@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { MapPin, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -55,37 +56,18 @@ function createStoreIcon(chain) {
   });
 }
 
-async function fetchNearbyStores(lat, lng, radius = 5000) {
-  const query = `
-    [out:json][timeout:25];
-    (
-      node["shop"="supermarket"](around:${radius},${lat},${lng});
-      node["shop"="grocery"](around:${radius},${lat},${lng});
-      node["shop"="convenience"](around:${radius},${lat},${lng});
-      node["shop"="discount"](around:${radius},${lat},${lng});
-      node["shop"="food"](around:${radius},${lat},${lng});
-      node["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
-      way["shop"="supermarket"](around:${radius},${lat},${lng});
-      way["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
-    );
-    out center;
-  `;
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    body: query,
-  });
-  const data = await res.json();
-  return (data.elements || [])
+async function fetchNearbyStores(lat, lng) {
+  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng });
+  return (res.data?.elements || [])
     .map((el) => {
       const name = el.tags?.name || el.tags?.brand || "";
       const brand = el.tags?.brand || "";
       const chain = detectChain(brand) || detectChain(name);
       if (!chain) return null;
-      // nodes have lat/lng directly; ways have center
-      const lat = el.lat ?? el.center?.lat;
-      const lng = el.lon ?? el.center?.lon;
-      if (!lat || !lng) return null;
-      return { id: el.id, name: name || chain, chain, lat, lng };
+      const elLat = el.lat ?? el.center?.lat;
+      const elLng = el.lon ?? el.center?.lon;
+      if (!elLat || !elLng) return null;
+      return { id: el.id, name: name || chain, chain, lat: elLat, lng: elLng };
     })
     .filter(Boolean);
 }
