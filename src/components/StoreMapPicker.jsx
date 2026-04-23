@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { MapPin, X, Check, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Fix default marker icons for Leaflet in Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,7 +22,6 @@ const STORE_COLORS = {
   netto: "#6b7280",
 };
 
-// Sample store locations in Germany (Berlin area)
 const SAMPLE_STORES = [
   { id: "aldi-1", chain: "aldi", name: "Aldi Mitte", lat: 52.5244, lng: 13.4105 },
   { id: "aldi-2", chain: "aldi", name: "Aldi Prenzlauer Berg", lat: 52.5395, lng: 13.4131 },
@@ -40,58 +39,73 @@ function createStoreIcon(chain) {
   const color = STORE_COLORS[chain] || "#6b7280";
   return L.divIcon({
     className: "",
-    html: `<div style="
-      background:${color};
-      color:#fff;
-      border-radius:50% 50% 50% 0;
-      transform:rotate(-45deg);
-      width:28px;height:28px;
-      display:flex;align-items:center;justify-content:center;
-      border:2px solid white;
-      box-shadow:0 2px 6px rgba(0,0,0,0.3);
-      font-size:9px;font-weight:700;
-    "><span style="transform:rotate(45deg)">${chain.slice(0,2).toUpperCase()}</span></div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 28],
-    popupAnchor: [0, -30],
+    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);font-size:9px;font-weight:800;"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -34],
   });
 }
 
-function LocateButton() {
+function LocateControl({ onLocate }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
 
   const handleLocate = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
     setLocating(true);
-    map.locate({ setView: true, maxZoom: 14 });
-    map.once("locationfound", () => setLocating(false));
-    map.once("locationerror", () => {
-      setLocating(false);
-      alert("Could not get your location. Please allow location access.");
-    });
-  }, [map]);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
+        onLocate([latitude, longitude]);
+        setLocating(false);
+      },
+      () => {
+        alert("Could not get your location. Please allow location access in your browser.");
+        setLocating(false);
+      },
+      { timeout: 10000 }
+    );
+  }, [map, onLocate]);
 
   return (
-    <div className="leaflet-top leaflet-right" style={{ marginTop: 10, marginRight: 10 }}>
-      <div className="leaflet-control">
-        <button
-          onClick={handleLocate}
-          title="Find my location"
-          style={{ pointerEvents: "all" }}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg shadow-md border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-200 ${locating ? "opacity-60 cursor-wait" : ""}`}
-        >
-          <LocateFixed className={`h-3.5 w-3.5 ${locating ? "animate-pulse" : ""}`} />
-          {locating ? "Locating…" : "My Location"}
-        </button>
-      </div>
+    <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1000 }}>
+      <button
+        onClick={handleLocate}
+        disabled={locating}
+        title="Find my location"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: "white",
+          border: "2px solid rgba(0,0,0,0.15)",
+          borderRadius: 10,
+          padding: "7px 12px",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: locating ? "wait" : "pointer",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+          color: locating ? "#9ca3af" : "#0f4c35",
+          transition: "all 0.2s",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7" strokeOpacity="0.3"/>
+        </svg>
+        {locating ? "Locating…" : "My Location"}
+      </button>
     </div>
   );
 }
 
 export default function StoreMapPicker({ selectedStores, onToggleStore }) {
   const [open, setOpen] = useState(false);
-
-  const allStores = SAMPLE_STORES;
+  const [userLocation, setUserLocation] = useState(null);
 
   return (
     <>
@@ -105,41 +119,59 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border flex flex-col" style={{ maxHeight: "90vh" }}>
+
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div>
                 <h2 className="font-heading font-bold text-base">Nearby Stores</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Tap a store on the map to toggle selection</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Click a store marker to toggle selection</p>
               </div>
-              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Map */}
-            <div style={{ height: 360 }}>
-              <MapContainer center={[52.52, 13.405]} zoom={12} style={{ height: "100%", width: "100%" }}>
+            <div style={{ height: 380, position: "relative", flexShrink: 0 }}>
+              <MapContainer
+                center={[52.52, 13.405]}
+                zoom={12}
+                style={{ height: "100%", width: "100%", zIndex: 0 }}
+                zoomControl={true}
+              >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <LocateButton />
-                {allStores.map((store) => (
+                <LocateControl onLocate={setUserLocation} />
+                {SAMPLE_STORES.map((store) => (
                   <Marker
                     key={store.id}
                     position={[store.lat, store.lng]}
                     icon={createStoreIcon(store.chain)}
                     eventHandlers={{ click: () => onToggleStore(store.chain) }}
                   >
-                    <Popup>
-                      <div className="text-sm font-medium">{store.name}</div>
-                      <button
-                        onClick={() => onToggleStore(store.chain)}
-                        className="mt-1 text-xs text-primary font-semibold"
-                      >
-                        {selectedStores.includes(store.chain) ? "✓ Selected" : "+ Select"} {store.chain.toUpperCase()}
-                      </button>
+                    <Popup closeButton={false}>
+                      <div style={{ minWidth: 130, textAlign: "center" }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{store.name}</div>
+                        <button
+                          onClick={() => onToggleStore(store.chain)}
+                          style={{
+                            background: selectedStores.includes(store.chain) ? "#0f4c35" : "#e5e7eb",
+                            color: selectedStores.includes(store.chain) ? "#fff" : "#374151",
+                            border: "none",
+                            borderRadius: 7,
+                            padding: "5px 12px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            width: "100%",
+                          }}
+                        >
+                          {selectedStores.includes(store.chain) ? "✓ Selected" : "+ Select"}
+                        </button>
+                      </div>
                     </Popup>
                   </Marker>
                 ))}
@@ -147,13 +179,13 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30">
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30 shrink-0">
               <div className="flex flex-wrap gap-2">
-                {["aldi","lidl","rewe","edeka","penny","netto"].map(chain => (
+                {["aldi", "lidl", "rewe", "edeka", "penny", "netto"].map((chain) => (
                   <span
                     key={chain}
                     onClick={() => onToggleStore(chain)}
-                    className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border cursor-pointer transition-all ${
+                    className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border cursor-pointer transition-all select-none ${
                       selectedStores.includes(chain)
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card text-muted-foreground border-border hover:border-primary/40"
