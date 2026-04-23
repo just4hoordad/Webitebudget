@@ -301,6 +301,12 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                 </p>
               </div>
             </div>
+            {totalSaved > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                <p className="text-xs text-yellow-700 font-medium">💰 Saved vs. regular prices</p>
+                <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
+              </div>
+            )}
           </div>
 
           {/* Export Buttons */}
