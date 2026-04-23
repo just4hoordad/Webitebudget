@@ -137,7 +137,7 @@ Rules:
     if (!exportRef.current) return;
 
     const container = exportRef.current;
-    const sections = container.querySelectorAll('[data-pdf-section]');
+    const sections = Array.from(container.querySelectorAll('[data-pdf-section]'));
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
