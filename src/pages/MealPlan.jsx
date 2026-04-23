@@ -243,7 +243,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         calories: parseFloat(calories),
         people: parseFloat(people),
         stores,
-        plan: weeklyPlan.weeks[0]
+        plan: { days: weeklyPlan.weeks[0].days }
       });
     } catch (error) {
       setSaved(false);
