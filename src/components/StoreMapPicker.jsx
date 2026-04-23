@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { MapPin, X, Check } from "lucide-react";
+import { useState, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapPin, X, Check, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -57,10 +57,40 @@ function createStoreIcon(chain) {
   });
 }
 
+function LocateButton() {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+
+  const handleLocate = useCallback(() => {
+    setLocating(true);
+    map.locate({ setView: true, maxZoom: 14 });
+    map.once("locationfound", () => setLocating(false));
+    map.once("locationerror", () => {
+      setLocating(false);
+      alert("Could not get your location. Please allow location access.");
+    });
+  }, [map]);
+
+  return (
+    <div className="leaflet-top leaflet-right" style={{ marginTop: 10, marginRight: 10 }}>
+      <div className="leaflet-control">
+        <button
+          onClick={handleLocate}
+          title="Find my location"
+          style={{ pointerEvents: "all" }}
+          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg shadow-md border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-200 ${locating ? "opacity-60 cursor-wait" : ""}`}
+        >
+          <LocateFixed className={`h-3.5 w-3.5 ${locating ? "animate-pulse" : ""}`} />
+          {locating ? "Locating…" : "My Location"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function StoreMapPicker({ selectedStores, onToggleStore }) {
   const [open, setOpen] = useState(false);
 
-  const visibleStores = SAMPLE_STORES.filter(s => selectedStores.includes(s.chain));
   const allStores = SAMPLE_STORES;
 
   return (
@@ -94,6 +124,7 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <LocateButton />
                 {allStores.map((store) => (
                   <Marker
                     key={store.id}
