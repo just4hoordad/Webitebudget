@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell } from "lucide-react";
+import StoreMapPicker from "@/components/StoreMapPicker";
 
 const STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -111,7 +112,10 @@ export default function BudgetForm() {
 
       {/* Store Selection */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
+          <StoreMapPicker selectedStores={selectedStores} onToggleStore={toggleStore} />
+        </div>
         <div className="flex flex-wrap gap-2">
           {STORES.map((store) => (
             <button
