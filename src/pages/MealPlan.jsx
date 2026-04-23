@@ -269,9 +269,14 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-6">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground font-medium">{t("generatingGroceries")}</p>
+          <div className="space-y-2">
+            <p className="text-foreground font-semibold text-lg">{t("generatingGroceries")}</p>
+            <p className="text-muted-foreground text-sm max-w-xs">
+              This takes 20–40 seconds — we're browsing real German supermarket prices across {stores.split(",").length > 1 ? `${stores.split(",").length} stores` : "your store"} to build the most accurate grocery list for your budget. Worth the wait! 🛒
+            </p>
+          </div>
         </div>
       ) : (
         <>
