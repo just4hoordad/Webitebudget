@@ -22,6 +22,10 @@ const CHAIN_COLORS = {
   netto: "#6b7280",
   kaufland: "#7c3aed",
   norma: "#0891b2",
+  dm: "#ec4899",
+  rossmann: "#f43f5e",
+  müller: "#6366f1",
+  globus: "#0d9488",
 };
 
 const KNOWN_CHAINS = Object.keys(CHAIN_COLORS);
@@ -35,6 +39,10 @@ const CHAIN_ALIASES = {
   netto: ["netto", "netto stadtmarkt"],
   kaufland: ["kaufland"],
   norma: ["norma"],
+  dm: ["dm", "dm drogerie", "dm-drogerie markt"],
+  rossmann: ["rossmann"],
+  müller: ["müller", "mueller", "müller drogerie"],
+  globus: ["globus", "globus sb-warenhaus"],
 };
 
 function detectChain(name = "") {
