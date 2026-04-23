@@ -25,9 +25,23 @@ const CHAIN_COLORS = {
 
 const KNOWN_CHAINS = Object.keys(CHAIN_COLORS);
 
+const CHAIN_ALIASES = {
+  aldi: ["aldi", "aldi nord", "aldi süd", "aldi sud"],
+  lidl: ["lidl"],
+  rewe: ["rewe", "rewe center", "rewe city", "rewe to go"],
+  edeka: ["edeka", "edeka center", "netto marken-discount"],
+  penny: ["penny", "penny markt"],
+  netto: ["netto", "netto stadtmarkt"],
+  kaufland: ["kaufland"],
+  norma: ["norma"],
+};
+
 function detectChain(name = "") {
   const lower = name.toLowerCase();
-  return KNOWN_CHAINS.find((c) => lower.includes(c)) || null;
+  for (const [chain, aliases] of Object.entries(CHAIN_ALIASES)) {
+    if (aliases.some((a) => lower.includes(a))) return chain;
+  }
+  return null;
 }
 
 function createStoreIcon(chain) {
@@ -41,14 +55,20 @@ function createStoreIcon(chain) {
   });
 }
 
-async function fetchNearbyStores(lat, lng, radius = 3000) {
+async function fetchNearbyStores(lat, lng, radius = 5000) {
   const query = `
-    [out:json][timeout:15];
+    [out:json][timeout:25];
     (
       node["shop"="supermarket"](around:${radius},${lat},${lng});
+      node["shop"="grocery"](around:${radius},${lat},${lng});
+      node["shop"="convenience"](around:${radius},${lat},${lng});
       node["shop"="discount"](around:${radius},${lat},${lng});
+      node["shop"="food"](around:${radius},${lat},${lng});
+      node["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
+      way["shop"="supermarket"](around:${radius},${lat},${lng});
+      way["brand"~"Aldi|Lidl|Rewe|Edeka|Penny|Netto|Kaufland|Norma",i](around:${radius},${lat},${lng});
     );
-    out body;
+    out center;
   `;
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
@@ -57,10 +77,15 @@ async function fetchNearbyStores(lat, lng, radius = 3000) {
   const data = await res.json();
   return (data.elements || [])
     .map((el) => {
-      const name = el.tags?.name || "";
-      const chain = detectChain(el.tags?.brand || name);
+      const name = el.tags?.name || el.tags?.brand || "";
+      const brand = el.tags?.brand || "";
+      const chain = detectChain(brand) || detectChain(name);
       if (!chain) return null;
-      return { id: el.id, name, chain, lat: el.lat, lng: el.lon };
+      // nodes have lat/lng directly; ways have center
+      const lat = el.lat ?? el.center?.lat;
+      const lng = el.lon ?? el.center?.lon;
+      if (!lat || !lng) return null;
+      return { id: el.id, name: name || chain, chain, lat, lng };
     })
     .filter(Boolean);
 }
