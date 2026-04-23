@@ -141,8 +141,9 @@ export default function StoreMapPicker({ selectedStores, onToggleStore }) {
                 zoomControl={true}
               >
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  subdomains="abcd"
                 />
                 <LocateControl onLocate={setUserLocation} />
                 {SAMPLE_STORES.map((store) => (
