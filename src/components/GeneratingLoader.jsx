@@ -26,34 +26,28 @@ const PLAN_STEPS = [
   { emoji: "✅", text: "Wrapping up your personalised meal plan…" },
 ];
 
-const GROCERY_GHOST_ITEMS = [
-  "🥛 Milbona Vollmilch 3,5% · 4× 1L",
-  "🥚 Gut & Günstig Eier 10er",
-  "🍞 Aldi Toastbrot 500g",
-  "🧀 Milbona Gouda Scheiben 400g",
-  "🍌 Bananen lose · 1kg",
-  "🥕 Karotten · 1kg Beutel",
-  "🐔 Hähnchenbrust · 800g",
-  "🛢️ Sonnenblumenöl 1L",
-  "🍚 Reis Langkorn · 2kg",
-  "🧻 Toilettenpapier 8-Rollen",
-  "🥫 Kidneybohnen 400g Dose",
-  "🍋 Zitronen · 500g Netz",
+const GROCERY_SEGMENTS = [
+  { label: "Dairy", emoji: "🥛" },
+  { label: "Produce", emoji: "🥦" },
+  { label: "Protein", emoji: "🥩" },
+  { label: "Grains", emoji: "🍞" },
+  { label: "Pantry", emoji: "🫙" },
+  { label: "Extras", emoji: "🧴" },
 ];
 
-const PLAN_GHOST_ITEMS = [
-  "Monday   Oats + Banana  |  Rice & Beans  |  Chicken & Veg",
-  "Tuesday   Eggs & Toast  |  Salad Bowl  |  Pasta Primavera",
-  "Wednesday   Yoghurt  |  Lentil Soup  |  Stir-fry & Rice",
-  "Thursday   Muesli  |  Veggie Wrap  |  Baked Potato",
-  "Friday   Smoothie  |  Rice Bowl  |  Fish & Salad",
-  "Saturday   Pancakes  |  Soup & Bread  |  Curry & Rice",
-  "Sunday   French Toast  |  Grain Bowl  |  Roast Veg",
+const PLAN_SEGMENTS = [
+  { label: "Mon", emoji: "1️⃣" },
+  { label: "Tue", emoji: "2️⃣" },
+  { label: "Wed", emoji: "3️⃣" },
+  { label: "Thu", emoji: "4️⃣" },
+  { label: "Fri", emoji: "5️⃣" },
+  { label: "Sat", emoji: "6️⃣" },
+  { label: "Sun", emoji: "7️⃣" },
 ];
 
 export default function GeneratingLoader({ type = "grocery" }) {
   const steps = type === "plan" ? PLAN_STEPS : GROCERY_STEPS;
-  const ghostItems = type === "plan" ? PLAN_GHOST_ITEMS : GROCERY_GHOST_ITEMS;
+  const segments = type === "plan" ? PLAN_SEGMENTS : GROCERY_SEGMENTS;
 
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,8 +77,8 @@ export default function GeneratingLoader({ type = "grocery" }) {
 
   const progress = ((currentIndex + 1) / steps.length) * 100;
 
-  // How many ghost rows to reveal based on progress
-  const revealedCount = Math.ceil((progress / 100) * ghostItems.length);
+  // How many segments are "lit" based on progress
+  const litCount = Math.ceil((progress / 100) * segments.length);
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -100,82 +94,64 @@ export default function GeneratingLoader({ type = "grocery" }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">
-        {/* Left: Live feed */}
-        <div className="px-5 py-4 space-y-2.5 font-mono text-sm">
-          <AnimatePresence>
-            {visibleSteps.map((step, i) => {
-              const isLast = i === visibleSteps.length - 1;
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex items-start gap-3 ${isLast ? "text-foreground" : "text-muted-foreground"}`}
-                >
-                  <span className="text-base leading-none mt-0.5">{step.emoji}</span>
-                  <span className={`leading-snug ${isLast ? "font-medium" : ""}`}>
-                    {step.text}
-                    {isLast && (
-                      <span className="inline-block ml-1 text-primary font-bold animate-pulse">▍</span>
-                    )}
-                  </span>
-                  {!isLast && (
-                    <span className="ml-auto text-green-500 text-xs shrink-0">✓</span>
-                  )}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-
-        {/* Right: Ghost preview — visually "drawing itself" */}
-        <div className="px-5 py-4 space-y-2 overflow-hidden">
-          <p className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest mb-3">
-            {type === "plan" ? "Preview: 7-day plan" : "Preview: Grocery list"}
-          </p>
-          {ghostItems.map((item, i) => {
-            const isRevealed = i < revealedCount;
+      {/* Live feed */}
+      <div className="px-5 py-4 space-y-2.5 min-h-[200px] font-mono text-sm">
+        <AnimatePresence>
+          {visibleSteps.map((step, i) => {
+            const isLast = i === visibleSteps.length - 1;
             return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: isRevealed ? 1 : 0, x: isRevealed ? 0 : 12 }}
-                transition={{ duration: 0.5, delay: isRevealed ? 0.05 * i : 0 }}
-                className="flex items-center gap-2"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex items-start gap-3 ${isLast ? "text-foreground" : "text-muted-foreground"}`}
               >
-                <div
-                  className={`h-2 rounded-full transition-all duration-700 ${
-                    isRevealed ? "bg-primary/20" : "bg-muted"
-                  }`}
-                  style={{ width: isRevealed ? "100%" : "30%" }}
-                />
-                <span
-                  className={`text-xs font-mono whitespace-nowrap transition-all duration-500 ${
-                    isRevealed ? "text-muted-foreground/70" : "text-transparent"
-                  }`}
-                >
-                  {item}
+                <span className="text-base leading-none mt-0.5">{step.emoji}</span>
+                <span className={`leading-snug ${isLast ? "font-medium" : ""}`}>
+                  {step.text}
+                  {isLast && (
+                    <span className="inline-block ml-1 text-primary font-bold animate-pulse">▍</span>
+                  )}
                 </span>
+                {!isLast && (
+                  <span className="ml-auto text-green-500 text-xs shrink-0">✓</span>
+                )}
               </motion.div>
             );
           })}
-        </div>
+        </AnimatePresence>
       </div>
 
-      {/* Progress bar */}
-      <div className="px-5 pb-4 pt-2 border-t border-border">
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="text-xs text-muted-foreground">Progress</p>
-          <p className="text-xs font-semibold text-primary">{Math.round(progress)}%</p>
+      {/* Multi-segment progress */}
+      <div className="px-5 pb-5 pt-2 border-t border-border space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground font-mono">
+            {type === "plan" ? "Days planned" : "Categories built"}
+          </p>
+          <p className="text-xs font-semibold text-primary font-mono">{Math.round(progress)}%</p>
         </div>
-        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-primary rounded-full"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-          />
+
+        {/* Segments */}
+        <div className="flex gap-1.5">
+          {segments.map((seg, i) => {
+            const isLit = i < litCount;
+            const isActive = i === litCount - 1;
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <motion.div
+                  className={`w-full h-3 rounded-full transition-colors duration-500 ${
+                    isLit ? "bg-primary" : "bg-muted"
+                  } ${isActive ? "ring-2 ring-primary/40 ring-offset-1" : ""}`}
+                  animate={isActive ? { opacity: [1, 0.6, 1] } : {}}
+                  transition={isActive ? { repeat: Infinity, duration: 1 } : {}}
+                />
+                <span className="text-[9px] text-muted-foreground font-mono leading-none">
+                  {isLit ? seg.emoji : seg.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
