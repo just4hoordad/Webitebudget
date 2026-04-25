@@ -11,9 +11,9 @@ const GROCERY_STORES = [
   { id: "aldi",     name: "Aldi",     logoBg: "#00005F", logoText: "#FFC800", label: "Aldi",      bg: "#EEF2FF", border: "#00005F" },
   { id: "lidl",     name: "Lidl",     logoBg: "#003F87", logoText: "#FFF200", label: "Lidl",      bg: "#EEF3FF", border: "#003F87" },
   { id: "rewe",     name: "REWE",     logoBg: "#CC0000", logoText: "#ffffff", label: "REWE",      bg: "#FDECEA", border: "#CC0000" },
-  { id: "edeka",    name: "Edeka",    logoBg: "#E2001A", logoText: "#FFD700", label: "edeka",     bg: "#FFF8E1", border: "#E2001A" },
-  { id: "penny",    name: "Penny",    logoBg: "#D40511", logoText: "#ffffff", label: "penny",     bg: "#FDECEA", border: "#D40511" },
-  { id: "netto",    name: "Netto",    logoBg: "#F39200", logoText: "#000000", label: "Netto",     bg: "#FFF8E6", border: "#F39200" },
+  { id: "edeka",    name: "Edeka",    logoBg: "#FFD700", logoText: "#E2001A", label: "edeka",     bg: "#FFF8E1", border: "#E2001A" },
+  { id: "penny",    name: "Penny",    logoBg: "#CD1316", logoText: "#FFD400", label: "penny",     bg: "#FDECEA", border: "#CD1316" },
+  { id: "netto",    name: "Netto",    logoBg: "#000000", logoText: "#FAD85B", label: "Netto",     bg: "#FFFDE7", border: "#000000" },
   { id: "kaufland", name: "Kaufland", logoBg: "#ED1D23", logoText: "#ffffff", label: "kaufland",  bg: "#FDECEA", border: "#ED1D23" },
   { id: "norma",    name: "Norma",    logoBg: "#007A3D", logoText: "#ffffff", label: "NORMA",     bg: "#E8F5E9", border: "#007A3D" },
   { id: "globus",   name: "Globus",   logoBg: "#0057A8", logoText: "#ffffff", label: "globus",    bg: "#E3F2FD", border: "#0057A8" },
@@ -23,8 +23,8 @@ const GROCERY_STORES = [
 ];
 
 const DRUGSTORES = [
-  { id: "rossmann", name: "Rossmann", logoBg: "#CC0000", logoText: "#ffffff", label: "Rossmann",  bg: "#FDECEA", border: "#CC0000" },
-  { id: "dm",       name: "dm",       logoBg: "#D40C18", logoText: "#ffffff", label: "dm",        bg: "#FDE8EC", border: "#D40C18" },
+  { id: "rossmann", name: "Rossmann", logoBg: "#C3002D", logoText: "#ffffff", label: "Rossmann",  bg: "#FDECEA", border: "#C3002D" },
+  { id: "dm",       name: "dm",       logoBg: "#1A3875", logoText: "#ffffff", label: "dm",        bg: "#E8EEF8", border: "#1A3875" },
 ];
 
 const CALORIE_GOAL_KEYS = [
