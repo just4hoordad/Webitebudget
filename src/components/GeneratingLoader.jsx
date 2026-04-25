@@ -26,29 +26,8 @@ const PLAN_STEPS = [
   { emoji: "✅", text: "Wrapping up your personalised meal plan…" },
 ];
 
-const GROCERY_SEGMENTS = [
-  { label: "Dairy", emoji: "🥛" },
-  { label: "Produce", emoji: "🥦" },
-  { label: "Protein", emoji: "🥩" },
-  { label: "Grains", emoji: "🍞" },
-  { label: "Pantry", emoji: "🫙" },
-  { label: "Extras", emoji: "🧴" },
-];
-
-const PLAN_SEGMENTS = [
-  { label: "Mon", emoji: "1️⃣" },
-  { label: "Tue", emoji: "2️⃣" },
-  { label: "Wed", emoji: "3️⃣" },
-  { label: "Thu", emoji: "4️⃣" },
-  { label: "Fri", emoji: "5️⃣" },
-  { label: "Sat", emoji: "6️⃣" },
-  { label: "Sun", emoji: "7️⃣" },
-];
-
 export default function GeneratingLoader({ type = "grocery" }) {
   const steps = type === "plan" ? PLAN_STEPS : GROCERY_STEPS;
-  const segments = type === "plan" ? PLAN_SEGMENTS : GROCERY_SEGMENTS;
-
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dots, setDots] = useState(".");
@@ -77,9 +56,6 @@ export default function GeneratingLoader({ type = "grocery" }) {
 
   const progress = ((currentIndex + 1) / steps.length) * 100;
 
-  // How many segments are "lit" based on progress
-  const litCount = Math.ceil((progress / 100) * segments.length);
-
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
       {/* Header */}
@@ -95,7 +71,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
       </div>
 
       {/* Live feed */}
-      <div className="px-5 py-4 space-y-2.5 min-h-[200px] font-mono text-sm">
+      <div className="px-5 py-4 space-y-2.5 min-h-[220px] font-mono text-sm">
         <AnimatePresence>
           {visibleSteps.map((step, i) => {
             const isLast = i === visibleSteps.length - 1;
@@ -123,35 +99,18 @@ export default function GeneratingLoader({ type = "grocery" }) {
         </AnimatePresence>
       </div>
 
-      {/* Multi-segment progress */}
-      <div className="px-5 pb-5 pt-2 border-t border-border space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground font-mono">
-            {type === "plan" ? "Days planned" : "Categories built"}
-          </p>
-          <p className="text-xs font-semibold text-primary font-mono">{Math.round(progress)}%</p>
+      {/* Progress bar */}
+      <div className="px-5 pb-4 pt-2 border-t border-border">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs text-muted-foreground">Progress</p>
+          <p className="text-xs font-semibold text-primary">{Math.round(progress)}%</p>
         </div>
-
-        {/* Segments */}
-        <div className="flex gap-1.5">
-          {segments.map((seg, i) => {
-            const isLit = i < litCount;
-            const isActive = i === litCount - 1;
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <motion.div
-                  className={`w-full h-3 rounded-full transition-colors duration-500 ${
-                    isLit ? "bg-primary" : "bg-muted"
-                  } ${isActive ? "ring-2 ring-primary/40 ring-offset-1" : ""}`}
-                  animate={isActive ? { opacity: [1, 0.6, 1] } : {}}
-                  transition={isActive ? { repeat: Infinity, duration: 1 } : {}}
-                />
-                <span className="text-[9px] text-muted-foreground font-mono leading-none">
-                  {isLit ? seg.emoji : seg.label}
-                </span>
-              </div>
-            );
-          })}
+        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-primary rounded-full"
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          />
         </div>
       </div>
     </div>
