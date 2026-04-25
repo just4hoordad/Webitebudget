@@ -243,7 +243,10 @@ export default function BudgetForm() {
       {/* Junk Food Allowance */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">🍕 Junk Food Allowance</label>
+          <div>
+            <label className="text-sm font-medium text-foreground">🍕 Junk Food Allowance</label>
+            <p className="text-xs text-muted-foreground mt-0.5">% of your total daily calories from junk food</p>
+          </div>
           <span className={`font-heading font-bold text-lg px-3 py-1 rounded-xl ${
             junkPercent[0] === 0 ? "bg-green-100 text-green-700" :
             junkPercent[0] <= 15 ? "bg-yellow-100 text-yellow-700" :
