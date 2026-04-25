@@ -422,21 +422,26 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                  </div>
                ))}
              </div>
+             {/* Nutrition CTA */}
+             <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block mx-5 my-3">
+               <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 hover:bg-primary/20 transition-colors cursor-pointer">
+                 <div className="bg-primary rounded-lg p-2 shrink-0">
+                   <BarChart2 className="h-5 w-5 text-primary-foreground" />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <p className="font-heading font-semibold text-foreground text-sm">View Nutrition Analysis</p>
+                   <p className="text-xs text-muted-foreground">Protein, fat & carbs breakdown with charts</p>
+                 </div>
+                 <span className="text-primary font-semibold text-sm shrink-0">→</span>
+               </div>
+             </Link>
              <div className="bg-muted px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
               <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
-              <div className="flex gap-2">
-                <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`}>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <BarChart2 className="h-4 w-4" />
-                    Nutrition
-                  </Button>
-                </Link>
               <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
-                   <Save className="h-4 w-4" />
-                   {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
-                   </Button>
-                   </div>
-                   </div>
+                <Save className="h-4 w-4" />
+                {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
+              </Button>
+             </div>
              </div>
              )}
 

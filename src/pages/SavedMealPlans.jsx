@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2 } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 
 export default function SavedMealPlans() {
@@ -75,13 +75,21 @@ export default function SavedMealPlans() {
                       {new Date(plan.created_date).toLocaleDateString()}
                     </p>
                   </div>
-                  <button
-                    onClick={() => deletePlan(plan.id)}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-2"
-                    title="Delete plan"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
+                      <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
+                        <BarChart2 className="h-3.5 w-3.5" />
+                        Nutrition
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => deletePlan(plan.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-2"
+                      title="Delete plan"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 {plan.plan?.days && (
                   <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
