@@ -257,9 +257,12 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           items: cat.items.map(i => i.name === oldItem.name ? { ...newItem, category: categoryName } : i)
         };
       });
-      return { ...prev, categories: newCategories };
+      const newTotal = newCategories
+        .flatMap(cat => cat.items)
+        .reduce((sum, i) => sum + (i.price || 0), 0);
+      return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
     });
-    setWeeklyPlan(null); // reset meal plan since ingredients changed
+    setWeeklyPlan(null);
   };
 
   const handleSwap = (dayIndex, mealType, alternative) => {
