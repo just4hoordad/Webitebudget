@@ -77,7 +77,7 @@ export default function MealPlan() {
     }, 4000);
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a compact monthly grocery list for ${people} person(s) in Germany. Diet: ${diet}. Budget: €${budget}/mo. ~${calories} kcal/day. Stores: ${stores}. Language: ${currentLanguage.label}. Max 5 categories, max 6 items each. Use real German branded names, real prices. All text in ${currentLanguage.label}.${saleHunt ? " Only include sale/discount items." : ""}`,
+      prompt: `Generate a compact monthly grocery list for ${people} person(s) in Germany. Diet: ${diet}. Target budget: exactly €${budget}/mo — total_estimated_cost MUST be between €${Math.round(budget*0.95)} and €${Math.round(budget*1.02)}. ~${calories} kcal/day. Available stores: ${stores}, Rewe, Edeka, Netto, Penny, Kaufland, Rossmann, dm. Pick cheapest store per item. Language: ${currentLanguage.label}. Max 5 categories, max 6 items each. Real German branded names, real prices. All text in ${currentLanguage.label}.${saleHunt ? " Only include sale/discount items." : ""}`,
       model: "gpt_5_mini",
       response_json_schema: {
         type: "object",
