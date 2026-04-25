@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2 } from "lucide-react";
+import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2, Shuffle } from "lucide-react";
+import MealSwapModal from "@/components/MealSwapModal";
+import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
@@ -235,6 +237,28 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   };
 
   const [saved, setSaved] = useState(false);
+  const [swapTarget, setSwapTarget] = useState(null); // { dayIndex, mealType, meal }
+
+  const getAvailableIngredientNames = () =>
+    groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => item.name)
+    ) || [];
+
+  const handleSwap = (dayIndex, mealType, alternative) => {
+    setWeeklyPlan(prev => {
+      const newDays = [...prev.weeks[0].days];
+      newDays[dayIndex] = {
+        ...newDays[dayIndex],
+        [mealType]: alternative.name,
+        [`${mealType}_calories`]: alternative.calories,
+        [`${mealType}_ingredients`]: alternative.ingredients || [],
+      };
+      return { weeks: [{ week: 1, days: newDays }] };
+    });
+    setSaved(false);
+  };
 
   const saveMealPlan = async () => {
     if (!weeklyPlan || saved) return;
@@ -404,21 +428,31 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                {weeklyPlan.weeks[0].days?.map((day, idx) => (
                  <div key={`${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
                    <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
-                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("breakfast")} {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
-                     <span>{day.breakfast}</span>
-                     {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                   </div>
-                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("lunch")} {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
-                     <span>{day.lunch}</span>
-                     {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                   </div>
-                   <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                     <span className="font-medium text-foreground block text-xs mb-0.5">{t("dinner")} {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
-                     <span>{day.dinner}</span>
-                     {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                   </div>
+                   {[
+                     { type: "breakfast", label: t("breakfast"), name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+                     { type: "lunch", label: t("lunch"), name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
+                     { type: "dinner", label: t("dinner"), name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
+                   ].map(({ type, label, name, cal, ings }) => (
+                     <div key={type} className="text-muted-foreground col-span-4 sm:col-span-1">
+                       <div className="flex items-center justify-between mb-0.5">
+                         <span className="font-medium text-foreground text-xs">{label} {cal && <span className="text-primary">({cal} kcal)</span>}</span>
+                         <button
+                           onClick={() => setSwapTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
+                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                           title="AI Swap"
+                         >
+                           <Shuffle className="h-3 w-3 group-hover:text-primary" />
+                           <span className="hidden sm:inline">Swap</span>
+                         </button>
+                       </div>
+                       <span>{name}</span>
+                       {Array.isArray(ings) && ings.length > 0 && (
+                         <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">
+                           {ings.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}
+                         </ul>
+                       )}
+                     </div>
+                   ))}
                  </div>
                ))}
              </div>
@@ -453,6 +487,21 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
+      <AnimatePresence>
+        {swapTarget && (
+          <MealSwapModal
+            meal={swapTarget.meal}
+            mealType={swapTarget.mealType}
+            dayIndex={swapTarget.dayIndex}
+            availableIngredients={getAvailableIngredientNames()}
+            targetCalories={swapTarget.meal.calories || Math.round(calories * (swapTarget.mealType === "breakfast" ? 0.25 : swapTarget.mealType === "lunch" ? 0.35 : 0.40))}
+            diet={diet}
+            onSwap={handleSwap}
+            onClose={() => setSwapTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {groceries && (
         <GroceryListExport
           ref={exportRef}
