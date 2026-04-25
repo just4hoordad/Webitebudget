@@ -238,8 +238,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   };
 
   const [saved, setSaved] = useState(false);
-  const [swapTarget, setSwapTarget] = useState(null); // { dayIndex, mealType, meal }
-  const [grocerySwapTarget, setGrocerySwapTarget] = useState(null); // { item, category }
+  const [swapTarget, setSwapTarget] = useState(null);
+  const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
+  const mealPlanExportRef = useRef(null);
 
   const getAvailableIngredientNames = () =>
     groceries?.categories?.flatMap(cat =>
@@ -263,6 +264,33 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
     });
     setWeeklyPlan(null);
+  };
+
+  const exportMealPlanPDF = async () => {
+    if (!mealPlanExportRef.current) return;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const canvas = await html2canvas(mealPlanExportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let y = margin;
+    let remaining = imgH;
+    let srcY = 0;
+    while (remaining > 0) {
+      const sliceH = Math.min(remaining, pageH - margin * 2);
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = (sliceH / imgH) * canvas.height;
+      const ctx = sliceCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, srcY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, y, imgW, sliceH);
+      remaining -= sliceH;
+      srcY += sliceH;
+      if (remaining > 0) { doc.addPage(); y = margin; }
+    }
+    doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
 
   const handleSwap = (dayIndex, mealType, alternative) => {
@@ -492,10 +520,16 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              </Link>
              <div className="bg-muted px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
               <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
-              <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
-                <Save className="h-4 w-4" />
-                {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button onClick={exportMealPlanPDF} variant="outline" size="sm" className="gap-2">
+                  <FileDown className="h-4 w-4" />
+                  Download Plan
+                </Button>
+                <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
+                  <Save className="h-4 w-4" />
+                  {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
+                </Button>
+              </div>
              </div>
              </div>
              )}
@@ -535,6 +569,34 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           />
         )}
       </AnimatePresence>
+
+      {/* Hidden meal plan export element */}
+      {weeklyPlan?.weeks?.[0] && (
+        <div ref={mealPlanExportRef} style={{ position: 'absolute', left: '-9999px', top: 0, width: '700px', background: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>7-Day Meal Plan</h1>
+          <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>{diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)</p>
+          {weeklyPlan.weeks[0].days.map((day, idx) => (
+            <div key={idx} style={{ marginBottom: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 16 }}>
+              <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>{day.day}</p>
+              {[
+                { label: 'Breakfast', name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+                { label: 'Lunch', name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
+                { label: 'Dinner', name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
+              ].map(({ label, name, cal, ings }) => (
+                <div key={label} style={{ marginBottom: 10 }}>
+                  <p style={{ fontWeight: 600, fontSize: 13, color: '#059669' }}>{label} {cal ? `· ${cal} kcal` : ''}</p>
+                  <p style={{ fontSize: 13 }}>{name}</p>
+                  {Array.isArray(ings) && ings.length > 0 && (
+                    <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 16, margin: '4px 0 0' }}>
+                      {ings.map((ing, i) => <li key={i}>{ing.name} — {ing.quantity}</li>)}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
 
       {groceries && (
         <GroceryListExport

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import {
@@ -6,7 +6,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Beef, Droplets, Wheat, Flame } from "lucide-react";
+import { ArrowLeft, Beef, Droplets, Wheat, Flame, FileDown } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import { Button } from "@/components/ui/button";
 
 const MACRO_COLORS = {
   protein: "#22c55e",
@@ -27,6 +30,34 @@ export default function Nutrition() {
 
   const [nutrition, setNutrition] = useState(null);
   const [loading, setLoading] = useState(true);
+  const contentRef = useRef(null);
+
+  const exportNutritionPDF = async () => {
+    if (!contentRef.current) return;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const canvas = await html2canvas(contentRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let y = margin;
+    let remaining = imgH;
+    let srcY = 0;
+    while (remaining > 0) {
+      const sliceH = Math.min(remaining, pageH - margin * 2);
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = (sliceH / imgH) * canvas.height;
+      const ctx = sliceCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, srcY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, y, imgW, sliceH);
+      remaining -= sliceH;
+      srcY += sliceH;
+      if (remaining > 0) { doc.addPage(); y = margin; }
+    }
+    doc.save(`nutrition-${diet}-${budget}eur.pdf`);
+  };
 
   useEffect(() => {
     fetchNutrition();
@@ -111,7 +142,7 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
   })) || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-10">
+    <div className="max-w-3xl mx-auto space-y-6 pb-10" ref={contentRef}>
       {/* Back link */}
       <div className="flex items-center gap-2">
         <Link
@@ -123,11 +154,19 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
         </Link>
       </div>
 
-      <div>
-        <h1 className="font-heading text-2xl font-bold">Nutritional Breakdown</h1>
-        <p className="text-sm text-muted-foreground">
-          {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Nutritional Breakdown</h1>
+          <p className="text-sm text-muted-foreground">
+            {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
+          </p>
+        </div>
+        {!loading && (
+          <Button onClick={exportNutritionPDF} variant="outline" size="sm" className="gap-2 shrink-0">
+            <FileDown className="h-4 w-4" />
+            Download PDF
+          </Button>
+        )}
       </div>
 
       {loading ? (
