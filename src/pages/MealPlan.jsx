@@ -290,6 +290,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 794,
+      width: mealPlanExportRef.current.scrollWidth,
+      height: mealPlanExportRef.current.scrollHeight,
     });
 
     const scale = usableW / fullCanvas.width; // PDF pts per canvas pixel

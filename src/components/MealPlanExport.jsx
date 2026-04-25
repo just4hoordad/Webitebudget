@@ -13,7 +13,7 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
     <div
       ref={ref}
       style={{
-        position: "absolute",
+        position: "fixed",
         left: "-9999px",
         top: 0,
         width: "794px",
@@ -23,6 +23,7 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
         fontSize: "12px",
         lineHeight: "1.4",
         color: "#111827",
+        overflow: "visible",
       }}
     >
       {/* ── Header ── */}
