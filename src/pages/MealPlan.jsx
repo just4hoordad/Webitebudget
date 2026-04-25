@@ -21,16 +21,28 @@ export default function MealPlan() {
 
   const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingStatus, setLoadingStatus] = useState("Generating your grocery list…");
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [planLoadingStatus, setPlanLoadingStatus] = useState("Creating your meal plan…");
   const [saving, setSaving] = useState(false);
   const groceryListRef = useRef(null);
   const exportRef = useRef(null);
   const isFirstRender = useRef(true);
 
+  const getCacheKey = () =>
+    `grocery_${budget}_${stores}_${diet}_${people}_${calories}_${saleHunt}_${currentLanguage.code}`;
+
   useEffect(() => {
-    generateGroceries();
+    // Try to load from session cache first
+    const cached = sessionStorage.getItem(getCacheKey());
+    if (cached) {
+      setGroceries(JSON.parse(cached));
+      setLoading(false);
+    } else {
+      generateGroceries();
+    }
   }, []);
 
   useEffect(() => {
@@ -39,12 +51,31 @@ export default function MealPlan() {
       return;
     }
     setWeeklyPlan(null);
-    generateGroceries();
+    // Check cache for new language
+    const cached = sessionStorage.getItem(getCacheKey());
+    if (cached) {
+      setGroceries(JSON.parse(cached));
+      setLoading(false);
+    } else {
+      generateGroceries();
+    }
   }, [currentLanguage.code]);
 
   const generateGroceries = async () => {
     setRemovedItems(new Set());
     setLoading(true);
+    const statusMessages = [
+      "Checking prices at your stores…",
+      "Building your grocery list…",
+      "Almost there…",
+    ];
+    let msgIdx = 0;
+    setLoadingStatus(statusMessages[0]);
+    const statusInterval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % statusMessages.length;
+      setLoadingStatus(statusMessages[msgIdx]);
+    }, 4000);
+
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Monthly grocery list for ${people} person(s), ${diet} diet, Germany. Language: ${currentLanguage.label}.
 Budget: €${budget}/month (total must be €${(budget*0.97).toFixed(0)}–€${(budget*1.03).toFixed(0)}).
@@ -86,6 +117,8 @@ Calories: ~${calories} kcal/day. Stores: ${stores}.
         }
       }
     });
+    clearInterval(statusInterval);
+    sessionStorage.setItem(getCacheKey(), JSON.stringify(result));
     setGroceries(result);
     setLoading(false);
   };
@@ -165,6 +198,18 @@ Calories: ~${calories} kcal/day. Stores: ${stores}.
     ).join(", ");
 
     setLoadingPlan(true);
+    const planMessages = [
+      "Planning your meals…",
+      "Balancing nutrition…",
+      "Finalising the week…",
+    ];
+    let planMsgIdx = 0;
+    setPlanLoadingStatus(planMessages[0]);
+    const planStatusInterval = setInterval(() => {
+      planMsgIdx = (planMsgIdx + 1) % planMessages.length;
+      setPlanLoadingStatus(planMessages[planMsgIdx]);
+    }, 4000);
+
     const result = await base44.integrations.Core.InvokeLLM({
       model: "gemini_3_flash",
       prompt: `Create a 7-day meal plan (repeated 4x = 28 days). All text in ${currentLanguage.label}.
@@ -203,6 +248,7 @@ Rules:
         }
       }
     });
+    clearInterval(planStatusInterval);
     setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
   };
@@ -251,7 +297,7 @@ Rules:
         <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-6">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <div className="space-y-2">
-            <p className="text-foreground font-semibold text-lg">{t("generatingGroceries")}</p>
+            <p className="text-foreground font-semibold text-lg">{loadingStatus}</p>
             <p className="text-muted-foreground text-sm max-w-xs">
               {t("generatingGroceriesSubtitle")}
             </p>
@@ -366,7 +412,7 @@ Rules:
                <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
              </div>
              <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("generatingPlan")}</> : t("generateWeeklyPlan")}
+               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {planLoadingStatus}</> : t("generateWeeklyPlan")}
              </Button>
            </div>
           )}
@@ -410,7 +456,7 @@ Rules:
              )}
 
              <div className="pb-8">
-            <Button onClick={generateGroceries} variant="outline" className="w-full">
+            <Button onClick={() => { sessionStorage.removeItem(getCacheKey()); generateGroceries(); }} variant="outline" className="w-full">
               {t("regenerate")}
             </Button>
           </div>
