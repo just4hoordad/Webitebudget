@@ -6,25 +6,17 @@ import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
-// Each store: bg/text/border = active state. The logo badge uses logoBg + logoText for the colored "logo" portion.
-const GROCERY_STORES = [
-  { id: "aldi",     name: "Aldi",     logoBg: "#00005F", logoText: "#FFC800", label: "Aldi"     },
-  { id: "lidl",     name: "Lidl",     logoBg: "#003F87", logoText: "#FFF200", label: "Lidl"     },
-  { id: "rewe",     name: "REWE",     logoBg: "#CC071E", logoText: "#ffffff", label: "REWE"     },
-  { id: "edeka",    name: "Edeka",    logoBg: "#FFD700", logoText: "#E2001A", label: "edeka"    },
-  { id: "penny",    name: "Penny",    logoBg: "#CD1316", logoText: "#FFD400", label: "penny"    },
-  { id: "netto",    name: "Netto",    logoBg: "#1A1A1A", logoText: "#FAD85B", label: "Netto"    },
-  { id: "kaufland", name: "Kaufland", logoBg: "#ED1D23", logoText: "#ffffff", label: "kaufland" },
-  { id: "norma",    name: "Norma",    logoBg: "#007A3D", logoText: "#ffffff", label: "NORMA"    },
-  { id: "globus",   name: "Globus",   logoBg: "#0057A8", logoText: "#ffffff", label: "globus"   },
-  { id: "real",     name: "Real",     logoBg: "#006B37", logoText: "#ffffff", label: "real"     },
-  { id: "tegut",    name: "Tegut",    logoBg: "#E2001A", logoText: "#ffffff", label: "tegut"    },
-  { id: "hit",      name: "HIT",      logoBg: "#E87722", logoText: "#ffffff", label: "HIT"      },
-];
+const STORES = [
+  { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  { id: "lidl", name: "Lidl", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+  { id: "rewe", name: "REWE", color: "bg-red-100 text-red-700 border-red-200" },
+  { id: "edeka", name: "Edeka", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "penny", name: "Penny", color: "bg-orange-100 text-orange-700 border-orange-200" },
+  { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
+  { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
+  { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
 
-const DRUGSTORES = [
-  { id: "rossmann", name: "Rossmann", logoBg: "#C3002D", logoText: "#ffffff", label: "Rossmann" },
-  { id: "dm",       name: "dm",       logoBg: "#1A3875", logoText: "#ffffff", label: "dm"       },
+  { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -45,28 +37,6 @@ const DIET_KEYS = [
 ];
 
 
-
-function StoreBadge({ store, active, onToggle }) {
-  return (
-    <button
-      onClick={() => onToggle(store.id)}
-      className="flex items-center rounded-lg overflow-hidden transition-all duration-200 text-xs font-bold border-2"
-      style={{
-        borderColor: active ? store.logoBg : "#d1d5db",
-        boxShadow: active ? `0 2px 6px ${store.logoBg}55` : "none",
-        filter: active ? "none" : "grayscale(40%) brightness(1.1)",
-        opacity: active ? 1 : 0.7,
-      }}
-    >
-      <span
-        className="px-2.5 py-1.5 leading-tight"
-        style={{ background: store.logoBg, color: store.logoText }}
-      >
-        {store.label}
-      </span>
-    </button>
-  );
-}
 
 export default function BudgetForm() {
   const navigate = useNavigate();
@@ -178,16 +148,20 @@ export default function BudgetForm() {
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {GROCERY_STORES.map((store) => <StoreBadge key={store.id} store={store} active={selectedStores.includes(store.id)} onToggle={toggleStore} />)}
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Drogeriemärkte</p>
-              <div className="flex flex-wrap gap-2">
-                {DRUGSTORES.map((store) => <StoreBadge key={store.id} store={store} active={selectedStores.includes(store.id)} onToggle={toggleStore} />)}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {STORES.map((store) => (
+              <button
+                key={store.id}
+                onClick={() => toggleStore(store.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                  selectedStores.includes(store.id)
+                    ? store.color + " border-current"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                {store.name}
+              </button>
+            ))}
           </div>
         )}
       </div>

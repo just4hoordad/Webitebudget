@@ -21,28 +21,16 @@ export default function MealPlan() {
 
   const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadingStatus, setLoadingStatus] = useState("Generating your grocery list…");
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
-  const [planLoadingStatus, setPlanLoadingStatus] = useState("Creating your meal plan…");
   const [saving, setSaving] = useState(false);
   const groceryListRef = useRef(null);
   const exportRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  const getCacheKey = () =>
-    `grocery_${budget}_${stores}_${diet}_${people}_${calories}_${saleHunt}_${currentLanguage.code}`;
-
   useEffect(() => {
-    // Try to load from session cache first
-    const cached = sessionStorage.getItem(getCacheKey());
-    if (cached) {
-      setGroceries(JSON.parse(cached));
-      setLoading(false);
-    } else {
-      generateGroceries();
-    }
+    generateGroceries();
   }, []);
 
   useEffect(() => {
@@ -51,34 +39,31 @@ export default function MealPlan() {
       return;
     }
     setWeeklyPlan(null);
-    // Check cache for new language
-    const cached = sessionStorage.getItem(getCacheKey());
-    if (cached) {
-      setGroceries(JSON.parse(cached));
-      setLoading(false);
-    } else {
-      generateGroceries();
-    }
+    generateGroceries();
   }, [currentLanguage.code]);
 
   const generateGroceries = async () => {
     setRemovedItems(new Set());
     setLoading(true);
-    const statusMessages = [
-      "Checking prices at your stores…",
-      "Building your grocery list…",
-      "Almost there…",
-    ];
-    let msgIdx = 0;
-    setLoadingStatus(statusMessages[0]);
-    const statusInterval = setInterval(() => {
-      msgIdx = (msgIdx + 1) % statusMessages.length;
-      setLoadingStatus(statusMessages[msgIdx]);
-    }, 4000);
-
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a compact monthly grocery list for ${people} person(s) in Germany. Diet: ${diet}. Target budget: exactly €${budget}/mo — total_estimated_cost MUST be between €${Math.round(budget*0.95)} and €${Math.round(budget*1.02)}. ~${calories} kcal/day. Available stores: ${stores}, Rewe, Edeka, Netto, Penny, Kaufland, Rossmann, dm. Pick cheapest store per item. Language: ${currentLanguage.label}. Max 5 categories, max 6 items each. Real German branded names, real prices. All text in ${currentLanguage.label}.${saleHunt ? " Only include sale/discount items." : ""}`,
-      model: "gpt_5_mini",
+      prompt: `Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
+
+Budget: €${budget}/month — final total MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}.
+Calories: ~${calories} kcal/day for all ${people} person(s).
+Stores: ${stores}.
+Language: ${currentLanguage.label}.
+
+Rules:
+1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
+2. Pick the cheapest store for each item.
+3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
+4. Add enough items so the total is as close to €${budget} as possible.
+5. All text in ${currentLanguage.label}.
+6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
+${saleHunt ? `8. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}`,
+      add_context_from_internet: true,
+      model: "gemini_3_flash",
       response_json_schema: {
         type: "object",
         properties: {
@@ -96,8 +81,11 @@ export default function MealPlan() {
                     properties: {
                       name: { type: "string" },
                       quantity: { type: "string" },
+                      unit_price: { type: "number" },
                       price: { type: "number" },
-                      store: { type: "string" }
+                      normal_price: { type: "number" },
+                      store: { type: "string" },
+                      calories_info: { type: "string" }
                     }
                   }
                 }
@@ -107,13 +95,7 @@ export default function MealPlan() {
         }
       }
     });
-    clearInterval(statusInterval);
-    if (result) {
-      sessionStorage.setItem(getCacheKey(), JSON.stringify(result));
-      setGroceries(result);
-    } else {
-      toast.error("Failed to generate grocery list. Please try again.");
-    }
+    setGroceries(result);
     setLoading(false);
   };
 
@@ -192,43 +174,58 @@ export default function MealPlan() {
     ).join(", ");
 
     setLoadingPlan(true);
-    const planMessages = [
-      "Planning your meals…",
-      "Balancing nutrition…",
-      "Finalising the week…",
-    ];
-    let planMsgIdx = 0;
-    setPlanLoadingStatus(planMessages[0]);
-    const planStatusInterval = setInterval(() => {
-      planMsgIdx = (planMsgIdx + 1) % planMessages.length;
-      setPlanLoadingStatus(planMessages[planMsgIdx]);
-    }, 4000);
-
     const result = await base44.integrations.Core.InvokeLLM({
-      model: "gpt_5_mini",
-      prompt: `7-day meal plan (repeats 4x=28 days). Language: ${currentLanguage.label}. Diet: ${diet}. ${calories} kcal/day. People: ${people}. Breakfast ~${Math.round(calories*0.25)} kcal, lunch ~${Math.round(calories*0.35)} kcal, dinner ~${Math.round(calories*0.40)} kcal. Use ONLY these ingredients (qty is 4-week total): ${availableItems}. Return exactly 7 days.`,
+      prompt: `Create a complete 7-day meal plan that will repeat for exactly 4 weeks (28 days total).
+
+IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
+
+AVAILABLE INGREDIENTS (TOTAL for the entire month = 4 weeks):
+${availableItems}
+
+Diet type: ${diet}
+Target calories per day: ${calories} kcal
+Number of people: ${people}
+
+CRITICAL RULES:
+1. Use ONLY the ingredients listed above — no substitutions or additions
+2. The quantities listed are the TOTAL available for the ENTIRE MONTH (4 weeks)
+3. Your 7-day plan will be repeated exactly 4 times. So the total ingredient usage across 4 repetitions MUST NOT exceed the listed quantities
+4. For each meal, specify EXACTLY how much of each ingredient is used per day
+5. Distribute all ingredients as evenly as possible
+
+For EACH of the 7 days, provide breakfast, lunch, and dinner with:
+- Meal name (in ${currentLanguage.label})
+- Exact calorie count
+- List of ingredients with precise quantities used that day
+
+Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+
+RETURN EXACTLY 7 days with no gaps or missing days.`,
       response_json_schema: {
         type: "object",
         properties: {
           days: {
             type: "array",
+            minItems: 7,
             items: {
               type: "object",
               properties: {
                 day: { type: "string" },
                 breakfast: { type: "string" },
                 breakfast_calories: { type: "number" },
+                breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
                 lunch: { type: "string" },
                 lunch_calories: { type: "number" },
+                lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
                 dinner: { type: "string" },
-                dinner_calories: { type: "number" }
+                dinner_calories: { type: "number" },
+                dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
               }
             }
           }
         }
       }
     });
-    clearInterval(planStatusInterval);
     setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
   };
@@ -277,7 +274,7 @@ export default function MealPlan() {
         <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-6">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <div className="space-y-2">
-            <p className="text-foreground font-semibold text-lg">{loadingStatus}</p>
+            <p className="text-foreground font-semibold text-lg">{t("generatingGroceries")}</p>
             <p className="text-muted-foreground text-sm max-w-xs">
               {t("generatingGroceriesSubtitle")}
             </p>
@@ -392,7 +389,7 @@ export default function MealPlan() {
                <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
              </div>
              <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {planLoadingStatus}</> : t("generateWeeklyPlan")}
+               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("generatingPlan")}</> : t("generateWeeklyPlan")}
              </Button>
            </div>
           )}
@@ -436,7 +433,7 @@ export default function MealPlan() {
              )}
 
              <div className="pb-8">
-            <Button onClick={() => { sessionStorage.removeItem(getCacheKey()); generateGroceries(); }} variant="outline" className="w-full">
+            <Button onClick={generateGroceries} variant="outline" className="w-full">
               {t("regenerate")}
             </Button>
           </div>
