@@ -378,16 +378,19 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
           {/* Generate Weekly Plan Button */}
           {!weeklyPlan && (
-           <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
-             <div>
-               <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
-               <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
-             </div>
-             <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</> : t("generateWeeklyPlan")}
-             </Button>
-             {loadingPlan && <GeneratingLoader type="plan" />}
-           </div>
+            loadingPlan ? (
+              <GeneratingLoader type="plan" />
+            ) : (
+              <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
+                <div>
+                  <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
+                </div>
+                <Button onClick={generateWeeklyPlan} className="w-full gap-2">
+                  {t("generateWeeklyPlan")}
+                </Button>
+              </div>
+            )
           )}
 
           {/* Weekly Plan Display */}
