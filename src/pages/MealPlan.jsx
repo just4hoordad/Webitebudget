@@ -79,7 +79,7 @@ export default function MealPlan() {
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Monthly grocery list. Language: ${currentLanguage.label}. People: ${people}. Diet: ${diet}. Germany. Budget: €${budget}/mo (stay within 3%). Calories: ~${calories} kcal/day. Stores: ${stores}.
 Rules: real German prices, cheapest store per item, price=unit_price×qty, include normal_price (Rewe/Edeka). Real branded names (e.g. "Ja! Vollmilch 3,5% 1L"). All text in ${currentLanguage.label}.${saleHunt ? " SALE HUNT: only genuine sale items cheaper than regular alternatives." : ""}`,
-      model: "gemini_3_flash",
+      model: "gpt_5_mini",
       response_json_schema: {
         type: "object",
         properties: {
@@ -112,8 +112,12 @@ Rules: real German prices, cheapest store per item, price=unit_price×qty, inclu
       }
     });
     clearInterval(statusInterval);
-    sessionStorage.setItem(getCacheKey(), JSON.stringify(result));
-    setGroceries(result);
+    if (result) {
+      sessionStorage.setItem(getCacheKey(), JSON.stringify(result));
+      setGroceries(result);
+    } else {
+      toast.error("Failed to generate grocery list. Please try again.");
+    }
     setLoading(false);
   };
 
