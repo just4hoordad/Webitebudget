@@ -77,7 +77,7 @@ For each alternative, provide:
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         className="relative bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
-        style={{ maxHeight: "85vh" }}
+        style={{ maxHeight: "70vh" }}
       >
         {/* Header */}
         <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-start justify-between">
@@ -143,7 +143,7 @@ For each alternative, provide:
         </div>
 
         {/* Footer */}
-        <div className="bg-card border-t border-border px-5 py-4 flex gap-3 shrink-0">
+        <div className="bg-card border-t border-border px-5 py-4 pb-6 flex gap-3 shrink-0">
           <Button variant="outline" size="sm" onClick={fetchAlternatives} disabled={loading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Regenerate
