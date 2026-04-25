@@ -46,22 +46,14 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
+      prompt: `Monthly grocery list for ${people} person(s), ${diet} diet, Germany. Language: ${currentLanguage.label}.
+Budget: €${budget}/month (total must be €${(budget*0.97).toFixed(0)}–€${(budget*1.03).toFixed(0)}).
+Calories: ~${calories} kcal/day. Stores: ${stores}.
 
-Budget: €${budget}/month — final total MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}.
-Calories: ~${calories} kcal/day for all ${people} person(s).
-Stores: ${stores}.
-Language: ${currentLanguage.label}.
-
-Rules:
-1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
-2. Pick the cheapest store for each item.
-3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
-4. Add enough items so the total is as close to €${budget} as possible.
-5. All text in ${currentLanguage.label}.
-6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
-${saleHunt ? `8. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}`,
+- Use real German supermarket prices, pick cheapest store per item.
+- price = unit_price × monthly quantity. Include normal_price (Rewe/Edeka equivalent).
+- Use real branded product names (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g"). No generic names.
+- All text in ${currentLanguage.label}.${saleHunt ? "\n- SALE HUNT: Only include sale items where the sale price is genuinely cheaper than regular alternatives." : ""}`,
       model: "gemini_3_flash",
       response_json_schema: {
         type: "object",
