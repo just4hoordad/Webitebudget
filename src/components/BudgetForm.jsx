@@ -6,24 +6,25 @@ import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
+// Each store: bg/text/border = active state. The logo badge uses logoBg + logoText for the colored "logo" portion.
 const GROCERY_STORES = [
-  { id: "aldi", name: "Aldi", bg: "#E8F0FE", text: "#1A4DBF", border: "#1A4DBF" },
-  { id: "lidl", name: "Lidl", bg: "#FFF4CC", text: "#E30613", border: "#003F87" },
-  { id: "rewe", name: "REWE", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
-  { id: "edeka", name: "Edeka", bg: "#FFF3E0", text: "#E2001A", border: "#E2001A" },
-  { id: "penny", name: "Penny", bg: "#FFF0E0", text: "#D40511", border: "#D40511" },
-  { id: "netto", name: "Netto", bg: "#FFF9E6", text: "#F39200", border: "#F39200" },
-  { id: "kaufland", name: "Kaufland", bg: "#FCEAEA", text: "#C00000", border: "#C00000" },
-  { id: "norma", name: "Norma", bg: "#E8F5E9", text: "#007A3D", border: "#007A3D" },
-  { id: "globus", name: "Globus", bg: "#E3F2FD", text: "#0057A8", border: "#0057A8" },
-  { id: "real", name: "Real", bg: "#E8F5E9", text: "#006B37", border: "#006B37" },
-  { id: "tegut", name: "Tegut", bg: "#FDE8EC", text: "#E2001A", border: "#E2001A" },
-  { id: "hit", name: "HIT", bg: "#FFF3E0", text: "#E87722", border: "#E87722" },
+  { id: "aldi",     name: "Aldi",     logoBg: "#00005F", logoText: "#FFC800", label: "Aldi",      bg: "#EEF2FF", border: "#00005F" },
+  { id: "lidl",     name: "Lidl",     logoBg: "#003F87", logoText: "#FFF200", label: "Lidl",      bg: "#EEF3FF", border: "#003F87" },
+  { id: "rewe",     name: "REWE",     logoBg: "#CC0000", logoText: "#ffffff", label: "REWE",      bg: "#FDECEA", border: "#CC0000" },
+  { id: "edeka",    name: "Edeka",    logoBg: "#E2001A", logoText: "#FFD700", label: "edeka",     bg: "#FFF8E1", border: "#E2001A" },
+  { id: "penny",    name: "Penny",    logoBg: "#D40511", logoText: "#ffffff", label: "penny",     bg: "#FDECEA", border: "#D40511" },
+  { id: "netto",    name: "Netto",    logoBg: "#F39200", logoText: "#000000", label: "Netto",     bg: "#FFF8E6", border: "#F39200" },
+  { id: "kaufland", name: "Kaufland", logoBg: "#ED1D23", logoText: "#ffffff", label: "kaufland",  bg: "#FDECEA", border: "#ED1D23" },
+  { id: "norma",    name: "Norma",    logoBg: "#007A3D", logoText: "#ffffff", label: "NORMA",     bg: "#E8F5E9", border: "#007A3D" },
+  { id: "globus",   name: "Globus",   logoBg: "#0057A8", logoText: "#ffffff", label: "globus",    bg: "#E3F2FD", border: "#0057A8" },
+  { id: "real",     name: "Real",     logoBg: "#006B37", logoText: "#ffffff", label: "real",      bg: "#E8F5E9", border: "#006B37" },
+  { id: "tegut",    name: "Tegut",    logoBg: "#E2001A", logoText: "#ffffff", label: "tegut",     bg: "#FDECEA", border: "#E2001A" },
+  { id: "hit",      name: "HIT",      logoBg: "#E87722", logoText: "#ffffff", label: "HIT",       bg: "#FFF3E0", border: "#E87722" },
 ];
 
 const DRUGSTORES = [
-  { id: "rossmann", name: "Rossmann", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
-  { id: "dm", name: "dm", bg: "#FDE8EC", text: "#D40C18", border: "#D40C18" },
+  { id: "rossmann", name: "Rossmann", logoBg: "#CC0000", logoText: "#ffffff", label: "Rossmann",  bg: "#FDECEA", border: "#CC0000" },
+  { id: "dm",       name: "dm",       logoBg: "#D40C18", logoText: "#ffffff", label: "dm",        bg: "#FDE8EC", border: "#D40C18" },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -44,6 +45,27 @@ const DIET_KEYS = [
 ];
 
 
+
+function StoreBadge({ store, active, onToggle }) {
+  return (
+    <button
+      onClick={() => onToggle(store.id)}
+      className="flex items-center rounded-lg border-2 overflow-hidden transition-all duration-200 text-xs font-bold"
+      style={{
+        borderColor: active ? store.border : store.border + "44",
+        opacity: active ? 1 : 0.55,
+        boxShadow: active ? `0 1px 4px ${store.border}44` : "none",
+      }}
+    >
+      <span
+        className="px-2.5 py-1.5 leading-tight"
+        style={{ background: store.logoBg, color: store.logoText }}
+      >
+        {store.label}
+      </span>
+    </button>
+  );
+}
 
 export default function BudgetForm() {
   const navigate = useNavigate();
@@ -157,42 +179,12 @@ export default function BudgetForm() {
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              {GROCERY_STORES.map((store) => {
-                const active = selectedStores.includes(store.id);
-                return (
-                  <button
-                    key={store.id}
-                    onClick={() => toggleStore(store.id)}
-                    className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
-                    style={active
-                      ? { background: store.bg, color: store.text, borderColor: store.border }
-                      : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
-                    }
-                  >
-                    {store.name}
-                  </button>
-                );
-              })}
+              {GROCERY_STORES.map((store) => <StoreBadge key={store.id} store={store} active={selectedStores.includes(store.id)} onToggle={toggleStore} />)}
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-2">Drogeriemärkte</p>
               <div className="flex flex-wrap gap-2">
-                {DRUGSTORES.map((store) => {
-                  const active = selectedStores.includes(store.id);
-                  return (
-                    <button
-                      key={store.id}
-                      onClick={() => toggleStore(store.id)}
-                      className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
-                      style={active
-                        ? { background: store.bg, color: store.text, borderColor: store.border }
-                        : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
-                      }
-                    >
-                      {store.name}
-                    </button>
-                  );
-                })}
+                {DRUGSTORES.map((store) => <StoreBadge key={store.id} store={store} active={selectedStores.includes(store.id)} onToggle={toggleStore} />)}
               </div>
             </div>
           </div>
