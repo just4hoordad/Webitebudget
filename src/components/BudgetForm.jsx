@@ -53,6 +53,7 @@ export default function BudgetForm() {
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
   const [saleHunt, setSaleHunt] = useState(false);
+  const [junkPercent, setJunkPercent] = useState([0]);
 
   const toggleStore = (storeId) => {
     setSelectedStores((prev) =>
@@ -76,6 +77,7 @@ export default function BudgetForm() {
       people: people,
       calories: totalCalories,
       saleHunt: saleHunt,
+      junkPercent: junkPercent[0],
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -235,6 +237,34 @@ export default function BudgetForm() {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Junk Food Allowance */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">🍕 Junk Food Allowance</label>
+          <span className={`font-heading font-bold text-lg px-3 py-1 rounded-xl ${
+            junkPercent[0] === 0 ? "bg-green-100 text-green-700" :
+            junkPercent[0] <= 15 ? "bg-yellow-100 text-yellow-700" :
+            junkPercent[0] <= 30 ? "bg-orange-100 text-orange-700" :
+            "bg-red-100 text-red-700"
+          }`}>
+            {junkPercent[0]}%
+          </span>
+        </div>
+        <Slider
+          value={junkPercent}
+          onValueChange={setJunkPercent}
+          max={50}
+          min={0}
+          step={5}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>0% — Clean</span>
+          <span>25% — Balanced</span>
+          <span>50% — YOLO</span>
         </div>
       </div>
 
