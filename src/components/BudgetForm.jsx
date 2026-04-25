@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
-const STORES = [
+const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", bg: "#E8F0FE", text: "#1A4DBF", border: "#1A4DBF" },
   { id: "lidl", name: "Lidl", bg: "#FFF4CC", text: "#E30613", border: "#003F87" },
   { id: "rewe", name: "REWE", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
@@ -19,6 +19,9 @@ const STORES = [
   { id: "real", name: "Real", bg: "#E8F5E9", text: "#006B37", border: "#006B37" },
   { id: "tegut", name: "Tegut", bg: "#FDE8EC", text: "#E2001A", border: "#E2001A" },
   { id: "hit", name: "HIT", bg: "#FFF3E0", text: "#E87722", border: "#E87722" },
+];
+
+const DRUGSTORES = [
   { id: "rossmann", name: "Rossmann", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
   { id: "dm", name: "dm", bg: "#FDE8EC", text: "#D40C18", border: "#D40C18" },
 ];
@@ -152,23 +155,46 @@ export default function BudgetForm() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {STORES.map((store) => {
-              const active = selectedStores.includes(store.id);
-              return (
-                <button
-                  key={store.id}
-                  onClick={() => toggleStore(store.id)}
-                  className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
-                  style={active
-                    ? { background: store.bg, color: store.text, borderColor: store.border }
-                    : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
-                  }
-                >
-                  {store.name}
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {GROCERY_STORES.map((store) => {
+                const active = selectedStores.includes(store.id);
+                return (
+                  <button
+                    key={store.id}
+                    onClick={() => toggleStore(store.id)}
+                    className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
+                    style={active
+                      ? { background: store.bg, color: store.text, borderColor: store.border }
+                      : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
+                    }
+                  >
+                    {store.name}
+                  </button>
+                );
+              })}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Drogeriemärkte</p>
+              <div className="flex flex-wrap gap-2">
+                {DRUGSTORES.map((store) => {
+                  const active = selectedStores.includes(store.id);
+                  return (
+                    <button
+                      key={store.id}
+                      onClick={() => toggleStore(store.id)}
+                      className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
+                      style={active
+                        ? { background: store.bg, color: store.text, borderColor: store.border }
+                        : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
+                      }
+                    >
+                      {store.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
