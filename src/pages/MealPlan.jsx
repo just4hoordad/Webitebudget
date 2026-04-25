@@ -175,32 +175,18 @@ ${saleHunt ? `8. SALE HUNT MODE IS ON: Actively look for items that are currentl
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a complete 7-day meal plan that will repeat for exactly 4 weeks (28 days total).
+      model: "gemini_3_flash",
+      prompt: `Create a 7-day meal plan (repeated 4x = 28 days). All text in ${currentLanguage.label}.
 
-IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
+Ingredients (total for 4 weeks): ${availableItems}
 
-AVAILABLE INGREDIENTS (TOTAL for the entire month = 4 weeks):
-${availableItems}
+Diet: ${diet} | Calories/day: ${calories} kcal | People: ${people}
 
-Diet type: ${diet}
-Target calories per day: ${calories} kcal
-Number of people: ${people}
-
-CRITICAL RULES:
-1. Use ONLY the ingredients listed above — no substitutions or additions
-2. The quantities listed are the TOTAL available for the ENTIRE MONTH (4 weeks)
-3. Your 7-day plan will be repeated exactly 4 times. So the total ingredient usage across 4 repetitions MUST NOT exceed the listed quantities
-4. For each meal, specify EXACTLY how much of each ingredient is used per day
-5. Distribute all ingredients as evenly as possible
-
-For EACH of the 7 days, provide breakfast, lunch, and dinner with:
-- Meal name (in ${currentLanguage.label})
-- Exact calorie count
-- List of ingredients with precise quantities used that day
-
-Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
-
-RETURN EXACTLY 7 days with no gaps or missing days.`,
+Rules:
+- Use ONLY listed ingredients
+- Plan repeats 4x, so usage × 4 must not exceed listed quantities
+- Breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal
+- Return EXACTLY 7 days`,
       response_json_schema: {
         type: "object",
         properties: {
