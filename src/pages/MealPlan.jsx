@@ -96,11 +96,8 @@ export default function MealPlan() {
                     properties: {
                       name: { type: "string" },
                       quantity: { type: "string" },
-                      unit_price: { type: "number" },
                       price: { type: "number" },
-                      normal_price: { type: "number" },
-                      store: { type: "string" },
-                      calories_info: { type: "string" }
+                      store: { type: "string" }
                     }
                   }
                 }
