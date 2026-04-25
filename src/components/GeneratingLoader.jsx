@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const GROCERY_STEPS = [
@@ -55,6 +55,13 @@ export default function GeneratingLoader({ type = "grocery" }) {
   }, []);
 
   const progress = ((currentIndex + 1) / steps.length) * 100;
+  const feedRef = useRef(null);
+
+  useEffect(() => {
+    if (feedRef.current) {
+      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    }
+  }, [visibleSteps]);
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -71,7 +78,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
       </div>
 
       {/* Live feed */}
-      <div className="px-5 py-4 space-y-2.5 h-[220px] overflow-hidden font-mono text-sm">
+      <div ref={feedRef} className="px-5 py-4 space-y-2.5 h-[220px] overflow-y-auto font-mono text-sm scroll-smooth">
         <AnimatePresence>
           {visibleSteps.map((step, i) => {
             const isLast = i === visibleSteps.length - 1;
