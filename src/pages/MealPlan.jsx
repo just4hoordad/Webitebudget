@@ -280,24 +280,30 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const margin = 20;
+    const usableH = pageH - margin * 2;
+
     const canvas = await html2canvas(mealPlanExportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const imgW = pageW - margin * 2;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    let y = margin;
-    let remaining = imgH;
-    let srcY = 0;
-    while (remaining > 0) {
-      const sliceH = Math.min(remaining, pageH - margin * 2);
+    const scale = (pageW - margin * 2) / canvas.width;
+    const imgW = canvas.width * scale;
+
+    // How many canvas pixels fit in one PDF page
+    const pageCanvasH = usableH / scale;
+    let srcOffsetY = 0;
+
+    while (srcOffsetY < canvas.height) {
+      const srcH = Math.min(pageCanvasH, canvas.height - srcOffsetY);
       const sliceCanvas = document.createElement('canvas');
       sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceH / imgH) * canvas.height;
+      sliceCanvas.height = srcH;
       const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, srcY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
-      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, y, imgW, sliceH);
-      remaining -= sliceH;
-      srcY += sliceH;
-      if (remaining > 0) { doc.addPage(); y = margin; }
+      ctx.drawImage(canvas, 0, srcOffsetY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+      const sliceImgH = srcH * scale;
+      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, margin, imgW, sliceImgH);
+      srcOffsetY += srcH;
+      if (srcOffsetY < canvas.height) doc.addPage();
     }
+
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
 
