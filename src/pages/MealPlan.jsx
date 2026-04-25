@@ -8,9 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
-import GroceryListExport from "@/components/GroceryListExport";
-import MealPlanExport from "@/components/MealPlanExport";
+
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -32,8 +30,6 @@ export default function MealPlan() {
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
-  const groceryListRef = useRef(null);
-  const exportRef = useRef(null);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -151,32 +147,83 @@ ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currentl
     URL.revokeObjectURL(url);
   };
 
-  const exportPDF = async () => {
-    if (!exportRef.current) return;
-
-    const container = exportRef.current;
-    const sections = Array.from(container.querySelectorAll('[data-pdf-section]'));
+  const exportPDF = () => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    let cursorY = margin;
-    let firstPage = true;
+    const margin = 36;
+    let y = margin;
 
-    for (const section of sections) {
-      const canvas = await html2canvas(section, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgW = pageW - margin * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
+    const GREEN = [15, 76, 53];
+    const GRAY = [107, 114, 128];
+    const DARK = [17, 24, 39];
 
-      if (!firstPage && cursorY + imgH > pageH - margin) {
-        doc.addPage();
-        cursorY = margin;
-      }
+    const checkPage = (needed) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
+    };
 
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, cursorY, imgW, imgH);
-      cursorY += imgH + 8;
-      firstPage = false;
-    }
+    // Header
+    doc.setFillColor(...GREEN);
+    doc.rect(0, 0, pageW, 80, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('BUDGETBITE', margin, 24);
+    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 24, { align: 'right' });
+    doc.setFontSize(20); doc.text('Monthly Grocery List', margin, 46);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    doc.text(`${diet} diet · €${budget}/month · ${calories} kcal/day · ${people} person(s)`, margin, 62);
+    y = 96;
+
+    const items = getActiveItems();
+    const categories = {};
+    items.forEach(item => {
+      if (!categories[item.category]) categories[item.category] = [];
+      categories[item.category].push(item);
+    });
+
+    Object.entries(categories).forEach(([catName, catItems]) => {
+      checkPage(30);
+      // Category header
+      doc.setFillColor(240, 253, 244);
+      doc.rect(margin, y, pageW - margin * 2, 18, 'F');
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...GREEN);
+      doc.text(catName.toUpperCase(), margin + 6, y + 12);
+      y += 22;
+
+      catItems.forEach(item => {
+        checkPage(16);
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...DARK);
+        const nameLines = doc.splitTextToSize(item.name, pageW - margin * 2 - 120);
+        doc.text(nameLines, margin + 6, y + 9);
+        doc.setTextColor(...GRAY);
+        doc.setFontSize(8);
+        doc.text(item.quantity || '', margin + 6, y + 9 + nameLines.length * 10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...GREEN);
+        doc.text(`€${item.price?.toFixed(2)}`, pageW - margin - 6, y + 9, { align: 'right' });
+        if (item.store) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          doc.setTextColor(...GRAY);
+          doc.text(item.store, pageW - margin - 6, y + 18, { align: 'right' });
+        }
+        y += nameLines.length * 10 + 12;
+        doc.setDrawColor(240, 240, 240);
+        doc.line(margin, y - 4, pageW - margin, y - 4);
+      });
+      y += 6;
+    });
+
+    // Total
+    checkPage(30);
+    doc.setFillColor(...GREEN);
+    doc.rect(margin, y, pageW - margin * 2, 24, 'F');
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL', margin + 8, y + 16);
+    doc.text(`€${activeTotal.toFixed(2)}`, pageW - margin - 8, y + 16, { align: 'right' });
 
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
@@ -248,7 +295,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [saved, setSaved] = useState(false);
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
-  const mealPlanExportRef = useRef(null);
+
 
   const getAvailableIngredientNames = () =>
     groceries?.categories?.flatMap(cat =>
@@ -274,53 +321,166 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     setWeeklyPlan(null);
   };
 
-  const exportMealPlanPDF = async () => {
-    if (!mealPlanExportRef.current) return;
-
+  const exportMealPlanPDF = () => {
+    const days = weeklyPlan?.weeks?.[0]?.days || [];
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const margin = 24;
-    const usableW = pageW - margin * 2;
-    const usableH = pageH - margin * 2;
+    const margin = 36;
+    const col = (pageW - margin * 2) / 3;
+    let y = margin;
 
-    // Capture the full hidden element
-    const fullCanvas = await html2canvas(mealPlanExportRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: 794,
-      width: mealPlanExportRef.current.scrollWidth,
-      height: mealPlanExportRef.current.scrollHeight,
+    const GREEN = [15, 76, 53];
+    const LIGHT_GREEN = [26, 158, 110];
+    const GRAY = [107, 114, 128];
+    const DARK = [17, 24, 39];
+    const BG_LIGHT = [240, 253, 244];
+
+    const checkPage = (needed) => {
+      if (y + needed > pageH - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    };
+
+    // ── Header ──
+    doc.setFillColor(...GREEN);
+    doc.rect(0, 0, pageW, 110, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BUDGETBITE', margin, 28);
+    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 28, { align: 'right' });
+
+    doc.setFontSize(22);
+    doc.text('7-Day Meal Plan', margin, 52);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${diet} diet · ${people} person(s) · repeats for 4 weeks`, margin, 66);
+
+    // stat boxes
+    const stats = [
+      { label: 'MONTHLY BUDGET', value: `€${parseFloat(budget).toFixed(0)}` },
+      { label: 'DAILY CALORIES', value: `${calories} kcal` },
+      { label: 'PEOPLE', value: String(people) },
+      { label: 'MEALS / WEEK', value: '21' },
+    ];
+    const bw = (pageW - margin * 2) / 4;
+    stats.forEach(({ label, value }, i) => {
+      const bx = margin + i * bw;
+      doc.setFillColor(255, 255, 255, 0.18);
+      doc.setFillColor(30, 100, 70);
+      doc.roundedRect(bx, 76, bw - 6, 28, 3, 3, 'F');
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 230, 215);
+      doc.text(label, bx + 8, 87);
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text(value, bx + 8, 100);
     });
 
-    const scale = usableW / fullCanvas.width; // PDF pts per canvas pixel
-    const pageCanvasPx = Math.floor(usableH / scale); // canvas pixels that fit per page
+    y = 126;
 
-    let offsetY = 0;
-    let isFirstPage = true;
+    // ── Days ──
+    days.forEach((day, idx) => {
+      const meals = [
+        { label: 'BREAKFAST', name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+        { label: 'LUNCH',     name: day.lunch,     cal: day.lunch_calories,     ings: day.lunch_ingredients     },
+        { label: 'DINNER',    name: day.dinner,    cal: day.dinner_calories,    ings: day.dinner_ingredients    },
+      ];
 
-    while (offsetY < fullCanvas.height) {
-      const sliceH = Math.min(pageCanvasPx, fullCanvas.height - offsetY);
+      // Estimate height needed for this day
+      const ingLines = meals.reduce((sum, m) => sum + (m.ings?.length || 0), 0);
+      const needed = 28 + 14 + meals.length * 38 + ingLines * 10 + 12;
+      checkPage(needed);
 
-      const slice = document.createElement('canvas');
-      slice.width = fullCanvas.width;
-      slice.height = sliceH;
-      slice.getContext('2d').drawImage(
-        fullCanvas,
-        0, offsetY, fullCanvas.width, sliceH,
-        0, 0, fullCanvas.width, sliceH
-      );
+      // Day header row
+      doc.setFillColor(...(idx % 2 === 0 ? BG_LIGHT : [249, 250, 251]));
+      doc.rect(margin, y, pageW - margin * 2, 20, 'F');
+      doc.setFillColor(...GREEN);
+      doc.circle(margin + 10, y + 10, 8, 'F');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(String(idx + 1), margin + 10, y + 13, { align: 'center' });
+      doc.setTextColor(...GREEN);
+      doc.setFontSize(11);
+      doc.text(day.day, margin + 22, y + 14);
+      y += 22;
 
-      if (!isFirstPage) doc.addPage();
-      doc.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, usableW, sliceH * scale);
+      // Meal columns
+      const rowStartY = y;
+      let maxColH = 0;
 
-      offsetY += sliceH;
-      isFirstPage = false;
-    }
+      meals.forEach((meal, mIdx) => {
+        const cx = margin + mIdx * col;
+        let cy = rowStartY + 4;
+
+        // Meal type label
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...GRAY);
+        doc.text(meal.label, cx + 4, cy + 7);
+        cy += 10;
+
+        // kcal pill
+        if (meal.cal) {
+          doc.setFillColor(...LIGHT_GREEN);
+          doc.roundedRect(cx + 4, cy, 48, 10, 3, 3, 'F');
+          doc.setFontSize(7);
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${meal.cal} kcal`, cx + 28, cy + 7, { align: 'center' });
+          cy += 13;
+        }
+
+        // Meal name (wrapped)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...DARK);
+        const nameLines = doc.splitTextToSize(meal.name || '', col - 10);
+        doc.text(nameLines, cx + 4, cy + 9);
+        cy += nameLines.length * 11 + 2;
+
+        // Ingredients
+        if (Array.isArray(meal.ings) && meal.ings.length > 0) {
+          meal.ings.forEach(ing => {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(...GRAY);
+            const ingText = doc.splitTextToSize(`· ${ing.name} ${ing.quantity}`, col - 10);
+            doc.text(ingText, cx + 4, cy + 7);
+            cy += ingText.length * 9;
+          });
+        }
+
+        maxColH = Math.max(maxColH, cy - rowStartY);
+      });
+
+      // border between columns
+      doc.setDrawColor(230, 230, 230);
+      doc.line(margin + col, rowStartY, margin + col, rowStartY + maxColH + 4);
+      doc.line(margin + col * 2, rowStartY, margin + col * 2, rowStartY + maxColH + 4);
+
+      // bottom border for day card
+      doc.setDrawColor(229, 231, 235);
+      doc.rect(margin, rowStartY - 22, pageW - margin * 2, maxColH + 26, 'S');
+
+      y = rowStartY + maxColH + 10;
+    });
+
+    // ── Footer ──
+    checkPage(20);
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 10;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GRAY);
+    doc.text('BudgetBite — Smart meal planning for students in Germany', margin, y);
+    doc.text('This plan repeats for 4 consecutive weeks', pageW - margin, y, { align: 'right' });
 
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
@@ -434,7 +594,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           </div>
 
           {/* Categories */}
-          <div ref={groceryListRef}>
+          <div>
           {groceries?.categories?.map((category) => (
            <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
              <div className="bg-secondary px-5 py-3">
@@ -553,7 +713,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              <div className="bg-muted px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
               <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
               <div className="flex items-center gap-2">
-                <Button onClick={exportMealPlanPDF} variant="outline" size="sm" className="gap-2">
+                <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
                   <FileDown className="h-4 w-4" />
                   Download Plan
                 </Button>
@@ -602,28 +762,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         )}
       </AnimatePresence>
 
-      {/* Hidden meal plan export element */}
-      <MealPlanExport
-        ref={mealPlanExportRef}
-        weeklyPlan={weeklyPlan}
-        diet={diet}
-        budget={budget}
-        calories={calories}
-        people={people}
-      />
 
-      {groceries && (
-        <GroceryListExport
-          ref={exportRef}
-          groceries={groceries}
-          activeItems={getActiveItems()}
-          activeTotal={activeTotal}
-          budget={budget}
-          diet={diet}
-          people={people}
-          calories={calories}
-        />
-      )}
+
+
     </PullToRefresh>
   );
 }
