@@ -71,7 +71,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
       </div>
 
       {/* Live feed */}
-      <div className="px-5 py-4 space-y-2.5 min-h-[220px] font-mono text-sm">
+      <div className="px-5 py-4 space-y-2.5 h-[220px] overflow-hidden font-mono text-sm">
         <AnimatePresence>
           {visibleSteps.map((step, i) => {
             const isLast = i === visibleSteps.length - 1;
