@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
-const STORES = [
+const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
   { id: "lidl", name: "Lidl", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
   { id: "rewe", name: "REWE", color: "bg-red-100 text-red-700 border-red-200" },
@@ -15,8 +15,13 @@ const STORES = [
   { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
   { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
   { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
-
   { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
+];
+
+const DRUGSTORES = [
+  { id: "dm", name: "dm", color: "bg-pink-100 text-pink-700 border-pink-200" },
+  { id: "rossmann", name: "Rossmann", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  { id: "müller", name: "Müller", color: "bg-violet-100 text-violet-700 border-violet-200" },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -148,20 +153,38 @@ export default function BudgetForm() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {STORES.map((store) => (
-              <button
-                key={store.id}
-                onClick={() => toggleStore(store.id)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                  selectedStores.includes(store.id)
-                    ? store.color + " border-current"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                }`}
-              >
-                {store.name}
-              </button>
-            ))}
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {GROCERY_STORES.map((store) => (
+                <button
+                  key={store.id}
+                  onClick={() => toggleStore(store.id)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                    selectedStores.includes(store.id)
+                      ? store.color + " border-current"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {store.name}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs font-medium text-muted-foreground">Drugstores</p>
+            <div className="flex flex-wrap gap-2">
+              {DRUGSTORES.map((store) => (
+                <button
+                  key={store.id}
+                  onClick={() => toggleStore(store.id)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                    selectedStores.includes(store.id)
+                      ? store.color + " border-current"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {store.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
