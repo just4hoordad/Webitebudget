@@ -7,20 +7,20 @@ import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, 
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const STORES = [
-  { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { id: "lidl", name: "Lidl", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-  { id: "rewe", name: "REWE", color: "bg-red-100 text-red-700 border-red-200" },
-  { id: "edeka", name: "Edeka", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "penny", name: "Penny", color: "bg-orange-100 text-orange-700 border-orange-200" },
-  { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
-  { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
-  { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
-  { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { id: "real", name: "Real", color: "bg-rose-100 text-rose-700 border-rose-200" },
-  { id: "tegut", name: "Tegut", color: "bg-lime-100 text-lime-700 border-lime-200" },
-  { id: "hit", name: "HIT", color: "bg-indigo-100 text-indigo-700 border-indigo-200" },
-  { id: "rossmann", name: "Rossmann", color: "bg-pink-100 text-pink-700 border-pink-200" },
-  { id: "dm", name: "dm", color: "bg-violet-100 text-violet-700 border-violet-200" },
+  { id: "aldi", name: "Aldi", bg: "#E8F0FE", text: "#1A4DBF", border: "#1A4DBF" },
+  { id: "lidl", name: "Lidl", bg: "#FFF4CC", text: "#E30613", border: "#003F87" },
+  { id: "rewe", name: "REWE", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
+  { id: "edeka", name: "Edeka", bg: "#FFF3E0", text: "#E2001A", border: "#E2001A" },
+  { id: "penny", name: "Penny", bg: "#FFF0E0", text: "#D40511", border: "#D40511" },
+  { id: "netto", name: "Netto", bg: "#FFF9E6", text: "#F39200", border: "#F39200" },
+  { id: "kaufland", name: "Kaufland", bg: "#FCEAEA", text: "#C00000", border: "#C00000" },
+  { id: "norma", name: "Norma", bg: "#E8F5E9", text: "#007A3D", border: "#007A3D" },
+  { id: "globus", name: "Globus", bg: "#E3F2FD", text: "#0057A8", border: "#0057A8" },
+  { id: "real", name: "Real", bg: "#E8F5E9", text: "#006B37", border: "#006B37" },
+  { id: "tegut", name: "Tegut", bg: "#FDE8EC", text: "#E2001A", border: "#E2001A" },
+  { id: "hit", name: "HIT", bg: "#FFF3E0", text: "#E87722", border: "#E87722" },
+  { id: "rossmann", name: "Rossmann", bg: "#FDECEA", text: "#CC0000", border: "#CC0000" },
+  { id: "dm", name: "dm", bg: "#FDE8EC", text: "#D40C18", border: "#D40C18" },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -153,19 +153,22 @@ export default function BudgetForm() {
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {STORES.map((store) => (
-              <button
-                key={store.id}
-                onClick={() => toggleStore(store.id)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                  selectedStores.includes(store.id)
-                    ? store.color + " border-current"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                }`}
-              >
-                {store.name}
-              </button>
-            ))}
+            {STORES.map((store) => {
+              const active = selectedStores.includes(store.id);
+              return (
+                <button
+                  key={store.id}
+                  onClick={() => toggleStore(store.id)}
+                  className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
+                  style={active
+                    ? { background: store.bg, color: store.text, borderColor: store.border }
+                    : { background: "transparent", color: "#888", borderColor: "#ddd" }
+                  }
+                >
+                  {store.name}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
