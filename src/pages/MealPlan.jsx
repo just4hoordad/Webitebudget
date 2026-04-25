@@ -212,20 +212,16 @@ Rules: real German prices, cheapest store per item, price=unit_price×qty, inclu
         properties: {
           days: {
             type: "array",
-            minItems: 7,
             items: {
               type: "object",
               properties: {
                 day: { type: "string" },
                 breakfast: { type: "string" },
                 breakfast_calories: { type: "number" },
-                breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
                 lunch: { type: "string" },
                 lunch_calories: { type: "number" },
-                lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
                 dinner: { type: "string" },
-                dinner_calories: { type: "number" },
-                dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
+                dinner_calories: { type: "number" }
               }
             }
           }
