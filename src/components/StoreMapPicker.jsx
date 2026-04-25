@@ -14,18 +14,18 @@ L.Icon.Default.mergeOptions({
 });
 
 const CHAIN_COLORS = {
-  aldi: "#1d4ed8",
-  lidl: "#ca8a04",
-  rewe: "#dc2626",
-  edeka: "#d97706",
-  penny: "#ea580c",
-  netto: "#6b7280",
-  kaufland: "#7c3aed",
-  norma: "#0891b2",
-  dm: "#ec4899",
-  rossmann: "#f43f5e",
-  müller: "#6366f1",
-  globus: "#0d9488",
+  aldi: "#003da5",    // Aldi blue
+  lidl: "#ffcc00",    // Lidl yellow
+  rewe: "#cc0000",    // Rewe red
+  edeka: "#ffa500",   // Edeka orange
+  penny: "#ff6600",   // Penny orange
+  netto: "#333333",   // Netto dark gray
+  kaufland: "#ff0000", // Kaufland red
+  norma: "#003d7a",   // Norma blue
+  dm: "#00a651",      // DM green
+  rossmann: "#ff007b", // Rossmann pink
+  müller: "#ff6b00",  // Müller orange
+  globus: "#ff0000",  // Globus red
 };
 
 const CHAIN_ALIASES = {
@@ -52,14 +52,32 @@ function detectChain(name = "") {
 }
 
 function createStoreIcon(chain, isSelected) {
-  const color = isSelected ? "#0f4c35" : (CHAIN_COLORS[chain] || "#6b7280");
+  const primaryColor = CHAIN_COLORS[chain] || "#6b7280";
+  const textColor = ["lidl"].includes(chain) ? "#000" : "#fff";
+  const icon = {
+    aldi: "A",
+    lidl: "L",
+    rewe: "R",
+    edeka: "E",
+    penny: "P",
+    netto: "N",
+    kaufland: "K",
+    norma: "N",
+    dm: "D",
+    rossmann: "R",
+    müller: "M",
+    globus: "G",
+  }[chain] || "?";
+
   const border = isSelected ? "3px solid #fff" : "2px solid white";
+  const outline = isSelected ? "outline:3px solid #0f4c35;outline-offset:2px;" : "";
+
   return L.divIcon({
     className: "",
-    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 2px 10px rgba(0,0,0,0.4);font-size:9px;font-weight:800;${isSelected ? "outline:2px solid #0f4c35;outline-offset:2px;" : ""}"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -38],
+    html: `<div style="background:linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd);color:${textColor};border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:14px;font-weight:900;${outline}"><span style="transform:rotate(45deg);letter-spacing:-1px;">${icon}</span></div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -42],
   });
 }
 
