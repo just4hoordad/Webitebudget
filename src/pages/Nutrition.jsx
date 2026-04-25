@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import {
@@ -8,7 +8,6 @@ import {
 import { Link } from "react-router-dom";
 import { ArrowLeft, Beef, Droplets, Wheat, Flame, FileDown } from "lucide-react";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 
 const MACRO_COLORS = {
@@ -30,32 +29,162 @@ export default function Nutrition() {
 
   const [nutrition, setNutrition] = useState(null);
   const [loading, setLoading] = useState(true);
-  const contentRef = useRef(null);
-
-  const exportNutritionPDF = async () => {
-    if (!contentRef.current) return;
+  const exportNutritionPDF = () => {
+    if (!nutrition) return;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const canvas = await html2canvas(contentRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const imgW = pageW - margin * 2;
-    const imgH = (canvas.height * imgW) / canvas.width;
+    const margin = 36;
     let y = margin;
-    let remaining = imgH;
-    let srcY = 0;
-    while (remaining > 0) {
-      const sliceH = Math.min(remaining, pageH - margin * 2);
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceH / imgH) * canvas.height;
-      const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, srcY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
-      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, y, imgW, sliceH);
-      remaining -= sliceH;
-      srcY += sliceH;
-      if (remaining > 0) { doc.addPage(); y = margin; }
+
+    const GREEN  = [15, 76, 53];
+    const GRAY   = [107, 114, 128];
+    const DARK   = [17, 24, 39];
+    const C_GREEN  = [34, 197, 94];
+    const C_AMBER  = [245, 158, 11];
+    const C_BLUE   = [59, 130, 246];
+
+    const checkPage = (needed) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
+    };
+
+    // ── Header ──
+    doc.setFillColor(...GREEN);
+    doc.rect(0, 0, pageW, 80, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('BUDGETBITE', margin, 24);
+    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 24, { align: 'right' });
+    doc.setFontSize(20); doc.text('Nutritional Breakdown', margin, 46);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+    doc.text(`${diet} diet · €${budget}/month · ${calories} kcal/day · ${people} person(s)`, margin, 62);
+    y = 96;
+
+    // ── Daily Macro Cards ──
+    const dt = nutrition.daily_totals || {};
+    const cards = [
+      { label: 'Calories', value: `${Math.round(dt.calories || 0)} kcal/day`, color: DARK },
+      { label: 'Protein',  value: `${Math.round(dt.protein_g || 0)}g / day`,  color: C_GREEN },
+      { label: 'Fat',      value: `${Math.round(dt.fat_g || 0)}g / day`,      color: C_AMBER },
+      { label: 'Carbs',    value: `${Math.round(dt.carbs_g || 0)}g / day`,    color: C_BLUE  },
+    ];
+    const cw = (pageW - margin * 2) / 4;
+    cards.forEach(({ label, value, color }, i) => {
+      const cx = margin + i * cw;
+      doc.setDrawColor(220, 220, 220);
+      doc.roundedRect(cx, y, cw - 6, 44, 4, 4, 'S');
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+      doc.text(label, cx + 8, y + 14);
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...color);
+      doc.text(value, cx + 8, y + 32);
+    });
+    y += 56;
+
+    // ── Macro % Split (text table) ──
+    checkPage(60);
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+    doc.text('Calorie Split by Macronutrient', margin, y);
+    y += 16;
+
+    const pct = nutrition.macro_calorie_pct || {};
+    const macros = [
+      { label: 'Protein', pct: pct.protein_pct || 0, color: C_GREEN },
+      { label: 'Fat',     pct: pct.fat_pct || 0,     color: C_AMBER },
+      { label: 'Carbs',  pct: pct.carbs_pct || 0,    color: C_BLUE  },
+    ];
+    const barW = pageW - margin * 2;
+    macros.forEach(({ label, pct: p, color }) => {
+      checkPage(26);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...color);
+      doc.text(label, margin, y + 9);
+      doc.setTextColor(...GRAY); doc.setFont('helvetica', 'normal');
+      doc.text(`${p.toFixed(1)}%`, pageW - margin, y + 9, { align: 'right' });
+      // track bg
+      doc.setFillColor(230, 230, 230);
+      doc.roundedRect(margin, y + 12, barW, 6, 3, 3, 'F');
+      // fill
+      doc.setFillColor(...color);
+      doc.roundedRect(margin, y + 12, barW * (p / 100), 6, 3, 3, 'F');
+      y += 26;
+    });
+    y += 10;
+
+    // ── Per Meal Table ──
+    if (nutrition.per_meal?.length > 0) {
+      checkPage(60);
+      doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+      doc.text('Macros per Meal', margin, y);
+      y += 14;
+
+      // Header row
+      const cols = ['Meal', 'Calories', 'Protein', 'Fat', 'Carbs'];
+      const colW = [120, 90, 90, 90, 90];
+      doc.setFillColor(240, 253, 244);
+      doc.rect(margin, y, barW, 18, 'F');
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREEN);
+      let cx = margin;
+      cols.forEach((c, i) => { doc.text(c, cx + 4, y + 12); cx += colW[i]; });
+      y += 20;
+
+      nutrition.per_meal.forEach((m, i) => {
+        checkPage(18);
+        if (i % 2 === 0) { doc.setFillColor(248, 250, 248); doc.rect(margin, y, barW, 16, 'F'); }
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...DARK);
+        const row = [m.meal, `${Math.round(m.calories)} kcal`, `${Math.round(m.protein_g)}g`, `${Math.round(m.fat_g)}g`, `${Math.round(m.carbs_g)}g`];
+        cx = margin;
+        row.forEach((val, j) => { doc.text(val, cx + 4, y + 11); cx += colW[j]; });
+        y += 18;
+      });
+      y += 10;
     }
+
+    // ── Monthly Totals ──
+    checkPage(60);
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+    doc.text('Monthly Totals (4 weeks)', margin, y);
+    y += 14;
+
+    const mt = nutrition.monthly_totals || {};
+    const monthly = [
+      { label: 'Protein / month', value: mt.protein_g ? `${(mt.protein_g / 1000).toFixed(1)} kg` : '—', color: C_GREEN },
+      { label: 'Fat / month',     value: mt.fat_g     ? `${(mt.fat_g / 1000).toFixed(1)} kg`     : '—', color: C_AMBER },
+      { label: 'Carbs / month',   value: mt.carbs_g   ? `${(mt.carbs_g / 1000).toFixed(1)} kg`   : '—', color: C_BLUE  },
+    ];
+    const mw = (barW) / 3;
+    monthly.forEach(({ label, value, color }, i) => {
+      const mx = margin + i * mw;
+      doc.setDrawColor(220, 220, 220);
+      doc.roundedRect(mx, y, mw - 6, 44, 4, 4, 'S');
+      doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(...color);
+      doc.text(value, mx + 8, y + 26);
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+      doc.text(label, mx + 8, y + 38);
+    });
+    y += 56;
+
+    // ── Notes ──
+    if (nutrition.notes) {
+      checkPage(40);
+      doc.setFillColor(248, 250, 248);
+      doc.roundedRect(margin, y, barW, 1, 2, 2, 'F'); // will be sized below
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GRAY);
+      const noteLines = doc.splitTextToSize(`💡 ${nutrition.notes}`, barW - 16);
+      const noteH = noteLines.length * 12 + 16;
+      doc.setFillColor(248, 250, 248);
+      doc.roundedRect(margin, y, barW, noteH, 4, 4, 'F');
+      doc.text(noteLines, margin + 8, y + 12);
+      y += noteH + 10;
+    }
+
+    // ── Footer ──
+    checkPage(20);
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 10;
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+    doc.text('BudgetBite — Smart meal planning for students in Germany', margin, y);
+    doc.text('Estimates based on typical German discount supermarket products', pageW - margin, y, { align: 'right' });
+
     doc.save(`nutrition-${diet}-${budget}eur.pdf`);
   };
 
@@ -142,7 +271,7 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
   })) || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-10" ref={contentRef}>
+    <div className="max-w-3xl mx-auto space-y-6 pb-10">
       {/* Back link */}
       <div className="flex items-center gap-2">
         <Link
