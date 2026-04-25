@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
+import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import GroceryListExport from "@/components/GroceryListExport";
@@ -273,15 +274,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-6">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <div className="space-y-2">
-            <p className="text-foreground font-semibold text-lg">{t("generatingGroceries")}</p>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              {t("generatingGroceriesSubtitle")}
-            </p>
-          </div>
-        </div>
+        <GeneratingLoader type="grocery" />
       ) : (
         <>
           {/* Budget Summary */}
@@ -391,8 +384,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
              </div>
              <Button onClick={generateWeeklyPlan} disabled={loadingPlan} className="w-full gap-2">
-               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("generatingPlan")}</> : t("generateWeeklyPlan")}
+               {loadingPlan ? <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</> : t("generateWeeklyPlan")}
              </Button>
+             {loadingPlan && <GeneratingLoader type="plan" />}
            </div>
           )}
 
