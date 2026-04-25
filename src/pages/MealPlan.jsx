@@ -77,14 +77,8 @@ export default function MealPlan() {
     }, 4000);
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Monthly grocery list for ${people} person(s), ${diet} diet, Germany. Language: ${currentLanguage.label}.
-Budget: €${budget}/month (total must be €${(budget*0.97).toFixed(0)}–€${(budget*1.03).toFixed(0)}).
-Calories: ~${calories} kcal/day. Stores: ${stores}.
-
-- Use real German supermarket prices, pick cheapest store per item.
-- price = unit_price × monthly quantity. Include normal_price (Rewe/Edeka equivalent).
-- Use real branded product names (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g"). No generic names.
-- All text in ${currentLanguage.label}.${saleHunt ? "\n- SALE HUNT: Only include sale items where the sale price is genuinely cheaper than regular alternatives." : ""}`,
+      prompt: `Monthly grocery list. Language: ${currentLanguage.label}. People: ${people}. Diet: ${diet}. Germany. Budget: €${budget}/mo (stay within 3%). Calories: ~${calories} kcal/day. Stores: ${stores}.
+Rules: real German prices, cheapest store per item, price=unit_price×qty, include normal_price (Rewe/Edeka). Real branded names (e.g. "Ja! Vollmilch 3,5% 1L"). All text in ${currentLanguage.label}.${saleHunt ? " SALE HUNT: only genuine sale items cheaper than regular alternatives." : ""}`,
       model: "gemini_3_flash",
       response_json_schema: {
         type: "object",
@@ -212,17 +206,7 @@ Calories: ~${calories} kcal/day. Stores: ${stores}.
 
     const result = await base44.integrations.Core.InvokeLLM({
       model: "gemini_3_flash",
-      prompt: `Create a 7-day meal plan (repeated 4x = 28 days). All text in ${currentLanguage.label}.
-
-Ingredients (total for 4 weeks): ${availableItems}
-
-Diet: ${diet} | Calories/day: ${calories} kcal | People: ${people}
-
-Rules:
-- Use ONLY listed ingredients
-- Plan repeats 4x, so usage × 4 must not exceed listed quantities
-- Breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal
-- Return EXACTLY 7 days`,
+      prompt: `7-day meal plan (repeats 4x=28 days). Language: ${currentLanguage.label}. Diet: ${diet}. ${calories} kcal/day. People: ${people}. Breakfast ~${Math.round(calories*0.25)} kcal, lunch ~${Math.round(calories*0.35)} kcal, dinner ~${Math.round(calories*0.40)} kcal. Use ONLY these ingredients (qty is 4-week total): ${availableItems}. Return exactly 7 days.`,
       response_json_schema: {
         type: "object",
         properties: {
