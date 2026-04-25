@@ -7,21 +7,21 @@ import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, 
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const GROCERY_STORES = [
-  { id: "aldi", name: "Aldi", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Aldi_logo.svg/200px-Aldi_logo.svg.png" },
-  { id: "lidl", name: "Lidl", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Lidl_Logo.svg/200px-Lidl_Logo.svg.png" },
-  { id: "rewe", name: "REWE", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/REWE-Logo.svg/200px-REWE-Logo.svg.png" },
-  { id: "edeka", name: "Edeka", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Edeka_logo.svg/200px-Edeka_logo.svg.png" },
-  { id: "penny", name: "Penny", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Penny_Markt_logo.svg/200px-Penny_Markt_logo.svg.png" },
-  { id: "netto", name: "Netto", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Netto-Logo.svg/200px-Netto-Logo.svg.png" },
-  { id: "kaufland", name: "Kaufland", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Kaufland_logo.svg/200px-Kaufland_logo.svg.png" },
-  { id: "norma", name: "Norma", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Norma_Logo.svg/200px-Norma_Logo.svg.png" },
-  { id: "globus", name: "Globus", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Globus_SB-Warenhaus_logo.svg/200px-Globus_SB-Warenhaus_logo.svg.png" },
+  { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  { id: "lidl", name: "Lidl", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+  { id: "rewe", name: "REWE", color: "bg-red-100 text-red-700 border-red-200" },
+  { id: "edeka", name: "Edeka", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "penny", name: "Penny", color: "bg-orange-100 text-orange-700 border-orange-200" },
+  { id: "netto", name: "Netto", color: "bg-gray-100 text-gray-700 border-gray-200" },
+  { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
+  { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
+  { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
 const DRUGSTORES = [
-  { id: "dm", name: "dm", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Dm-drogerie-markt-logo.svg/200px-Dm-drogerie-markt-logo.svg.png" },
-  { id: "rossmann", name: "Rossmann", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Rossmann_Logo.svg/200px-Rossmann_Logo.svg.png" },
-  { id: "müller", name: "Müller", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Müller_Drogerie_Logo.svg/200px-Müller_Drogerie_Logo.svg.png" },
+  { id: "dm", name: "dm", color: "bg-pink-100 text-pink-700 border-pink-200" },
+  { id: "rossmann", name: "Rossmann", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  { id: "müller", name: "Müller", color: "bg-violet-100 text-violet-700 border-violet-200" },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -156,36 +156,34 @@ export default function BudgetForm() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
                {GROCERY_STORES.map((store) => (
                  <button
                    key={store.id}
                    onClick={() => toggleStore(store.id)}
-                   className={`flex items-center justify-center w-20 h-20 rounded-xl border-2 transition-all duration-200 ${
+                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                      selectedStores.includes(store.id)
-                       ? "border-primary bg-primary/10 shadow-md"
-                       : "border-border bg-card hover:border-primary/40"
+                       ? store.color + " border-current"
+                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
                    }`}
-                   title={store.name}
                  >
-                   <img src={store.logo} alt={store.name} className="w-14 h-14 object-contain" />
+                   {store.name}
                  </button>
                ))}
              </div>
              <p className="text-xs font-medium text-muted-foreground">Drugstores</p>
-             <div className="flex flex-wrap gap-3">
+             <div className="flex flex-wrap gap-2">
                {DRUGSTORES.map((store) => (
                  <button
                    key={store.id}
                    onClick={() => toggleStore(store.id)}
-                   className={`flex items-center justify-center w-20 h-20 rounded-xl border-2 transition-all duration-200 ${
+                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                      selectedStores.includes(store.id)
-                       ? "border-primary bg-primary/10 shadow-md"
-                       : "border-border bg-card hover:border-primary/40"
+                       ? store.color + " border-current"
+                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
                    }`}
-                   title={store.name}
                  >
-                   <img src={store.logo} alt={store.name} className="w-14 h-14 object-contain" />
+                   {store.name}
                  </button>
                ))}
              </div>
