@@ -14,18 +14,18 @@ L.Icon.Default.mergeOptions({
 });
 
 const CHAIN_COLORS = {
-  aldi: "#003da5",    // Aldi blue
-  lidl: "#ffcc00",    // Lidl yellow
-  rewe: "#cc0000",    // Rewe red
-  edeka: "#ffa500",   // Edeka orange
-  penny: "#ff6600",   // Penny orange
-  netto: "#333333",   // Netto dark gray
-  kaufland: "#ff0000", // Kaufland red
-  norma: "#003d7a",   // Norma blue
-  dm: "#00a651",      // DM green
-  rossmann: "#ff007b", // Rossmann pink
-  müller: "#ff6b00",  // Müller orange
-  globus: "#ff0000",  // Globus red
+  aldi: "#1d4ed8",
+  lidl: "#ca8a04",
+  rewe: "#dc2626",
+  edeka: "#d97706",
+  penny: "#ea580c",
+  netto: "#6b7280",
+  kaufland: "#7c3aed",
+  norma: "#0891b2",
+  dm: "#ec4899",
+  rossmann: "#f43f5e",
+  müller: "#6366f1",
+  globus: "#0d9488",
 };
 
 const CHAIN_ALIASES = {
@@ -52,31 +52,14 @@ function detectChain(name = "") {
 }
 
 function createStoreIcon(chain, isSelected) {
-  const logos = {
-    aldi: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="aldiGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#003da5;stop-opacity:1" /><stop offset="100%" style="stop-color:#001a52;stop-opacity:1" /></linearGradient></defs><rect fill="url(#aldiGrad)" width="100" height="100"/><path d="M 30 50 L 50 30 L 70 50 L 50 70 Z" fill="white" opacity="0.15"/><text x="50" y="70" font-size="65" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="-2">A</text></svg>',
-    lidl: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lidlGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#ffdd00;stop-opacity:1" /><stop offset="100%" style="stop-color:#ffcc00;stop-opacity:1" /></linearGradient></defs><rect fill="url(#lidlGrad)" width="100" height="100"/><rect x="15" y="35" width="20" height="30" fill="#003da5" rx="2"/><rect x="42" y="35" width="20" height="30" fill="#003da5" rx="2"/><rect x="69" y="35" width="20" height="30" fill="#003da5" rx="2"/><text x="50" y="70" font-size="58" font-weight="900" fill="#003da5" text-anchor="middle" font-family="Arial, sans-serif">L</text></svg>',
-    rewe: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="reweGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#dd0000;stop-opacity:1" /><stop offset="100%" style="stop-color:#990000;stop-opacity:1" /></linearGradient></defs><rect fill="url(#reweGrad)" width="100" height="100"/><circle cx="35" cy="30" r="22" fill="white" opacity="0.2"/><circle cx="70" cy="65" r="18" fill="white" opacity="0.15"/><path d="M 25 60 Q 50 45 75 65" stroke="white" stroke-width="2.5" fill="none" opacity="0.3"/><text x="50" y="72" font-size="56" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">R</text></svg>',
-    edeka: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="edekaGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ffb700;stop-opacity:1" /><stop offset="100%" style="stop-color:#ff9500;stop-opacity:1" /></linearGradient></defs><rect fill="url(#edekaGrad)" width="100" height="100"/><path d="M 50 25 L 65 35 L 65 65 L 35 65 L 35 35 Z" fill="white" opacity="0.12"/><text x="50" y="70" font-size="62" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">E</text></svg>',
-    penny: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pennyGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7722;stop-opacity:1" /><stop offset="100%" style="stop-color:#dd4400;stop-opacity:1" /></linearGradient></defs><rect fill="url(#pennyGrad)" width="100" height="100"/><circle cx="40" cy="40" r="25" fill="white" opacity="0.1"/><text x="50" y="70" font-size="64" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">P</text></svg>',
-    netto: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nettoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#444444;stop-opacity:1" /><stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" /></linearGradient></defs><rect fill="url(#nettoGrad)" width="100" height="100"/><rect x="20" y="25" width="60" height="50" fill="none" stroke="white" stroke-width="2.5" opacity="0.2"/><text x="50" y="72" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">N</text></svg>',
-    kaufland: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="kaufGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff1111;stop-opacity:1" /><stop offset="100%" style="stop-color:#cc0000;stop-opacity:1" /></linearGradient></defs><rect fill="url(#kaufGrad)" width="100" height="100"/><g fill="white" opacity="0.25"><rect x="18" y="28" width="16" height="44" rx="3"/><rect x="36" y="28" width="16" height="44" rx="3"/><rect x="54" y="28" width="16" height="44" rx="3"/><rect x="72" y="28" width="8" height="44" rx="2"/></g><text x="50" y="72" font-size="54" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">K</text></svg>',
-    norma: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="normaGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#004d99;stop-opacity:1" /><stop offset="100%" style="stop-color:#002855;stop-opacity:1" /></linearGradient></defs><rect fill="url(#normaGrad)" width="100" height="100"/><path d="M 50 30 L 70 70 L 30 70 Z" fill="white" opacity="0.1"/><text x="50" y="72" font-size="58" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">N</text></svg>',
-    dm: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="dmGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00c853;stop-opacity:1" /><stop offset="100%" style="stop-color:#00802b;stop-opacity:1" /></linearGradient></defs><rect fill="url(#dmGrad)" width="100" height="100"/><circle cx="50" cy="50" r="28" fill="white" opacity="0.08"/><text x="50" y="68" font-size="56" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">dm</text></svg>',
-    rossmann: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="rossGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff0080;stop-opacity:1" /><stop offset="100%" style="stop-color:#cc0066;stop-opacity:1" /></linearGradient></defs><rect fill="url(#rossGrad)" width="100" height="100"/><g fill="white" opacity="0.15"><circle cx="35" cy="35" r="12"/><circle cx="65" cy="35" r="12"/><circle cx="50" cy="60" r="12"/></g><text x="50" y="72" font-size="56" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">R</text></svg>',
-    müller: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="mullerGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7700;stop-opacity:1" /><stop offset="100%" style="stop-color:#dd5500;stop-opacity:1" /></linearGradient></defs><rect fill="url(#mullerGrad)" width="100" height="100"/><path d="M 30 50 L 50 30 L 70 50 L 50 70 Z" fill="white" opacity="0.12"/><text x="50" y="72" font-size="62" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">M</text></svg>',
-    globus: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="globusGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff2222;stop-opacity:1" /><stop offset="100%" style="stop-color:#bb0000;stop-opacity:1" /></linearGradient></defs><rect fill="url(#globusGrad)" width="100" height="100"/><circle cx="50" cy="50" r="33" fill="none" stroke="white" stroke-width="3" opacity="0.3"/><circle cx="50" cy="50" r="20" fill="white" opacity="0.08"/><text x="50" y="72" font-size="56" font-weight="900" fill="white" text-anchor="middle" font-family="Arial, sans-serif">G</text></svg>',
-  };
-
-  const logoSvg = logos[chain] || logos.netto;
+  const color = isSelected ? "#0f4c35" : (CHAIN_COLORS[chain] || "#6b7280");
   const border = isSelected ? "3px solid #fff" : "2px solid white";
-  const outline = isSelected ? "outline:3px solid #0f4c35;outline-offset:2px;" : "";
-
   return L.divIcon({
     className: "",
-    html: `<div style="border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 4px 12px rgba(0,0,0,0.4);overflow:hidden;${outline}">${logoSvg}</div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 44],
-    popupAnchor: [0, -46],
+    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 2px 10px rgba(0,0,0,0.4);font-size:9px;font-weight:800;${isSelected ? "outline:2px solid #0f4c35;outline-offset:2px;" : ""}"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -38],
   });
 }
 
