@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingBasket, X, Save, FileDown, FileText } from "lucide-react";
+import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -421,13 +422,21 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                  </div>
                ))}
              </div>
-             <div className="bg-muted px-5 py-3 flex items-center justify-between">
-               <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
-               <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
+             <div className="bg-muted px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
+              <div className="flex gap-2">
+                <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`}>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <BarChart2 className="h-4 w-4" />
+                    Nutrition
+                  </Button>
+                </Link>
+              <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
                    <Save className="h-4 w-4" />
                    {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
-                 </Button>
-             </div>
+                   </Button>
+                   </div>
+                   </div>
              </div>
              )}
 
