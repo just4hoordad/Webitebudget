@@ -52,32 +52,31 @@ function detectChain(name = "") {
 }
 
 function createStoreIcon(chain, isSelected) {
-  const primaryColor = CHAIN_COLORS[chain] || "#6b7280";
-  const textColor = ["lidl"].includes(chain) ? "#000" : "#fff";
-  const icon = {
-    aldi: "A",
-    lidl: "L",
-    rewe: "R",
-    edeka: "E",
-    penny: "P",
-    netto: "N",
-    kaufland: "K",
-    norma: "N",
-    dm: "D",
-    rossmann: "R",
-    müller: "M",
-    globus: "G",
-  }[chain] || "?";
+  const logos = {
+    aldi: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#003da5" width="100" height="100"/><text x="50" y="65" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">A</text></svg>',
+    lidl: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ffcc00" width="100" height="100"/><text x="50" y="65" font-size="60" font-weight="900" fill="#003da5" text-anchor="middle" font-family="Arial">L</text></svg>',
+    rewe: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#cc0000" width="100" height="100"/><circle cx="35" cy="35" r="20" fill="white" opacity="0.9"/><text x="50" y="68" font-size="50" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">R</text></svg>',
+    edeka: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ffa500" width="100" height="100"/><text x="50" y="65" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">E</text></svg>',
+    penny: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ff6600" width="100" height="100"/><text x="50" y="65" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">P</text></svg>',
+    netto: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#333333" width="100" height="100"/><text x="50" y="65" font-size="50" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">N</text></svg>',
+    kaufland: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ff0000" width="100" height="100"/><rect x="20" y="30" width="15" height="40" fill="white"/><rect x="65" y="30" width="15" height="40" fill="white"/><text x="50" y="68" font-size="40" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">K</text></svg>',
+    norma: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#003d7a" width="100" height="100"/><text x="50" y="68" font-size="55" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">N</text></svg>',
+    dm: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#00a651" width="100" height="100"/><text x="50" y="65" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">dm</text></svg>',
+    rossmann: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ff007b" width="100" height="100"/><text x="50" y="65" font-size="55" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">R</text></svg>',
+    müller: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ff6b00" width="100" height="100"/><text x="50" y="68" font-size="60" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">M</text></svg>',
+    globus: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#ff0000" width="100" height="100"/><circle cx="50" cy="50" r="35" fill="none" stroke="white" stroke-width="3"/><text x="50" y="68" font-size="48" font-weight="900" fill="white" text-anchor="middle" font-family="Arial">G</text></svg>',
+  };
 
+  const logoSvg = logos[chain] || logos.netto;
   const border = isSelected ? "3px solid #fff" : "2px solid white";
   const outline = isSelected ? "outline:3px solid #0f4c35;outline-offset:2px;" : "";
 
   return L.divIcon({
     className: "",
-    html: `<div style="background:linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd);color:${textColor};border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:14px;font-weight:900;${outline}"><span style="transform:rotate(45deg);letter-spacing:-1px;">${icon}</span></div>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -42],
+    html: `<div style="border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 4px 12px rgba(0,0,0,0.4);overflow:hidden;${outline}">${logoSvg}</div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 44],
+    popupAnchor: [0, -46],
   });
 }
 
