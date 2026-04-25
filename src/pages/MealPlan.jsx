@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2, Shuffle } from "lucide-react";
+import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
+import GrocerySwapModal from "@/components/GrocerySwapModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
@@ -238,6 +239,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
   const [saved, setSaved] = useState(false);
   const [swapTarget, setSwapTarget] = useState(null); // { dayIndex, mealType, meal }
+  const [grocerySwapTarget, setGrocerySwapTarget] = useState(null); // { item, category }
 
   const getAvailableIngredientNames = () =>
     groceries?.categories?.flatMap(cat =>
@@ -245,6 +247,20 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => item.name)
     ) || [];
+
+  const handleGrocerySwap = (categoryName, oldItem, newItem) => {
+    setGroceries(prev => {
+      const newCategories = prev.categories.map(cat => {
+        if (cat.name !== categoryName) return cat;
+        return {
+          ...cat,
+          items: cat.items.map(i => i.name === oldItem.name ? { ...newItem, category: categoryName } : i)
+        };
+      });
+      return { ...prev, categories: newCategories };
+    });
+    setWeeklyPlan(null); // reset meal plan since ingredients changed
+  };
 
   const handleSwap = (dayIndex, mealType, alternative) => {
     setWeeklyPlan(prev => {
@@ -388,6 +404,13 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
                      </div>
                      <button
+                       onClick={() => setGrocerySwapTarget({ item, category: category.name })}
+                       className="text-muted-foreground hover:text-primary transition-colors"
+                       title="Find alternative"
+                     >
+                       <ArrowLeftRight className="h-4 w-4" />
+                     </button>
+                     <button
                        onClick={() => removeItem(category.name, item.name)}
                        className="text-muted-foreground hover:text-destructive transition-colors"
                      >
@@ -487,6 +510,19 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
+      <AnimatePresence>
+        {grocerySwapTarget && (
+          <GrocerySwapModal
+            item={grocerySwapTarget.item}
+            category={grocerySwapTarget.category}
+            diet={diet}
+            budget={budget}
+            onSwap={handleGrocerySwap}
+            onClose={() => setGrocerySwapTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {swapTarget && (
           <MealSwapModal
