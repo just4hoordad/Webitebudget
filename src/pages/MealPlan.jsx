@@ -410,12 +410,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                      >
                        <ArrowLeftRight className="h-4 w-4" />
                      </button>
-                     <button
-                       onClick={() => removeItem(category.name, item.name)}
-                       className="text-muted-foreground hover:text-destructive transition-colors"
-                     >
-                       <X className="h-4 w-4" />
-                     </button>
+
                    </div>
                  </div>
                ))}
