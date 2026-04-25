@@ -276,32 +276,45 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
   const exportMealPlanPDF = async () => {
     if (!mealPlanExportRef.current) return;
+
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 24;
+    const usableW = pageW - margin * 2;
     const usableH = pageH - margin * 2;
 
-    const canvas = await html2canvas(mealPlanExportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const scale = (pageW - margin * 2) / canvas.width;
-    const imgW = canvas.width * scale;
+    // Capture the full hidden element
+    const fullCanvas = await html2canvas(mealPlanExportRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
 
-    // How many canvas pixels fit in one PDF page
-    const pageCanvasH = usableH / scale;
-    let srcOffsetY = 0;
+    const scale = usableW / fullCanvas.width; // PDF pts per canvas pixel
+    const pageCanvasPx = Math.floor(usableH / scale); // canvas pixels that fit per page
 
-    while (srcOffsetY < canvas.height) {
-      const srcH = Math.min(pageCanvasH, canvas.height - srcOffsetY);
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = srcH;
-      const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, srcOffsetY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+    let offsetY = 0;
+    let isFirstPage = true;
 
-      const sliceImgH = srcH * scale;
-      doc.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, margin, imgW, sliceImgH);
-      srcOffsetY += srcH;
-      if (srcOffsetY < canvas.height) doc.addPage();
+    while (offsetY < fullCanvas.height) {
+      const sliceH = Math.min(pageCanvasPx, fullCanvas.height - offsetY);
+
+      const slice = document.createElement('canvas');
+      slice.width = fullCanvas.width;
+      slice.height = sliceH;
+      slice.getContext('2d').drawImage(
+        fullCanvas,
+        0, offsetY, fullCanvas.width, sliceH,
+        0, 0, fullCanvas.width, sliceH
+      );
+
+      if (!isFirstPage) doc.addPage();
+      doc.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, usableW, sliceH * scale);
+
+      offsetY += sliceH;
+      isFirstPage = false;
     }
 
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);

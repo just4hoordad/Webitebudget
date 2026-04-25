@@ -4,9 +4,9 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
   const days = weeklyPlan?.weeks?.[0]?.days || [];
 
   const mealTypes = [
-    { label: "Breakfast", icon: "Breakfast", nameKey: "breakfast", calKey: "breakfast_calories", ingKey: "breakfast_ingredients" },
-    { label: "Lunch",     icon: "Lunch",     nameKey: "lunch",     calKey: "lunch_calories",     ingKey: "lunch_ingredients"     },
-    { label: "Dinner",    icon: "Dinner",    nameKey: "dinner",    calKey: "dinner_calories",    ingKey: "dinner_ingredients"    },
+    { label: "Breakfast", nameKey: "breakfast", calKey: "breakfast_calories", ingKey: "breakfast_ingredients" },
+    { label: "Lunch",     nameKey: "lunch",     calKey: "lunch_calories",     ingKey: "lunch_ingredients"     },
+    { label: "Dinner",    nameKey: "dinner",    calKey: "dinner_calories",    ingKey: "dinner_ingredients"    },
   ];
 
   return (
@@ -27,7 +27,6 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
     >
       {/* ── Header ── */}
       <div style={{ background: "#0f4c35", padding: "28px 40px 22px", color: "#ffffff" }}>
-        {/* Title row */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
           <tbody>
             <tr>
@@ -45,12 +44,11 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
           </tbody>
         </table>
 
-        {/* Stats row */}
         <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "6px 0" }}>
           <tbody>
             <tr>
               {[
-                { label: "Monthly Budget", value: `\u20AC${parseFloat(budget).toFixed(0)}` },
+                { label: "Monthly Budget", value: `€${parseFloat(budget).toFixed(0)}` },
                 { label: "Daily Calories",  value: `${calories} kcal` },
                 { label: "People",          value: String(people) },
                 { label: "Meals / Week",    value: "21" },
@@ -105,7 +103,7 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
               </tbody>
             </table>
 
-            {/* Meals — pure table, no flex */}
+            {/* Meals */}
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <tbody>
                 <tr>
@@ -121,30 +119,25 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
                         borderRight: mIdx < 2 ? "1px solid #f0f0f0" : "none",
                         background: "#ffffff",
                       }}>
-                        {/* Label + kcal on same row via table */}
-                        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "5px" }}>
-                          <tbody>
-                            <tr>
-                              <td style={{ verticalAlign: "middle" }}>
-                                <span style={{ fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.07em", color: "#6b7280" }}>{label}</span>
-                              </td>
-                              {cal ? (
-                                <td style={{ verticalAlign: "middle", textAlign: "right" }}>
-                                  <span style={{
-                                    fontSize: "9px",
-                                    fontWeight: "700",
-                                    color: "#ffffff",
-                                    background: "#1a9e6e",
-                                    borderRadius: "10px",
-                                    padding: "2px 7px",
-                                  }}>
-                                    {cal} kcal
-                                  </span>
-                                </td>
-                              ) : <td />}
-                            </tr>
-                          </tbody>
-                        </table>
+                        {/* Label */}
+                        <div style={{ fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.07em", color: "#6b7280", marginBottom: "3px" }}>
+                          {label}
+                        </div>
+                        {/* kcal badge on its own line */}
+                        {cal && (
+                          <div style={{ marginBottom: "4px" }}>
+                            <span style={{
+                              fontSize: "9px",
+                              fontWeight: "700",
+                              color: "#ffffff",
+                              background: "#1a9e6e",
+                              borderRadius: "10px",
+                              padding: "2px 7px",
+                            }}>
+                              {cal} kcal
+                            </span>
+                          </div>
+                        )}
                         {/* Meal name */}
                         <div style={{ fontSize: "11px", fontWeight: "600", color: "#111827", marginBottom: "5px" }}>{name}</div>
                         {/* Ingredients */}
@@ -177,7 +170,7 @@ const MealPlanExport = forwardRef(({ weeklyPlan, diet, budget, calories, people 
       </div>
 
       {/* ── Footer ── */}
-      <table style={{ width: "100%", borderCollapse: "collapse", borderTop: "1px solid #e5e7eb", padding: "0 40px" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", borderTop: "1px solid #e5e7eb" }}>
         <tbody>
           <tr>
             <td style={{ padding: "12px 40px", fontSize: "10px", color: "#9ca3af" }}>
