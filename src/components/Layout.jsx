@@ -36,7 +36,7 @@ export default function Layout() {
             </Link>
           ) : (
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-sm font-medium text-foreground select-none"
             >
               <ArrowLeft className="h-5 w-5" />
