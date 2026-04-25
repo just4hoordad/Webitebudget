@@ -205,7 +205,7 @@ Rules: real German prices, cheapest store per item, price=unit_price×qty, inclu
     }, 4000);
 
     const result = await base44.integrations.Core.InvokeLLM({
-      model: "gemini_3_flash",
+      model: "gpt_5_mini",
       prompt: `7-day meal plan (repeats 4x=28 days). Language: ${currentLanguage.label}. Diet: ${diet}. ${calories} kcal/day. People: ${people}. Breakfast ~${Math.round(calories*0.25)} kcal, lunch ~${Math.round(calories*0.35)} kcal, dinner ~${Math.round(calories*0.40)} kcal. Use ONLY these ingredients (qty is 4-week total): ${availableItems}. Return exactly 7 days.`,
       response_json_schema: {
         type: "object",
