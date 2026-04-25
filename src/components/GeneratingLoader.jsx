@@ -26,8 +26,35 @@ const PLAN_STEPS = [
   { emoji: "✅", text: "Wrapping up your personalised meal plan…" },
 ];
 
+const GROCERY_GHOST_ITEMS = [
+  "🥛 Milbona Vollmilch 3,5% · 4× 1L",
+  "🥚 Gut & Günstig Eier 10er",
+  "🍞 Aldi Toastbrot 500g",
+  "🧀 Milbona Gouda Scheiben 400g",
+  "🍌 Bananen lose · 1kg",
+  "🥕 Karotten · 1kg Beutel",
+  "🐔 Hähnchenbrust · 800g",
+  "🛢️ Sonnenblumenöl 1L",
+  "🍚 Reis Langkorn · 2kg",
+  "🧻 Toilettenpapier 8-Rollen",
+  "🥫 Kidneybohnen 400g Dose",
+  "🍋 Zitronen · 500g Netz",
+];
+
+const PLAN_GHOST_ITEMS = [
+  "Monday   Oats + Banana  |  Rice & Beans  |  Chicken & Veg",
+  "Tuesday   Eggs & Toast  |  Salad Bowl  |  Pasta Primavera",
+  "Wednesday   Yoghurt  |  Lentil Soup  |  Stir-fry & Rice",
+  "Thursday   Muesli  |  Veggie Wrap  |  Baked Potato",
+  "Friday   Smoothie  |  Rice Bowl  |  Fish & Salad",
+  "Saturday   Pancakes  |  Soup & Bread  |  Curry & Rice",
+  "Sunday   French Toast  |  Grain Bowl  |  Roast Veg",
+];
+
 export default function GeneratingLoader({ type = "grocery" }) {
   const steps = type === "plan" ? PLAN_STEPS : GROCERY_STEPS;
+  const ghostItems = type === "plan" ? PLAN_GHOST_ITEMS : GROCERY_GHOST_ITEMS;
+
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dots, setDots] = useState(".");
@@ -56,6 +83,9 @@ export default function GeneratingLoader({ type = "grocery" }) {
 
   const progress = ((currentIndex + 1) / steps.length) * 100;
 
+  // How many ghost rows to reveal based on progress
+  const revealedCount = Math.ceil((progress / 100) * ghostItems.length);
+
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
       {/* Header */}
@@ -70,37 +100,72 @@ export default function GeneratingLoader({ type = "grocery" }) {
         </p>
       </div>
 
-      {/* Live feed */}
-      <div className="px-5 py-4 space-y-2.5 min-h-[220px] font-mono text-sm">
-        <AnimatePresence>
-          {visibleSteps.map((step, i) => {
-            const isLast = i === visibleSteps.length - 1;
+      <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">
+        {/* Left: Live feed */}
+        <div className="px-5 py-4 space-y-2.5 font-mono text-sm">
+          <AnimatePresence>
+            {visibleSteps.map((step, i) => {
+              const isLast = i === visibleSteps.length - 1;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex items-start gap-3 ${isLast ? "text-foreground" : "text-muted-foreground"}`}
+                >
+                  <span className="text-base leading-none mt-0.5">{step.emoji}</span>
+                  <span className={`leading-snug ${isLast ? "font-medium" : ""}`}>
+                    {step.text}
+                    {isLast && (
+                      <span className="inline-block ml-1 text-primary font-bold animate-pulse">▍</span>
+                    )}
+                  </span>
+                  {!isLast && (
+                    <span className="ml-auto text-green-500 text-xs shrink-0">✓</span>
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {/* Right: Ghost preview — visually "drawing itself" */}
+        <div className="px-5 py-4 space-y-2 overflow-hidden">
+          <p className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest mb-3">
+            {type === "plan" ? "Preview: 7-day plan" : "Preview: Grocery list"}
+          </p>
+          {ghostItems.map((item, i) => {
+            const isRevealed = i < revealedCount;
             return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`flex items-start gap-3 ${isLast ? "text-foreground" : "text-muted-foreground"}`}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: isRevealed ? 1 : 0, x: isRevealed ? 0 : 12 }}
+                transition={{ duration: 0.5, delay: isRevealed ? 0.05 * i : 0 }}
+                className="flex items-center gap-2"
               >
-                <span className="text-base leading-none mt-0.5">{step.emoji}</span>
-                <span className={`leading-snug ${isLast ? "font-medium" : ""}`}>
-                  {step.text}
-                  {isLast && (
-                    <span className="inline-block ml-1 text-primary font-bold animate-pulse">▍</span>
-                  )}
+                <div
+                  className={`h-2 rounded-full transition-all duration-700 ${
+                    isRevealed ? "bg-primary/20" : "bg-muted"
+                  }`}
+                  style={{ width: isRevealed ? "100%" : "30%" }}
+                />
+                <span
+                  className={`text-xs font-mono whitespace-nowrap transition-all duration-500 ${
+                    isRevealed ? "text-muted-foreground/70" : "text-transparent"
+                  }`}
+                >
+                  {item}
                 </span>
-                {!isLast && (
-                  <span className="ml-auto text-green-500 text-xs shrink-0">✓</span>
-                )}
               </motion.div>
             );
           })}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/* Progress bar */}
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-4 pt-2 border-t border-border">
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs text-muted-foreground">Progress</p>
           <p className="text-xs font-semibold text-primary">{Math.round(progress)}%</p>
