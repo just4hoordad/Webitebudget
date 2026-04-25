@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight } from "lucide-react";
+import { ShoppingBasket, X, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
+import MealEditModal from "@/components/MealEditModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
@@ -295,6 +296,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [saved, setSaved] = useState(false);
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
 
 
   const getAvailableIngredientNames = () =>
@@ -499,6 +501,20 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     setSaved(false);
   };
 
+  const handleMealEdit = (dayIndex, mealType, editedMeal) => {
+    setWeeklyPlan(prev => {
+      const newDays = [...prev.weeks[0].days];
+      newDays[dayIndex] = {
+        ...newDays[dayIndex],
+        [mealType]: editedMeal.name,
+        [`${mealType}_calories`]: editedMeal.calories,
+        [`${mealType}_ingredients`]: editedMeal.ingredients || [],
+      };
+      return { weeks: [{ week: 1, days: newDays }] };
+    });
+    setSaved(false);
+  };
+
   const saveMealPlan = async () => {
     if (!weeklyPlan || saved) return;
     setSaving(true);
@@ -677,14 +693,23 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                      <div key={type} className="text-muted-foreground col-span-4 sm:col-span-1">
                        <div className="flex items-center justify-between mb-0.5">
                          <span className="font-medium text-foreground text-xs">{label} {cal && <span className="text-primary">({cal} kcal)</span>}</span>
-                         <button
-                           onClick={() => setSwapTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
-                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                           title="AI Swap"
-                         >
-                           <Shuffle className="h-3 w-3 group-hover:text-primary" />
-                           <span className="hidden sm:inline">Swap</span>
-                         </button>
+                         <div className="flex items-center gap-1">
+                           <button
+                             onClick={() => setEditTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
+                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                             title="Edit meal"
+                           >
+                             <Edit2 className="h-3 w-3 group-hover:text-primary" />
+                           </button>
+                           <button
+                             onClick={() => setSwapTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
+                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                             title="AI Swap"
+                           >
+                             <Shuffle className="h-3 w-3 group-hover:text-primary" />
+                             <span className="hidden sm:inline">Swap</span>
+                           </button>
+                         </div>
                        </div>
                        <span>{name}</span>
                        {Array.isArray(ings) && ings.length > 0 && (
@@ -758,6 +783,19 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             diet={diet}
             onSwap={handleSwap}
             onClose={() => setSwapTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {editTarget && (
+          <MealEditModal
+            meal={editTarget.meal}
+            mealType={editTarget.mealType}
+            dayIndex={editTarget.dayIndex}
+            groceryItems={getActiveItems()}
+            onSave={handleMealEdit}
+            onClose={() => setEditTarget(null)}
           />
         )}
       </AnimatePresence>
