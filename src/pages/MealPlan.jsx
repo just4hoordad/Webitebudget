@@ -10,6 +10,7 @@ import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import GroceryListExport from "@/components/GroceryListExport";
+import MealPlanExport from "@/components/MealPlanExport";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -578,32 +579,14 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
       </AnimatePresence>
 
       {/* Hidden meal plan export element */}
-      {weeklyPlan?.weeks?.[0] && (
-        <div ref={mealPlanExportRef} style={{ position: 'absolute', left: '-9999px', top: 0, width: '700px', background: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>7-Day Meal Plan</h1>
-          <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>{diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)</p>
-          {weeklyPlan.weeks[0].days.map((day, idx) => (
-            <div key={idx} style={{ marginBottom: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 16 }}>
-              <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>{day.day}</p>
-              {[
-                { label: 'Breakfast', name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
-                { label: 'Lunch', name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
-                { label: 'Dinner', name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
-              ].map(({ label, name, cal, ings }) => (
-                <div key={label} style={{ marginBottom: 10 }}>
-                  <p style={{ fontWeight: 600, fontSize: 13, color: '#059669' }}>{label} {cal ? `· ${cal} kcal` : ''}</p>
-                  <p style={{ fontSize: 13 }}>{name}</p>
-                  {Array.isArray(ings) && ings.length > 0 && (
-                    <ul style={{ fontSize: 12, color: '#6b7280', paddingLeft: 16, margin: '4px 0 0' }}>
-                      {ings.map((ing, i) => <li key={i}>{ing.name} — {ing.quantity}</li>)}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+      <MealPlanExport
+        ref={mealPlanExportRef}
+        weeklyPlan={weeklyPlan}
+        diet={diet}
+        budget={budget}
+        calories={calories}
+        people={people}
+      />
 
       {groceries && (
         <GroceryListExport
