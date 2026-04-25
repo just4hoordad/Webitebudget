@@ -162,7 +162,7 @@ export default function BudgetForm() {
                   className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200"
                   style={active
                     ? { background: store.bg, color: store.text, borderColor: store.border }
-                    : { background: "transparent", color: "#888", borderColor: "#ddd" }
+                    : { background: store.bg + "55", color: store.text + "99", borderColor: store.border + "44" }
                   }
                 >
                   {store.name}
