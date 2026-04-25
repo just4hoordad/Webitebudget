@@ -8,23 +8,23 @@ import StoreMapPicker from "@/components/StoreMapPicker";
 
 // Each store: bg/text/border = active state. The logo badge uses logoBg + logoText for the colored "logo" portion.
 const GROCERY_STORES = [
-  { id: "aldi",     name: "Aldi",     logoBg: "#00005F", logoText: "#FFC800", label: "Aldi",      bg: "#EEF2FF", border: "#00005F" },
-  { id: "lidl",     name: "Lidl",     logoBg: "#003F87", logoText: "#FFF200", label: "Lidl",      bg: "#EEF3FF", border: "#003F87" },
-  { id: "rewe",     name: "REWE",     logoBg: "#CC0000", logoText: "#ffffff", label: "REWE",      bg: "#FDECEA", border: "#CC0000" },
-  { id: "edeka",    name: "Edeka",    logoBg: "#FFD700", logoText: "#E2001A", label: "edeka",     bg: "#FFF8E1", border: "#E2001A" },
-  { id: "penny",    name: "Penny",    logoBg: "#CD1316", logoText: "#FFD400", label: "penny",     bg: "#FDECEA", border: "#CD1316" },
-  { id: "netto",    name: "Netto",    logoBg: "#000000", logoText: "#FAD85B", label: "Netto",     bg: "#FFFDE7", border: "#000000" },
-  { id: "kaufland", name: "Kaufland", logoBg: "#ED1D23", logoText: "#ffffff", label: "kaufland",  bg: "#FDECEA", border: "#ED1D23" },
-  { id: "norma",    name: "Norma",    logoBg: "#007A3D", logoText: "#ffffff", label: "NORMA",     bg: "#E8F5E9", border: "#007A3D" },
-  { id: "globus",   name: "Globus",   logoBg: "#0057A8", logoText: "#ffffff", label: "globus",    bg: "#E3F2FD", border: "#0057A8" },
-  { id: "real",     name: "Real",     logoBg: "#006B37", logoText: "#ffffff", label: "real",      bg: "#E8F5E9", border: "#006B37" },
-  { id: "tegut",    name: "Tegut",    logoBg: "#E2001A", logoText: "#ffffff", label: "tegut",     bg: "#FDECEA", border: "#E2001A" },
-  { id: "hit",      name: "HIT",      logoBg: "#E87722", logoText: "#ffffff", label: "HIT",       bg: "#FFF3E0", border: "#E87722" },
+  { id: "aldi",     name: "Aldi",     logoBg: "#00005F", logoText: "#FFC800", label: "Aldi"     },
+  { id: "lidl",     name: "Lidl",     logoBg: "#003F87", logoText: "#FFF200", label: "Lidl"     },
+  { id: "rewe",     name: "REWE",     logoBg: "#CC071E", logoText: "#ffffff", label: "REWE"     },
+  { id: "edeka",    name: "Edeka",    logoBg: "#FFD700", logoText: "#E2001A", label: "edeka"    },
+  { id: "penny",    name: "Penny",    logoBg: "#CD1316", logoText: "#FFD400", label: "penny"    },
+  { id: "netto",    name: "Netto",    logoBg: "#1A1A1A", logoText: "#FAD85B", label: "Netto"    },
+  { id: "kaufland", name: "Kaufland", logoBg: "#ED1D23", logoText: "#ffffff", label: "kaufland" },
+  { id: "norma",    name: "Norma",    logoBg: "#007A3D", logoText: "#ffffff", label: "NORMA"    },
+  { id: "globus",   name: "Globus",   logoBg: "#0057A8", logoText: "#ffffff", label: "globus"   },
+  { id: "real",     name: "Real",     logoBg: "#006B37", logoText: "#ffffff", label: "real"     },
+  { id: "tegut",    name: "Tegut",    logoBg: "#E2001A", logoText: "#ffffff", label: "tegut"    },
+  { id: "hit",      name: "HIT",      logoBg: "#E87722", logoText: "#ffffff", label: "HIT"      },
 ];
 
 const DRUGSTORES = [
-  { id: "rossmann", name: "Rossmann", logoBg: "#C3002D", logoText: "#ffffff", label: "Rossmann",  bg: "#FDECEA", border: "#C3002D" },
-  { id: "dm",       name: "dm",       logoBg: "#1A3875", logoText: "#ffffff", label: "dm",        bg: "#E8EEF8", border: "#1A3875" },
+  { id: "rossmann", name: "Rossmann", logoBg: "#C3002D", logoText: "#ffffff", label: "Rossmann" },
+  { id: "dm",       name: "dm",       logoBg: "#1A3875", logoText: "#ffffff", label: "dm"       },
 ];
 
 const CALORIE_GOAL_KEYS = [
@@ -50,11 +50,12 @@ function StoreBadge({ store, active, onToggle }) {
   return (
     <button
       onClick={() => onToggle(store.id)}
-      className="flex items-center rounded-lg border-2 overflow-hidden transition-all duration-200 text-xs font-bold"
+      className="flex items-center rounded-lg overflow-hidden transition-all duration-200 text-xs font-bold border-2"
       style={{
-        borderColor: active ? store.border : store.border + "44",
-        opacity: active ? 1 : 0.55,
-        boxShadow: active ? `0 1px 4px ${store.border}44` : "none",
+        borderColor: active ? store.logoBg : "#d1d5db",
+        boxShadow: active ? `0 2px 6px ${store.logoBg}55` : "none",
+        filter: active ? "none" : "grayscale(40%) brightness(1.1)",
+        opacity: active ? 1 : 0.7,
       }}
     >
       <span
