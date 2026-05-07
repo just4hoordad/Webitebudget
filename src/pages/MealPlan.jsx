@@ -110,13 +110,39 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
         }
       });
       setGroceries(result);
+      setLoading(false);
+      // Generate product images in background after list is shown
+      generateItemImages(result);
     } catch (err) {
       if (retryCount < 2) {
         return generateGroceries(retryCount + 1);
       }
       toast.error("Failed to generate grocery list. Please try again.");
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const generateItemImages = async (groceryData) => {
+    const updated = { ...groceryData, categories: groceryData.categories.map(c => ({ ...c, items: [...c.items] })) };
+    const tasks = [];
+    updated.categories.forEach((cat, ci) => {
+      cat.items.forEach((item, ii) => {
+        tasks.push(
+          base44.integrations.Core.GenerateImage({
+            prompt: `Product photo of ${item.name}, supermarket product, white background, clean studio shot`
+          }).then(res => {
+            updated.categories[ci].items[ii] = { ...updated.categories[ci].items[ii], image_url: res.url };
+            setGroceries(prev => {
+              if (!prev) return prev;
+              const cats = prev.categories.map(c => ({ ...c, items: [...c.items] }));
+              cats[ci].items[ii] = { ...cats[ci].items[ii], image_url: res.url };
+              return { ...prev, categories: cats };
+            });
+          }).catch(() => {})
+        );
+      });
+    });
+    await Promise.all(tasks);
   };
 
   const removeItem = (categoryName, itemName) => {
@@ -656,13 +682,15 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                    <div className="flex items-center gap-3 flex-1 min-w-0">
                      {item.image_url ? (
                        <img
-                         src={`https://wsrv.nl/?url=${encodeURIComponent(item.image_url)}&w=80&h=80&fit=cover`}
+                         src={item.image_url}
                          alt={item.name}
                          className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border"
-                         onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
                        />
-                     ) : null}
-                     <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 items-center justify-center text-lg" style={{display: item.image_url ? 'none' : 'flex'}}>🛒</div>
+                     ) : (
+                       <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center animate-pulse">
+                         <span className="text-lg">🛒</span>
+                       </div>
+                     )}
                      <div className="min-w-0">
                        <p className="font-medium text-foreground truncate">{item.name}</p>
                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
