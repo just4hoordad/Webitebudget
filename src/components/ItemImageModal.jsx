@@ -1,40 +1,16 @@
 import { useEffect, useState } from "react";
 import { X, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
 
 export default function ItemImageModal({ item, onClose }) {
   const [imageUrl, setImageUrl] = useState(item.image_url || null);
   const [sourceUrl, setSourceUrl] = useState(item.source_url || null);
-  const [loading, setLoading] = useState(true);
-
-  const findProductImage = async () => {
-    setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Find a real product image for this grocery item sold in German supermarkets: ${item.name}. Prefer official shop or product pages from Aldi, Lidl, REWE, Edeka, dm, Rossmann, Kaufland, or manufacturer pages. Return only a real direct image URL and the source page URL. Do not invent URLs.`,
-      add_context_from_internet: true,
-      model: "gemini_3_flash",
-      response_json_schema: {
-        type: "object",
-        properties: {
-          image_url: { type: "string" },
-          source_url: { type: "string" }
-        }
-      }
-    });
-    setImageUrl(result.image_url || null);
-    setSourceUrl(result.source_url || null);
-    setLoading(false);
-  };
+  const [loading, setLoading] = useState(Boolean(item.image_url));
 
   useEffect(() => {
     setImageUrl(item.image_url || null);
     setSourceUrl(item.source_url || null);
-    if (item.image_url) {
-      setLoading(false);
-    } else {
-      findProductImage();
-    }
+    setLoading(Boolean(item.image_url));
   }, [item.name, item.image_url, item.source_url]);
 
   return (
@@ -73,7 +49,7 @@ export default function ItemImageModal({ item, onClose }) {
             ) : (
               <div className="text-center space-y-3 px-6">
                 <ImageOff className="h-10 w-10 text-muted-foreground mx-auto" />
-                <p className="text-sm text-muted-foreground">No real shop image found for this item.</p>
+                <p className="text-sm text-muted-foreground">No saved shop image found. Regenerate the grocery list to fetch product images.</p>
               </div>
             )}
             {loading && (
@@ -90,7 +66,7 @@ export default function ItemImageModal({ item, onClose }) {
               View source
             </a>
           ) : <span />}
-          <span className="text-xs text-muted-foreground">Real web image only</span>
+          <span className="text-xs text-muted-foreground">Saved shop image</span>
         </div>
       </motion.div>
     </div>
