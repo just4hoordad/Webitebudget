@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 
 export default function ItemImageModal({ item, onClose }) {
-  const [imageUrl, setImageUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [imageUrl, setImageUrl] = useState(item.image_url || null);
+  const [loading, setLoading] = useState(!item.image_url);
 
   const generateImage = async () => {
     setLoading(true);
@@ -18,8 +18,10 @@ export default function ItemImageModal({ item, onClose }) {
   };
 
   useEffect(() => {
-    generateImage();
-  }, [item.name]);
+    setImageUrl(item.image_url || null);
+    setLoading(!item.image_url);
+    if (!item.image_url) generateImage();
+  }, [item.name, item.image_url]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
@@ -46,18 +48,23 @@ export default function ItemImageModal({ item, onClose }) {
             {loading ? (
               <div className="text-center space-y-3 px-6">
                 <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground">Creating item picture…</p>
+                <p className="text-sm text-muted-foreground">Loading item picture…</p>
               </div>
             ) : (
-              <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
+              <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" onError={generateImage} />
             )}
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-border bg-muted/40 flex justify-end">
+        <div className="px-5 py-4 border-t border-border bg-muted/40 flex items-center justify-between gap-3">
+          {item.source_url ? (
+            <a href={item.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+              View source
+            </a>
+          ) : <span />}
           <Button onClick={generateImage} disabled={loading} variant="outline" size="sm" className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Regenerate picture
+            Generate picture
           </Button>
         </div>
       </motion.div>
