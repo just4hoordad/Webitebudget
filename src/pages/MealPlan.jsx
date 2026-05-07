@@ -9,6 +9,7 @@ import MealEditModal from "@/components/MealEditModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
+import ImageLightbox from "@/components/ImageLightbox";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -397,6 +398,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
   
 
 
@@ -688,7 +690,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                        <img
                          src={item.image_url}
                          alt={item.name}
-                         className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border"
+                         className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border cursor-zoom-in hover:opacity-80 transition-opacity"
+                         onClick={() => setLightboxImage({ src: item.image_url, alt: item.name })}
                        />
                      ) : (
                        <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center animate-pulse">
@@ -834,6 +837,16 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
+      <AnimatePresence>
+        {lightboxImage && (
+          <ImageLightbox
+            src={lightboxImage.src}
+            alt={lightboxImage.alt}
+            onClose={() => setLightboxImage(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {grocerySwapTarget && (
           <GrocerySwapModal
