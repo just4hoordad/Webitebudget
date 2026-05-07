@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import ImageLightbox from "@/components/ImageLightbox";
+import ProductImage from "@/components/ProductImage";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -657,18 +658,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                     {item.image_url ? (
-                       <img
-                         src={item.image_url}
-                         alt={item.name}
-                         className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border cursor-zoom-in hover:opacity-80 transition-opacity"
-                         onClick={() => setLightboxImage({ src: item.image_url, alt: item.name })}
-                       />
-                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center">
-                        <span className="text-lg">🛒</span>
-                      </div>
-                     )}
+                     <ProductImage
+                       url={item.image_url}
+                       name={item.name}
+                       onClick={() => item.image_url && setLightboxImage({ src: `https://images.weserv.nl/?url=${encodeURIComponent(item.image_url)}&w=400&h=400&fit=cover`, alt: item.name })}
+                     />
                      <div className="min-w-0">
                        <p className="font-medium text-foreground truncate">{item.name}</p>
                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
