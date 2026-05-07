@@ -6,19 +6,12 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Missing productName' }, { status: 400 });
   }
 
-  const searchTerms = buildSearchTerms(productName);
-
-  for (const term of searchTerms) {
-    const imageUrl = await tryOpenFoodFacts(term);
-    if (imageUrl) {
-      return Response.json({ imageUrl });
-    }
-  }
-
-  return Response.json({ imageUrl: null });
+  const englishTerm = toEnglishFoodTerm(productName);
+  const imageUrl = await searchUnsplash(englishTerm);
+  return Response.json({ imageUrl: imageUrl || null });
 });
 
-// German food word -> English translation for better Open Food Facts results
+// German → English food term mapping
 const TRANSLATIONS = {
   'vollmilch': 'whole milk',
   'milch': 'milk',
@@ -26,52 +19,73 @@ const TRANSLATIONS = {
   'naturjoghurt': 'natural yogurt',
   'joghurt': 'yogurt',
   'jogurt': 'yogurt',
+  'sahnejoghurt': 'yogurt',
   'butter': 'butter',
   'käse': 'cheese',
+  'scheibenkäse': 'sliced cheese',
+  'gouda': 'gouda cheese',
+  'mozzarella': 'mozzarella',
+  'feta': 'feta cheese',
+  'parmesan': 'parmesan',
+  'frischkäse': 'cream cheese',
+  'quark': 'quark cheese',
   'eier': 'eggs',
   'ei': 'egg',
   'brot': 'bread',
   'brötchen': 'bread rolls',
+  'toast': 'toast bread',
   'mehl': 'flour',
   'zucker': 'sugar',
   'salz': 'salt',
+  'jodsalz': 'salt',
   'olivenöl': 'olive oil',
-  'rapsöl': 'rapeseed oil',
+  'rapsöl': 'oil',
   'öl': 'oil',
+  'essig': 'vinegar',
   'reis': 'rice',
   'nudeln': 'pasta',
   'spaghetti': 'spaghetti',
+  'tortellini': 'tortellini',
   'kartoffeln': 'potatoes',
+  'kartoffel': 'potato',
   'tomaten': 'tomatoes',
   'tomate': 'tomato',
+  'tomatenmark': 'tomato paste',
+  'tomatensauce': 'tomato sauce',
+  'passata': 'tomato passata',
   'äpfel': 'apples',
   'apfel': 'apple',
   'bananen': 'bananas',
   'banane': 'banana',
   'orangen': 'oranges',
   'orange': 'orange',
+  'zitronen': 'lemons',
+  'zitrone': 'lemon',
+  'weintrauben': 'grapes',
+  'erdbeeren': 'strawberries',
   'hühnerbrust': 'chicken breast',
   'hähnchen': 'chicken',
   'hackfleisch': 'ground beef',
   'rinderhack': 'ground beef',
+  'schweinefleisch': 'pork',
   'lachs': 'salmon',
   'thunfisch': 'tuna',
   'wurst': 'sausage',
+  'bratwurst': 'sausage',
   'schinken': 'ham',
-  'frischkäse': 'cream cheese',
-  'quark': 'quark',
-  'sahne': 'cream',
-  'schmand': 'sour cream',
+  'speck': 'bacon',
   'ketchup': 'ketchup',
   'senf': 'mustard',
-  'essig': 'vinegar',
+  'mayonnaise': 'mayonnaise',
   'honig': 'honey',
   'marmelade': 'jam',
+  'erdnussbutter': 'peanut butter',
   'linsen': 'lentils',
   'bohnen': 'beans',
   'kichererbsen': 'chickpeas',
   'spinat': 'spinach',
   'karotten': 'carrots',
+  'möhren': 'carrots',
   'zwiebeln': 'onions',
   'zwiebel': 'onion',
   'knoblauch': 'garlic',
@@ -79,61 +93,86 @@ const TRANSLATIONS = {
   'gurke': 'cucumber',
   'zucchini': 'zucchini',
   'brokkoli': 'broccoli',
-  'broccoli': 'broccoli',
   'blumenkohl': 'cauliflower',
+  'salat': 'salad lettuce',
   'schokolade': 'chocolate',
-  'chips': 'chips',
-  'jodsalz': 'iodized salt',
-  'mozzarella': 'mozzarella',
-  'gouda': 'gouda',
-  'feta': 'feta',
-  'parmesan': 'parmesan',
-  'sahnejoghurt': 'cream yogurt',
-  'müsli': 'muesli',
+  'chips': 'potato chips',
+  'müsli': 'muesli cereal',
   'cornflakes': 'cornflakes',
   'waffeln': 'waffles',
   'kekse': 'cookies',
-  'torte': 'cake',
   'kuchen': 'cake',
+  'kaffee': 'coffee',
+  'tee': 'tea',
+  'saft': 'fruit juice',
+  'orangensaft': 'orange juice',
+  'wasser': 'water bottle',
+  'mineralwasser': 'mineral water',
+  'sahne': 'cream',
+  'schmand': 'sour cream',
+  'sojadrink': 'soy milk',
+  'hafermilch': 'oat milk',
+  'mandelmilch': 'almond milk',
+  'tofu': 'tofu',
+  'tempeh': 'tempeh',
+  'waschmittel': 'laundry detergent',
+  'spülmittel': 'dish soap',
+  'shampoo': 'shampoo',
+  'zahnpasta': 'toothpaste',
+  'klopapier': 'toilet paper',
+  'toilettenpapier': 'toilet paper',
+  'küchenpapier': 'paper towel',
 };
 
-function buildSearchTerms(productName) {
-  const terms = [];
-
-  // Remove brand names, sizes, percentages
+function toEnglishFoodTerm(productName) {
+  // Strip brand names, quantities, and percentages
   const cleaned = productName
-    .replace(/\d+[\.,]?\d*\s*(kg|g|ml|l|liter|stück|st\.|pcs|cl)/gi, '')
+    .replace(/\d+[\.,]?\d*\s*(kg|g|ml|l|liter|stück|st\.|pcs|cl)\b/gi, '')
     .replace(/\d+[\.,]?\d*\s*%/g, '')
-    .replace(/\b(ja!|ja\b|gut\s*&\s*günstig|g&g|alnatura|milbona|bioland|bio bio|tandil|freeway|pilos|saskia|golden sun|harvest basket|happy harvest|k-classic|spinnrad|formil|cien|W5|toujours|floralys|rewe|lidl|aldi|edeka)\b/gi, '')
+    .replace(/\b(ja!?|gut\s*&\s*günstig|g&g|alnatura|milbona|bioland|bio\s*bio|tandil|freeway|pilos|saskia|golden\s*sun|harvest\s*basket|happy\s*harvest|k-classic|spinnrad|formil|cien|W5|toujours|floralys|rewe|lidl|aldi|edeka|netto|penny|kaufland|norma|real|müller|ja|bio)\b/gi, '')
     .replace(/\s{2,}/g, ' ')
-    .trim();
+    .trim()
+    .toLowerCase();
 
-  const lowerCleaned = cleaned.toLowerCase();
-
-  // 1. Check for direct translation match (try longest match first)
+  // Try to find translation by matching any known German term as a substring
   const sortedKeys = Object.keys(TRANSLATIONS).sort((a, b) => b.length - a.length);
   for (const key of sortedKeys) {
-    if (lowerCleaned.includes(key)) {
-      terms.push(TRANSLATIONS[key]);
-      break;
+    if (cleaned.includes(key)) {
+      return TRANSLATIONS[key];
     }
   }
 
-  // 2. Try the cleaned German term
-  if (cleaned.length > 2) terms.push(cleaned);
+  // No translation found – return cleaned name (may already be English or international)
+  return cleaned || productName;
+}
 
-  // 3. Try first meaningful word only
-  const words = cleaned.split(/\s+/).filter(w => w.length > 2);
-  if (words.length > 0 && !terms.includes(words[0])) {
-    terms.push(words[0]);
+async function searchUnsplash(query) {
+  try {
+    // Use the Unsplash Source API (no key needed, redirects to a relevant photo)
+    // We'll use their search API via the public access key
+    const UNSPLASH_ACCESS_KEY = Deno.env.get('UNSPLASH_ACCESS_KEY');
+    
+    if (!UNSPLASH_ACCESS_KEY) {
+      // Fallback: use Open Food Facts with the English term
+      return await tryOpenFoodFacts(query);
+    }
+
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query + ' food')}&per_page=5&orientation=squarish`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}` }
+    });
+    if (!res.ok) return await tryOpenFoodFacts(query);
+    const data = await res.json();
+    const first = data?.results?.[0];
+    return first?.urls?.small || first?.urls?.thumb || null;
+  } catch {
+    return await tryOpenFoodFacts(query);
   }
-
-  return [...new Set(terms)].filter(Boolean);
 }
 
 async function tryOpenFoodFacts(searchTerm) {
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&action=process&json=1&page_size=10`;
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&action=process&json=1&page_size=20&sort_by=unique_scans_n`;
     const res = await fetch(url, {
       headers: { 'User-Agent': 'BudgetBite/1.0 (grocery helper app)' },
     });
