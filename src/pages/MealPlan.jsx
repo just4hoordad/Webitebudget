@@ -132,10 +132,10 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
             prompt: `Product photo of ${item.name}, supermarket product, white background, clean studio shot`
           }).then(res => {
             setGroceries(prev => {
-              if (!prev) return prev;
+              if (!prev?.categories) return prev;
               const cats = prev.categories.map((c, cIdx) => {
-                if (cIdx !== ci) return c;
-                const items = (c.items || []).map((it, iIdx) =>
+                if (cIdx !== ci || !c || !c.items) return c;
+                const items = c.items.map((it, iIdx) =>
                   iIdx === ii && it ? { ...it, image_url: res.url } : it
                 );
                 return { ...c, items };
