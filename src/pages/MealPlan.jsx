@@ -8,10 +8,7 @@ import MealEditModal from "@/components/MealEditModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
-import GroceryListExport from "@/components/GroceryListExport";
-import MealPlanExport from "@/components/MealPlanExport";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -36,8 +33,7 @@ export default function MealPlan() {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
   const isFirstRender = useRef(true);
-  const groceryExportRef = useRef(null);
-  const mealPlanExportRef = useRef(null);
+
 
   useEffect(() => {
     generateGroceries();
@@ -155,28 +151,82 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     URL.revokeObjectURL(url);
   };
 
-  const exportPDF = async () => {
-    const el = groceryExportRef.current;
-    if (!el) return;
-    toast.info("Generating PDF…");
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    // Scale canvas width to fit page width
-    const scale = pageW / canvas.width;
-    const scaledPageH = pageH / scale; // height in canvas pixels per page
-    let srcY = 0;
-    while (srcY < canvas.height) {
-      if (srcY > 0) doc.addPage();
-      const sliceH = Math.min(scaledPageH, canvas.height - srcY);
-      const sliceCanvas = document.createElement("canvas");
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = sliceH;
-      sliceCanvas.getContext("2d").drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, pageW, sliceH * scale);
-      srcY += sliceH;
-    }
+    const margin = 36;
+    let y = margin;
+
+    const GREEN = [15, 76, 53];
+    const GRAY = [107, 114, 128];
+    const DARK = [17, 24, 39];
+
+    const checkPage = (needed) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
+    };
+
+    // Header
+    doc.setFillColor(...GREEN);
+    doc.rect(0, 0, pageW, 80, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('BUDGETBITE', margin, 24);
+    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 24, { align: 'right' });
+    doc.setFontSize(20); doc.text('Monthly Grocery List', margin, 46);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    doc.text(`${diet} diet · €${budget}/month · ${calories} kcal/day · ${people} person(s)`, margin, 62);
+    y = 96;
+
+    const items = getActiveItems();
+    const categories = {};
+    items.forEach(item => {
+      if (!categories[item.category]) categories[item.category] = [];
+      categories[item.category].push(item);
+    });
+
+    Object.entries(categories).forEach(([catName, catItems]) => {
+      checkPage(30);
+      doc.setFillColor(240, 253, 244);
+      doc.rect(margin, y, pageW - margin * 2, 18, 'F');
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...GREEN);
+      doc.text(catName.toUpperCase(), margin + 6, y + 12);
+      y += 22;
+
+      catItems.forEach(item => {
+        checkPage(22);
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...DARK);
+        const nameLines = doc.splitTextToSize(item.name, pageW - margin * 2 - 120);
+        doc.text(nameLines, margin + 6, y + 9);
+        doc.setTextColor(...GRAY);
+        doc.setFontSize(8);
+        doc.text(item.quantity || '', margin + 6, y + 9 + nameLines.length * 10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...GREEN);
+        doc.text(`€${item.price?.toFixed(2)}`, pageW - margin - 6, y + 9, { align: 'right' });
+        if (item.store) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          doc.setTextColor(...GRAY);
+          doc.text(item.store, pageW - margin - 6, y + 18, { align: 'right' });
+        }
+        y += nameLines.length * 10 + 14;
+        doc.setDrawColor(240, 240, 240);
+        doc.line(margin, y - 4, pageW - margin, y - 4);
+      });
+      y += 6;
+    });
+
+    checkPage(30);
+    doc.setFillColor(...GREEN);
+    doc.rect(margin, y, pageW - margin * 2, 24, 'F');
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL', margin + 8, y + 16);
+    doc.text(`€${activeTotal.toFixed(2)}`, pageW - margin - 8, y + 16, { align: 'right' });
+
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
@@ -274,27 +324,123 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     setWeeklyPlan(null);
   };
 
-  const exportMealPlanPDF = async () => {
-    const el = mealPlanExportRef.current;
-    if (!el) return;
-    toast.info("Generating PDF…");
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+  const exportMealPlanPDF = () => {
+    const days = weeklyPlan?.weeks?.[0]?.days || [];
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const scale = pageW / canvas.width;
-    const scaledPageH = pageH / scale;
-    let srcY = 0;
-    while (srcY < canvas.height) {
-      if (srcY > 0) doc.addPage();
-      const sliceH = Math.min(scaledPageH, canvas.height - srcY);
-      const sliceCanvas = document.createElement("canvas");
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = sliceH;
-      sliceCanvas.getContext("2d").drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, pageW, sliceH * scale);
-      srcY += sliceH;
-    }
+    const margin = 36;
+    const col = (pageW - margin * 2) / 3;
+    let y = margin;
+
+    const GREEN = [15, 76, 53];
+    const LIGHT_GREEN = [26, 158, 110];
+    const GRAY = [107, 114, 128];
+    const DARK = [17, 24, 39];
+    const BG_LIGHT = [240, 253, 244];
+
+    const checkPage = (needed) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
+    };
+
+    // Header
+    doc.setFillColor(...GREEN);
+    doc.rect(0, 0, pageW, 110, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('BUDGETBITE', margin, 28);
+    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 28, { align: 'right' });
+    doc.setFontSize(22); doc.text('7-Day Meal Plan', margin, 52);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    doc.text(`${diet} diet · ${people} person(s) · repeats for 4 weeks`, margin, 66);
+
+    const stats = [
+      { label: 'MONTHLY BUDGET', value: `€${parseFloat(budget).toFixed(0)}` },
+      { label: 'DAILY CALORIES', value: `${calories} kcal` },
+      { label: 'PEOPLE', value: String(people) },
+      { label: 'MEALS / WEEK', value: '21' },
+    ];
+    const bw = (pageW - margin * 2) / 4;
+    stats.forEach(({ label, value }, i) => {
+      const bx = margin + i * bw;
+      doc.setFillColor(30, 100, 70);
+      doc.roundedRect(bx, 76, bw - 6, 28, 3, 3, 'F');
+      doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 230, 215);
+      doc.text(label, bx + 8, 87);
+      doc.setFontSize(14); doc.setTextColor(255, 255, 255);
+      doc.text(value, bx + 8, 100);
+    });
+    y = 126;
+
+    days.forEach((day, idx) => {
+      const meals = [
+        { label: 'BREAKFAST', name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+        { label: 'LUNCH',     name: day.lunch,     cal: day.lunch_calories,     ings: day.lunch_ingredients     },
+        { label: 'DINNER',    name: day.dinner,    cal: day.dinner_calories,    ings: day.dinner_ingredients    },
+      ];
+      const ingLines = meals.reduce((sum, m) => sum + (m.ings?.length || 0), 0);
+      const needed = 28 + 14 + meals.length * 38 + ingLines * 10 + 12;
+      checkPage(needed);
+
+      doc.setFillColor(...(idx % 2 === 0 ? BG_LIGHT : [249, 250, 251]));
+      doc.rect(margin, y, pageW - margin * 2, 20, 'F');
+      doc.setFillColor(...GREEN);
+      doc.circle(margin + 10, y + 10, 8, 'F');
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(String(idx + 1), margin + 10, y + 13, { align: 'center' });
+      doc.setTextColor(...GREEN);
+      doc.setFontSize(11);
+      doc.text(day.day, margin + 22, y + 14);
+      y += 22;
+
+      const rowStartY = y;
+      let maxColH = 0;
+      meals.forEach((meal, mIdx) => {
+        const cx = margin + mIdx * col;
+        let cy = rowStartY + 4;
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GRAY);
+        doc.text(meal.label, cx + 4, cy + 7);
+        cy += 10;
+        if (meal.cal) {
+          doc.setFillColor(...LIGHT_GREEN);
+          doc.roundedRect(cx + 4, cy, 48, 10, 3, 3, 'F');
+          doc.setFontSize(7); doc.setTextColor(255, 255, 255);
+          doc.text(`${meal.cal} kcal`, cx + 28, cy + 7, { align: 'center' });
+          cy += 13;
+        }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...DARK);
+        const nameLines = doc.splitTextToSize(meal.name || '', col - 10);
+        doc.text(nameLines, cx + 4, cy + 9);
+        cy += nameLines.length * 11 + 2;
+        if (Array.isArray(meal.ings) && meal.ings.length > 0) {
+          meal.ings.forEach(ing => {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...GRAY);
+            const ingText = doc.splitTextToSize(`· ${ing.name} ${ing.quantity}`, col - 10);
+            doc.text(ingText, cx + 4, cy + 7);
+            cy += ingText.length * 9;
+          });
+        }
+        maxColH = Math.max(maxColH, cy - rowStartY);
+      });
+
+      doc.setDrawColor(230, 230, 230);
+      doc.line(margin + col, rowStartY, margin + col, rowStartY + maxColH + 4);
+      doc.line(margin + col * 2, rowStartY, margin + col * 2, rowStartY + maxColH + 4);
+      doc.setDrawColor(229, 231, 235);
+      doc.rect(margin, rowStartY - 22, pageW - margin * 2, maxColH + 26, 'S');
+      y = rowStartY + maxColH + 10;
+    });
+
+    checkPage(20);
+    doc.setDrawColor(229, 231, 235);
+    doc.line(margin, y, pageW - margin, y);
+    y += 10;
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
+    doc.text('BudgetBite — Smart meal planning for students in Germany', margin, y);
+    doc.text('This plan repeats for 4 consecutive weeks', pageW - margin, y, { align: 'right' });
+
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
 
@@ -610,30 +756,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           />
         )}
       </AnimatePresence>
-
-      {/* Hidden export templates for PDF generation */}
-      {groceries && (
-        <GroceryListExport
-          ref={groceryExportRef}
-          groceries={groceries}
-          activeItems={getActiveItems()}
-          activeTotal={activeTotal}
-          budget={budget}
-          diet={diet}
-          people={people}
-          calories={calories}
-        />
-      )}
-      {weeklyPlan && (
-        <MealPlanExport
-          ref={mealPlanExportRef}
-          weeklyPlan={weeklyPlan}
-          diet={diet}
-          budget={budget}
-          calories={calories}
-          people={people}
-        />
-      )}
 
     </PullToRefresh>
   );
