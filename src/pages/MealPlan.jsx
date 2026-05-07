@@ -656,14 +656,13 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                    <div className="flex items-center gap-3 flex-1 min-w-0">
                      {item.image_url ? (
                        <img
-                         src={item.image_url}
+                         src={`https://wsrv.nl/?url=${encodeURIComponent(item.image_url)}&w=80&h=80&fit=cover`}
                          alt={item.name}
                          className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border"
-                         onError={(e) => { e.target.style.display = 'none'; }}
+                         onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
                        />
-                     ) : (
-                       <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center text-lg">🛒</div>
-                     )}
+                     ) : null}
+                     <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 items-center justify-center text-lg" style={{display: item.image_url ? 'none' : 'flex'}}>🛒</div>
                      <div className="min-w-0">
                        <p className="font-medium text-foreground truncate">{item.name}</p>
                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
