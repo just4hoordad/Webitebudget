@@ -6,7 +6,6 @@ import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeft
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
-import ItemImageModal from "@/components/ItemImageModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
@@ -368,7 +367,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
-  const [imageTarget, setImageTarget] = useState(null);
+  
 
 
   const translateCategory = (englishName) => {
@@ -654,15 +653,22 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              <div className="divide-y divide-border">
                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
-                   <button
-                     type="button"
-                     onClick={() => setImageTarget(item)}
-                     className="flex-1 text-left rounded-lg -mx-2 px-2 py-1 hover:bg-primary/5 transition-colors"
-                     title="View item picture"
-                   >
-                     <p className="font-medium text-foreground underline-offset-2 hover:underline">{item.name}</p>
-                     <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
-                   </button>
+                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                     {item.image_url ? (
+                       <img
+                         src={item.image_url}
+                         alt={item.name}
+                         className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted border border-border"
+                         onError={(e) => { e.target.style.display = 'none'; }}
+                       />
+                     ) : (
+                       <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center text-lg">🛒</div>
+                     )}
+                     <div className="min-w-0">
+                       <p className="font-medium text-foreground truncate">{item.name}</p>
+                       <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
+                     </div>
+                   </div>
                    <div className="flex items-center gap-3 ml-4">
                      <div className="text-right">
                        {item.unit_price != null && item.unit_price !== item.price ? (
@@ -806,15 +812,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             budget={budget}
             onSwap={handleGrocerySwap}
             onClose={() => setGrocerySwapTarget(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {imageTarget && (
-          <ItemImageModal
-            item={imageTarget}
-            onClose={() => setImageTarget(null)}
           />
         )}
       </AnimatePresence>
