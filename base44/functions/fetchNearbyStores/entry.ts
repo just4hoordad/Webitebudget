@@ -2,8 +2,8 @@ Deno.serve(async (req) => {
   try {
     const { lat, lng, radius = 3000 } = await req.json();
 
-    // Simple query: just supermarkets with known brands nearby
-    const query = `[out:json][timeout:20];(node["shop"="supermarket"](around:${radius},${lat},${lng});way["shop"="supermarket"](around:${radius},${lat},${lng}););out center;`;
+    // Query supermarkets + drugstores (chemist) nearby
+    const query = `[out:json][timeout:25];(node["shop"="supermarket"](around:${radius},${lat},${lng});way["shop"="supermarket"](around:${radius},${lat},${lng});node["shop"="chemist"](around:${radius},${lat},${lng});way["shop"="chemist"](around:${radius},${lat},${lng});node["shop"="drugstore"](around:${radius},${lat},${lng});way["shop"="drugstore"](around:${radius},${lat},${lng}););out center;`;
 
     const encoded = encodeURIComponent(query);
     const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encoded}`, {
