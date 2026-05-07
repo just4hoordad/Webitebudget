@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { categoryTranslations } from "@/lib/translations";
 import { Button } from "@/components/ui/button";
 import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
@@ -300,6 +301,11 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [editTarget, setEditTarget] = useState(null);
 
 
+  const translateCategory = (englishName) => {
+    const map = categoryTranslations[currentLanguage.code] || {};
+    return map[englishName] || englishName;
+  };
+
   const getAvailableIngredientNames = () =>
     groceries?.categories?.flatMap(cat =>
       cat.items
@@ -572,7 +578,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
            <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
              <div className="bg-secondary px-5 py-3">
                <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
-                 {category.name}
+                 {translateCategory(category.name)}
                </h2>
              </div>
              <div className="divide-y divide-border">
