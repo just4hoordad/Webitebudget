@@ -29,11 +29,7 @@ For each alternative, provide:
 - Quantity/size
 - Price (same quantity as original: ${item.quantity})
 - Store where it's available
-- A one-line reason why it's a good swap
-- image_url as a direct real product image URL from the store/product page
-- source_url as the page where the product was found`,
-        add_context_from_internet: true,
-        model: "gemini_3_flash",
+- A one-line reason why it's a good swap`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -48,9 +44,7 @@ For each alternative, provide:
                 unit_price: { type: "number" },
                 store: { type: "string" },
                 reason: { type: "string" },
-                calories_info: { type: "string" },
-                image_url: { type: "string" },
-                source_url: { type: "string" }
+                calories_info: { type: "string" }
               }
             }
           }

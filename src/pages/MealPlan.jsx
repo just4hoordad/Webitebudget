@@ -9,8 +9,6 @@ import MealEditModal from "@/components/MealEditModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
-import ImageLightbox from "@/components/ImageLightbox";
-import ProductImage from "@/components/ProductImage";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -72,8 +70,7 @@ Rules:
 5. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
 7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
-8. For EVERY item, find and save image_url as a direct, publicly accessible real product image URL, plus source_url as the product/store page where it was found. These images will be shown later when the user clicks the grocery item, so image_url must not be empty. Use only real URLs from official shop/product pages or manufacturer pages; never invent URLs.
-${junkPercent > 0 ? `9. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent/100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "9. Keep the grocery list clean and healthy — no junk food or treats."}
+${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent/100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}`,
         add_context_from_internet: true,
@@ -99,9 +96,7 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
                         price: { type: "number" },
                         normal_price: { type: "number" },
                         store: { type: "string" },
-                        calories_info: { type: "string" },
-                        image_url: { type: "string" },
-                        source_url: { type: "string" }
+                        calories_info: { type: "string" }
                       }
                     }
                   }
@@ -112,14 +107,13 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
         }
       });
       setGroceries(result);
-      setLoading(false);
     } catch (err) {
       if (retryCount < 2) {
         return generateGroceries(retryCount + 1);
       }
       toast.error("Failed to generate grocery list. Please try again.");
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const removeItem = (categoryName, itemName) => {
@@ -129,8 +123,8 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
 
   const getActiveItems = () =>
     groceries?.categories?.flatMap(cat =>
-      (cat.items || [])
-        .filter(item => item && !removedItems.has(`${cat.name}::${item.name}`))
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => ({ ...item, category: cat.name }))
     ) || [];
 
@@ -370,8 +364,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
-  const [lightboxImage, setLightboxImage] = useState(null);
-  
 
 
   const translateCategory = (englishName) => {
@@ -657,16 +649,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
              <div className="divide-y divide-border">
                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
-                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                     <ProductImage
-                       name={item.name}
-                       imageUrl={item.image_url}
-                       onClick={(src) => src && setLightboxImage({ src, alt: item.name })}
-                     />
-                     <div className="min-w-0">
-                       <p className="font-medium text-foreground truncate">{item.name}</p>
-                       <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
-                     </div>
+                   <div className="flex-1">
+                     <p className="font-medium text-foreground">{item.name}</p>
+                     <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
                    </div>
                    <div className="flex items-center gap-3 ml-4">
                      <div className="text-right">
@@ -802,16 +787,6 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         </>
       )}
     </div>
-      <AnimatePresence>
-        {lightboxImage && (
-          <ImageLightbox
-            src={lightboxImage.src}
-            alt={lightboxImage.alt}
-            onClose={() => setLightboxImage(null)}
-          />
-        )}
-      </AnimatePresence>
-
       <AnimatePresence>
         {grocerySwapTarget && (
           <GrocerySwapModal
