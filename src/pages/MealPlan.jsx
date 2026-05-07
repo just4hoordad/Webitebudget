@@ -174,9 +174,9 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     doc.setFontSize(9); doc.setFont('helvetica', 'bold');
     doc.text('BUDGETBITE', margin, 24);
     doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 24, { align: 'right' });
-    doc.setFontSize(20); doc.text('Monthly Grocery List', margin, 46);
+    doc.setFontSize(20); doc.text(t("yourGroceryList"), margin, 46);
     doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text(`${diet} diet · €${budget}/month · ${calories} kcal/day · ${people} person(s)`, margin, 62);
+    doc.text(`${diet} · €${budget}/${t("month")} · ${calories} kcal · ${people} ${t("personS")}`, margin, 62);
     y = 96;
 
     const items = getActiveItems();
@@ -192,7 +192,7 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
       doc.rect(margin, y, pageW - margin * 2, 18, 'F');
       doc.setFontSize(9); doc.setFont('helvetica', 'bold');
       doc.setTextColor(...GREEN);
-      doc.text(catName.toUpperCase(), margin + 6, y + 12);
+      doc.text(translateCategory(catName).toUpperCase(), margin + 6, y + 12);
       y += 22;
 
       catItems.forEach(item => {
@@ -225,7 +225,7 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     doc.rect(margin, y, pageW - margin * 2, 24, 'F');
     doc.setFontSize(11); doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
-    doc.text('TOTAL', margin + 8, y + 16);
+    doc.text(t("estimatedTotal").toUpperCase(), margin + 8, y + 16);
     doc.text(`€${activeTotal.toFixed(2)}`, pageW - margin - 8, y + 16, { align: 'right' });
 
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
@@ -356,14 +356,14 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     doc.setFontSize(9); doc.setFont('helvetica', 'bold');
     doc.text('BUDGETBITE', margin, 28);
     doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 28, { align: 'right' });
-    doc.setFontSize(22); doc.text('7-Day Meal Plan', margin, 52);
+    doc.setFontSize(22); doc.text(t("yourWeeklyMealPlan"), margin, 52);
     doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text(`${diet} diet · ${people} person(s) · repeats for 4 weeks`, margin, 66);
+    doc.text(`${diet} · ${people} ${t("personS")} · ${t("repeatNote").replace(/^💡\s*/, '')}`, margin, 66);
 
     const stats = [
-      { label: 'MONTHLY BUDGET', value: `€${parseFloat(budget).toFixed(0)}` },
-      { label: 'DAILY CALORIES', value: `${calories} kcal` },
-      { label: 'PEOPLE', value: String(people) },
+      { label: t("yourBudget").toUpperCase(), value: `€${parseFloat(budget).toFixed(0)}` },
+      { label: t("calorieGoal").toUpperCase(), value: `${calories} kcal` },
+      { label: t("numberOfPeople").toUpperCase(), value: String(people) },
       { label: 'MEALS / WEEK', value: '21' },
     ];
     const bw = (pageW - margin * 2) / 4;
@@ -381,9 +381,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
 
     days.forEach((day, idx) => {
       const meals = [
-        { label: 'BREAKFAST', name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
-        { label: 'LUNCH',     name: day.lunch,     cal: day.lunch_calories,     ings: day.lunch_ingredients     },
-        { label: 'DINNER',    name: day.dinner,    cal: day.dinner_calories,    ings: day.dinner_ingredients    },
+        { label: t("breakfast").toUpperCase(), name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+        { label: t("lunch").toUpperCase(),     name: day.lunch,     cal: day.lunch_calories,     ings: day.lunch_ingredients     },
+        { label: t("dinner").toUpperCase(),    name: day.dinner,    cal: day.dinner_calories,    ings: day.dinner_ingredients    },
       ];
       const ingLines = meals.reduce((sum, m) => sum + (m.ings?.length || 0), 0);
       const needed = 28 + 14 + meals.length * 38 + ingLines * 10 + 12;
@@ -444,8 +444,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     doc.line(margin, y, pageW - margin, y);
     y += 10;
     doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GRAY);
-    doc.text('BudgetBite — Smart meal planning for students in Germany', margin, y);
-    doc.text('This plan repeats for 4 consecutive weeks', pageW - margin, y, { align: 'right' });
+    doc.text(t("footerText"), margin, y);
+    doc.text(t("repeatNote").replace(/^💡\s*/, ''), pageW - margin, y, { align: 'right' });
 
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
