@@ -660,6 +660,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                    <div className="flex items-center gap-3 flex-1 min-w-0">
                      <ProductImage
                        name={item.name}
+                       imageUrl={item.image_url}
                        onClick={(src) => src && setLightboxImage({ src, alt: item.name })}
                      />
                      <div className="min-w-0">
