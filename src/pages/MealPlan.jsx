@@ -160,17 +160,22 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     if (!el) return;
     toast.info("Generating PDF…");
     const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * pageW) / canvas.width;
-    let yPos = 0;
-    while (yPos < imgH) {
-      if (yPos > 0) doc.addPage();
-      doc.addImage(imgData, "PNG", 0, -yPos, imgW, imgH);
-      yPos += pageH;
+    // Scale canvas width to fit page width
+    const scale = pageW / canvas.width;
+    const scaledPageH = pageH / scale; // height in canvas pixels per page
+    let srcY = 0;
+    while (srcY < canvas.height) {
+      if (srcY > 0) doc.addPage();
+      const sliceH = Math.min(scaledPageH, canvas.height - srcY);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceH;
+      sliceCanvas.getContext("2d").drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, pageW, sliceH * scale);
+      srcY += sliceH;
     }
     doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
@@ -274,17 +279,21 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     if (!el) return;
     toast.info("Generating PDF…");
     const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const doc = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * pageW) / canvas.width;
-    let yPos = 0;
-    while (yPos < imgH) {
-      if (yPos > 0) doc.addPage();
-      doc.addImage(imgData, "PNG", 0, -yPos, imgW, imgH);
-      yPos += pageH;
+    const scale = pageW / canvas.width;
+    const scaledPageH = pageH / scale;
+    let srcY = 0;
+    while (srcY < canvas.height) {
+      if (srcY > 0) doc.addPage();
+      const sliceH = Math.min(scaledPageH, canvas.height - srcY);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceH;
+      sliceCanvas.getContext("2d").drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+      doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", 0, 0, pageW, sliceH * scale);
+      srcY += sliceH;
     }
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
