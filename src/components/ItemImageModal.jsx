@@ -1,15 +1,41 @@
 import { useEffect, useState } from "react";
 import { X, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { base44 } from "@/api/base44Client";
 
 export default function ItemImageModal({ item, onClose }) {
   const [imageUrl, setImageUrl] = useState(item.image_url || null);
-  const [loading, setLoading] = useState(Boolean(item.image_url));
+  const [sourceUrl, setSourceUrl] = useState(item.source_url || null);
+  const [loading, setLoading] = useState(true);
+
+  const findProductImage = async () => {
+    setLoading(true);
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find a real product image for this grocery item sold in German supermarkets: ${item.name}. Prefer official shop or product pages from Aldi, Lidl, REWE, Edeka, dm, Rossmann, Kaufland, or manufacturer pages. Return only a real direct image URL and the source page URL. Do not invent URLs.`,
+      add_context_from_internet: true,
+      model: "gemini_3_flash",
+      response_json_schema: {
+        type: "object",
+        properties: {
+          image_url: { type: "string" },
+          source_url: { type: "string" }
+        }
+      }
+    });
+    setImageUrl(result.image_url || null);
+    setSourceUrl(result.source_url || null);
+    setLoading(false);
+  };
 
   useEffect(() => {
     setImageUrl(item.image_url || null);
-    setLoading(Boolean(item.image_url));
-  }, [item.name, item.image_url]);
+    setSourceUrl(item.source_url || null);
+    if (item.image_url) {
+      setLoading(false);
+    } else {
+      findProductImage();
+    }
+  }, [item.name, item.image_url, item.source_url]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
@@ -59,12 +85,12 @@ export default function ItemImageModal({ item, onClose }) {
         </div>
 
         <div className="px-5 py-4 border-t border-border bg-muted/40 flex items-center justify-between gap-3">
-          {item.source_url ? (
-            <a href={item.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+          {sourceUrl ? (
+            <a href={sourceUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
               View source
             </a>
           ) : <span />}
-          <span className="text-xs text-muted-foreground">Real shop image only</span>
+          <span className="text-xs text-muted-foreground">Real web image only</span>
         </div>
       </motion.div>
     </div>
