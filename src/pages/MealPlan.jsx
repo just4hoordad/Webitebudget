@@ -112,8 +112,6 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
       });
       setGroceries(result);
       setLoading(false);
-      // Generate product images in background after list is shown
-      generateItemImages(result);
     } catch (err) {
       if (retryCount < 2) {
         return generateGroceries(retryCount + 1);
@@ -121,33 +119,6 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
       toast.error("Failed to generate grocery list. Please try again.");
       setLoading(false);
     }
-  };
-
-  const generateItemImages = async (groceryData) => {
-    const tasks = [];
-    groceryData.categories.forEach((cat, ci) => {
-      (cat.items || []).forEach((item, ii) => {
-        if (!item) return;
-        tasks.push(
-          base44.integrations.Core.GenerateImage({
-            prompt: `Product photo of ${item.name}, supermarket product, white background, clean studio shot`
-          }).then(res => {
-            setGroceries(prev => {
-              if (!prev?.categories) return prev;
-              const cats = prev.categories.map((c, cIdx) => {
-                if (cIdx !== ci || !c || !c.items) return c;
-                const items = c.items.map((it, iIdx) =>
-                  iIdx === ii && it ? { ...it, image_url: res.url } : it
-                );
-                return { ...c, items };
-              });
-              return { ...prev, categories: cats };
-            });
-          }).catch(() => {})
-        );
-      });
-    });
-    await Promise.all(tasks);
   };
 
   const removeItem = (categoryName, itemName) => {
@@ -694,9 +665,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                          onClick={() => setLightboxImage({ src: item.image_url, alt: item.name })}
                        />
                      ) : (
-                       <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center animate-pulse">
-                         <span className="text-lg">🛒</span>
-                       </div>
+                      <div className="w-10 h-10 rounded-lg bg-muted border border-border shrink-0 flex items-center justify-center">
+                        <span className="text-lg">🛒</span>
+                      </div>
                      )}
                      <div className="min-w-0">
                        <p className="font-medium text-foreground truncate">{item.name}</p>
