@@ -53,6 +53,7 @@ export default function BudgetForm() {
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
   const [saleHunt, setSaleHunt] = useState(false);
+  const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
 
   const toggleStore = (storeId) => {
@@ -77,6 +78,7 @@ export default function BudgetForm() {
       people: people,
       calories: totalCalories,
       saleHunt: saleHunt,
+      bio: bio,
       junkPercent: junkPercent[0],
     });
     navigate(`/meal-plan?${params.toString()}`);
@@ -271,26 +273,48 @@ export default function BudgetForm() {
         </div>
       </div>
 
-      {/* Sale Hunt */}
-      <button
-        onClick={() => setSaleHunt((v) => !v)}
-        className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
-          saleHunt
-            ? "bg-accent/10 border-accent text-accent-foreground"
-            : "bg-card border-border hover:border-accent/40"
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <Tag className={`h-5 w-5 ${saleHunt ? "text-accent-foreground" : "text-muted-foreground"}`} />
-          <div className="text-left">
-            <p className={`text-sm font-semibold ${saleHunt ? "text-accent-foreground" : "text-foreground"}`}>{t("saleHunt")}</p>
-            <p className={`text-xs ${saleHunt ? "text-accent-foreground/70" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
+      {/* Sale Hunt + Bio */}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => setSaleHunt((v) => !v)}
+          className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
+            saleHunt
+              ? "bg-accent/10 border-accent text-accent-foreground"
+              : "bg-card border-border hover:border-accent/40"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Tag className={`h-5 w-5 ${saleHunt ? "text-accent-foreground" : "text-muted-foreground"}`} />
+            <div className="text-left">
+              <p className={`text-sm font-semibold ${saleHunt ? "text-accent-foreground" : "text-foreground"}`}>{t("saleHunt")}</p>
+              <p className={`text-xs ${saleHunt ? "text-accent-foreground/70" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
+            </div>
           </div>
-        </div>
-        <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${saleHunt ? "bg-accent" : "bg-muted"}`}>
-          <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${saleHunt ? "translate-x-4" : "translate-x-0"}`} />
-        </div>
-      </button>
+          <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${saleHunt ? "bg-accent" : "bg-muted"}`}>
+            <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${saleHunt ? "translate-x-4" : "translate-x-0"}`} />
+          </div>
+        </button>
+
+        <button
+          onClick={() => setBio((v) => !v)}
+          className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
+            bio
+              ? "bg-green-50 border-green-500 text-green-800"
+              : "bg-card border-border hover:border-green-400/40"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🌿</span>
+            <div className="text-left">
+              <p className={`text-sm font-semibold ${bio ? "text-green-800" : "text-foreground"}`}>Bio / Organic</p>
+              <p className={`text-xs ${bio ? "text-green-700/70" : "text-muted-foreground"}`}>Generate grocery list using organic & bio products</p>
+            </div>
+          </div>
+          <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${bio ? "bg-green-500" : "bg-muted"}`}>
+            <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${bio ? "translate-x-4" : "translate-x-0"}`} />
+          </div>
+        </button>
+      </div>
 
       {/* Generate Button */}
       <Button
