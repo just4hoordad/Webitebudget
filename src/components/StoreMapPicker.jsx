@@ -35,7 +35,7 @@ const CHAIN_ALIASES = {
   rewe: ["rewe", "rewe center", "rewe city", "rewe to go"],
   edeka: ["edeka", "edeka center", "netto marken-discount"],
   penny: ["penny", "penny markt"],
-  netto: ["netto", "netto stadtmarkt"],
+  netto: ["netto", "netto stadtmarkt", "netto-online"],
   kaufland: ["kaufland"],
   norma: ["norma"],
   dm: ["dm", "dm drogerie", "dm-drogerie markt"],
