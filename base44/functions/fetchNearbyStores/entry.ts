@@ -12,6 +12,8 @@ Deno.serve(async (req) => {
     });
 
     const data = await res.json();
+    console.log(`[fetchNearbyStores] Found ${data.elements?.length || 0} stores:`, 
+      data.elements?.map(e => e.tags?.name || e.tags?.brand || 'unnamed').slice(0, 10) || []);
     return Response.json({ elements: data.elements || [] });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

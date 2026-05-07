@@ -38,9 +38,9 @@ const CHAIN_ALIASES = {
   netto: ["netto", "netto stadtmarkt", "netto-online"],
   kaufland: ["kaufland"],
   norma: ["norma"],
-  dm: ["dm", "dm drogerie", "dm-drogerie markt"],
-  rossmann: ["rossmann"],
-  müller: ["müller", "mueller", "müller drogerie"],
+  dm: ["dm", "dm drogerie", "dm-drogerie markt", "dm drogeriemarkt"],
+  rossmann: ["rossmann", "dirk rossmann"],
+  müller: ["müller", "mueller", "müller drogerie", "dm drogerie müller"],
   globus: ["globus", "globus sb-warenhaus"],
   tegut: ["tegut", "tegut…", "tegut lebensmittel"],
 };
