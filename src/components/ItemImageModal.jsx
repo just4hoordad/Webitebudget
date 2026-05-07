@@ -1,26 +1,14 @@
 import { useEffect, useState } from "react";
-import { X, RefreshCw } from "lucide-react";
+import { X, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
 
 export default function ItemImageModal({ item, onClose }) {
   const [imageUrl, setImageUrl] = useState(item.image_url || null);
-  const [loading, setLoading] = useState(!item.image_url);
-
-  const generateImage = async () => {
-    setLoading(true);
-    const result = await base44.integrations.Core.GenerateImage({
-      prompt: `Realistic clean product photo of this grocery item sold in a German supermarket: ${item.name}. Show the item clearly on a plain bright background, helpful for shoppers to recognize it. No text overlays, no people.`
-    });
-    setImageUrl(result.url);
-    setLoading(false);
-  };
+  const [loading, setLoading] = useState(Boolean(item.image_url));
 
   useEffect(() => {
     setImageUrl(item.image_url || null);
-    setLoading(!item.image_url);
-    if (!item.image_url) generateImage();
+    setLoading(Boolean(item.image_url));
   }, [item.name, item.image_url]);
 
   return (
@@ -44,14 +32,28 @@ export default function ItemImageModal({ item, onClose }) {
         </div>
 
         <div className="p-5">
-          <div className="aspect-square rounded-2xl bg-muted overflow-hidden flex items-center justify-center">
-            {loading ? (
-              <div className="text-center space-y-3 px-6">
-                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground">Loading item picture…</p>
-              </div>
+          <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden flex items-center justify-center">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={item.name}
+                className="w-full h-full object-cover"
+                onLoad={() => setLoading(false)}
+                onError={() => {
+                  setImageUrl(null);
+                  setLoading(false);
+                }}
+              />
             ) : (
-              <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" onError={generateImage} />
+              <div className="text-center space-y-3 px-6">
+                <ImageOff className="h-10 w-10 text-muted-foreground mx-auto" />
+                <p className="text-sm text-muted-foreground">No real shop image found for this item.</p>
+              </div>
+            )}
+            {loading && (
+              <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              </div>
             )}
           </div>
         </div>
@@ -62,10 +64,7 @@ export default function ItemImageModal({ item, onClose }) {
               View source
             </a>
           ) : <span />}
-          <Button onClick={generateImage} disabled={loading} variant="outline" size="sm" className="gap-2">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Generate picture
-          </Button>
+          <span className="text-xs text-muted-foreground">Real shop image only</span>
         </div>
       </motion.div>
     </div>
