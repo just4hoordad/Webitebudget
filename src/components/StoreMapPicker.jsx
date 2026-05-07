@@ -26,6 +26,7 @@ const CHAIN_COLORS = {
   rossmann: "#f43f5e",
   müller: "#6366f1",
   globus: "#0d9488",
+  tegut: "#e63329",
 };
 
 const CHAIN_ALIASES = {
@@ -41,6 +42,7 @@ const CHAIN_ALIASES = {
   rossmann: ["rossmann"],
   müller: ["müller", "mueller", "müller drogerie"],
   globus: ["globus", "globus sb-warenhaus"],
+  tegut: ["tegut", "tegut…", "tegut lebensmittel"],
 };
 
 function detectChain(name = "") {

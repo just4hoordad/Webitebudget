@@ -16,7 +16,7 @@ const GROCERY_STORES = [
   { id: "kaufland", name: "Kaufland", color: "bg-purple-100 text-purple-700 border-purple-200" },
   { id: "norma", name: "Norma", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
   { id: "globus", name: "Globus", color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { id: "tegut", name: "Tegut", color: "bg-green-100 text-green-700 border-green-200" },
+  { id: "tegut", name: "Tegut", color: "bg-red-100 text-red-600 border-red-200" },
 ];
 
 const DRUGSTORES = [
