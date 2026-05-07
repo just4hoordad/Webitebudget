@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -152,33 +153,7 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     URL.revokeObjectURL(url);
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const margin = 36;
-    let y = margin;
-
-    const GREEN = [15, 76, 53];
-    const GRAY = [107, 114, 128];
-    const DARK = [17, 24, 39];
-
-    const checkPage = (needed) => {
-      if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
-    };
-
-    // Header
-    doc.setFillColor(...GREEN);
-    doc.rect(0, 0, pageW, 80, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-    doc.text('BUDGETBITE', margin, 24);
-    doc.text(new Date().toLocaleDateString('en-DE', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, 24, { align: 'right' });
-    doc.setFontSize(20); doc.text(t("yourGroceryList"), margin, 46);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text(`${diet} · €${budget}/${t("month")} · ${calories} kcal · ${people} ${t("personS")}`, margin, 62);
-    y = 96;
-
+  const exportPDF = async () => {
     const items = getActiveItems();
     const categories = {};
     items.forEach(item => {
@@ -186,49 +161,70 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
       categories[item.category].push(item);
     });
 
-    Object.entries(categories).forEach(([catName, catItems]) => {
-      checkPage(30);
-      doc.setFillColor(240, 253, 244);
-      doc.rect(margin, y, pageW - margin * 2, 18, 'F');
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...GREEN);
-      doc.text(translateCategory(catName).toUpperCase(), margin + 6, y + 12);
-      y += 22;
+    const exportNode = document.createElement("div");
+    exportNode.style.position = "fixed";
+    exportNode.style.left = "-10000px";
+    exportNode.style.top = "0";
+    exportNode.style.width = "794px";
+    exportNode.style.background = "#ffffff";
+    exportNode.style.color = "#111827";
+    exportNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
+    exportNode.style.padding = "0 48px 48px";
+    exportNode.innerHTML = `
+      <div style="margin:0 -48px 28px;padding:24px 48px 26px;background:#0f4c35;color:white;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;margin-bottom:12px;">
+          <span>BUDGETBITE</span>
+          <span>${new Date().toLocaleDateString(currentLanguage.code || 'en-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
+        <h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:800;">${t("yourGroceryList")}</h1>
+        <p style="margin:0;font-size:14px;opacity:.9;">${diet} · €${budget}/${t("month")} · ${calories} kcal · ${people} ${t("personS")}</p>
+      </div>
+      ${Object.entries(categories).map(([catName, catItems]) => `
+        <section style="break-inside:avoid;margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+          <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>
+          ${catItems.map(item => `
+            <div style="display:flex;justify-content:space-between;gap:18px;padding:12px 16px;border-top:1px solid #f3f4f6;">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#111827;">${item.name || ''}</div>
+                <div style="font-size:12px;color:#6b7280;margin-top:3px;">${item.quantity || ''}</div>
+              </div>
+              <div style="text-align:right;min-width:90px;">
+                <div style="font-size:15px;font-weight:800;color:#0f4c35;">€${(item.price || 0).toFixed(2)}</div>
+                <div style="font-size:11px;color:#6b7280;margin-top:3px;">${item.store || ''}</div>
+              </div>
+            </div>
+          `).join('')}
+        </section>
+      `).join('')}
+      <div style="margin-top:24px;padding:16px 18px;background:#0f4c35;color:white;border-radius:14px;display:flex;justify-content:space-between;font-size:18px;font-weight:800;">
+        <span>${t("estimatedTotal")}</span>
+        <span>€${activeTotal.toFixed(2)}</span>
+      </div>
+    `;
 
-      catItems.forEach(item => {
-        checkPage(22);
-        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...DARK);
-        const nameLines = doc.splitTextToSize(item.name, pageW - margin * 2 - 120);
-        doc.text(nameLines, margin + 6, y + 9);
-        doc.setTextColor(...GRAY);
-        doc.setFontSize(8);
-        doc.text(item.quantity || '', margin + 6, y + 9 + nameLines.length * 10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...GREEN);
-        doc.text(`€${item.price?.toFixed(2)}`, pageW - margin - 6, y + 9, { align: 'right' });
-        if (item.store) {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7);
-          doc.setTextColor(...GRAY);
-          doc.text(item.store, pageW - margin - 6, y + 18, { align: 'right' });
-        }
-        y += nameLines.length * 10 + 14;
-        doc.setDrawColor(240, 240, 240);
-        doc.line(margin, y - 4, pageW - margin, y - 4);
-      });
-      y += 6;
-    });
+    document.body.appendChild(exportNode);
+    const canvas = await html2canvas(exportNode, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    document.body.removeChild(exportNode);
 
-    checkPage(30);
-    doc.setFillColor(...GREEN);
-    doc.rect(margin, y, pageW - margin * 2, 24, 'F');
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text(t("estimatedTotal").toUpperCase(), margin + 8, y + 16);
-    doc.text(`€${activeTotal.toFixed(2)}`, pageW - margin - 8, y + 16, { align: 'right' });
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let heightLeft = imgH;
+    let position = 0;
 
-    doc.save(`grocery-list-${diet}-${budget}eur.pdf`);
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
+    heightLeft -= pageH;
+
+    while (heightLeft > 0) {
+      position -= pageH;
+      pdf.addPage();
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
+      heightLeft -= pageH;
+    }
+
+    pdf.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
   const generateWeeklyPlan = async () => {
