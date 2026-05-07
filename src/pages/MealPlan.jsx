@@ -659,9 +659,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
                    <div className="flex items-center gap-3 flex-1 min-w-0">
                      <ProductImage
-                       url={item.image_url}
                        name={item.name}
-                       onClick={() => item.image_url && setLightboxImage({ src: `https://images.weserv.nl/?url=${encodeURIComponent(item.image_url)}&w=400&h=400&fit=cover`, alt: item.name })}
+                       onClick={(src) => src && setLightboxImage({ src, alt: item.name })}
                      />
                      <div className="min-w-0">
                        <p className="font-medium text-foreground truncate">{item.name}</p>
