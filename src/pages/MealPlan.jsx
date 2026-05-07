@@ -123,19 +123,23 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
   };
 
   const generateItemImages = async (groceryData) => {
-    const updated = { ...groceryData, categories: groceryData.categories.map(c => ({ ...c, items: [...c.items] })) };
     const tasks = [];
-    updated.categories.forEach((cat, ci) => {
-      cat.items.forEach((item, ii) => {
+    groceryData.categories.forEach((cat, ci) => {
+      (cat.items || []).forEach((item, ii) => {
+        if (!item) return;
         tasks.push(
           base44.integrations.Core.GenerateImage({
             prompt: `Product photo of ${item.name}, supermarket product, white background, clean studio shot`
           }).then(res => {
-            updated.categories[ci].items[ii] = { ...updated.categories[ci].items[ii], image_url: res.url };
             setGroceries(prev => {
               if (!prev) return prev;
-              const cats = prev.categories.map(c => ({ ...c, items: [...c.items] }));
-              cats[ci].items[ii] = { ...cats[ci].items[ii], image_url: res.url };
+              const cats = prev.categories.map((c, cIdx) => {
+                if (cIdx !== ci) return c;
+                const items = (c.items || []).map((it, iIdx) =>
+                  iIdx === ii && it ? { ...it, image_url: res.url } : it
+                );
+                return { ...c, items };
+              });
               return { ...prev, categories: cats };
             });
           }).catch(() => {})
@@ -152,8 +156,8 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
 
   const getActiveItems = () =>
     groceries?.categories?.flatMap(cat =>
-      cat.items
-        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+      (cat.items || [])
+        .filter(item => item && !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => ({ ...item, category: cat.name }))
     ) || [];
 
