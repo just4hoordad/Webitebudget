@@ -161,16 +161,12 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
       categories[item.category].push(item);
     });
 
-    const exportNode = document.createElement("div");
-    exportNode.style.position = "fixed";
-    exportNode.style.left = "-10000px";
-    exportNode.style.top = "0";
-    exportNode.style.width = "794px";
-    exportNode.style.background = "#ffffff";
-    exportNode.style.color = "#111827";
-    exportNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
-    exportNode.style.padding = "0 48px 48px";
-    exportNode.innerHTML = `
+    const pageWidth = 794;
+    const pageHeight = 1123;
+    const pagePadding = 48;
+    const contentWidth = pageWidth - pagePadding * 2;
+
+    const headerHtml = `
       <div style="margin:0 -48px 28px;padding:24px 48px 26px;background:#0f4c35;color:white;">
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;margin-bottom:12px;">
           <span>BUDGETBITE</span>
@@ -179,49 +175,122 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
         <h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:800;">${t("yourGroceryList")}</h1>
         <p style="margin:0;font-size:14px;opacity:.9;">${diet} · €${budget}/${t("month")} · ${calories} kcal · ${people} ${t("personS")}</p>
       </div>
-      ${Object.entries(categories).map(([catName, catItems]) => `
-        <section style="break-inside:avoid;margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
-          <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>
-          ${catItems.map(item => `
-            <div style="display:flex;justify-content:space-between;gap:18px;padding:12px 16px;border-top:1px solid #f3f4f6;">
-              <div>
-                <div style="font-size:14px;font-weight:700;color:#111827;">${item.name || ''}</div>
-                <div style="font-size:12px;color:#6b7280;margin-top:3px;">${item.quantity || ''}</div>
-              </div>
-              <div style="text-align:right;min-width:90px;">
-                <div style="font-size:15px;font-weight:800;color:#0f4c35;">€${(item.price || 0).toFixed(2)}</div>
-                <div style="font-size:11px;color:#6b7280;margin-top:3px;">${item.store || ''}</div>
-              </div>
-            </div>
-          `).join('')}
-        </section>
-      `).join('')}
-      <div style="margin-top:24px;padding:16px 18px;background:#0f4c35;color:white;border-radius:14px;display:flex;justify-content:space-between;font-size:18px;font-weight:800;">
+    `;
+
+    const itemHtml = (item) => `
+      <div style="display:flex;justify-content:space-between;gap:18px;padding:12px 16px;border-top:1px solid #f3f4f6;break-inside:avoid;">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#111827;">${item.name || ''}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:3px;">${item.quantity || ''}</div>
+        </div>
+        <div style="text-align:right;min-width:90px;">
+          <div style="font-size:15px;font-weight:800;color:#0f4c35;">€${(item.price || 0).toFixed(2)}</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px;">${item.store || ''}</div>
+        </div>
+      </div>
+    `;
+
+    const sectionHtml = (catName, catItems) => `
+      <section style="break-inside:avoid;margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+        <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>
+        ${catItems.map(itemHtml).join('')}
+      </section>
+    `;
+
+    const totalHtml = `
+      <div style="margin-top:24px;padding:16px 18px;background:#0f4c35;color:white;border-radius:14px;display:flex;justify-content:space-between;font-size:18px;font-weight:800;break-inside:avoid;">
         <span>${t("estimatedTotal")}</span>
         <span>€${activeTotal.toFixed(2)}</span>
       </div>
     `;
 
-    document.body.appendChild(exportNode);
-    const canvas = await html2canvas(exportNode, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    document.body.removeChild(exportNode);
+    const measureNode = document.createElement("div");
+    measureNode.style.position = "fixed";
+    measureNode.style.left = "-10000px";
+    measureNode.style.top = "0";
+    measureNode.style.width = `${contentWidth}px`;
+    measureNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
+    document.body.appendChild(measureNode);
+
+    const measure = (html) => {
+      measureNode.innerHTML = html;
+      return measureNode.offsetHeight;
+    };
+
+    const pages = [];
+    let currentBlocks = [headerHtml];
+    let currentHeight = measure(headerHtml);
+    const maxContentHeight = pageHeight - pagePadding * 2;
+
+    const pushPage = () => {
+      pages.push(currentBlocks.join(''));
+      currentBlocks = [];
+      currentHeight = 0;
+    };
+
+    Object.entries(categories).forEach(([catName, catItems]) => {
+      const fullSection = sectionHtml(catName, catItems);
+      const fullHeight = measure(fullSection);
+
+      if (currentHeight + fullHeight <= maxContentHeight) {
+        currentBlocks.push(fullSection);
+        currentHeight += fullHeight;
+        return;
+      }
+
+      if (currentHeight > 0) pushPage();
+
+      const heading = `<section style="margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;"><h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>`;
+      const close = `</section>`;
+      let sectionBlocks = [heading];
+      let sectionHeight = measure(heading + close);
+
+      catItems.forEach(item => {
+        const block = itemHtml(item);
+        const blockHeight = measure(block);
+        if (sectionHeight + blockHeight > maxContentHeight && sectionBlocks.length > 1) {
+          currentBlocks.push(sectionBlocks.join('') + close);
+          currentHeight = measure(currentBlocks.join(''));
+          pushPage();
+          sectionBlocks = [heading];
+          sectionHeight = measure(heading + close);
+        }
+        sectionBlocks.push(block);
+        sectionHeight += blockHeight;
+      });
+
+      currentBlocks.push(sectionBlocks.join('') + close);
+      currentHeight = measure(currentBlocks.join(''));
+    });
+
+    const totalHeight = measure(totalHtml);
+    if (currentHeight + totalHeight > maxContentHeight) pushPage();
+    currentBlocks.push(totalHtml);
+    pages.push(currentBlocks.join(''));
+    document.body.removeChild(measureNode);
 
     const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    let heightLeft = imgH;
-    let position = 0;
 
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
-    heightLeft -= pageH;
+    for (let i = 0; i < pages.length; i += 1) {
+      const exportNode = document.createElement("div");
+      exportNode.style.position = "fixed";
+      exportNode.style.left = "-10000px";
+      exportNode.style.top = "0";
+      exportNode.style.width = `${pageWidth}px`;
+      exportNode.style.minHeight = `${pageHeight}px`;
+      exportNode.style.background = "#ffffff";
+      exportNode.style.color = "#111827";
+      exportNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
+      exportNode.style.padding = `0 ${pagePadding}px ${pagePadding}px`;
+      exportNode.style.boxSizing = "border-box";
+      exportNode.innerHTML = pages[i];
+      document.body.appendChild(exportNode);
 
-    while (heightLeft > 0) {
-      position -= pageH;
-      pdf.addPage();
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgW, imgH);
-      heightLeft -= pageH;
+      const canvas = await html2canvas(exportNode, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      document.body.removeChild(exportNode);
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
     }
 
     pdf.save(`grocery-list-${diet}-${budget}eur.pdf`);
