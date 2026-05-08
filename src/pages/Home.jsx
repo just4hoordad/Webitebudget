@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import BudgetForm from "../components/BudgetForm";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Sparkles, TrendingDown, ShoppingCart, Salad, Trash2 } from "lucide-react";
+import { Sparkles, TrendingDown, ShoppingCart, Salad, Trash2, Zap, Lock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -53,6 +53,18 @@ export default function Home() {
         <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
           {t("heroSubtitle")}
         </p>
+      </div>
+
+      {/* Free / No login banner */}
+      <div className="flex items-center justify-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-4 py-2 rounded-full">
+          <Zap className="h-4 w-4 text-green-500" />
+          100% Free — no subscription, no hidden fees
+        </div>
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold px-4 py-2 rounded-full">
+          <Lock className="h-4 w-4 text-blue-500" />
+          No account required — just start planning
+        </div>
       </div>
 
       {/* Features */}
