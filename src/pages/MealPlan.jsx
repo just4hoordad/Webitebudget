@@ -296,6 +296,53 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
     pdf.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
+  const weeklyPlanSchema = {
+    type: "object",
+    properties: {
+      days: {
+        type: "array",
+        minItems: 7,
+        items: {
+          type: "object",
+          properties: {
+            day: { type: "string" },
+            breakfast: { type: "string" },
+            breakfast_calories: { type: "number" },
+            breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
+            lunch: { type: "string" },
+            lunch_calories: { type: "number" },
+            lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
+            dinner: { type: "string" },
+            dinner_calories: { type: "number" },
+            dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
+          }
+        }
+      }
+    }
+  };
+
+  const buildWeekPrompt = (availableItems, weekNum, totalWeeks, previousWeeksSummary = "") => `Create a complete 7-day meal plan for week ${weekNum} of ${totalWeeks}.
+
+IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
+
+AVAILABLE INGREDIENTS (TOTAL for the entire month = ${totalWeeks} weeks):
+${availableItems}
+
+Diet type: ${diet}
+Target calories per day: ${calories} kcal
+Number of people: ${people}
+
+CRITICAL RULES:
+1. Use ONLY the ingredients listed above — no substitutions or additions
+2. The quantities listed are the TOTAL available for the ENTIRE MONTH (${totalWeeks} weeks)
+3. Divide ingredient usage roughly equally across all ${totalWeeks} weeks — use approx 1/${totalWeeks} of total quantity per week
+4. For each meal, specify EXACTLY how much of each ingredient is used per day
+${previousWeeksSummary ? `5. VARIETY: The following meals were used in previous weeks — do NOT repeat them:\n${previousWeeksSummary}` : ""}
+
+Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+
+RETURN EXACTLY 7 days with no gaps or missing days.`;
+
   const generateWeeklyPlan = async () => {
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
@@ -305,58 +352,36 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
 
     setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Create a complete 7-day meal plan that will repeat for exactly 4 weeks (28 days total).
-
-IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
-
-AVAILABLE INGREDIENTS (TOTAL for the entire month = 4 weeks):
-${availableItems}
-
-Diet type: ${diet}
-Target calories per day: ${calories} kcal
-Number of people: ${people}
-
-CRITICAL RULES:
-1. Use ONLY the ingredients listed above — no substitutions or additions
-2. The quantities listed are the TOTAL available for the ENTIRE MONTH (4 weeks)
-3. Your 7-day plan will be repeated exactly 4 times. So the total ingredient usage across 4 repetitions MUST NOT exceed the listed quantities
-4. For each meal, specify EXACTLY how much of each ingredient is used per day
-5. Distribute all ingredients as evenly as possible
-
-For EACH of the 7 days, provide breakfast, lunch, and dinner with:
-- Meal name (in ${currentLanguage.label})
-- Exact calorie count
-- List of ingredients with precise quantities used that day
-
-Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
-
-RETURN EXACTLY 7 days with no gaps or missing days.`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          days: {
-            type: "array",
-            minItems: 7,
-            items: {
-              type: "object",
-              properties: {
-                day: { type: "string" },
-                breakfast: { type: "string" },
-                breakfast_calories: { type: "number" },
-                breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
-                lunch: { type: "string" },
-                lunch_calories: { type: "number" },
-                lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
-                dinner: { type: "string" },
-                dinner_calories: { type: "number" },
-                dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
-              }
-            }
-          }
-        }
-      }
+      prompt: buildWeekPrompt(availableItems, 1, 4),
+      response_json_schema: weeklyPlanSchema
     });
-    setWeeklyPlan({ weeks: [{ week: 1, days: result.days || [] }] });
+    setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: result.days || [] }] });
+    setLoadingPlan(false);
+  };
+
+  const generateUniqueMonthlyPlan = async () => {
+    const availableItems = groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => `${item.name} (${item.quantity})`)
+    ).join(", ");
+
+    setLoadingPlan(true);
+    const weeks = [];
+    let previousMeals = "";
+
+    for (let w = 1; w <= 4; w++) {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: buildWeekPrompt(availableItems, w, 4, previousMeals),
+        response_json_schema: weeklyPlanSchema
+      });
+      const days = result.days || [];
+      weeks.push({ week: w, days });
+      // Collect meal names for variety enforcement
+      previousMeals += `\nWeek ${w}: ` + days.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
+    }
+
+    setWeeklyPlan({ type: "unique", weeks });
     setLoadingPlan(false);
   };
 
@@ -515,30 +540,38 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
     doc.save(`meal-plan-${diet}-${budget}eur.pdf`);
   };
 
-  const handleSwap = (dayIndex, mealType, alternative) => {
+  const handleSwap = (dayIndex, mealType, alternative, weekIndex = 0) => {
     setWeeklyPlan(prev => {
-      const newDays = [...prev.weeks[0].days];
-      newDays[dayIndex] = {
-        ...newDays[dayIndex],
-        [mealType]: alternative.name,
-        [`${mealType}_calories`]: alternative.calories,
-        [`${mealType}_ingredients`]: alternative.ingredients || [],
-      };
-      return { weeks: [{ week: 1, days: newDays }] };
+      const newWeeks = prev.weeks.map((wk, wi) => {
+        if (wi !== weekIndex) return wk;
+        const newDays = [...wk.days];
+        newDays[dayIndex] = {
+          ...newDays[dayIndex],
+          [mealType]: alternative.name,
+          [`${mealType}_calories`]: alternative.calories,
+          [`${mealType}_ingredients`]: alternative.ingredients || [],
+        };
+        return { ...wk, days: newDays };
+      });
+      return { ...prev, weeks: newWeeks };
     });
     setSaved(false);
   };
 
-  const handleMealEdit = (dayIndex, mealType, editedMeal) => {
+  const handleMealEdit = (dayIndex, mealType, editedMeal, weekIndex = 0) => {
     setWeeklyPlan(prev => {
-      const newDays = [...prev.weeks[0].days];
-      newDays[dayIndex] = {
-        ...newDays[dayIndex],
-        [mealType]: editedMeal.name,
-        [`${mealType}_calories`]: editedMeal.calories,
-        [`${mealType}_ingredients`]: editedMeal.ingredients || [],
-      };
-      return { weeks: [{ week: 1, days: newDays }] };
+      const newWeeks = prev.weeks.map((wk, wi) => {
+        if (wi !== weekIndex) return wk;
+        const newDays = [...wk.days];
+        newDays[dayIndex] = {
+          ...newDays[dayIndex],
+          [mealType]: editedMeal.name,
+          [`${mealType}_calories`]: editedMeal.calories,
+          [`${mealType}_ingredients`]: editedMeal.ingredients || [],
+        };
+        return { ...wk, days: newDays };
+      });
+      return { ...prev, weeks: newWeeks };
     });
     setSaved(false);
   };
@@ -560,7 +593,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
         calories: parseFloat(calories),
         people: parseFloat(people),
         stores,
-        plan: { days: weeklyPlan.weeks[0].days }
+        plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type }
       });
       setSaved(true);
       toast.success(t("planSaved"));
@@ -686,7 +719,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
           ))}
           </div>
 
-          {/* Generate Weekly Plan Button */}
+          {/* Generate Weekly Plan Buttons */}
           {!weeklyPlan && (
             loadingPlan ? (
               <GeneratingLoader type="plan" />
@@ -696,62 +729,92 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                   <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
                   <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
                 </div>
-                <Button onClick={generateWeeklyPlan} className="w-full gap-2">
-                  {t("generateWeeklyPlan")}
-                </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={generateWeeklyPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left"
+                  >
+                    <span className="text-base font-heading font-semibold">🔁 Repeat Weekly Plan</span>
+                    <span className="text-xs opacity-80">Generate 1 week that repeats for 4 weeks</span>
+                  </button>
+                  <button
+                    onClick={generateUniqueMonthlyPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 text-left"
+                  >
+                    <span className="text-base font-heading font-semibold">🗓️ Unique Monthly Plan</span>
+                    <span className="text-xs opacity-80">Generate 4 different weeks — takes longer</span>
+                  </button>
+                </div>
               </div>
             )
           )}
 
           {/* Weekly Plan Display */}
-          {weeklyPlan?.weeks?.[0] && (
-           <div className="bg-card border border-border rounded-xl overflow-hidden">
-             <div className="bg-primary px-5 py-3">
-               <h2 className="font-heading font-semibold text-primary-foreground">{t("yourWeeklyMealPlan")}</h2>
+          {weeklyPlan?.weeks?.length > 0 && (
+           <div className="space-y-4">
+             {/* Header label */}
+             <div className="flex items-center gap-2">
+               <span className="font-heading font-bold text-lg">
+                 {weeklyPlan.type === "unique" ? "🗓️ Your 4-Week Unique Meal Plan" : "🔁 Your Weekly Meal Plan"}
+               </span>
+               {weeklyPlan.type === "repeat" && (
+                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">repeats 4 weeks</span>
+               )}
              </div>
-             <div className="divide-y divide-border">
-               {weeklyPlan.weeks[0].days?.map((day, idx) => (
-                 <div key={`${idx}`} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
-                   <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
-                   {[
-                     { type: "breakfast", label: t("breakfast"), name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
-                     { type: "lunch", label: t("lunch"), name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
-                     { type: "dinner", label: t("dinner"), name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
-                   ].map(({ type, label, name, cal, ings }) => (
-                     <div key={type} className="text-muted-foreground col-span-4 sm:col-span-1">
-                       <div className="flex items-center justify-between mb-0.5">
-                         <span className="font-medium text-foreground text-xs">{label} {cal && <span className="text-primary">({cal} kcal)</span>}</span>
-                         <div className="flex items-center gap-1">
-                           <button
-                             onClick={() => setEditTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
-                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                             title="Edit meal"
-                           >
-                             <Edit2 className="h-3 w-3 group-hover:text-primary" />
-                           </button>
-                           <button
-                             onClick={() => setSwapTarget({ dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
-                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                             title="AI Swap"
-                           >
-                             <Shuffle className="h-3 w-3 group-hover:text-primary" />
-                             <span className="hidden sm:inline">Swap</span>
-                           </button>
+
+             {weeklyPlan.weeks.map((week, weekIndex) => (
+               <div key={weekIndex} className="bg-card border border-border rounded-xl overflow-hidden">
+                 <div className="bg-primary px-5 py-3 flex items-center justify-between">
+                   <h2 className="font-heading font-semibold text-primary-foreground">
+                     {weeklyPlan.type === "unique" ? `Week ${week.week}` : t("yourWeeklyMealPlan")}
+                   </h2>
+                 </div>
+                 <div className="divide-y divide-border">
+                   {week.days?.map((day, idx) => (
+                     <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
+                       <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
+                       {[
+                         { type: "breakfast", label: t("breakfast"), name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
+                         { type: "lunch", label: t("lunch"), name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
+                         { type: "dinner", label: t("dinner"), name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
+                       ].map(({ type, label, name, cal, ings }) => (
+                         <div key={type} className="text-muted-foreground col-span-4 sm:col-span-1">
+                           <div className="flex items-center justify-between mb-0.5">
+                             <span className="font-medium text-foreground text-xs">{label} {cal && <span className="text-primary">({cal} kcal)</span>}</span>
+                             <div className="flex items-center gap-1">
+                               <button
+                                 onClick={() => setEditTarget({ weekIndex, dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
+                                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                                 title="Edit meal"
+                               >
+                                 <Edit2 className="h-3 w-3 group-hover:text-primary" />
+                               </button>
+                               <button
+                                 onClick={() => setSwapTarget({ weekIndex, dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
+                                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                                 title="AI Swap"
+                               >
+                                 <Shuffle className="h-3 w-3 group-hover:text-primary" />
+                                 <span className="hidden sm:inline">Swap</span>
+                               </button>
+                             </div>
+                           </div>
+                           <span>{name}</span>
+                           {Array.isArray(ings) && ings.length > 0 && (
+                             <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">
+                               {ings.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}
+                             </ul>
+                           )}
                          </div>
-                       </div>
-                       <span>{name}</span>
-                       {Array.isArray(ings) && ings.length > 0 && (
-                         <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">
-                           {ings.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}
-                         </ul>
-                       )}
+                       ))}
                      </div>
                    ))}
                  </div>
-               ))}
-             </div>
+               </div>
+             ))}
+
              {/* Nutrition CTA */}
-             <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block mx-5 my-3">
+             <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block">
                <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 hover:bg-primary/20 transition-colors cursor-pointer">
                  <div className="bg-primary rounded-lg p-2 shrink-0">
                    <BarChart2 className="h-5 w-5 text-primary-foreground" />
@@ -763,21 +826,25 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
                  <span className="text-primary font-semibold text-sm shrink-0">→</span>
                </div>
              </Link>
-             <div className="bg-muted px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
-              <p className="text-xs text-muted-foreground">{t("repeatNote")}</p>
-              <div className="flex items-center gap-2">
-                <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
-                  <FileDown className="h-4 w-4" />
-                  Download Plan
-                </Button>
-                <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
-                  <Save className="h-4 w-4" />
-                  {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
-                </Button>
-              </div>
+
+             {/* Footer actions */}
+             <div className="bg-muted rounded-xl px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
+               <p className="text-xs text-muted-foreground">
+                 {weeklyPlan.type === "repeat" ? t("repeatNote") : "4 unique weeks generated"}
+               </p>
+               <div className="flex items-center gap-2">
+                 <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
+                   <FileDown className="h-4 w-4" />
+                   Download Plan
+                 </Button>
+                 <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
+                   <Save className="h-4 w-4" />
+                   {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
+                 </Button>
+               </div>
              </div>
-             </div>
-             )}
+           </div>
+          )}
 
              <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
@@ -809,7 +876,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             availableIngredients={getAvailableIngredientNames()}
             targetCalories={swapTarget.meal.calories || Math.round(calories * (swapTarget.mealType === "breakfast" ? 0.25 : swapTarget.mealType === "lunch" ? 0.35 : 0.40))}
             diet={diet}
-            onSwap={handleSwap}
+            onSwap={(dayIndex, mealType, alt) => handleSwap(dayIndex, mealType, alt, swapTarget.weekIndex || 0)}
             onClose={() => setSwapTarget(null)}
           />
         )}
@@ -822,7 +889,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`,
             mealType={editTarget.mealType}
             dayIndex={editTarget.dayIndex}
             groceryItems={getActiveItems()}
-            onSave={handleMealEdit}
+            onSave={(dayIndex, mealType, editedMeal) => handleMealEdit(dayIndex, mealType, editedMeal, editTarget.weekIndex || 0)}
             onClose={() => setEditTarget(null)}
           />
         )}
