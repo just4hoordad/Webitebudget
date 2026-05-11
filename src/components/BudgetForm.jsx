@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const GROCERY_STORES = [
@@ -56,6 +56,18 @@ export default function BudgetForm() {
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
+  const [allergyInput, setAllergyInput] = useState("");
+  const [allergies, setAllergies] = useState([]);
+  const [ownedInput, setOwnedInput] = useState("");
+  const [owned, setOwned] = useState([]);
+
+  const addTag = (value, list, setList, setInput) => {
+    const trimmed = value.trim();
+    if (trimmed && !list.includes(trimmed)) setList([...list, trimmed]);
+    setInput("");
+  };
+
+  const removeTag = (item, list, setList) => setList(list.filter(i => i !== item));
 
   const toggleStore = (storeId) => {
     setSelectedStores((prev) =>
@@ -81,6 +93,8 @@ export default function BudgetForm() {
       saleHunt: saleHunt,
       bio: bio,
       junkPercent: junkPercent[0],
+      allergies: allergies.join(","),
+      owned: owned.join(","),
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -315,6 +329,60 @@ export default function BudgetForm() {
             <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${bio ? "translate-x-4" : "translate-x-0"}`} />
           </div>
         </button>
+      </div>
+
+      {/* Allergies */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">🚫 Allergies & Intolerances</label>
+        <p className="text-xs text-muted-foreground">These ingredients will be excluded from your grocery list</p>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {allergies.map(tag => (
+            <span key={tag} className="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-medium px-2.5 py-1 rounded-full">
+              {tag}
+              <button onClick={() => removeTag(tag, allergies, setAllergies)}><X className="h-3 w-3" /></button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="e.g. nuts, lactose, gluten…"
+            value={allergyInput}
+            onChange={e => setAllergyInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
+          />
+          <button
+            onClick={() => addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+          >Add</button>
+        </div>
+      </div>
+
+      {/* Already Own */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">🏠 Ingredients I Already Have</label>
+        <p className="text-xs text-muted-foreground">These won't appear in the grocery list since you already own them</p>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {owned.map(tag => (
+            <span key={tag} className="flex items-center gap-1 bg-blue-100 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-1 rounded-full">
+              {tag}
+              <button onClick={() => removeTag(tag, owned, setOwned)}><X className="h-3 w-3" /></button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="e.g. olive oil, rice, salt…"
+            value={ownedInput}
+            onChange={e => setOwnedInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addTag(ownedInput, owned, setOwned, setOwnedInput)}
+          />
+          <button
+            onClick={() => addTag(ownedInput, owned, setOwned, setOwnedInput)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+          >Add</button>
+        </div>
       </div>
 
       {/* Generate Button */}
