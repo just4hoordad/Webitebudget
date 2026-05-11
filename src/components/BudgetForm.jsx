@@ -105,13 +105,22 @@ export default function BudgetForm() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-foreground">{t("monthlyBudget")}</label>
-          <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-4 py-1.5 rounded-xl">
-            <Euro className="h-5 w-5" />
-            {budget[0]}
+          <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-3 py-1 rounded-xl">
+            <Euro className="h-5 w-5 shrink-0" />
+            <input
+              type="number"
+              min={1}
+              value={budget[0]}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val > 0) setBudget([val]);
+              }}
+              className="w-20 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"
+            />
           </div>
         </div>
         <Slider
-          value={budget}
+          value={[Math.min(budget[0], 400)]}
           onValueChange={setBudget}
           max={400}
           min={50}
@@ -121,7 +130,7 @@ export default function BudgetForm() {
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>€50</span>
           <span>{t("avgStudent")}</span>
-          <span>€400</span>
+          <span>€400+</span>
         </div>
       </div>
 
