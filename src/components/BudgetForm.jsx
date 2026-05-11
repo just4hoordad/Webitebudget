@@ -124,7 +124,7 @@ export default function BudgetForm() {
           onValueChange={setBudget}
           max={400}
           min={50}
-          step={10}
+          step={5}
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
