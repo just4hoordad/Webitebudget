@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2 } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -390,10 +390,30 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
   };
 
   const [saved, setSaved] = useState(false);
+  const [addItemInput, setAddItemInput] = useState("");
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
 
+
+  const handleAddItem = () => {
+    const trimmed = addItemInput.trim();
+    if (!trimmed) return;
+    setGroceries(prev => {
+      const customCat = prev.categories.find(c => c.name === "Custom");
+      const newItem = { name: trimmed, quantity: "1x", price: 0, unit_price: 0, store: "", calories_info: "" };
+      if (customCat) {
+        return {
+          ...prev,
+          categories: prev.categories.map(c =>
+            c.name === "Custom" ? { ...c, items: [...c.items, newItem] } : c
+          )
+        };
+      }
+      return { ...prev, categories: [...prev.categories, { name: "Custom", items: [newItem] }] };
+    });
+    setAddItemInput("");
+  };
 
   const translateCategory = (englishName) => {
     const map = categoryTranslations[currentLanguage.code] || {};
@@ -714,13 +734,38 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
                      >
                        <ArrowLeftRight className="h-4 w-4" />
                      </button>
-
+                     <button
+                       onClick={() => removeItem(category.name, item.name)}
+                       className="text-muted-foreground hover:text-destructive transition-colors"
+                       title="Remove item"
+                     >
+                       <X className="h-4 w-4" />
+                     </button>
                    </div>
                  </div>
                ))}
              </div>
            </div>
           ))}
+          </div>
+
+          {/* Add Item */}
+          <div className="bg-card border border-border rounded-xl px-4 py-3 flex gap-2 items-center">
+            <input
+              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
+              placeholder="Add an item to your list…"
+              value={addItemInput}
+              onChange={e => setAddItemInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAddItem()}
+            />
+            <button
+              onClick={handleAddItem}
+              disabled={!addItemInput.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </button>
           </div>
 
           {/* Generate Weekly Plan Buttons */}
