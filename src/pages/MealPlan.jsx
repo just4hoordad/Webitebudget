@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -396,23 +396,79 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
   const [editTarget, setEditTarget] = useState(null);
 
 
-  const handleAddItem = () => {
+  const [findingItem, setFindingItem] = useState(false);
+
+  const handleAddItem = async () => {
     const trimmed = addItemInput.trim();
     if (!trimmed) return;
+
+    // Add immediately with placeholder
+    const placeholderItem = { name: trimmed, quantity: "1x", price: 0, unit_price: 0, store: "", calories_info: "", _loading: true };
     setGroceries(prev => {
       const customCat = prev.categories.find(c => c.name === "Custom");
-      const newItem = { name: trimmed, quantity: "1x", price: 0, unit_price: 0, store: "", calories_info: "" };
       if (customCat) {
-        return {
-          ...prev,
-          categories: prev.categories.map(c =>
-            c.name === "Custom" ? { ...c, items: [...c.items, newItem] } : c
-          )
-        };
+        return { ...prev, categories: prev.categories.map(c => c.name === "Custom" ? { ...c, items: [...c.items, placeholderItem] } : c) };
       }
-      return { ...prev, categories: [...prev.categories, { name: "Custom", items: [newItem] }] };
+      return { ...prev, categories: [...prev.categories, { name: "Custom", items: [placeholderItem] }] };
     });
     setAddItemInput("");
+    setWeeklyPlan(null);
+
+    // AI lookup in selected stores
+    setFindingItem(true);
+    try {
+      const found = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find the product "${trimmed}" at these German supermarkets: ${stores}.
+Return the best match with real 2024-2025 German store prices.
+Use the exact branded product name as sold in-store (e.g. "Ja! Vollmilch 3,5% 1L").
+Language for name/calories_info: ${currentLanguage.label}. Category name MUST be in English.`,
+        add_context_from_internet: true,
+        model: "gemini_3_flash",
+        response_json_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            quantity: { type: "string" },
+            unit_price: { type: "number" },
+            price: { type: "number" },
+            normal_price: { type: "number" },
+            store: { type: "string" },
+            calories_info: { type: "string" },
+            category: { type: "string" }
+          }
+        }
+      });
+
+      const enrichedItem = { ...found, _loading: false };
+      const targetCat = found.category || "Custom";
+
+      setGroceries(prev => {
+        // Remove placeholder from Custom
+        let newCategories = prev.categories.map(c =>
+          c.name === "Custom" ? { ...c, items: c.items.filter(i => i.name !== trimmed || !i._loading) } : c
+        ).filter(c => c.name !== "Custom" || c.items.length > 0);
+
+        // Add to proper category
+        const existingCat = newCategories.find(c => c.name === targetCat);
+        if (existingCat) {
+          newCategories = newCategories.map(c => c.name === targetCat ? { ...c, items: [...c.items, enrichedItem] } : c);
+        } else {
+          newCategories = [...newCategories, { name: targetCat, items: [enrichedItem] }];
+        }
+
+        const newTotal = newCategories.flatMap(c => c.items).reduce((sum, i) => sum + (i.price || 0), 0);
+        return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
+      });
+    } catch {
+      // Keep placeholder with original name if lookup fails
+      setGroceries(prev => ({
+        ...prev,
+        categories: prev.categories.map(c =>
+          c.name === "Custom" ? { ...c, items: c.items.map(i => i.name === trimmed && i._loading ? { ...i, _loading: false } : i) } : c
+        )
+      }));
+    }
+    setFindingItem(false);
   };
 
   const translateCategory = (englishName) => {
@@ -707,30 +763,40 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
                    <div className="flex-1">
-                     <p className="font-medium text-foreground">{item.name}</p>
-                     <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
+                     <p className="font-medium text-foreground flex items-center gap-2">
+                       {item.name}
+                       {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+                     </p>
+                     {item._loading ? (
+                       <p className="text-xs text-primary animate-pulse">Searching {stores} for best price…</p>
+                     ) : (
+                       <p className="text-xs text-muted-foreground">{item.quantity} · {item.calories_info}</p>
+                     )}
                    </div>
                    <div className="flex items-center gap-3 ml-4">
-                     <div className="text-right">
-                       {item.unit_price != null && item.unit_price !== item.price ? (
-                         <>
+                     {!item._loading && (
+                       <div className="text-right">
+                         {item.unit_price != null && item.unit_price !== item.price ? (
+                           <>
+                             <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                             <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}</p>
+                           </>
+                         ) : (
                            <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                           <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}</p>
-                         </>
-                       ) : (
-                         <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                       )}
-                       {item.normal_price != null && item.normal_price > item.price && (
-                         <p className="text-xs font-medium text-green-600">
-                           saves €{(item.normal_price - item.price).toFixed(2)}
-                         </p>
-                       )}
-                       {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
-                     </div>
+                         )}
+                         {item.normal_price != null && item.normal_price > item.price && (
+                           <p className="text-xs font-medium text-green-600">
+                             saves €{(item.normal_price - item.price).toFixed(2)}
+                           </p>
+                         )}
+                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                       </div>
+                     )}
                      <button
                        onClick={() => setGrocerySwapTarget({ item, category: category.name })}
                        className="text-muted-foreground hover:text-primary transition-colors"
                        title="Find alternative"
+                       disabled={!!item._loading}
                      >
                        <ArrowLeftRight className="h-4 w-4" />
                      </button>
