@@ -59,6 +59,7 @@ export default function BudgetForm() {
   const [allergyInput, setAllergyInput] = useState("");
   const [allergies, setAllergies] = useState([]);
   const [ownedInput, setOwnedInput] = useState("");
+  const [ownedAmount, setOwnedAmount] = useState("");
   const [owned, setOwned] = useState([]);
 
   const addTag = (value, list, setList, setInput) => {
@@ -382,16 +383,40 @@ export default function BudgetForm() {
         <div className="flex gap-2">
           <input
             className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-            placeholder="e.g. olive oil, rice, salt…"
+            placeholder="e.g. olive oil, rice…"
             value={ownedInput}
             onChange={e => setOwnedInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addTag(ownedInput, owned, setOwned, setOwnedInput)}
+            onKeyDown={e => {
+              if (e.key === "Enter" && ownedInput.trim() && ownedAmount.trim()) {
+                addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
+                setOwnedAmount("");
+              }
+            }}
+          />
+          <input
+            className="w-24 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="Amount"
+            value={ownedAmount}
+            onChange={e => setOwnedAmount(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter" && ownedInput.trim() && ownedAmount.trim()) {
+                addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
+                setOwnedAmount("");
+              }
+            }}
           />
           <button
-            onClick={() => addTag(ownedInput, owned, setOwned, setOwnedInput)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+            onClick={() => {
+              if (ownedInput.trim() && ownedAmount.trim()) {
+                addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
+                setOwnedAmount("");
+              }
+            }}
+            disabled={!ownedInput.trim() || !ownedAmount.trim()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
           >Add</button>
         </div>
+        <p className="text-xs text-muted-foreground">e.g. "olive oil" + "500ml", "rice" + "1kg"</p>
       </div>
 
       {/* Generate Button */}
