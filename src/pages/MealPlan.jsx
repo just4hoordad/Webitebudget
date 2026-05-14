@@ -60,7 +60,7 @@ export default function MealPlan() {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
 
-Budget: €${budget}/month — final total MUST be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)}.
+Budget: €${budget}/month.
 Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
@@ -69,7 +69,7 @@ Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
 3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
-4. Add enough items so the total is as close to €${budget} as possible.
+4. CRITICAL BUDGET RULE: Keep adding items until the sum of all price fields is between €${(budget*0.95).toFixed(0)} and €${(budget*1.00).toFixed(0)}. Never go over €${budget}. If you are under €${(budget*0.95).toFixed(0)}, add more items or increase quantities. The total_estimated_cost MUST reflect the real sum of all item prices.
 5. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
 7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
