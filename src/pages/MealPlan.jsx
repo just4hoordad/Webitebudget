@@ -64,7 +64,7 @@ Budget: €${budget}/month.
 Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
-
+${diet === "half-cooked" ? `DIET MODE: HALF-COOKED / CONVENIENCE MEALS. Only include ready-to-cook or semi-prepared products like frozen schnitzel, frozen pizza, frozen burgers, ready-made sauces, pre-marinated meats, frozen fries, frozen lasagna, heat-and-eat meals, etc. No raw unprocessed ingredients.` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.

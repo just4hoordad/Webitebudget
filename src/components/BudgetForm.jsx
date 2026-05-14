@@ -40,6 +40,7 @@ const DIET_KEYS = [
   { id: "pescatarian", nameKey: "pescatarian", icon: Fish },
   { id: "gluten-free", nameKey: "glutenFree", icon: Wheat },
   { id: "halal", nameKey: "halal", icon: Users },
+  { id: "half-cooked", nameKey: "halfCooked", icon: Beef },
 ];
 
 
