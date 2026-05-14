@@ -6,6 +6,7 @@ import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeft
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
+import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
@@ -390,85 +391,27 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
   };
 
   const [saved, setSaved] = useState(false);
-  const [addItemInput, setAddItemInput] = useState("");
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
 
 
-  const [findingItem, setFindingItem] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  const handleAddItem = async () => {
-    const trimmed = addItemInput.trim();
-    if (!trimmed) return;
-
-    // Add immediately with placeholder
-    const placeholderItem = { name: trimmed, quantity: "1x", price: 0, unit_price: 0, store: "", calories_info: "", _loading: true };
+  const handleAddItem = (item) => {
+    const targetCat = item.category || "Custom";
     setGroceries(prev => {
-      const customCat = prev.categories.find(c => c.name === "Custom");
-      if (customCat) {
-        return { ...prev, categories: prev.categories.map(c => c.name === "Custom" ? { ...c, items: [...c.items, placeholderItem] } : c) };
+      let newCategories = prev.categories;
+      const existingCat = newCategories.find(c => c.name === targetCat);
+      if (existingCat) {
+        newCategories = newCategories.map(c => c.name === targetCat ? { ...c, items: [...c.items, item] } : c);
+      } else {
+        newCategories = [...newCategories, { name: targetCat, items: [item] }];
       }
-      return { ...prev, categories: [...prev.categories, { name: "Custom", items: [placeholderItem] }] };
+      const newTotal = newCategories.flatMap(c => c.items).reduce((sum, i) => sum + (i.price || 0), 0);
+      return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
     });
-    setAddItemInput("");
     setWeeklyPlan(null);
-
-    // AI lookup in selected stores
-    setFindingItem(true);
-    try {
-      const found = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find the product "${trimmed}" at these German supermarkets: ${stores}.
-Return the best match with real 2024-2025 German store prices.
-Use the exact branded product name as sold in-store (e.g. "Ja! Vollmilch 3,5% 1L").
-Language for name/calories_info: ${currentLanguage.label}. Category name MUST be in English.`,
-        add_context_from_internet: true,
-        model: "gemini_3_flash",
-        response_json_schema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            quantity: { type: "string" },
-            unit_price: { type: "number" },
-            price: { type: "number" },
-            normal_price: { type: "number" },
-            store: { type: "string" },
-            calories_info: { type: "string" },
-            category: { type: "string" }
-          }
-        }
-      });
-
-      const enrichedItem = { ...found, _loading: false };
-      const targetCat = found.category || "Custom";
-
-      setGroceries(prev => {
-        // Remove placeholder from Custom
-        let newCategories = prev.categories.map(c =>
-          c.name === "Custom" ? { ...c, items: c.items.filter(i => i.name !== trimmed || !i._loading) } : c
-        ).filter(c => c.name !== "Custom" || c.items.length > 0);
-
-        // Add to proper category
-        const existingCat = newCategories.find(c => c.name === targetCat);
-        if (existingCat) {
-          newCategories = newCategories.map(c => c.name === targetCat ? { ...c, items: [...c.items, enrichedItem] } : c);
-        } else {
-          newCategories = [...newCategories, { name: targetCat, items: [enrichedItem] }];
-        }
-
-        const newTotal = newCategories.flatMap(c => c.items).reduce((sum, i) => sum + (i.price || 0), 0);
-        return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
-      });
-    } catch {
-      // Keep placeholder with original name if lookup fails
-      setGroceries(prev => ({
-        ...prev,
-        categories: prev.categories.map(c =>
-          c.name === "Custom" ? { ...c, items: c.items.map(i => i.name === trimmed && i._loading ? { ...i, _loading: false } : i) } : c
-        )
-      }));
-    }
-    setFindingItem(false);
   };
 
   const translateCategory = (englishName) => {
@@ -816,23 +759,13 @@ Language for name/calories_info: ${currentLanguage.label}. Category name MUST be
           </div>
 
           {/* Add Item */}
-          <div className="bg-card border border-border rounded-xl px-4 py-3 flex gap-2 items-center">
-            <input
-              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="Add an item to your list…"
-              value={addItemInput}
-              onChange={e => setAddItemInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleAddItem()}
-            />
-            <button
-              onClick={handleAddItem}
-              disabled={!addItemInput.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
-            >
-              <Plus className="h-4 w-4" />
-              Add
-            </button>
-          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-card border border-dashed border-primary/40 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Add item with AI search
+          </button>
 
           {/* Generate Weekly Plan Buttons */}
           {!weeklyPlan && (
@@ -969,6 +902,17 @@ Language for name/calories_info: ${currentLanguage.label}. Category name MUST be
         </>
       )}
     </div>
+      <AnimatePresence>
+        {showAddModal && (
+          <AddItemModal
+            stores={stores}
+            diet={diet}
+            onAdd={handleAddItem}
+            onClose={() => setShowAddModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {grocerySwapTarget && (
           <GrocerySwapModal
