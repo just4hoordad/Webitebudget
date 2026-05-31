@@ -7,6 +7,9 @@ const allTranslations = { ...translations, ...euTranslations };
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
   { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "fa", label: "فارسی", flag: "🇮🇷" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "es", label: "Español", flag: "🇪🇸" },
   { code: "it", label: "Italiano", flag: "🇮🇹" },
@@ -21,12 +24,9 @@ const LANGUAGES = [
   { code: "hu", label: "Magyar", flag: "🇭🇺" },
   { code: "ro", label: "Română", flag: "🇷🇴" },
   { code: "el", label: "Ελληνικά", flag: "🇬🇷" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
   { code: "uk", label: "Українська", flag: "🇺🇦" },
   { code: "tr", label: "Türkçe", flag: "🇹🇷" },
   { code: "ar", label: "العربية", flag: "🇸🇦" },
-  { code: "fa", label: "فارسی", flag: "🇮🇷" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
   { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
 ];
 
