@@ -77,7 +77,7 @@ export default function Layout() {
         className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="flex items-center justify-around max-w-5xl mx-auto">
+        <div className="flex items-stretch w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -86,32 +86,32 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
+                className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate w-full text-center px-1">{item.label}</span>
               </Link>
             );
           })}
           <Link
             to="/about"
-            className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
+            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
               location.pathname === "/about" ? "text-primary" : "text-muted-foreground"
             }`}
           >
-            <span className="text-lg leading-none">ℹ️</span>
-            <span>About</span>
+            <span className="text-lg leading-none shrink-0">ℹ️</span>
+            <span className="truncate w-full text-center px-1">About</span>
           </Link>
           <Link
             to="/contact"
-            className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
+            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
               location.pathname === "/contact" ? "text-primary" : "text-muted-foreground"
             }`}
           >
-            <span className="text-lg leading-none">✉️</span>
-            <span>Contact</span>
+            <span className="text-lg leading-none shrink-0">✉️</span>
+            <span className="truncate w-full text-center px-1">Contact</span>
           </Link>
         </div>
       </nav>
