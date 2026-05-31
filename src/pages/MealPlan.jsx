@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
+import { euCategoryTranslations } from "@/lib/translations_eu";
+const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 import { Button } from "@/components/ui/button";
 import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
@@ -415,7 +417,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
   };
 
   const translateCategory = (englishName) => {
-    const map = categoryTranslations[currentLanguage.code] || {};
+    const map = allCategoryTranslations[currentLanguage.code] || {};
     return map[englishName] || englishName;
   };
 
