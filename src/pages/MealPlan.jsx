@@ -67,7 +67,7 @@ Budget: €${budget} for ${days} days.
 Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
-${diet === "half-cooked" ? `DIET MODE: HALF-COOKED / CONVENIENCE MEALS. Only include ready-to-cook or semi-prepared products like frozen schnitzel, frozen pizza, frozen burgers, ready-made sauces, pre-marinated meats, frozen fries, frozen lasagna, heat-and-eat meals, etc. No raw unprocessed ingredients.` : ""}
+${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
@@ -336,19 +336,20 @@ ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home
 
 IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
 
-AVAILABLE INGREDIENTS (TOTAL for ${totalDays} days = ${totalWks} week(s)):
+AVAILABLE FROZEN PRODUCTS (TOTAL for ${totalDays} days = ${totalWks} week(s)):
 ${availableItems}
 
-Diet type: ${diet}
+Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
 Target calories per day: ${calories} kcal
 Number of people: ${people}
 
 CRITICAL RULES:
-1. Use ONLY the ingredients listed above — no substitutions or additions
+1. Use ONLY the products listed above — no substitutions or additions
 2. The quantities listed are the TOTAL available for ALL ${totalDays} days
-3. Divide ingredient usage roughly equally across all ${totalWks} weeks — use approx 1/${totalWks} of total quantity per week
-4. For each meal, specify EXACTLY how much of each ingredient is used per day
-${previousWeeksSummary ? `5. VARIETY: The following meals were used in previous weeks — do NOT repeat them:\n${previousWeeksSummary}` : ""}
+3. Divide product usage roughly equally across all ${totalWks} weeks — use approx 1/${totalWks} of total quantity per week
+4. For each meal, specify EXACTLY which frozen product is used and heating instructions (e.g. "Oven 200°C for 20 min" or "Microwave 3 min")
+${diet === "frozen" ? `5. FROZEN FOODS MODE: Each meal entry MUST be the exact frozen product name + heating method. Format: "🥡 [Product Name] — [Heating instruction]". No cooking involved, just reheating. Example: "🥡 iglo Fischstäbchen — Oven 200°C, 15 min"` : ""}
+${previousWeeksSummary ? `${diet === "frozen" ? "6" : "5"}. VARIETY: The following meals were used in previous weeks — do NOT repeat them:\n${previousWeeksSummary}` : ""}
 
 Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
 
