@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const GROCERY_STORES = [
@@ -40,7 +40,7 @@ const DIET_KEYS = [
   { id: "pescatarian", nameKey: "pescatarian", icon: Fish, sub: "Fish & plants" },
   { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, sub: "No gluten" },
   { id: "halal", nameKey: "halal", icon: null, sub: "Certified" },
-  { id: "frozen", nameKey: "frozenFoods", icon: null, sub: "Heat & eat" },
+  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, sub: "Heat & eat" },
 ];
 
 
@@ -287,8 +287,6 @@ export default function BudgetForm() {
                 <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
                   {diet.id === "halal" ? (
                     <span className="text-xl font-bold leading-none">حلال</span>
-                  ) : diet.id === "frozen" ? (
-                    <span className="text-xl leading-none">❄️</span>
                   ) : Icon ? (
                     <Icon className="h-6 w-6" />
                   ) : null}
