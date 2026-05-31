@@ -1,35 +1,28 @@
-import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { Leaf, Euro, ShoppingBasket, Users } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { pageTranslations } from "@/lib/translations_pages";
 
 export default function About() {
-  const { t } = useLanguage();
+  const { currentLanguage } = useLanguage();
+  const p = pageTranslations[currentLanguage.code] || pageTranslations["en"];
+
+  const features = [
+    { icon: Euro, title: p.aboutF1Title, desc: p.aboutF1Desc },
+    { icon: Leaf, title: p.aboutF2Title, desc: p.aboutF2Desc },
+    { icon: ShoppingBasket, title: p.aboutF3Title, desc: p.aboutF3Desc },
+    { icon: Users, title: p.aboutF4Title, desc: p.aboutF4Desc },
+  ];
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-4">
       <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground mb-4">About BudgetBite</h1>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">
-          BudgetBite is a smart, AI-powered meal planning app built specifically for students living in Germany. 
-          We know how challenging it can be to eat well when you're juggling lectures, assignments, and a tight budget — 
-          that's exactly why BudgetBite exists.
-        </p>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">
-          Our app generates personalized weekly and monthly meal plans based on real, up-to-date prices from Germany's 
-          most popular supermarkets including Aldi, Lidl, REWE, Edeka, Penny, and Netto. Simply enter your monthly 
-          budget, select your preferred stores, choose your dietary preferences — whether that's vegan, high-protein, 
-          gluten-free, or halal — and BudgetBite will instantly produce a full grocery list optimized to keep you 
-          within budget while hitting your calorie goals.
-        </p>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">
-          Beyond grocery lists, BudgetBite generates complete day-by-day meal plans — breakfasts, lunches, and dinners — 
-          using only the ingredients you've bought. You can swap meals with AI suggestions, edit dishes, export your 
-          plan as a PDF or CSV, and even track your nutritional breakdown with protein, fat, and carb charts.
-        </p>
+        <h1 className="font-heading text-3xl font-bold text-foreground mb-4">{p.aboutTitle}</h1>
+        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP1}</p>
+        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP2}</p>
+        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP3}</p>
         <p className="text-muted-foreground text-base leading-relaxed">
-          BudgetBite is built and maintained by <strong className="text-foreground">Hourdad Alisedaghat</strong>, 
-          passionate about making healthy eating accessible and affordable for everyone. It is completely free to use — 
-          no account required, no credit card, ever.
+          {p.aboutP4}
         </p>
         <p className="text-muted-foreground text-sm mt-3">
           📧 <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary hover:underline">Hoordad.sedaghat@gmail.com</a>
@@ -37,12 +30,7 @@ export default function About() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {[
-          { icon: Euro, title: "Real German Prices", desc: "Based on live supermarket data from Aldi, Lidl, REWE & more" },
-          { icon: Leaf, title: "Any Diet", desc: "Vegan, vegetarian, halal, gluten-free, high-protein and more" },
-          { icon: ShoppingBasket, title: "Smart Lists", desc: "Optimized grocery lists with per-item store recommendations" },
-          { icon: Users, title: "Built for Students", desc: "Designed around a typical student lifestyle and budget in Germany" },
-        ].map(({ icon: Icon, title, desc }) => (
+        {features.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-card border border-border rounded-xl p-4">
             <div className="bg-primary/10 w-9 h-9 rounded-lg flex items-center justify-center mb-3">
               <Icon className="h-4 w-4 text-primary" />
@@ -54,9 +42,9 @@ export default function About() {
       </div>
 
       <div className="bg-primary/5 border border-primary/20 rounded-xl px-5 py-4 text-center">
-        <p className="text-sm text-muted-foreground mb-3">Ready to start eating well on a budget?</p>
+        <p className="text-sm text-muted-foreground mb-3">{p.aboutCta}</p>
         <Link to="/" className="inline-block bg-primary text-primary-foreground font-heading font-semibold text-sm px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors">
-          Create My Meal Plan →
+          {p.aboutCtaBtn}
         </Link>
       </div>
     </div>
