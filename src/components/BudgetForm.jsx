@@ -147,9 +147,10 @@ export default function BudgetForm() {
             min={1}
             max={30}
             value={days}
-            onChange={e => {
+            onChange={e => setDays(e.target.value)}
+            onBlur={e => {
               const val = parseInt(e.target.value, 10);
-              if (!isNaN(val) && val >= 1 && val <= 30) setDays(val);
+              setDays(!isNaN(val) ? Math.min(30, Math.max(1, val)) : 30);
             }}
             className="flex-1 border border-border rounded-xl px-4 py-3 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
             placeholder="1-30"
