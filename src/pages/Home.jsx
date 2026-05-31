@@ -59,15 +59,15 @@ export default function Home() {
       <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border border-green-200 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
         <div className="text-2xl">🎉</div>
         <div className="flex-1">
-          <p className="font-heading font-bold text-green-800 text-base">Completely free. No account needed.</p>
-          <p className="text-green-700 text-sm mt-0.5">Just fill in your budget below and get a full meal plan + grocery list instantly — no sign-up, no credit card, ever.</p>
+          <p className="font-heading font-bold text-green-800 text-base">{t("freeBannerTitle")}</p>
+          <p className="text-green-700 text-sm mt-0.5">{t("freeBannerDesc")}</p>
         </div>
         <div className="flex gap-2 flex-wrap justify-center shrink-0">
           <span className="flex items-center gap-1.5 bg-white border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
-            <Zap className="h-3.5 w-3.5" /> Free forever
+            <Zap className="h-3.5 w-3.5" /> {t("freeBannerBadge1")}
           </span>
           <span className="flex items-center gap-1.5 bg-white border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
-            <Lock className="h-3.5 w-3.5" /> No login
+            <Lock className="h-3.5 w-3.5" /> {t("freeBannerBadge2")}
           </span>
         </div>
       </div>
