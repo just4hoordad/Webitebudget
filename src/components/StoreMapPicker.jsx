@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { MapPin, X, Check, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/LanguageContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -86,7 +87,7 @@ async function fetchNearbyStores(lat, lng) {
     .filter(Boolean);
 }
 
-function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading }) {
+function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading, t }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
 
@@ -144,7 +145,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
           </svg>
-          {locating ? "Locating…" : stores.length === 0 ? "📍 Find Stores Near Me" : "My Location"}
+          {locating ? t("mapLocating") : stores.length === 0 ? "📍 " + t("mapFindStores") : t("mapMyLocation")}
         </button>
       </div>
 
@@ -172,7 +173,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
                     fontSize: 11, fontWeight: 700, cursor: "pointer", width: "100%",
                   }}
                 >
-                  {isSelected ? "✓ Selected" : "+ Select this store"}
+                  {isSelected ? "✓ " + t("mapSelected") : "+ " + t("mapSelectStore")}
                 </button>
               </div>
             </Popup>
@@ -189,6 +190,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
 // selectedChains: array of chain ids (for the chain-level toggles in BudgetForm)
 // onToggleChain: (chainId) => void
 export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState([]);
   const [loadingStores, setLoadingStores] = useState(false);
@@ -217,7 +219,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
         className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 px-3 py-1.5 rounded-lg transition-all duration-200 border border-primary/20"
       >
         <MapPin className="h-3.5 w-3.5" />
-        {selectedStoreLocations.length > 0 ? `${selectedStoreLocations.length} pinned` : "Pick on Map"}
+        {selectedStoreLocations.length > 0 ? `${selectedStoreLocations.length} ${t("mapPinned")}` : t("mapPickOnMap")}
       </button>
 
       {open && (
@@ -227,13 +229,13 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div>
-                <h2 className="font-heading font-bold text-base">Select Specific Stores</h2>
+                <h2 className="font-heading font-bold text-base">{t("mapSelectSpecificStores")}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {loadingStores
-                    ? "Finding stores near you…"
+                    ? t("mapFindingStores")
                     : stores.length > 0
-                    ? `${stores.length} stores found — tap a marker to select a specific location`
-                    : "Click \"Find Stores Near Me\" on the map to load nearby stores"}
+                    ? `${stores.length} ${t("mapStoresFound")}`
+                    : t("mapClickToLoad")}
                 </p>
               </div>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
@@ -244,9 +246,9 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
             {/* Map */}
             <div style={{ height: 340, position: "relative", flexShrink: 0 }}>
               {loadingStores && (
-                <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
-                  Loading nearby stores…
-                </div>
+              <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
+              {t("mapFindingStores")}
+              </div>
               )}
               <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} whenReady={(map) => { setTimeout(() => map.target.invalidateSize(), 100); }}>
                 <TileLayer
@@ -260,6 +262,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                   onToggleStoreLocation={handleToggleStoreLocation}
                   onStoresLoaded={handleStoresLoaded}
                   onLoading={setLoadingStores}
+                  t={t}
                 />
               </MapContainer>
             </div>
@@ -269,7 +272,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
               <div className="px-5 py-3 border-t border-border bg-primary/5 shrink-0">
                 <p className="text-xs font-semibold text-primary mb-2">
                   <Store className="inline h-3.5 w-3.5 mr-1" />
-                  {selectedStoreLocations.length} specific store{selectedStoreLocations.length > 1 ? "s" : ""} selected:
+                  {selectedStoreLocations.length} {t("mapSpecificStoresSelected")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedStoreLocations.map((s) => (
@@ -292,10 +295,10 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
             <div className="flex items-center justify-end px-5 py-3 border-t border-border bg-muted/30 shrink-0">
               <p className="text-xs text-muted-foreground flex-1">
                 {selectedStoreLocations.length === 0
-                  ? "Tap a store marker on the map to pin a specific location"
-                  : "These exact stores will be used for your grocery list"}
+                  ? t("mapTapToPin")
+                  : t("mapExactStoresUsed")}
               </p>
-              <Button size="sm" onClick={() => setOpen(false)} className="ml-3 shrink-0">Done</Button>
+              <Button size="sm" onClick={() => setOpen(false)} className="ml-3 shrink-0">{t("done")}</Button>
             </div>
           </div>
         </div>
