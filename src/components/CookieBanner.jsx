@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 import { useLanguage } from "@/lib/LanguageContext";
 
 const cookieT = {
@@ -20,6 +21,7 @@ const STORAGE_KEY = "budgetbite_cookie_consent";
 
 export default function CookieBanner() {
   const { currentLanguage } = useLanguage();
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -42,9 +44,9 @@ export default function CookieBanner() {
       <div className="max-w-2xl mx-auto bg-card border border-border rounded-2xl shadow-lg px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <p className="text-sm text-muted-foreground flex-1 leading-relaxed">
           {t.text}{" "}
-          <Link to="/datenschutz" className="text-primary underline underline-offset-2 hover:opacity-80">
+          <button onClick={() => { accept(); navigate("/datenschutz"); }} className="text-primary underline underline-offset-2 hover:opacity-80">
             {t.learnMore}
-          </Link>
+          </button>
         </p>
         <button
           onClick={accept}
