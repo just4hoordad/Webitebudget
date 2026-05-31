@@ -87,9 +87,24 @@ async function fetchNearbyStores(lat, lng) {
     .filter(Boolean);
 }
 
-function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading, t }) {
+function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading, t, pendingFlyTo, onFlyToDone }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
+
+  useEffect(() => {
+    if (!pendingFlyTo) return;
+    const [lat, lng] = pendingFlyTo;
+    map.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
+    onLoading(true);
+    fetchNearbyStores(lat, lng).then(nearby => {
+      onStoresLoaded(nearby, [lat, lng]);
+      onLoading(false);
+    }).catch(() => {
+      onStoresLoaded([], [lat, lng]);
+      onLoading(false);
+    });
+    if (onFlyToDone) onFlyToDone();
+  }, [pendingFlyTo]);
 
   const locate = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -189,12 +204,21 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
 // onChangeStoreLocations: (newLocations) => void
 // selectedChains: array of chain ids (for the chain-level toggles in BudgetForm)
 // onToggleChain: (chainId) => void
-export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain }) {
+export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain, cityCoords, onCityCoordsUsed }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState([]);
   const [loadingStores, setLoadingStores] = useState(false);
   const [center, setCenter] = useState([51.1657, 10.4515]);
+  const [pendingFlyTo, setPendingFlyTo] = useState(null);
+
+  useEffect(() => {
+    if (cityCoords) {
+      setOpen(true);
+      setPendingFlyTo([cityCoords.lat, cityCoords.lng]);
+      if (onCityCoordsUsed) onCityCoordsUsed();
+    }
+  }, [cityCoords]);
 
   const handleStoresLoaded = useCallback((nearby, location) => {
     setStores(nearby);
@@ -263,6 +287,8 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                   onStoresLoaded={handleStoresLoaded}
                   onLoading={setLoadingStores}
                   t={t}
+                  pendingFlyTo={pendingFlyTo}
+                  onFlyToDone={() => setPendingFlyTo(null)}
                 />
               </MapContainer>
             </div>

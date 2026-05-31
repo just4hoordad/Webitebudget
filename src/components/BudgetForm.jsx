@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const GROCERY_STORES = [
@@ -63,6 +63,8 @@ export default function BudgetForm() {
   const [ownedInput, setOwnedInput] = useState("");
   const [ownedAmount, setOwnedAmount] = useState("");
   const [owned, setOwned] = useState([]);
+  const [citySearch, setCitySearch] = useState("");
+  const [cityCoords, setCityCoords] = useState(null);
 
   const addTag = (value, list, setList, setInput) => {
     const trimmed = value.trim();
@@ -71,6 +73,19 @@ export default function BudgetForm() {
   };
 
   const removeTag = (item, list, setList) => setList(list.filter(i => i !== item));
+
+  const handleCitySearch = async () => {
+    if (!citySearch.trim()) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(citySearch)}&format=json&limit=1`);
+      const data = await res.json();
+      if (data.length > 0) {
+        setCityCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      }
+    } catch (e) {
+      // silently fail
+    }
+  };
 
   const toggleStore = (storeId) => {
     setSelectedStores((prev) =>
@@ -188,7 +203,26 @@ export default function BudgetForm() {
             onChangeStoreLocations={setSelectedStoreLocations}
             selectedChains={selectedStores}
             onToggleChain={toggleStore}
+            cityCoords={cityCoords}
+            onCityCoordsUsed={() => setCityCoords(null)}
           />
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Enter city or zip code"
+            value={citySearch}
+            onChange={e => setCitySearch(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleCitySearch()}
+            className="flex-1 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <button
+            onClick={handleCitySearch}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
+          >
+            <Search className="h-4 w-4" />
+            Search
+          </button>
         </div>
         {selectedStoreLocations.length > 0 ? (
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
