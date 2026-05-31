@@ -272,8 +272,8 @@ export default function BudgetForm() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-medium text-foreground">🍕 Junk Food Allowance</label>
-            <p className="text-xs text-muted-foreground mt-0.5">% of your total daily calories from junk food</p>
+            <label className="text-sm font-medium text-foreground">{t("junkFoodTitle")}</label>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("junkFoodDesc")}</p>
           </div>
           <span className={`font-heading font-bold text-lg px-3 py-1 rounded-xl ${
             junkPercent[0] === 0 ? "bg-green-100 text-green-700" :
@@ -293,9 +293,9 @@ export default function BudgetForm() {
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0% — Clean</span>
-          <span>25% — Balanced</span>
-          <span>50% — YOLO</span>
+          <span>{t("junkClean")}</span>
+          <span>{t("junkBalanced")}</span>
+          <span>{t("junkYolo")}</span>
         </div>
       </div>
 
@@ -332,8 +332,8 @@ export default function BudgetForm() {
           <div className="flex items-center gap-3">
             <span className="text-xl">🌿</span>
             <div className="text-left">
-              <p className={`text-sm font-semibold ${bio ? "text-green-800" : "text-foreground"}`}>Bio / Organic</p>
-              <p className={`text-xs ${bio ? "text-green-700/70" : "text-muted-foreground"}`}>Generate grocery list using organic & bio products</p>
+              <p className={`text-sm font-semibold ${bio ? "text-green-800" : "text-foreground"}`}>{t("bioTitle")}</p>
+              <p className={`text-xs ${bio ? "text-green-700/70" : "text-muted-foreground"}`}>{t("bioDesc")}</p>
             </div>
           </div>
           <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${bio ? "bg-green-500" : "bg-muted"}`}>
@@ -344,8 +344,8 @@ export default function BudgetForm() {
 
       {/* Allergies */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">🚫 Allergies & Intolerances</label>
-        <p className="text-xs text-muted-foreground">These ingredients will be excluded from your grocery list</p>
+        <label className="text-sm font-medium text-foreground">{t("allergiesTitle")}</label>
+        <p className="text-xs text-muted-foreground">{t("allergiesDesc")}</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {allergies.map(tag => (
             <span key={tag} className="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-medium px-2.5 py-1 rounded-full">
@@ -357,7 +357,7 @@ export default function BudgetForm() {
         <div className="flex gap-2">
           <input
             className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-            placeholder="e.g. nuts, lactose, gluten…"
+            placeholder={t("allergiesPlaceholder")}
             value={allergyInput}
             onChange={e => setAllergyInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
@@ -365,14 +365,14 @@ export default function BudgetForm() {
           <button
             onClick={() => addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-          >Add</button>
+          >{t("add")}</button>
         </div>
       </div>
 
       {/* Already Own */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">🏠 Ingredients I Already Have</label>
-        <p className="text-xs text-muted-foreground">These won't appear in the grocery list since you already own them</p>
+        <label className="text-sm font-medium text-foreground">{t("ownedTitle")}</label>
+        <p className="text-xs text-muted-foreground">{t("ownedDesc")}</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {owned.map(tag => (
             <span key={tag} className="flex items-center gap-1 bg-blue-100 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-1 rounded-full">
@@ -385,7 +385,7 @@ export default function BudgetForm() {
           <div className="flex gap-2">
             <input
               className="flex-1 min-w-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="e.g. olive oil, rice…"
+              placeholder={t("ownedPlaceholder")}
               value={ownedInput}
               onChange={e => setOwnedInput(e.target.value)}
               onKeyDown={e => {
@@ -397,7 +397,7 @@ export default function BudgetForm() {
             />
             <input
               className="w-28 min-w-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="Amount"
+              placeholder={t("ownedAmountPlaceholder")}
               value={ownedAmount}
               onChange={e => setOwnedAmount(e.target.value)}
               onKeyDown={e => {
@@ -417,9 +417,9 @@ export default function BudgetForm() {
             }}
             disabled={!ownedInput.trim() || !ownedAmount.trim()}
             className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
-          >Add</button>
+          >{t("add")}</button>
         </div>
-        <p className="text-xs text-muted-foreground">e.g. "olive oil" + "500ml", "rice" + "1kg"</p>
+        <p className="text-xs text-muted-foreground">{t("ownedHint")}</p>
       </div>
 
       {/* Generate Button */}
