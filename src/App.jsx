@@ -8,6 +8,8 @@ import Home from './pages/Home';
 import MealPlan from './pages/MealPlan';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -43,6 +45,8 @@ const AuthenticatedApp = () => {
         <Route path="/meal-plan" element={<MealPlan />} />
         <Route path="/saved-plans" element={<SavedMealPlans />} />
         <Route path="/nutrition" element={<Nutrition />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
 
       </Route>
       <Route path="*" element={<PageNotFound />} />

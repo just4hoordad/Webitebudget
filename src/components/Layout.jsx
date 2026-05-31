@@ -95,6 +95,24 @@ export default function Layout() {
               </Link>
             );
           })}
+          <Link
+            to="/about"
+            className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
+              location.pathname === "/about" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <span className="text-lg leading-none">ℹ️</span>
+            <span>About</span>
+          </Link>
+          <Link
+            to="/contact"
+            className={`flex flex-col items-center gap-1 px-8 py-3 text-xs font-medium transition-colors select-none ${
+              location.pathname === "/contact" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <span className="text-lg leading-none">✉️</span>
+            <span>Contact</span>
+          </Link>
         </div>
       </nav>
     </div>
