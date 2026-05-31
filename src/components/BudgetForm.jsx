@@ -54,6 +54,7 @@ export default function BudgetForm() {
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
+  const [days, setDays] = useState(30);
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
@@ -88,6 +89,7 @@ export default function BudgetForm() {
       : selectedStores.join(",");
     const params = new URLSearchParams({
       budget: budget[0],
+      days: days,
       stores: storesParam,
       diet: selectedDiet,
       people: people,
@@ -133,6 +135,31 @@ export default function BudgetForm() {
           <span>€50</span>
           <span>{t("avgStudent")}</span>
           <span>€400</span>
+        </div>
+      </div>
+
+      {/* Duration */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
+          <span className="font-heading font-bold text-lg bg-primary/10 text-primary px-3 py-1 rounded-xl">
+            {days} {t("days") || "days"}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[5, 7, 10, 14, 21, 30].map((d) => (
+            <button
+              key={d}
+              onClick={() => setDays(d)}
+              className={`flex-1 min-w-[56px] py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                days === d
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:border-primary/40"
+              }`}
+            >
+              {d === 30 ? (t("month") || "Month") : `${d}d`}
+            </button>
+          ))}
         </div>
       </div>
 

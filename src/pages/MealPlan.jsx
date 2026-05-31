@@ -27,6 +27,7 @@ export default function MealPlan() {
   const diet = params.get("diet") || "balanced";
   const people = params.get("people") || 1;
   const calories = params.get("calories") || 2000;
+  const days = parseInt(params.get("days") || "30", 10);
   const saleHunt = params.get("saleHunt") === "true";
   const bio = params.get("bio") === "true";
   const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
@@ -60,9 +61,9 @@ export default function MealPlan() {
     setLoading(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Generate a monthly grocery list for ${people} person(s) with a ${diet} diet in Germany.
+        prompt: `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
 
-Budget: €${budget}/month.
+Budget: €${budget} for ${days} days.
 Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
@@ -70,7 +71,7 @@ ${diet === "half-cooked" ? `DIET MODE: HALF-COOKED / CONVENIENCE MEALS. Only inc
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
-3. The price field = unit price × quantity needed for the full month (e.g. 4x Vollmilch 1L at €0.99 = price: 3.96, unit_price: 0.99, quantity: "4x 1L").
+3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
 4. CRITICAL BUDGET RULE: Keep adding items until the sum of all price fields is between €${(budget*0.95).toFixed(0)} and €${(budget*1.00).toFixed(0)}. Never go over €${budget}. If you are under €${(budget*0.95).toFixed(0)}, add more items or increase quantities. The total_estimated_cost MUST reflect the real sum of all item prices.
 5. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
@@ -328,11 +329,14 @@ ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home
     }
   };
 
-  const buildWeekPrompt = (availableItems, weekNum, totalWeeks, previousWeeksSummary = "") => `Create a complete 7-day meal plan for week ${weekNum} of ${totalWeeks}.
+  const totalDays = days;
+  const totalWeeks = Math.ceil(totalDays / 7);
+
+  const buildWeekPrompt = (availableItems, weekNum, totalWks, daysInThisWeek, previousWeeksSummary = "") => `Create a complete ${daysInThisWeek}-day meal plan for week ${weekNum} of ${totalWks}.
 
 IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
 
-AVAILABLE INGREDIENTS (TOTAL for the entire month = ${totalWeeks} weeks):
+AVAILABLE INGREDIENTS (TOTAL for ${totalDays} days = ${totalWks} week(s)):
 ${availableItems}
 
 Diet type: ${diet}
@@ -341,14 +345,14 @@ Number of people: ${people}
 
 CRITICAL RULES:
 1. Use ONLY the ingredients listed above — no substitutions or additions
-2. The quantities listed are the TOTAL available for the ENTIRE MONTH (${totalWeeks} weeks)
-3. Divide ingredient usage roughly equally across all ${totalWeeks} weeks — use approx 1/${totalWeeks} of total quantity per week
+2. The quantities listed are the TOTAL available for ALL ${totalDays} days
+3. Divide ingredient usage roughly equally across all ${totalWks} weeks — use approx 1/${totalWks} of total quantity per week
 4. For each meal, specify EXACTLY how much of each ingredient is used per day
 ${previousWeeksSummary ? `5. VARIETY: The following meals were used in previous weeks — do NOT repeat them:\n${previousWeeksSummary}` : ""}
 
 Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
 
-RETURN EXACTLY 7 days with no gaps or missing days.`;
+RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
   const generateWeeklyPlan = async () => {
     const availableItems = groceries?.categories?.flatMap(cat =>
@@ -358,8 +362,9 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
     ).join(", ");
 
     setLoadingPlan(true);
+    const daysInWeek = Math.min(totalDays, 7);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: buildWeekPrompt(availableItems, 1, 4),
+      prompt: buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek),
       response_json_schema: weeklyPlanSchema
     });
     setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: result.days || [] }] });
@@ -376,16 +381,18 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
     setLoadingPlan(true);
     const weeks = [];
     let previousMeals = "";
+    let daysRemaining = totalDays;
 
-    for (let w = 1; w <= 4; w++) {
+    for (let w = 1; w <= totalWeeks; w++) {
+      const daysInThisWeek = Math.min(daysRemaining, 7);
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: buildWeekPrompt(availableItems, w, 4, previousMeals),
+        prompt: buildWeekPrompt(availableItems, w, totalWeeks, daysInThisWeek, previousMeals),
         response_json_schema: weeklyPlanSchema
       });
-      const days = result.days || [];
-      weeks.push({ week: w, days });
-      // Collect meal names for variety enforcement
-      previousMeals += `\nWeek ${w}: ` + days.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
+      const weekDays = result.days || [];
+      weeks.push({ week: w, days: weekDays });
+      previousMeals += `\nWeek ${w}: ` + weekDays.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
+      daysRemaining -= daysInThisWeek;
     }
 
     setWeeklyPlan({ type: "unique", weeks });
@@ -635,7 +642,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
       <div>
         <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
         <p className="text-sm text-muted-foreground">
-          {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
+          {diet} diet · €{budget}/{days} {t("days") || "days"} · {calories} kcal/day · {people} person(s)
         </p>
       </div>
 
@@ -651,8 +658,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
                 <span className="font-heading font-semibold text-foreground">{t("estimatedTotal")}</span>
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
-                €{activeTotal.toFixed(2)}
-                <span className="text-sm font-normal text-muted-foreground ml-1">/ {t("month")}</span>
+              €{activeTotal.toFixed(2)}
+              <span className="text-sm font-normal text-muted-foreground ml-1">/ {days} {t("days") || "days"}</span>
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">

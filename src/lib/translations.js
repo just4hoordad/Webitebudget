@@ -145,6 +145,8 @@ const translations = {
     mapTapToPin: "Tap a store marker on the map to pin a specific location",
     mapExactStoresUsed: "These exact stores will be used for your grocery list",
     done: "Done",
+    durationDays: "Duration",
+    days: "days",
   },
 
   de: {
@@ -284,6 +286,8 @@ const translations = {
     mapTapToPin: "Auf einen Filial-Marker tippen, um ihn anzupinnen",
     mapExactStoresUsed: "Diese Filialen werden für Ihre Einkaufsliste verwendet",
     done: "Fertig",
+    durationDays: "Zeitraum",
+    days: "Tage",
   },
 
   fr: {
