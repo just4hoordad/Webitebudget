@@ -354,6 +354,36 @@ Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${M
 
 RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
+  const generateExactDaysPlan = async () => {
+    const availableItems = groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => `${item.name} (${item.quantity})`)
+    ).join(", ");
+
+    setLoadingPlan(true);
+
+    // Split into chunks of 7 days max
+    const weeks = [];
+    let daysRemaining = totalDays;
+    let previousMeals = "";
+
+    for (let w = 1; w <= totalWeeks; w++) {
+      const daysInThisWeek = Math.min(daysRemaining, 7);
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: buildWeekPrompt(availableItems, w, totalWeeks, daysInThisWeek, previousMeals),
+        response_json_schema: weeklyPlanSchema
+      });
+      const weekDays = result.days || [];
+      weeks.push({ week: w, days: weekDays });
+      previousMeals += `\nWeek ${w}: ` + weekDays.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
+      daysRemaining -= daysInThisWeek;
+    }
+
+    setWeeklyPlan({ type: "exact", weeks });
+    setLoadingPlan(false);
+  };
+
   const generateWeeklyPlan = async () => {
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
@@ -788,8 +818,15 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
+                    onClick={generateExactDaysPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
+                  >
+                    <span className="text-base font-heading font-semibold">📅 {days}-Day Plan</span>
+                    <span className="text-xs opacity-80">Generate a unique meal plan for all {days} days of your budget</span>
+                  </button>
+                  <button
                     onClick={generateWeeklyPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left"
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 text-left"
                   >
                     <span className="text-base font-heading font-semibold">{t("repeatWeeklyPlan")}</span>
                     <span className="text-xs opacity-80">{t("repeatWeeklyPlanDesc")}</span>
@@ -812,10 +849,17 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
              {/* Header label */}
              <div className="flex items-center gap-2">
                <span className="font-heading font-bold text-lg">
-                 {weeklyPlan.type === "unique" ? t("uniqueMonthlyPlan") : "🔁 " + t("yourWeeklyMealPlanHeader")}
+                 {weeklyPlan.type === "exact"
+                   ? `📅 ${days}-Day Meal Plan`
+                   : weeklyPlan.type === "unique"
+                   ? t("uniqueMonthlyPlan")
+                   : "🔁 " + t("yourWeeklyMealPlanHeader")}
                </span>
                {weeklyPlan.type === "repeat" && (
                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{t("repeats4Weeks")}</span>
+               )}
+               {weeklyPlan.type === "exact" && (
+                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{days} days · {weeklyPlan.weeks.length} week(s)</span>
                )}
              </div>
 
@@ -887,7 +931,11 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
              {/* Footer actions */}
              <div className="bg-muted rounded-xl px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
                <p className="text-xs text-muted-foreground">
-                 {weeklyPlan.type === "repeat" ? t("repeatNote") : t("unique4WeeksGenerated")}
+                 {weeklyPlan.type === "repeat"
+                   ? t("repeatNote")
+                   : weeklyPlan.type === "exact"
+                   ? `📅 Unique meal plan for all ${days} days`
+                   : t("unique4WeeksGenerated")}
                </p>
                <div className="flex items-center gap-2">
                  <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
