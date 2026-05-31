@@ -179,7 +179,7 @@ export default function BudgetForm() {
               ))}
             </div>
             <button onClick={() => setSelectedStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
-              Clear pinned stores
+              {t("clearPinnedStores")}
             </button>
           </div>
         ) : (
@@ -199,7 +199,7 @@ export default function BudgetForm() {
                  </button>
                ))}
              </div>
-             <p className="text-xs font-medium text-muted-foreground">Drugstores</p>
+             <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
              <div className="flex flex-wrap gap-2">
                {DRUGSTORES.map((store) => (
                  <button

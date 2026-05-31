@@ -27,7 +27,7 @@ export default function SavedMealPlans() {
   };
 
   const deletePlan = async (id) => {
-    if (!confirm("Delete this meal plan?")) return;
+    if (!confirm(t("deletePlanConfirm"))) return;
     setPlans(prev => prev.filter(p => p.id !== id));
     await base44.entities.MealPlan.delete(id);
   };
@@ -61,7 +61,7 @@ export default function SavedMealPlans() {
                         <Leaf className="h-4 w-4" />
                         {plan.diet}
                       </span>
-                      <span>€{plan.budget?.toFixed(2)}/month</span>
+                      <span>€{plan.budget?.toFixed(2)}{t("budgetPerMonth")}</span>
                       <span>{plan.calories} kcal/day</span>
                       <span>{plan.people} {t("personS")}</span>
                     </div>
@@ -79,7 +79,7 @@ export default function SavedMealPlans() {
                     <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
                       <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
                         <BarChart2 className="h-3.5 w-3.5" />
-                        Nutrition
+                        {t("nutrition")}
                       </button>
                     </Link>
                     <button

@@ -675,7 +675,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
             </div>
             {totalSaved > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                <p className="text-xs text-yellow-700 font-medium">💰 Saved vs. regular prices</p>
+                <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
                 <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
               </div>
             )}
@@ -764,7 +764,7 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-card border border-dashed border-primary/40 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Add item with AI search
+            {t("addItemWithAI")}
           </button>
 
           {/* Generate Weekly Plan Buttons */}
@@ -782,15 +782,15 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
                     onClick={generateWeeklyPlan}
                     className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left"
                   >
-                    <span className="text-base font-heading font-semibold">🔁 Repeat Weekly Plan</span>
-                    <span className="text-xs opacity-80">Generate 1 week that repeats for 4 weeks</span>
+                    <span className="text-base font-heading font-semibold">{t("repeatWeeklyPlan")}</span>
+                    <span className="text-xs opacity-80">{t("repeatWeeklyPlanDesc")}</span>
                   </button>
                   <button
                     onClick={generateUniqueMonthlyPlan}
                     className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 text-left"
                   >
-                    <span className="text-base font-heading font-semibold">🗓️ Unique Monthly Plan</span>
-                    <span className="text-xs opacity-80">Generate 4 different weeks — takes longer</span>
+                    <span className="text-base font-heading font-semibold">{t("uniqueMonthlyPlan")}</span>
+                    <span className="text-xs opacity-80">{t("uniqueMonthlyPlanDesc")}</span>
                   </button>
                 </div>
               </div>
@@ -803,10 +803,10 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
              {/* Header label */}
              <div className="flex items-center gap-2">
                <span className="font-heading font-bold text-lg">
-                 {weeklyPlan.type === "unique" ? "🗓️ Your 4-Week Unique Meal Plan" : "🔁 Your Weekly Meal Plan"}
+                 {weeklyPlan.type === "unique" ? t("uniqueMonthlyPlan") : "🔁 " + t("yourWeeklyMealPlanHeader")}
                </span>
                {weeklyPlan.type === "repeat" && (
-                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">repeats 4 weeks</span>
+                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{t("repeats4Weeks")}</span>
                )}
              </div>
 
@@ -868,8 +868,8 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
                    <BarChart2 className="h-5 w-5 text-primary-foreground" />
                  </div>
                  <div className="flex-1 min-w-0">
-                   <p className="font-heading font-semibold text-foreground text-sm">View Nutrition Analysis</p>
-                   <p className="text-xs text-muted-foreground">Protein, fat & carbs breakdown with charts</p>
+                   <p className="font-heading font-semibold text-foreground text-sm">{t("viewNutritionAnalysis")}</p>
+                   <p className="text-xs text-muted-foreground">{t("nutritionSubtitle")}</p>
                  </div>
                  <span className="text-primary font-semibold text-sm shrink-0">→</span>
                </div>
@@ -878,12 +878,12 @@ RETURN EXACTLY 7 days with no gaps or missing days.`;
              {/* Footer actions */}
              <div className="bg-muted rounded-xl px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
                <p className="text-xs text-muted-foreground">
-                 {weeklyPlan.type === "repeat" ? t("repeatNote") : "4 unique weeks generated"}
+                 {weeklyPlan.type === "repeat" ? t("repeatNote") : t("unique4WeeksGenerated")}
                </p>
                <div className="flex items-center gap-2">
                  <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
                    <FileDown className="h-4 w-4" />
-                   Download Plan
+                   {t("downloadPlan")}
                  </Button>
                  <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
                    <Save className="h-4 w-4" />

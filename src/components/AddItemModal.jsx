@@ -2,8 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Search, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function AddItemModal({ stores, diet, onAdd, onClose }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState([]);
@@ -66,7 +68,7 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h3 className="font-heading font-semibold text-foreground">Add Item to List</h3>
+          <h3 className="font-heading font-semibold text-foreground">{t("addItemTitle")}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-5 w-5" />
           </button>
@@ -78,7 +80,7 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
             <input
               autoFocus
               className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="What are you looking for? e.g. greek yogurt…"
+              placeholder={t("addItemPlaceholder")}
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === "Enter" && search()}
@@ -89,10 +91,10 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              Search
+              {t("search")}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">AI will find the best options at your selected stores</p>
+          <p className="text-xs text-muted-foreground mt-2">{t("addItemHint")}</p>
         </div>
 
         {/* Results */}
@@ -100,7 +102,7 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
           {loading && (
             <div className="flex flex-col items-center justify-center py-10 gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground animate-pulse">Searching {stores}…</p>
+              <p className="text-sm text-muted-foreground animate-pulse">{t("search")} {stores}…</p>
             </div>
           )}
           {!loading && alternatives.length === 0 && query && (
@@ -139,14 +141,14 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
         {/* Footer */}
         <div className="px-5 py-4 border-t border-border flex gap-2">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted/40 transition-colors">
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleConfirm}
             disabled={!selected}
             className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
           >
-            Add to List
+            {t("addToList")}
           </button>
         </div>
       </motion.div>
