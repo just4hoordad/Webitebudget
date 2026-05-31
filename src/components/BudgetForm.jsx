@@ -124,17 +124,17 @@ export default function BudgetForm() {
           </div>
         </div>
         <Slider
-          value={[Math.min(budget[0], 400)]}
+          value={[Math.min(budget[0], 600)]}
           onValueChange={setBudget}
-          max={400}
-          min={50}
+          max={600}
+          min={10}
           step={5}
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>€50</span>
+          <span>€10</span>
           <span>{t("avgStudent")}</span>
-          <span>€400</span>
+          <span>€600</span>
         </div>
       </div>
 
