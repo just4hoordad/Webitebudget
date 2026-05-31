@@ -140,26 +140,21 @@ export default function BudgetForm() {
 
       {/* Duration */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
-          <span className="font-heading font-bold text-lg bg-primary/10 text-primary px-3 py-1 rounded-xl">
-            {days} {t("days") || "days"}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {[5, 7, 10, 14, 21, 30].map((d) => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              className={`flex-1 min-w-[56px] py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                days === d
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:border-primary/40"
-              }`}
-            >
-              {d === 30 ? (t("month") || "Month") : `${d}d`}
-            </button>
-          ))}
+        <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
+        <div className="flex items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            max={30}
+            value={days}
+            onChange={e => {
+              const val = parseInt(e.target.value, 10);
+              if (!isNaN(val) && val >= 1 && val <= 30) setDays(val);
+            }}
+            className="flex-1 border border-border rounded-xl px-4 py-3 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="1-30"
+          />
+          <span className="font-heading font-bold text-sm text-muted-foreground">{t("days") || "days"}</span>
         </div>
       </div>
 
