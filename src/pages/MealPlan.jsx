@@ -821,8 +821,8 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                     onClick={generateExactDaysPlan}
                     className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
                   >
-                    <span className="text-base font-heading font-semibold">📅 {days}-Day Plan</span>
-                    <span className="text-xs opacity-80">Generate a unique meal plan for all {days} days of your budget</span>
+                    <span className="text-base font-heading font-semibold">📅 Generate {days}-Day Meal Plan</span>
+                    <span className="text-xs opacity-80">A unique meal plan tailored to exactly {days} day{days !== 1 ? "s" : ""} — matches your budget period</span>
                   </button>
                   <button
                     onClick={generateWeeklyPlan}
