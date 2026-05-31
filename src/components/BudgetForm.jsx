@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 
 const GROCERY_STORES = [
@@ -33,14 +33,14 @@ const CALORIE_GOAL_KEYS = [
 ];
 
 const DIET_KEYS = [
-  { id: "balanced", nameKey: "balanced", icon: Users },
-  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf },
-  { id: "vegan", nameKey: "vegan", icon: Leaf },
-  { id: "high-protein", nameKey: "highProtein", icon: Beef },
-  { id: "pescatarian", nameKey: "pescatarian", icon: Fish },
-  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat },
-  { id: "halal", nameKey: "halal", icon: Users },
-  { id: "frozen", nameKey: "frozenFoods", icon: Beef },
+  { id: "balanced", nameKey: "balanced", icon: Scale, sub: "Balanced" },
+  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, sub: "Plant-based" },
+  { id: "vegan", nameKey: "vegan", icon: Leaf, sub: "100% plant" },
+  { id: "high-protein", nameKey: "highProtein", icon: Beef, sub: "Muscle fuel" },
+  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, sub: "Fish & plants" },
+  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, sub: "No gluten" },
+  { id: "halal", nameKey: "halal", icon: null, sub: "Certified" },
+  { id: "frozen", nameKey: "frozenFoods", icon: null, sub: "Heat & eat" },
 ];
 
 
@@ -270,21 +270,35 @@ export default function BudgetForm() {
       {/* Diet Type */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {DIET_KEYS.map((diet) => {
             const Icon = diet.icon;
+            const isSelected = selectedDiet === diet.id;
             return (
               <button
                 key={diet.id}
                 onClick={() => setSelectedDiet(diet.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 overflow-hidden min-w-0 ${
-                  selectedDiet === diet.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-foreground border-border hover:border-primary/40"
+                className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                    : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
                 }`}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{t(diet.nameKey)}</span>
+                <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
+                  {diet.id === "halal" ? (
+                    <span className="text-xl font-bold leading-none">حلال</span>
+                  ) : diet.id === "frozen" ? (
+                    <span className="text-xl leading-none">❄️</span>
+                  ) : Icon ? (
+                    <Icon className="h-6 w-6" />
+                  ) : null}
+                </div>
+                <span className={`font-heading font-semibold text-sm leading-tight ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                  {t(diet.nameKey)}
+                </span>
+                <span className={`text-xs leading-tight ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                  {diet.sub}
+                </span>
               </button>
             );
           })}
