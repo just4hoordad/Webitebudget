@@ -14,7 +14,7 @@ export default function Contact() {
     if (!form.name || !form.email || !form.message) return;
     setSending(true);
     await base44.integrations.Core.SendEmail({
-      to: "hello@budgetbite.app",
+    to: "Hoordad.sedaghat@gmail.com",
       subject: `Contact from ${form.name} <${form.email}>`,
       body: form.message,
     });
@@ -39,9 +39,9 @@ export default function Contact() {
           <Mail className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-0.5">Email us directly</p>
-          <a href="mailto:hello@budgetbite.app" className="font-heading font-semibold text-primary hover:underline">
-            hello@budgetbite.app
+          <p className="text-xs text-muted-foreground mb-0.5">Owner — Hourdad Alisedaghat</p>
+          <a href="mailto:Hoordad.sedaghat@gmail.com" className="font-heading font-semibold text-primary hover:underline">
+            Hoordad.sedaghat@gmail.com
           </a>
         </div>
       </div>

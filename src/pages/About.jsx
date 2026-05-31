@@ -27,8 +27,12 @@ export default function About() {
           plan as a PDF or CSV, and even track your nutritional breakdown with protein, fat, and carb charts.
         </p>
         <p className="text-muted-foreground text-base leading-relaxed">
-          BudgetBite is built and maintained by a small team passionate about making healthy eating accessible and 
-          affordable for everyone. It is completely free to use — no account required, no credit card, ever.
+          BudgetBite is built and maintained by <strong className="text-foreground">Hourdad Alisedaghat</strong>, 
+          passionate about making healthy eating accessible and affordable for everyone. It is completely free to use — 
+          no account required, no credit card, ever.
+        </p>
+        <p className="text-muted-foreground text-sm mt-3">
+          📧 <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary hover:underline">Hoordad.sedaghat@gmail.com</a>
         </p>
       </div>
 

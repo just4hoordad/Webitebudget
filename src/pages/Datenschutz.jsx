@@ -7,8 +7,8 @@ export default function Datenschutz() {
         <h2 className="font-heading text-lg font-semibold text-foreground">1. Verantwortlicher</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Verantwortlich für die Verarbeitung personenbezogener Daten auf dieser Website ist:<br />
-          <strong className="text-foreground">BudgetBite</strong><br />
-          E-Mail: hello@budgetbite.app
+          <strong className="text-foreground">Hourdad Alisedaghat</strong><br />
+          E-Mail: <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary underline">Hoordad.sedaghat@gmail.com</a>
         </p>
       </section>
 
@@ -59,9 +59,9 @@ export default function Datenschutz() {
       <section className="space-y-2">
         <h2 className="font-heading text-lg font-semibold text-foreground">7. Kontakt</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Bei Fragen zum Datenschutz können Sie uns jederzeit unter{" "}
-          <a href="mailto:hello@budgetbite.app" className="text-primary underline">hello@budgetbite.app</a>{" "}
-          erreichen.
+          Bei Fragen zum Datenschutz können Sie sich jederzeit an den Verantwortlichen wenden:{" "}
+          <strong className="text-foreground">Hourdad Alisedaghat</strong>,{" "}
+          <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary underline">Hoordad.sedaghat@gmail.com</a>
         </p>
       </section>
 
