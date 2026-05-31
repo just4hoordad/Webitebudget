@@ -150,6 +150,7 @@ const translations = {
   },
 
   de: {
+
     home: "Startseite",
     savedPlans: "Gespeicherte Pläne",
     footerText: "BudgetBite — Clevere Mahlzeitenplanung für Studenten in Deutschland",
@@ -291,6 +292,7 @@ const translations = {
   },
 
   fr: {
+
     home: "Accueil",
     savedPlans: "Plans sauvegardés",
     footerText: "BudgetBite — Planification de repas intelligente pour les étudiants en Allemagne",
@@ -410,6 +412,8 @@ const translations = {
     sevenDayPlan: "Plan repas 7 jours",
     kcalDay: "kcal/jour",
     personS: "personne(s)",
+    durationDays: "Durée",
+    days: "jours",
   },
 
   es: {
@@ -532,6 +536,8 @@ const translations = {
     sevenDayPlan: "Plan de comidas 7 días",
     kcalDay: "kcal/día",
     personS: "persona(s)",
+    durationDays: "Duración",
+    days: "días",
   },
 
   ar: {
@@ -654,6 +660,8 @@ const translations = {
     sevenDayPlan: "خطة وجبات 7 أيام",
     kcalDay: "سعر حراري/يوم",
     personS: "شخص/أشخاص",
+    durationDays: "المدة",
+    days: "أيام",
   },
 
   ru: {
@@ -792,6 +800,8 @@ const translations = {
     mapTapToPin: "Нажмите маркер магазина, чтобы отметить его",
     mapExactStoresUsed: "Эти магазины будут использованы для вашего списка",
     done: "Готово",
+    durationDays: "Период",
+    days: "дней",
   },
 
   uk: {
@@ -914,6 +924,8 @@ const translations = {
     sevenDayPlan: "7-денний план харчування",
     kcalDay: "ккал/день",
     personS: "люд.",
+    durationDays: "Період",
+    days: "днів",
   },
 
   fa: {
@@ -1052,6 +1064,8 @@ const translations = {
     mapTapToPin: "روی علامت فروشگاه ضربه بزنید تا پین شود",
     mapExactStoresUsed: "این فروشگاه‌ها برای لیست خرید شما استفاده خواهند شد",
     done: "تمام",
+    durationDays: "مدت",
+    days: "روز",
   },
   zh: {
     home: "首页",
@@ -1189,6 +1203,8 @@ const translations = {
     mapTapToPin: "点击门店标记以标记具体位置",
     mapExactStoresUsed: "这些门店将用于您的购物清单",
     done: "完成",
+    durationDays: "时长",
+    days: "天",
   },
 
   vi: {
@@ -1311,6 +1327,8 @@ const translations = {
     sevenDayPlan: "Kế hoạch bữa ăn 7 ngày",
     kcalDay: "kcal/ngày",
     personS: "người",
+    durationDays: "Thời hạn",
+    days: "ngày",
   },
   tr: {
     home: "Ana Sayfa",
@@ -1432,6 +1450,8 @@ const translations = {
     sevenDayPlan: "7 Günlük Öğün Planı",
     kcalDay: "kkal/gün",
     personS: "kişi",
+    durationDays: "Süre",
+    days: "gün",
   },
 };
 
