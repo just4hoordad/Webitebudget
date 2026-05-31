@@ -48,7 +48,7 @@ const DIET_KEYS = [
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [budget, setBudget] = useState([150]); // default within 10–600 range
+  const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
@@ -113,12 +113,11 @@ export default function BudgetForm() {
             <Euro className="h-5 w-5 shrink-0" />
             <input
               type="number"
-              min={10}
-              max={600}
+              min={1}
               value={budget[0]}
               onChange={e => {
                 const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 10 && val <= 600) setBudget([val]);
+                if (!isNaN(val) && val > 0) setBudget([val]);
               }}
               className="w-20 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"
             />
