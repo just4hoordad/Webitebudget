@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import CookieBanner from "./CookieBanner";
 import { ShoppingCart, Home, BookMarked, ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
@@ -71,6 +72,8 @@ export default function Layout() {
           </AnimatePresence>
         )}
       </main>
+
+      <CookieBanner />
 
       {/* Bottom Tab Bar */}
       <nav
