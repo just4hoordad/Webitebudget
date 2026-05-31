@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import BudgetForm from "../components/BudgetForm";
 import { useLanguage } from "@/lib/LanguageContext";
+import { Link } from "react-router-dom";
 import { Sparkles, TrendingDown, ShoppingCart, Salad, Trash2, Zap, Lock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -134,6 +135,12 @@ export default function Home() {
           </Button>
         </div>
       )}
+      {/* Footer */}
+      <div className="text-center pb-4">
+        <Link to="/datenschutz" className="text-xs text-muted-foreground hover:text-primary underline transition-colors">
+          Datenschutzerklärung
+        </Link>
+      </div>
     </div>
     </PullToRefresh>
   );
