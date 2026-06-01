@@ -11,7 +11,6 @@ import Nutrition from './pages/Nutrition';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
-import AdminInbox from './pages/AdminInbox';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -50,7 +49,6 @@ const AuthenticatedApp = () => {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/datenschutz" element={<Datenschutz />} />
-        <Route path="/admin/inbox" element={<AdminInbox />} />
 
       </Route>
       <Route path="*" element={<PageNotFound />} />
