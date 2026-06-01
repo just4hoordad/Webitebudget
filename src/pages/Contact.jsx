@@ -17,15 +17,20 @@ export default function Contact() {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) return;
     setSending(true);
-    await base44.integrations.Core.SendEmail({
-      to: "Hoordad.sedaghat@gmail.com",
-      subject: `Contact from ${form.name} <${form.email}>`,
-      body: form.message,
-    });
-    setSending(false);
-    setSent(true);
-    toast.success(p.contactToast);
-    setForm({ name: "", email: "", message: "" });
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: "Hoordad.sedaghat@gmail.com",
+        subject: `Contact from ${form.name} <${form.email}>`,
+        body: `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
+      });
+      setSent(true);
+      toast.success(p.contactToast);
+      setForm({ name: "", email: "", message: "" });
+    } catch (err) {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
