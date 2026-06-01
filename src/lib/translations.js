@@ -148,6 +148,7 @@ const translations = {
     done: "Done",
     durationDays: "Duration",
     days: "days",
+    privacyNav: "Privacy",
   },
 
   de: {
@@ -291,6 +292,7 @@ const translations = {
     done: "Fertig",
     durationDays: "Zeitraum",
     days: "Tage",
+    privacyNav: "Datenschutz",
   },
 
   fr: {
@@ -417,6 +419,7 @@ const translations = {
     personS: "personne(s)",
     durationDays: "Durée",
     days: "jours",
+    privacyNav: "Confidentialité",
   },
 
   es: {
@@ -542,6 +545,7 @@ const translations = {
     personS: "persona(s)",
     durationDays: "Duración",
     days: "días",
+    privacyNav: "Privacidad",
   },
 
   ar: {
@@ -667,6 +671,7 @@ const translations = {
     personS: "شخص/أشخاص",
     durationDays: "المدة",
     days: "أيام",
+    privacyNav: "الخصوصية",
   },
 
   ru: {
@@ -808,6 +813,7 @@ const translations = {
     done: "Готово",
     durationDays: "Период",
     days: "дней",
+    privacyNav: "Конфиденциальность",
   },
 
   uk: {
@@ -933,6 +939,7 @@ const translations = {
     personS: "люд.",
     durationDays: "Період",
     days: "днів",
+    privacyNav: "Конфіденційність",
   },
 
   fa: {
@@ -1074,6 +1081,7 @@ const translations = {
     done: "تمام",
     durationDays: "مدت",
     days: "روز",
+    privacyNav: "حریم خصوصی",
   },
   zh: {
     home: "首页",
@@ -1214,6 +1222,7 @@ const translations = {
     done: "完成",
     durationDays: "时长",
     days: "天",
+    privacyNav: "隐私",
   },
 
   vi: {
@@ -1339,6 +1348,7 @@ const translations = {
     personS: "người",
     durationDays: "Thời hạn",
     days: "ngày",
+    privacyNav: "Riêng tư",
   },
   tr: {
     home: "Ana Sayfa",
@@ -1463,6 +1473,7 @@ const translations = {
     personS: "kişi",
     durationDays: "Süre",
     days: "gün",
+    privacyNav: "Gizlilik",
   },
 };
 

@@ -123,7 +123,7 @@ export default function Layout() {
             }`}
           >
             <span className="text-lg leading-none shrink-0">🔒</span>
-            <span className="truncate w-full text-center px-1">Datenschutz</span>
+            <span className="truncate w-full text-center px-1">{t("privacyNav")}</span>
           </Link>
 
         </div>
