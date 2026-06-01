@@ -80,7 +80,7 @@ export default function Layout() {
         className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="flex items-stretch w-full">
+        <div className="flex items-stretch w-full overflow-x-auto scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;

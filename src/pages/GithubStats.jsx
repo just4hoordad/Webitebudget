@@ -38,7 +38,7 @@ export default function GithubStats() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
+    <div className="w-full max-w-2xl mx-auto space-y-6 py-2">
       <div>
         <h1 className="font-heading text-3xl font-bold text-foreground mb-1">GitHub Repository Stats</h1>
         <p className="text-muted-foreground text-sm">Statistiken für ein GitHub-Repository abrufen</p>
@@ -46,7 +46,7 @@ export default function GithubStats() {
 
       {/* Input */}
       <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             placeholder="Owner (z.B. hoordad)"
@@ -55,7 +55,7 @@ export default function GithubStats() {
             onKeyDown={e => e.key === "Enter" && handleFetch()}
             className="flex-1 border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
-          <span className="flex items-center text-muted-foreground font-bold">/</span>
+          <span className="hidden sm:flex items-center text-muted-foreground font-bold">/</span>
           <input
             type="text"
             placeholder="Repository (z.B. budgetbite)"
