@@ -9,11 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: "Hoordad.sedaghat@gmail.com",
-      subject: `Contact from ${name} <${email}>`,
-      body: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-    });
+    await base44.asServiceRole.entities.ContactMessage.create({ name, email, message, read: false });
 
     return Response.json({ success: true });
   } catch (error) {
