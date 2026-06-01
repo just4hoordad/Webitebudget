@@ -18,10 +18,10 @@ export default function Contact() {
     if (!form.name || !form.email || !form.message) return;
     setSending(true);
     try {
-      await base44.integrations.Core.SendEmail({
-        to: "Hoordad.sedaghat@gmail.com",
-        subject: `Contact from ${form.name} <${form.email}>`,
-        body: `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
+      await base44.functions.invoke('sendContactEmail', {
+        name: form.name,
+        email: form.email,
+        message: form.message,
       });
       setSent(true);
       toast.success(p.contactToast);
