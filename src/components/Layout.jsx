@@ -125,15 +125,7 @@ export default function Layout() {
             <span className="text-lg leading-none shrink-0">🔒</span>
             <span className="truncate w-full text-center px-1">Datenschutz</span>
           </Link>
-          <Link
-            to="/github-stats"
-            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
-              location.pathname === "/github-stats" ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <span className="text-lg leading-none shrink-0">🐙</span>
-            <span className="truncate w-full text-center px-1">GitHub</span>
-          </Link>
+
         </div>
       </nav>
     </div>
