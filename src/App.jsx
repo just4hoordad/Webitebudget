@@ -11,7 +11,7 @@ import Nutrition from './pages/Nutrition';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
-import RepoStats from './pages/RepoStats.jsx';
+import RepoStats from './pages/RepoStats';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
