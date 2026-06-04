@@ -31,7 +31,7 @@ export default function MealPlan() {
   const saleHunt = params.get("saleHunt") === "true";
   const bio = params.get("bio") === "true";
   const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
-  const proteinSnack = params.get("proteinSnack") === "true";
+  const proteinSnackBudget = parseInt(params.get("proteinSnackBudget") || "0", 10);
   const allergies = params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [];
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
 
@@ -82,7 +82,7 @@ ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currentl
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
 ${allergies.length > 0 ? `11. ALLERGIES / INTOLERANCES: NEVER include any products containing or derived from: ${allergies.join(", ")}. This is critical — exclude any item that contains these ingredients.` : ""}
 ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}
-${proteinSnack ? `13. ⚠️ MANDATORY PROTEIN SNACKS — THIS IS REQUIRED, DO NOT SKIP: You MUST add a category called exactly "Protein Snacks" to the categories array. This category MUST contain at least 4 items. Use real branded products sold in Germany at the listed stores, such as: "Corny Big High Protein Bar Schoko 50g" (Rewe/Edeka ~€1.29), "Lidl Protein Bar Chocolate 45g" (~€0.99), "Aldi Skyr Protein Quark 500g" (~€1.49), "dm Protein Shake Pulver Schoko 750g" (~€8.99), "Müllermilch Protein Drink 400ml" (~€1.19). Budget extra €5-15 for this category on top of other groceries — slightly exceed the base budget if needed to fit these in. Do NOT omit this category under any circumstances.` : ""}`,
+${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`,
         add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {

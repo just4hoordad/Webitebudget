@@ -58,7 +58,7 @@ export default function BudgetForm() {
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
-  const [proteinSnack, setProteinSnack] = useState(false);
+  const [proteinSnackBudget, setProteinSnackBudget] = useState(0);
   const [allergyInput, setAllergyInput] = useState("");
   const [allergies, setAllergies] = useState([]);
   const [ownedInput, setOwnedInput] = useState("");
@@ -113,7 +113,7 @@ export default function BudgetForm() {
       saleHunt: saleHunt,
       bio: bio,
       junkPercent: junkPercent[0],
-      proteinSnack: proteinSnack,
+      proteinSnackBudget: proteinSnackBudget,
       allergies: allergies.join(","),
       owned: owned.join(","),
     });
@@ -370,26 +370,45 @@ export default function BudgetForm() {
         </div>
       </div>
 
-      {/* Protein Snack Allowance */}
-      <button
-        onClick={() => setProteinSnack((v) => !v)}
-        className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
-          proteinSnack
-            ? "bg-blue-50 border-blue-500 text-blue-800"
-            : "bg-card border-border hover:border-blue-400/40"
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-xl">💪</span>
-          <div className="text-left">
-            <p className={`text-sm font-semibold ${proteinSnack ? "text-blue-800" : "text-foreground"}`}>Protein Snack Allowance</p>
-            <p className={`text-xs ${proteinSnack ? "text-blue-700/70" : "text-muted-foreground"}`}>Get extra protein bar / shake recommendations that fit your budget</p>
+      {/* Protein Snack Budget */}
+      <div className={`space-y-3 px-5 py-4 rounded-xl border-2 transition-all duration-200 ${proteinSnackBudget > 0 ? "bg-blue-50 border-blue-400" : "bg-card border-border"}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">💪</span>
+            <div>
+              <p className={`text-sm font-semibold ${proteinSnackBudget > 0 ? "text-blue-800" : "text-foreground"}`}>Protein Snack Budget</p>
+              <p className={`text-xs ${proteinSnackBudget > 0 ? "text-blue-700/70" : "text-muted-foreground"}`}>Extra budget dedicated to protein bars, shakes & snacks</p>
+            </div>
+          </div>
+          <div className={`flex items-center gap-1 font-heading font-bold text-lg px-3 py-1 rounded-xl ${proteinSnackBudget > 0 ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"}`}>
+            <Euro className="h-4 w-4 shrink-0" />
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={proteinSnackBudget}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                setProteinSnackBudget(!isNaN(val) && val >= 0 ? val : 0);
+              }}
+              className="w-12 bg-transparent font-heading font-bold text-lg focus:outline-none text-right"
+            />
           </div>
         </div>
-        <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${proteinSnack ? "bg-blue-500" : "bg-muted"}`}>
-          <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${proteinSnack ? "translate-x-4" : "translate-x-0"}`} />
+        <Slider
+          value={[proteinSnackBudget]}
+          onValueChange={([v]) => setProteinSnackBudget(v)}
+          max={50}
+          min={0}
+          step={5}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>€0 (off)</span>
+          <span>€25</span>
+          <span>€50</span>
         </div>
-      </button>
+      </div>
 
       {/* Sale Hunt + Bio */}
       <div className="flex flex-col gap-3">
