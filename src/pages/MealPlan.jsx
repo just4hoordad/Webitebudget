@@ -715,18 +715,35 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                 </p>
               </div>
             </div>
-            {proteinSnackBudget > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💪</span>
-                  <div>
-                    <p className="text-xs font-semibold text-blue-800">{t("proteinSnackBudgetTitle")}</p>
-                    <p className="text-xs text-blue-600">€{parseFloat(budget).toFixed(2)} + €{proteinSnackBudget.toFixed(2)} = €{(parseFloat(budget) + proteinSnackBudget).toFixed(2)} total</p>
+            {proteinSnackBudget > 0 && (() => {
+              const proteinItems = groceries?.categories?.find(c => c.name === "Protein Snacks");
+              const proteinSpent = proteinItems
+                ? proteinItems.items.filter(i => !removedItems.has(`${proteinItems.name}::${i.name}`)).reduce((s, i) => s + (i.price || 0), 0)
+                : 0;
+              const proteinRemaining = proteinSnackBudget - proteinSpent;
+              return (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">💪</span>
+                      <div>
+                        <p className="text-xs font-semibold text-blue-800">{t("proteinSnackBudgetTitle")}</p>
+                        <p className="text-xs text-blue-600">€{parseFloat(budget).toFixed(2)} + €{proteinSnackBudget.toFixed(2)} = €{(parseFloat(budget) + proteinSnackBudget).toFixed(2)} total</p>
+                      </div>
+                    </div>
+                    <p className="font-heading text-lg font-bold text-blue-700">€{proteinSnackBudget.toFixed(2)}</p>
                   </div>
+                  {proteinSpent > 0 && (
+                    <div className="mt-2 flex items-center justify-between text-xs border-t border-blue-200 pt-2">
+                      <span className="text-blue-700">{t("proteinSnackSaved")}</span>
+                      <span className={`font-bold ${proteinRemaining >= 0 ? "text-green-600" : "text-red-500"}`}>
+                        {proteinRemaining >= 0 ? "+" : ""}€{proteinRemaining.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <p className="font-heading text-lg font-bold text-blue-700">€{proteinSnackBudget.toFixed(2)}</p>
-              </div>
-            )}
+              );
+            })()}
             {totalSaved > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
                 <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
