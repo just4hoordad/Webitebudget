@@ -368,7 +368,7 @@ const translations = {
     ownedAmountPlaceholder: "Quantité",
     ownedHint: "ex. « huile d'olive » + « 500ml », « riz » + « 1kg »",
     proteinSnackBudgetTitle: "Budget collations protéinées",
-    proteinSnackBudgetDesc: "Budget supplémentaire pour barres protéinées, shakes & snacks",
+    proteinSnackBudgetDesc: "Budget supplémentaire dédié aux barres protéinées, shakes et snacks",
     generateBtn: "Générer mon plan de repas",
     back: "Retour",
     yourGroceryList: "Votre liste de courses",
