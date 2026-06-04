@@ -701,20 +701,32 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                 <p className="font-heading text-lg font-bold text-foreground">€{parseFloat(budget).toFixed(2)}</p>
               </div>
               <div className={`bg-card border rounded-xl px-4 py-3 ${
-                activeTotal <= budget
+                activeTotal <= parseFloat(budget) + proteinSnackBudget
                   ? 'border-green-200/50'
                   : 'border-destructive/30'
               }`}>
                 <p className="text-xs text-muted-foreground mb-1">{t("remaining")}</p>
                 <p className={`font-heading text-lg font-bold ${
-                  activeTotal <= budget
+                  activeTotal <= parseFloat(budget) + proteinSnackBudget
                     ? 'text-green-600'
                     : 'text-destructive'
                 }`}>
-                  €{(parseFloat(budget) - activeTotal).toFixed(2)}
+                  €{(parseFloat(budget) + proteinSnackBudget - activeTotal).toFixed(2)}
                 </p>
               </div>
             </div>
+            {proteinSnackBudget > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💪</span>
+                  <div>
+                    <p className="text-xs font-semibold text-blue-800">{t("proteinSnackBudgetTitle")}</p>
+                    <p className="text-xs text-blue-600">€{parseFloat(budget).toFixed(2)} + €{proteinSnackBudget.toFixed(2)} = €{(parseFloat(budget) + proteinSnackBudget).toFixed(2)} total</p>
+                  </div>
+                </div>
+                <p className="font-heading text-lg font-bold text-blue-700">€{proteinSnackBudget.toFixed(2)}</p>
+              </div>
+            )}
             {totalSaved > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
                 <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
