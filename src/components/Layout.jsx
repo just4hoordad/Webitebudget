@@ -2,15 +2,38 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
+import { useState, useEffect } from "react";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setIsInstalled(true));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") {
+      setInstallPrompt(null);
+      setIsInstalled(true);
+    }
+  };
 
   const TAB_PATHS = ["/", "/saved-plans"];
   const isTabRoute = TAB_PATHS.includes(location.pathname);
@@ -125,7 +148,15 @@ export default function Layout() {
             <span className="text-lg leading-none shrink-0">🔒</span>
             <span className="truncate w-full text-center px-1">{t("privacyNav")}</span>
           </Link>
-
+          {installPrompt && !isInstalled && (
+            <button
+              onClick={handleInstall}
+              className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-primary"
+            >
+              <Download className="h-5 w-5 shrink-0" />
+              <span className="truncate w-full text-center px-1">Install</span>
+            </button>
+          )}
         </div>
       </nav>
     </div>
