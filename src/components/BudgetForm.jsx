@@ -385,28 +385,28 @@ export default function BudgetForm() {
             <input
               type="number"
               min={0}
-              max={100}
+              max={200}
               value={proteinSnackBudget}
               onChange={e => {
                 const val = parseInt(e.target.value, 10);
                 setProteinSnackBudget(!isNaN(val) && val >= 0 ? val : 0);
               }}
-              className="w-12 bg-transparent font-heading font-bold text-lg focus:outline-none text-right"
+              className="w-16 bg-transparent font-heading font-bold text-lg focus:outline-none text-right"
             />
           </div>
         </div>
         <Slider
           value={[proteinSnackBudget]}
           onValueChange={([v]) => setProteinSnackBudget(v)}
-          max={50}
+          max={200}
           min={0}
           step={5}
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>€0 (off)</span>
-          <span>€25</span>
-          <span>€50</span>
+          <span>€100</span>
+          <span>€200</span>
         </div>
       </div>
 
