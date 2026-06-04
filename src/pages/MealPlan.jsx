@@ -658,7 +658,8 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
         calories: parseFloat(calories),
         people: parseFloat(people),
         stores,
-        plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type }
+        plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type },
+        groceryList: groceries
       });
       setSaved(true);
       toast.success(t("planSaved"));
