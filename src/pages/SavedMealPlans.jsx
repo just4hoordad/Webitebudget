@@ -129,13 +129,15 @@ export default function SavedMealPlans() {
                   </div>
                 )}
 
-                {plan.plan?.days && (
-                  <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
+                {plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
+                  <div key={weekIdx} className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="bg-primary px-5 py-3">
-                      <h3 className="font-heading font-semibold text-primary-foreground">{t("sevenDayPlan")}</h3>
+                      <h3 className="font-heading font-semibold text-primary-foreground">
+                        {plan.plan.weeks.length > 1 ? `Week ${week.week}` : t("sevenDayPlan")}
+                      </h3>
                     </div>
                     <div className="divide-y divide-border">
-                      {plan.plan.days.map((day, idx) => (
+                      {week.days?.map((day, idx) => (
                         <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
                           <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
                           <div className="text-muted-foreground col-span-4 sm:col-span-1">
@@ -157,7 +159,7 @@ export default function SavedMealPlans() {
                       ))}
                     </div>
                   </div>
-                )}
+                ))}
               </div>
             ))}
           </div>
