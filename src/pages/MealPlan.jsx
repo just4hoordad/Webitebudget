@@ -31,6 +31,7 @@ export default function MealPlan() {
   const saleHunt = params.get("saleHunt") === "true";
   const bio = params.get("bio") === "true";
   const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
+  const proteinSnack = params.get("proteinSnack") === "true";
   const allergies = params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [];
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
 
@@ -80,7 +81,8 @@ ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calo
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
 ${allergies.length > 0 ? `11. ALLERGIES / INTOLERANCES: NEVER include any products containing or derived from: ${allergies.join(", ")}. This is critical — exclude any item that contains these ingredients.` : ""}
-${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}`,
+${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}
+${proteinSnack ? `13. PROTEIN SNACK ALLOWANCE IS ON: Include a dedicated "Protein Snacks" category in the grocery list with 3-5 recommended protein snacks available at the listed stores (e.g. protein bars like "Corny High Protein Bar 50g", "MaxiNutrition Protein Bar 55g", protein shakes like "ALDI Fit+Active Protein Shake Chocolate 500ml", protein yogurts like "Skyr Protein 500g", or similar). These must fit within the overall budget. Include the real branded product name, price, and store.` : ""}`,
         add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
