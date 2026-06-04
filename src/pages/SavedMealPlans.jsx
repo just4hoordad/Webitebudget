@@ -3,13 +3,14 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2 } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 
 export default function SavedMealPlans() {
   const { t } = useLanguage();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGrocery, setExpandedGrocery] = useState({});
 
   useEffect(() => {
     loadPlans();
@@ -91,6 +92,43 @@ export default function SavedMealPlans() {
                     </button>
                   </div>
                 </div>
+                {/* Grocery List */}
+                {plan.groceryList?.categories && (
+                  <div className="border border-border rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setExpandedGrocery(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}
+                      className="w-full flex items-center justify-between bg-secondary px-4 py-3 hover:bg-secondary/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ShoppingBasket className="h-4 w-4 text-primary" />
+                        <span className="font-heading font-semibold text-sm text-secondary-foreground">{t("yourGroceryList")}</span>
+                        <span className="text-xs text-muted-foreground">· €{plan.groceryList.total_estimated_cost?.toFixed(2)}</span>
+                      </div>
+                      {expandedGrocery[plan.id] ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                    </button>
+                    {expandedGrocery[plan.id] && (
+                      <div className="divide-y divide-border">
+                        {plan.groceryList.categories.map((cat) => (
+                          <div key={cat.name}>
+                            <div className="bg-muted px-4 py-2">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat.name}</p>
+                            </div>
+                            {cat.items?.map((item, i) => (
+                              <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
+                                <div>
+                                  <p className="font-medium text-foreground">{item.name}</p>
+                                  <p className="text-xs text-muted-foreground">{item.quantity} · {item.store}</p>
+                                </div>
+                                <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {plan.plan?.days && (
                   <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
                     <div className="bg-primary px-5 py-3">
