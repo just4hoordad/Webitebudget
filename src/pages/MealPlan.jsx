@@ -947,6 +947,45 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                </div>
              ))}
 
+             {/* Weekly Summary */}
+             {(() => {
+               const allDays = weeklyPlan.weeks.flatMap(w => w.days || []);
+               const totalCal = allDays.reduce((sum, d) =>
+                 sum + (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0), 0);
+               const avgCal = allDays.length > 0 ? Math.round(totalCal / allDays.length) : 0;
+               const costPerDay = activeTotal / days;
+               const planDays = allDays.length;
+               const planCost = costPerDay * planDays;
+               return (
+                 <div className="bg-card border border-border rounded-xl overflow-hidden">
+                   <div className="bg-secondary px-5 py-3">
+                     <h3 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">📊 Plan Summary</h3>
+                   </div>
+                   <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border">
+                     <div className="px-4 py-4 text-center">
+                       <p className="text-xs text-muted-foreground mb-1">Total Days</p>
+                       <p className="font-heading text-2xl font-bold text-foreground">{planDays}</p>
+                     </div>
+                     <div className="px-4 py-4 text-center">
+                       <p className="text-xs text-muted-foreground mb-1">Total Calories</p>
+                       <p className="font-heading text-2xl font-bold text-primary">{totalCal.toLocaleString()}</p>
+                       <p className="text-xs text-muted-foreground">~{avgCal} kcal/day</p>
+                     </div>
+                     <div className="px-4 py-4 text-center">
+                       <p className="text-xs text-muted-foreground mb-1">Est. Cost</p>
+                       <p className="font-heading text-2xl font-bold text-foreground">€{planCost.toFixed(2)}</p>
+                       <p className="text-xs text-muted-foreground">~€{costPerDay.toFixed(2)}/day</p>
+                     </div>
+                     <div className="px-4 py-4 text-center">
+                       <p className="text-xs text-muted-foreground mb-1">Meals Total</p>
+                       <p className="font-heading text-2xl font-bold text-foreground">{planDays * 3}</p>
+                       <p className="text-xs text-muted-foreground">3 meals/day</p>
+                     </div>
+                   </div>
+                 </div>
+               );
+             })()}
+
              {/* Nutrition CTA */}
              <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block">
                <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 hover:bg-primary/20 transition-colors cursor-pointer">
