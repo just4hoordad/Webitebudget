@@ -854,8 +854,8 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                     onClick={generateExactDaysPlan}
                     className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
                   >
-                    <span className="text-base font-heading font-semibold">📅 Generate {days}-Day Meal Plan</span>
-                    <span className="text-xs opacity-80">A unique meal plan tailored to exactly {days} day{days !== 1 ? "s" : ""} — matches your budget period</span>
+                    <span className="text-base font-heading font-semibold">📅 {t("generateExactDaysPlan") || `Generate ${days}-Day Meal Plan`}</span>
+                    <span className="text-xs opacity-80">{t("generateExactDaysPlanDesc") || `A unique meal plan tailored to exactly ${days} days — matches your budget period`}</span>
                   </button>
                   <button
                     onClick={generateWeeklyPlan}
@@ -883,7 +883,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
              <div className="flex items-center gap-2">
                <span className="font-heading font-bold text-lg">
                  {weeklyPlan.type === "exact"
-                   ? `📅 ${days}-Day Meal Plan`
+                   ? `📅 ${t("exactDaysPlanLabel") || `${days}-Day Meal Plan`}`
                    : weeklyPlan.type === "unique"
                    ? t("uniqueMonthlyPlan")
                    : "🔁 " + t("yourWeeklyMealPlanHeader")}
@@ -892,7 +892,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{t("repeats4Weeks")}</span>
                )}
                {weeklyPlan.type === "exact" && (
-                 <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{days} days · {weeklyPlan.weeks.length} week(s)</span>
+               <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">{days} {t("days") || "days"} · {weeklyPlan.weeks.length} {t("weeks") || "week(s)"}</span>
                )}
              </div>
 
@@ -967,7 +967,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                  {weeklyPlan.type === "repeat"
                    ? t("repeatNote")
                    : weeklyPlan.type === "exact"
-                   ? `📅 Unique meal plan for all ${days} days`
+                   ? `📅 ${t("exactDaysPlanNote") || `Unique meal plan for all ${days} days`}`
                    : t("unique4WeeksGenerated")}
                </p>
                <div className="flex items-center gap-2">
