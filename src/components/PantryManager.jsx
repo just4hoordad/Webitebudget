@@ -168,16 +168,16 @@ export default function PantryManager({ onPantryChange }) {
 
           {/* Add custom item */}
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
+            <div className="flex gap-2 min-w-0">
               <input
-                className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="min-w-0 flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="e.g. olive oil"
                 value={nameInput}
                 onChange={e => setNameInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addItem()}
               />
               <input
-                className="w-24 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="w-20 shrink-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="Amount"
                 value={amountInput}
                 onChange={e => setAmountInput(e.target.value)}
