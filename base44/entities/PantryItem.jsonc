@@ -1,0 +1,21 @@
+{
+  "name": "PantryItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the pantry item"
+    },
+    "amount": {
+      "type": "string",
+      "description": "Amount/quantity of the item"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category like Spices, Oils, Grains, etc."
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

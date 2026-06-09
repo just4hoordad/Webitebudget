@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
+import PantryManager from "@/components/PantryManager";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -64,6 +65,7 @@ export default function BudgetForm() {
   const [ownedInput, setOwnedInput] = useState("");
   const [ownedAmount, setOwnedAmount] = useState("");
   const [owned, setOwned] = useState([]);
+  const [pantryItems, setPantryItems] = useState([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityCoords, setCityCoords] = useState(null);
 
@@ -115,7 +117,7 @@ export default function BudgetForm() {
       junkPercent: junkPercent[0],
       proteinSnackBudget: proteinSnackBudget,
       allergies: allergies.join(","),
-      owned: owned.join(","),
+      owned: [...owned, ...pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : ""))].join(","),
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -479,6 +481,9 @@ export default function BudgetForm() {
           >{t("add")}</button>
         </div>
       </div>
+
+      {/* Pantry */}
+      <PantryManager onPantryChange={setPantryItems} />
 
       {/* Already Own */}
       <div className="space-y-2">
