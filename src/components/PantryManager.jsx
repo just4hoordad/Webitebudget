@@ -3,10 +3,19 @@ import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Package, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 
-const QUICK_ADDS = [
-  "Olive oil", "Salt", "Pepper", "Sugar", "Flour", "Rice", "Pasta",
-  "Vegetable oil", "Vinegar", "Soy sauce", "Garlic", "Onions",
-];
+const QUICK_ADDS = {
+  en: ["Olive oil", "Salt", "Pepper", "Sugar", "Flour", "Rice", "Pasta", "Vegetable oil", "Vinegar", "Soy sauce", "Garlic", "Onions"],
+  de: ["Olivenöl", "Salz", "Pfeffer", "Zucker", "Mehl", "Reis", "Nudeln", "Pflanzenöl", "Essig", "Sojasoße", "Knoblauch", "Zwiebeln"],
+  fr: ["Huile d'olive", "Sel", "Poivre", "Sucre", "Farine", "Riz", "Pâtes", "Huile végétale", "Vinaigre", "Sauce soja", "Ail", "Oignons"],
+  es: ["Aceite de oliva", "Sal", "Pimienta", "Azúcar", "Harina", "Arroz", "Pasta", "Aceite vegetal", "Vinagre", "Salsa de soja", "Ajo", "Cebollas"],
+  ar: ["زيت الزيتون", "ملح", "فلفل", "سكر", "دقيق", "أرز", "مكرونة", "زيت نباتي", "خل", "صلصة الصويا", "ثوم", "بصل"],
+  ru: ["Оливковое масло", "Соль", "Перец", "Сахар", "Мука", "Рис", "Макароны", "Растительное масло", "Уксус", "Соевый соус", "Чеснок", "Лук"],
+  uk: ["Оливкова олія", "Сіль", "Перець", "Цукор", "Борошно", "Рис", "Макарони", "Рослинна олія", "Оцет", "Соєвий соус", "Часник", "Цибуля"],
+  fa: ["روغن زیتون", "نمک", "فلفل", "شکر", "آرد", "برنج", "پاستا", "روغن نباتی", "سرکه", "سس سویا", "سیر", "پیاز"],
+  zh: ["橄榄油", "盐", "胡椒", "糖", "面粉", "大米", "面食", "植物油", "醋", "酱油", "大蒜", "洋葱"],
+  vi: ["Dầu ô liu", "Muối", "Tiêu", "Đường", "Bột mì", "Gạo", "Mì", "Dầu thực vật", "Giấm", "Nước tương", "Tỏi", "Hành tây"],
+  tr: ["Zeytinyağı", "Tuz", "Biber", "Şeker", "Un", "Pirinç", "Makarna", "Bitkisel yağ", "Sirke", "Soya sosu", "Sarımsak", "Soğan"],
+};
 
 const PANTRY_STRINGS = {
   en: { title: "🥫 My Pantry", desc: "Save staples you already have to lower your grocery bill", descItems: "item(s) saved — won't be bought again", quickAdd: "Quick add common staples:", placeholder: "e.g. olive oil", amount: "Amount", addBtn: "Add to Pantry" },
@@ -25,6 +34,7 @@ const PANTRY_STRINGS = {
 export default function PantryManager({ onPantryChange }) {
   const { currentLanguage } = useLanguage();
   const s = PANTRY_STRINGS[currentLanguage?.code] || PANTRY_STRINGS.en;
+  const quickAdds = QUICK_ADDS[currentLanguage?.code] || QUICK_ADDS.en;
   const [items, setItems] = useState([]);
   const [nameInput, setNameInput] = useState("");
   const [amountInput, setAmountInput] = useState("");
@@ -171,7 +181,7 @@ export default function PantryManager({ onPantryChange }) {
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-medium">{s.quickAdd}</p>
             <div className="flex flex-wrap gap-1.5">
-              {QUICK_ADDS.filter(q => !items.some(i => i.name.toLowerCase() === q.toLowerCase())).map(q => (
+              {quickAdds.filter(q => !items.some(i => i.name.toLowerCase() === q.toLowerCase())).map(q => (
                 <button
                   key={q}
                   onClick={() => addQuick(q)}
