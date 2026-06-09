@@ -33,14 +33,14 @@ const CALORIE_GOAL_KEYS = [
 ];
 
 const DIET_KEYS = [
-  { id: "balanced", nameKey: "balanced", icon: Scale, sub: "Balanced" },
-  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, sub: "Plant-based" },
-  { id: "vegan", nameKey: "vegan", icon: Leaf, sub: "100% plant" },
-  { id: "high-protein", nameKey: "highProtein", icon: Beef, sub: "Muscle fuel" },
-  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, sub: "Fish & plants" },
-  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, sub: "No gluten" },
-  { id: "halal", nameKey: "halal", icon: null, sub: "Certified" },
-  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, sub: "Heat & eat" },
+  { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc" },
+  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, descKey: "vegetarianDesc" },
+  { id: "vegan", nameKey: "vegan", icon: Leaf, descKey: "veganDesc" },
+  { id: "high-protein", nameKey: "highProtein", icon: Beef, descKey: "highProteinDesc" },
+  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, descKey: "pescatarianDesc" },
+  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, descKey: "glutenFreeDesc" },
+  { id: "halal", nameKey: "halal", icon: null, descKey: "halalDesc" },
+  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, descKey: "frozenFoodsDesc" },
 ];
 
 
@@ -331,7 +331,7 @@ export default function BudgetForm() {
                   {t(diet.nameKey)}
                 </span>
                 <span className={`text-xs leading-tight ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  {diet.sub}
+                   {t(diet.descKey)}
                 </span>
               </button>
             );
