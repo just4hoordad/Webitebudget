@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/lib/LanguageContext";
 import { Package, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 
 const QUICK_ADDS = [
@@ -7,7 +8,23 @@ const QUICK_ADDS = [
   "Vegetable oil", "Vinegar", "Soy sauce", "Garlic", "Onions",
 ];
 
+const PANTRY_STRINGS = {
+  en: { title: "🥫 My Pantry", desc: "Save staples you already have to lower your grocery bill", descItems: "item(s) saved — won't be bought again", quickAdd: "Quick add common staples:", placeholder: "e.g. olive oil", amount: "Amount", addBtn: "Add to Pantry" },
+  de: { title: "🥫 Mein Vorratsschrank", desc: "Spare Grundzutaten, die du schon hast, um Einkaufskosten zu senken", descItems: "Artikel gespeichert — werden nicht nachgekauft", quickAdd: "Häufige Grundzutaten schnell hinzufügen:", placeholder: "z.B. Olivenöl", amount: "Menge", addBtn: "Hinzufügen" },
+  fr: { title: "🥫 Mon Garde-manger", desc: "Enregistrez les aliments que vous avez déjà pour réduire la facture", descItems: "article(s) enregistré(s) — ne sera pas racheté", quickAdd: "Ajout rapide d'aliments courants :", placeholder: "ex. huile d'olive", amount: "Quantité", addBtn: "Ajouter" },
+  es: { title: "🥫 Mi Despensa", desc: "Guarda lo que ya tienes para reducir tu factura de compras", descItems: "artículo(s) guardado(s) — no se comprará de nuevo", quickAdd: "Añadir rápido alimentos básicos:", placeholder: "ej. aceite de oliva", amount: "Cantidad", addBtn: "Añadir" },
+  ar: { title: "🥫 مخزني", desc: "احفظ المواد الأساسية التي لديك لتقليل فاتورة التسوق", descItems: "عنصر/عناصر محفوظة — لن يتم شراؤها مجدداً", quickAdd: "إضافة سريعة للمواد الشائعة:", placeholder: "مثلاً زيت الزيتون", amount: "الكمية", addBtn: "أضف للمخزن" },
+  ru: { title: "🥫 Моя кладовая", desc: "Сохраните продукты, которые уже есть, чтобы снизить расходы", descItems: "товар(ов) сохранено — не будут куплены снова", quickAdd: "Быстро добавить распространённые продукты:", placeholder: "напр. оливковое масло", amount: "Количество", addBtn: "В кладовую" },
+  uk: { title: "🥫 Моя комора", desc: "Збережіть продукти, які вже є, щоб знизити витрати", descItems: "товар(ів) збережено — не купуватимуться знову", quickAdd: "Швидко додати поширені продукти:", placeholder: "напр. оливкова олія", amount: "Кількість", addBtn: "До комори" },
+  fa: { title: "🥫 انبار من", desc: "موادی که دارید ذخیره کنید تا هزینه خرید کاهش یابد", descItems: "آیتم ذخیره شده — دوباره خریداری نمی‌شود", quickAdd: "افزودن سریع مواد رایج:", placeholder: "مثلاً روغن زیتون", amount: "مقدار", addBtn: "به انبار اضافه کن" },
+  zh: { title: "🥫 我的储物柜", desc: "保存已有食材以降低购物费用", descItems: "件已保存 — 不会再购买", quickAdd: "快速添加常用食材：", placeholder: "如橄榄油", amount: "数量", addBtn: "加入储物柜" },
+  vi: { title: "🥫 Kho Thực Phẩm", desc: "Lưu nguyên liệu sẵn có để giảm chi phí mua sắm", descItems: "mặt hàng đã lưu — sẽ không mua lại", quickAdd: "Thêm nhanh các thực phẩm phổ biến:", placeholder: "vd. dầu ô liu", amount: "Số lượng", addBtn: "Thêm vào kho" },
+  tr: { title: "🥫 Kilerим", desc: "Elinizdekileri kaydedin, alışveriş masrafını azaltın", descItems: "ürün kaydedildi — tekrar satın alınmayacak", quickAdd: "Yaygın malzemeleri hızlı ekle:", placeholder: "örn. zeytinyağı", amount: "Miktar", addBtn: "Kilere Ekle" },
+};
+
 export default function PantryManager({ onPantryChange }) {
+  const { currentLanguage } = useLanguage();
+  const s = PANTRY_STRINGS[currentLanguage?.code] || PANTRY_STRINGS.en;
   const [items, setItems] = useState([]);
   const [nameInput, setNameInput] = useState("");
   const [amountInput, setAmountInput] = useState("");
@@ -117,12 +134,12 @@ export default function PantryManager({ onPantryChange }) {
           <Package className={`h-5 w-5 ${items.length > 0 ? "text-green-700" : "text-muted-foreground"}`} />
           <div className="text-left">
             <p className={`text-sm font-semibold ${items.length > 0 ? "text-green-800" : "text-foreground"}`}>
-              🥫 My Pantry
+              {s.title}
             </p>
             <p className={`text-xs ${items.length > 0 ? "text-green-700/70" : "text-muted-foreground"}`}>
               {items.length > 0
-                ? `${items.length} item${items.length !== 1 ? "s" : ""} saved — won't be bought again`
-                : "Save staples you already have to lower your grocery bill"}
+                ? `${items.length} ${s.descItems}`
+                : s.desc}
             </p>
           </div>
         </div>
@@ -152,7 +169,7 @@ export default function PantryManager({ onPantryChange }) {
 
           {/* Quick add suggestions */}
           <div>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">Quick add common staples:</p>
+            <p className="text-xs text-muted-foreground mb-2 font-medium">{s.quickAdd}</p>
             <div className="flex flex-wrap gap-1.5">
               {QUICK_ADDS.filter(q => !items.some(i => i.name.toLowerCase() === q.toLowerCase())).map(q => (
                 <button
@@ -171,14 +188,14 @@ export default function PantryManager({ onPantryChange }) {
             <div className="flex gap-2 min-w-0">
               <input
                 className="min-w-0 flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="e.g. olive oil"
+                placeholder={s.placeholder}
                 value={nameInput}
                 onChange={e => setNameInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addItem()}
               />
               <input
                 className="w-20 shrink-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="Amount"
+                placeholder={s.amount}
                 value={amountInput}
                 onChange={e => setAmountInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addItem()}
@@ -190,7 +207,7 @@ export default function PantryManager({ onPantryChange }) {
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-40"
             >
               <Plus className="h-4 w-4" />
-              Add to Pantry
+              {s.addBtn}
             </button>
           </div>
         </div>
