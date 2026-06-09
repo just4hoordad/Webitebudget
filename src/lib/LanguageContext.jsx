@@ -44,7 +44,15 @@ export function LanguageProvider({ children }) {
 
   const currentLanguage = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
-  const t = (key) => allTranslations[language]?.[key] ?? allTranslations.en[key] ?? key;
+  const t = (key, vars) => {
+    let str = allTranslations[language]?.[key] ?? allTranslations.en[key] ?? key;
+    if (vars && typeof str === "string") {
+      Object.entries(vars).forEach(([k, v]) => {
+        str = str.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), v);
+      });
+    }
+    return str;
+  };
 
   return (
     <LanguageContext.Provider value={{ language, currentLanguage, changeLanguage, LANGUAGES, t }}>
