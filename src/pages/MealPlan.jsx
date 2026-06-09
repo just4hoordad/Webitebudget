@@ -153,7 +153,6 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
     rows.push(["", "", "", "", "", ""]);
     rows.push(["", "TOTAL", "", groceries?.total_estimated_cost?.toFixed(2), "", ""]);
     const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-    // BOM ensures UTF-8 is recognized correctly (supports Cyrillic, etc.)
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -366,7 +365,6 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
     setLoadingPlan(true);
 
-    // Split into chunks of 7 days max
     const weeks = [];
     let daysRemaining = totalDays;
     let previousMeals = "";
@@ -436,8 +434,6 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
   const [swapTarget, setSwapTarget] = useState(null);
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
-
-
   const [showAddModal, setShowAddModal] = useState(false);
 
   const handleAddItem = (item) => {
@@ -504,7 +500,6 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
       if (y + needed > pageH - margin) { doc.addPage(); y = margin; }
     };
 
-    // Header
     doc.setFillColor(...GREEN);
     doc.rect(0, 0, pageW, 110, 'F');
     doc.setTextColor(255, 255, 255);
@@ -676,7 +671,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
       <div>
         <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
         <p className="text-sm text-muted-foreground">
-          {diet} diet · €{budget}/{days} {t("days") || "days"} · {calories} kcal/day · {people} person(s)
+          {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
         </p>
       </div>
 
@@ -693,7 +688,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
               €{activeTotal.toFixed(2)}
-              <span className="text-sm font-normal text-muted-foreground ml-1">/ {days} {t("days") || "days"}</span>
+              <span className="text-sm font-normal text-muted-foreground ml-1">/ {days} {t("days")}</span>
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -768,7 +763,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
           {/* Categories */}
           <div>
           {groceries?.categories?.map((category) => (
-           <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden">
+           <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden mb-3">
              <div className="bg-secondary px-5 py-3">
                <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
                  {translateCategory(category.name)}
@@ -879,7 +874,6 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
           {/* Weekly Plan Display */}
           {weeklyPlan?.weeks?.length > 0 && (
            <div className="space-y-4">
-             {/* Header label */}
              <div className="flex items-center gap-2">
                <span className="font-heading font-bold text-lg">
                  {weeklyPlan.type === "exact"
@@ -1023,7 +1017,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
            </div>
           )}
 
-             <div className="pb-8">
+          <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
               {t("regenerate")}
             </Button>
