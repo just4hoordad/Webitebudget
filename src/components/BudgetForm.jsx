@@ -62,9 +62,7 @@ export default function BudgetForm() {
   const [proteinSnackBudget, setProteinSnackBudget] = useState(0);
   const [allergyInput, setAllergyInput] = useState("");
   const [allergies, setAllergies] = useState([]);
-  const [ownedInput, setOwnedInput] = useState("");
-  const [ownedAmount, setOwnedAmount] = useState("");
-  const [owned, setOwned] = useState([]);
+
   const [pantryItems, setPantryItems] = useState([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityCoords, setCityCoords] = useState(null);
@@ -117,7 +115,7 @@ export default function BudgetForm() {
       junkPercent: junkPercent[0],
       proteinSnackBudget: proteinSnackBudget,
       allergies: allergies.join(","),
-      owned: [...owned, ...pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : ""))].join(","),
+      owned: pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","),
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -484,59 +482,6 @@ export default function BudgetForm() {
 
       {/* Pantry */}
       <PantryManager onPantryChange={setPantryItems} />
-
-      {/* Already Own */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">{t("ownedTitle")}</label>
-        <p className="text-xs text-muted-foreground">{t("ownedDesc")}</p>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {owned.map(tag => (
-            <span key={tag} className="flex items-center gap-1 bg-blue-100 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-1 rounded-full">
-              {tag}
-              <button onClick={() => removeTag(tag, owned, setOwned)}><X className="h-3 w-3" /></button>
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <input
-              className="flex-1 min-w-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder={t("ownedPlaceholder")}
-              value={ownedInput}
-              onChange={e => setOwnedInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && ownedInput.trim() && ownedAmount.trim()) {
-                  addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
-                  setOwnedAmount("");
-                }
-              }}
-            />
-            <input
-              className="w-28 min-w-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder={t("ownedAmountPlaceholder")}
-              value={ownedAmount}
-              onChange={e => setOwnedAmount(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && ownedInput.trim() && ownedAmount.trim()) {
-                  addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
-                  setOwnedAmount("");
-                }
-              }}
-            />
-          </div>
-          <button
-            onClick={() => {
-              if (ownedInput.trim() && ownedAmount.trim()) {
-                addTag(`${ownedInput.trim()} (${ownedAmount.trim()})`, owned, setOwned, setOwnedInput);
-                setOwnedAmount("");
-              }
-            }}
-            disabled={!ownedInput.trim() || !ownedAmount.trim()}
-            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
-          >{t("add")}</button>
-        </div>
-        <p className="text-xs text-muted-foreground">{t("ownedHint")}</p>
-      </div>
 
       {/* Generate Button */}
       <Button
