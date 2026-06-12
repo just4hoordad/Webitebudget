@@ -141,7 +141,8 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
   const totalSaved = getActiveItems().reduce((sum, item) => {
     if (item.normal_price != null && item.normal_price > item.price) {
-      return sum + (item.normal_price - item.price);
+      const cappedNormal = Math.min(item.normal_price, item.price * 1.5);
+      return sum + Math.max(0, cappedNormal - item.price);
     }
     return sum;
   }, 0);
@@ -800,20 +801,24 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                         {item.unit_price != null && item.unit_price !== item.price && (
                           <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} each × {Math.round(item.price / item.unit_price)}</p>
                         )}
-                        {item.normal_price != null && item.normal_price > item.price ? (
-                          <>
-                            <p className="text-xs text-muted-foreground line-through">€{item.normal_price?.toFixed(2)}</p>
-                            <p className="text-xs font-medium text-green-600">saves €{(item.normal_price - item.price).toFixed(2)}</p>
-                            {item.unit_price != null && item.unit_price > 0 && (() => {
-                              const qty = Math.round(item.price / item.unit_price);
-                              const normalUnitPrice = item.normal_price / (qty || 1);
-                              const savePerUnit = normalUnitPrice - item.unit_price;
-                              return savePerUnit > 0.005 ? (
+                        {(() => {
+                          if (item.normal_price == null || item.normal_price <= item.price) return null;
+                          // Sanity check: normal_price shouldn't be more than 50% higher than budget price
+                          const cappedNormal = Math.min(item.normal_price, item.price * 1.5);
+                          if (cappedNormal <= item.price) return null;
+                          const saved = cappedNormal - item.price;
+                          const qty = item.unit_price > 0 ? Math.round(item.price / item.unit_price) : 1;
+                          const savePerUnit = qty > 1 ? saved / qty : null;
+                          return (
+                            <>
+                              <p className="text-xs text-muted-foreground line-through">€{cappedNormal.toFixed(2)}</p>
+                              <p className="text-xs font-medium text-green-600">saves €{saved.toFixed(2)}</p>
+                              {savePerUnit != null && savePerUnit > 0.005 && (
                                 <p className="text-xs text-green-500">€{savePerUnit.toFixed(2)}/item</p>
-                              ) : null;
-                            })()}
-                          </>
-                        ) : null}
+                              )}
+                            </>
+                          );
+                        })()}
                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
                       </div>
                     )}
