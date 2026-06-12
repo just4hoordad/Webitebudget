@@ -741,9 +741,19 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
               );
             })()}
             {totalSaved > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
-                <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
+                  <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center justify-between mt-1 pt-1 border-t border-yellow-200">
+                  <p className="text-xs text-yellow-600">Regular price total</p>
+                  <p className="text-xs text-yellow-700 font-semibold line-through">€{(activeTotal + totalSaved).toFixed(2)}</p>
+                </div>
+                <div className="flex items-center justify-between mt-0.5">
+                  <p className="text-xs text-yellow-600">You pay</p>
+                  <p className="text-xs font-bold text-yellow-800">€{activeTotal.toFixed(2)}</p>
+                </div>
               </div>
             )}
           </div>
@@ -784,24 +794,21 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                      )}
                    </div>
                    <div className="flex items-center gap-3 ml-4">
-                     {!item._loading && (
-                       <div className="text-right">
-                         {item.unit_price != null && item.unit_price !== item.price ? (
-                           <>
-                             <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                             <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}</p>
-                           </>
-                         ) : (
-                           <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                         )}
-                         {item.normal_price != null && item.normal_price > item.price && (
-                           <p className="text-xs font-medium text-green-600">
-                             saves €{(item.normal_price - item.price).toFixed(2)}
-                           </p>
-                         )}
-                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
-                       </div>
-                     )}
+                    {!item._loading && (
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                        {item.unit_price != null && item.unit_price !== item.price && (
+                          <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} each × {Math.round(item.price / item.unit_price)}</p>
+                        )}
+                        {item.normal_price != null && item.normal_price > item.price ? (
+                          <>
+                            <p className="text-xs text-muted-foreground line-through">€{item.normal_price?.toFixed(2)}</p>
+                            <p className="text-xs font-medium text-green-600">saves €{(item.normal_price - item.price).toFixed(2)}</p>
+                          </>
+                        ) : null}
+                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                      </div>
+                    )}
                      <button
                        onClick={() => setGrocerySwapTarget({ item, category: category.name })}
                        className="text-muted-foreground hover:text-primary transition-colors"
