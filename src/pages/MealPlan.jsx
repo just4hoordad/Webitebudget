@@ -804,6 +804,14 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                           <>
                             <p className="text-xs text-muted-foreground line-through">€{item.normal_price?.toFixed(2)}</p>
                             <p className="text-xs font-medium text-green-600">saves €{(item.normal_price - item.price).toFixed(2)}</p>
+                            {item.unit_price != null && item.unit_price > 0 && (() => {
+                              const qty = Math.round(item.price / item.unit_price);
+                              const normalUnitPrice = item.normal_price / (qty || 1);
+                              const savePerUnit = normalUnitPrice - item.unit_price;
+                              return savePerUnit > 0.005 ? (
+                                <p className="text-xs text-green-500">€{savePerUnit.toFixed(2)}/item</p>
+                              ) : null;
+                            })()}
                           </>
                         ) : null}
                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
