@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useDietSaleScores } from "@/lib/useDietSaleScores";
+import { useStoreSaleScores } from "@/lib/useStoreSaleScores";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search } from "lucide-react";
@@ -51,6 +52,7 @@ export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const dietSaleScores = useDietSaleScores();
+  const storeSaleScores = useStoreSaleScores();
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
@@ -246,35 +248,51 @@ export default function BudgetForm() {
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-               {GROCERY_STORES.map((store) => (
-                 <button
-                   key={store.id}
-                   onClick={() => toggleStore(store.id)}
-                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                     selectedStores.includes(store.id)
-                       ? store.color + " border-current"
-                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                   }`}
-                 >
-                   {store.name}
-                 </button>
-               ))}
+               {GROCERY_STORES.map((store) => {
+                 const score = storeSaleScores[store.id.toLowerCase()];
+                 return (
+                   <button
+                     key={store.id}
+                     onClick={() => toggleStore(store.id)}
+                     className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                       selectedStores.includes(store.id)
+                         ? store.color + " border-current"
+                         : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                     }`}
+                   >
+                     {store.name}
+                     {score && (
+                       <span className="text-xs font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-md">
+                         -{score}%
+                       </span>
+                     )}
+                   </button>
+                 );
+               })}
              </div>
              <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
              <div className="flex flex-wrap gap-2">
-               {DRUGSTORES.map((store) => (
-                 <button
-                   key={store.id}
-                   onClick={() => toggleStore(store.id)}
-                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                     selectedStores.includes(store.id)
-                       ? store.color + " border-current"
-                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                   }`}
-                 >
-                   {store.name}
-                 </button>
-               ))}
+               {DRUGSTORES.map((store) => {
+                 const score = storeSaleScores[store.id.toLowerCase()];
+                 return (
+                   <button
+                     key={store.id}
+                     onClick={() => toggleStore(store.id)}
+                     className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                       selectedStores.includes(store.id)
+                         ? store.color + " border-current"
+                         : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                     }`}
+                   >
+                     {store.name}
+                     {score && (
+                       <span className="text-xs font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-md">
+                         -{score}%
+                       </span>
+                     )}
+                   </button>
+                 );
+               })}
              </div>
           </div>
         )}
