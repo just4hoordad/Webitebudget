@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { useDietSaleScores } from "@/lib/useDietSaleScores";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search } from "lucide-react";
@@ -49,6 +50,7 @@ const DIET_KEYS = [
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const dietSaleScores = useDietSaleScores();
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
@@ -320,12 +322,19 @@ export default function BudgetForm() {
                     : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
                 }`}
               >
-                <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
-                  {diet.id === "halal" ? (
-                    <span className="text-xl font-bold leading-none">حلال</span>
-                  ) : Icon ? (
-                    <Icon className="h-6 w-6" />
-                  ) : null}
+                <div className={`mb-1 flex items-start justify-between w-full ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
+                  <span>
+                    {diet.id === "halal" ? (
+                      <span className="text-xl font-bold leading-none">حلال</span>
+                    ) : Icon ? (
+                      <Icon className="h-6 w-6" />
+                    ) : null}
+                  </span>
+                  {dietSaleScores[diet.id] && (
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${isSelected ? "bg-white/20 text-white" : "bg-green-100 text-green-700"}`}>
+                      -{dietSaleScores[diet.id]}%
+                    </span>
+                  )}
                 </div>
                 <span className={`font-heading font-semibold text-sm leading-tight ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
                   {t(diet.nameKey)}
