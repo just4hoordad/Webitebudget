@@ -11,6 +11,7 @@ import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
+import MealPlanButtons from "@/components/MealPlanButtons";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -982,35 +983,13 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
             loadingPlan ? (
               <GeneratingLoader type="plan" />
             ) : (
-              <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
-                <div>
-                  <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={generateExactDaysPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("generateExactDaysPlan", { days })}</span>
-                    <span className="text-xs opacity-80">{t("generateExactDaysPlanDesc", { days })}</span>
-                  </button>
-                  <button
-                    onClick={generateWeeklyPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 text-left"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("repeatWeeklyPlan")}</span>
-                    <span className="text-xs opacity-80">{t("repeatWeeklyPlanDesc")}</span>
-                  </button>
-                  <button
-                    onClick={generateUniqueMonthlyPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 text-left"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("uniqueMonthlyPlan")}</span>
-                    <span className="text-xs opacity-80">{t("uniqueMonthlyPlanDesc")}</span>
-                  </button>
-                </div>
-              </div>
+              <MealPlanButtons
+                days={days}
+                onExact={generateExactDaysPlan}
+                onRepeat={generateWeeklyPlan}
+                onUnique={generateUniqueMonthlyPlan}
+                t={t}
+              />
             )
           )}
 
