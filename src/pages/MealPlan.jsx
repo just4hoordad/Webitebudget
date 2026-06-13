@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
-const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 import { Button } from "@/components/ui/button";
 import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
@@ -18,6 +17,8 @@ import html2canvas from "html2canvas";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
+
+const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
