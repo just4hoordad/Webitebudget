@@ -8,11 +8,15 @@
     },
     "store": {
       "type": "string",
-      "description": "Store name e.g. aldi, lidl, rewe"
+      "description": "Store name e.g. Aldi, Lidl, Rewe"
     },
     "category": {
       "type": "string",
       "description": "Category in English e.g. Dairy, Vegetables"
+    },
+    "comparison_key": {
+      "type": "string",
+      "description": "Generic item name used to match same product across stores e.g. Vollmilch 1L, Eier 10er"
     },
     "diet_tags": {
       "type": "array",
