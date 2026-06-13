@@ -11,8 +11,8 @@ export function useDietSaleScores() {
   useEffect(() => {
     (async () => {
       try {
-        const today = new Date().toISOString().split("T")[0];
-        const items = await base44.entities.PriceCatalog.filter({ last_updated: today });
+        // Fetch all price catalog entries (no date filter — use latest available data)
+        const items = await base44.entities.PriceCatalog.list();
         if (!items || items.length === 0) return;
 
         // Accumulate savings per diet tag
