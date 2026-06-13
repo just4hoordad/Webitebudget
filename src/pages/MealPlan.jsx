@@ -37,6 +37,7 @@ export default function MealPlan() {
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
 
   const [groceries, setGroceries] = useState(null);
+  const [priceDate, setPriceDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
@@ -70,6 +71,13 @@ export default function MealPlan() {
     try {
       const cached = await base44.entities.PriceCatalog.filter({ store: stores.split(",")[0] });
       if (cached && cached.length >= 15) {
+        // Set price date from the most recent last_updated in cached items
+        const latestDate = cached.reduce((latest, item) => {
+          if (!item.last_updated) return latest;
+          return !latest || item.last_updated > latest ? item.last_updated : latest;
+        }, null);
+        setPriceDate(latestDate);
+
         // Group by category and build the groceries structure from cached prices
         const categoryMap = {};
         cached.forEach(item => {
@@ -97,6 +105,9 @@ export default function MealPlan() {
     } catch (_) {
       // PriceCatalog not ready yet — fall through to AI generation
     }
+
+    // For AI-generated lists, price date is today
+    setPriceDate(new Date().toISOString().split('T')[0]);
 
     // Fall back to AI generation (and the result will seed the PriceCatalog via the scheduler)
     try {
@@ -781,6 +792,11 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
         <p className="text-sm text-muted-foreground">
           {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
         </p>
+        {priceDate && (
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            🏷️ Prices as of <span className="font-medium text-foreground">{new Date(priceDate).toLocaleDateString(currentLanguage.code || 'de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </p>
+        )}
       </div>
 
       {loading ? (
