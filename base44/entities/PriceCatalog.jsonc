@@ -1,0 +1,50 @@
+{
+  "name": "PriceCatalog",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Real branded product name as sold in-store"
+    },
+    "store": {
+      "type": "string",
+      "description": "Store name e.g. aldi, lidl, rewe"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category in English e.g. Dairy, Vegetables"
+    },
+    "diet_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Diet types this item is suitable for e.g. vegan, balanced"
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Price per unit in EUR"
+    },
+    "normal_price": {
+      "type": "number",
+      "description": "Regular supermarket price for same quantity"
+    },
+    "quantity_description": {
+      "type": "string",
+      "description": "e.g. 1L, 500g, 10er"
+    },
+    "calories_info": {
+      "type": "string",
+      "description": "Calorie info string e.g. ~65 kcal/100ml"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "ISO date string of last price check"
+    }
+  },
+  "required": [
+    "product_name",
+    "store",
+    "unit_price"
+  ]
+}
