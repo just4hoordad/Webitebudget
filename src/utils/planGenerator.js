@@ -161,7 +161,10 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     ? catalog.filter(item => storeList.some(s => s === (item.store || "").toLowerCase()))
     : catalog;
 
-  // 2. Diet filter
+  // 2. Exclude non-food items (household, cleaning, health products)
+  pool = pool.filter(item => !NON_CALORIC_CATEGORIES.includes(item.category || "Other"));
+
+  // 3. Diet filter
   if (diet === "vegan") {
     pool = pool.filter(item =>
       !["Meat & Fish", "Dairy"].includes(item.category) ||
