@@ -53,6 +53,24 @@ const CALORIE_DENSITY_MAP = {
 // Non-food categories don't contribute calories
 const NON_FOOD_CATEGORIES = ["Household", "Health & Beauty"];
 
+// Pantry/condiment items that shouldn't be bulk-bought to fill calorie targets
+const CONDIMENT_CATEGORIES = ["Pantry", "Spreads"];
+
+// Max units per week by category (prevents absurd quantities)
+const MAX_UNITS_PER_WEEK = {
+  "Dairy": 3,
+  "Meat & Fish": 2,
+  "Grains & Pasta": 3,
+  "Bread & Bakery": 2,
+  "Vegetables": 3,
+  "Fruits": 3,
+  "Drinks": 4,
+  "Snacks": 2,
+  "Pantry": 1,
+  "Spreads": 1,
+  "Household": 1,
+};
+
 /**
  * Parse a calories_info string like "~65 kcal/100ml" or "350 kcal/100g"
  * Returns kcal per 100 units, or null if unparseable.
@@ -222,20 +240,28 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     });
 
   // 8. Score each item: prioritize high-calorie-per-euro items (best value for calorie goals)
-  //    Non-food items get a lower but still valid priority
+  //    Condiments/pantry are deprioritized so they don't inflate calorie math
   const scored = candidates.map(item => {
-    const calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 10; // give non-food a small score
+    const cat = item.category || "Other";
+    let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 10;
+    // Penalize oils/condiments so real food wins the sort
+    if (CONDIMENT_CATEGORIES.includes(cat)) calPerEuro = calPerEuro * 0.05;
+    if (NON_FOOD_CATEGORIES.includes(cat)) calPerEuro = 1;
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 
   // Helper to compute scaled units for an item to meet remaining calorie need
   function scaleUnits(item, calStillNeeded, budgetLeft) {
-    if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(item.category)) {
-      return weeks; // non-food: 1/week
+    const cat = item.category || "Other";
+    const maxPerWeek = MAX_UNITS_PER_WEEK[cat] || 2;
+    const hardCap = weeks * maxPerWeek;
+
+    if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(cat) || CONDIMENT_CATEGORIES.includes(cat)) {
+      return Math.min(weeks, hardCap); // condiments/non-food: just 1/week
     }
     const maxUnitsForCal = Math.ceil(calStillNeeded / item.calPerUnit);
     const maxUnitsForBudget = Math.floor(budgetLeft / item.unit_price);
-    return Math.max(1, Math.min(maxUnitsForCal, maxUnitsForBudget, weeks * 4)); // cap at 4/week
+    return Math.max(1, Math.min(maxUnitsForCal, maxUnitsForBudget, hardCap));
   }
 
   // 9. Greedy selection: fill budget, track calories
