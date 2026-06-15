@@ -61,27 +61,6 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     try {
-      // Step 1: Try to load cached prices from DB
-      const storeList = stores.split(",").map(s => s.trim()).filter(Boolean);
-      let cachedPrices = [];
-      try {
-        const allCached = await base44.entities.ProductPrice.list();
-        cachedPrices = allCached.filter(p => storeList.includes(p.store));
-      } catch {
-        // If entity doesn't exist yet or fails, cachedPrices stays empty
-      }
-
-      const hasCachedPrices = cachedPrices.length > 50; // enough data to work with
-
-      // Step 2: Build the prompt, injecting cached prices if available
-      const cachedPriceContext = hasCachedPrices
-        ? `\nCACHED STORE PRICES (use these — no need to look up prices online):\n${
-            cachedPrices.map(p =>
-              `${p.name} @ ${p.store}: €${p.price} (normal: €${p.normal_price ?? p.price}) [${p.category}]${p.diet_tags?.length ? ` suitable for: ${p.diet_tags.join(", ")}` : ""}`
-            ).join("\n")
-          }\n`
-        : "";
-
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
 
@@ -90,9 +69,8 @@ Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
-${cachedPriceContext}
 Rules:
-1. ${hasCachedPrices ? "PRIORITIZE items from the CACHED STORE PRICES list above — use those exact names and prices. Only add items not in the cache if needed to fill the budget." : "Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99)."}
+1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) must be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)} — as close to €${budget} as possible. Never exceed €${(budget*1.03).toFixed(0)} (3% over budget max). If you are under €${(budget*0.97).toFixed(0)}, add more items or increase quantities to get closer. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks.
@@ -105,7 +83,7 @@ ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bi
 ${allergies.length > 0 ? `11. ALLERGIES / INTOLERANCES: NEVER include any products containing or derived from: ${allergies.join(", ")}. This is critical — exclude any item that contains these ingredients.` : ""}
 ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}
 ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`,
-        add_context_from_internet: !hasCachedPrices,
+        add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
           type: "object",
