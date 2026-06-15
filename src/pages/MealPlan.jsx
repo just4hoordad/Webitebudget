@@ -18,6 +18,7 @@ import html2canvas from "html2canvas";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
+import { generateGroceryListFromCatalog } from "@/utils/planGenerator";
 
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
@@ -60,23 +61,20 @@ export default function MealPlan() {
     generateGroceries();
   }, [currentLanguage.code]);
 
-  // --- Cache-first grocery generation ---
-  // We first check the PriceCatalog for known items matching this diet/stores combo.
-  // If we have enough data (>= 20 items across selected stores), we skip the expensive LLM call.
+  // --- Cache-first grocery generation (client-side, zero AI credits) ---
+  // Fetches PriceCatalog from DB, then runs the planning algorithm locally on the user's device.
+  // Falls back to AI only if the catalog has fewer than 20 items for the selected stores.
   const generateGroceries = async (retryCount = 0) => {
     setRemovedItems(new Set());
     setLoading(true);
 
-    // Try to serve from PriceCatalog first (zero AI credits)
     try {
-      const storeList = stores.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
-      // Fetch all catalog items at once
       const allCatalog = await base44.entities.PriceCatalog.list();
 
       if (allCatalog && allCatalog.length > 0) {
-        // Filter to only items from the user's selected stores
+        const storeList = stores.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
         const filtered = storeList.length > 0
-          ? allCatalog.filter(item => storeList.some(s => s === (item.store || '').toLowerCase()))
+          ? allCatalog.filter(item => storeList.some(s => s === (item.store || "").toLowerCase()))
           : allCatalog;
 
         if (filtered.length >= 20) {
@@ -87,90 +85,39 @@ export default function MealPlan() {
           }, null);
           setPriceDate(latestDate);
 
-          // For each comparison_key, pick the cheapest item across selected stores
-          const byKey = {};
-          filtered.forEach(item => {
-            const key = item.comparison_key || item.product_name;
-            if (!byKey[key] || item.unit_price < byKey[key].unit_price) {
-              byKey[key] = item;
-            }
+          // Run the planner entirely on the user's device — zero AI credits
+          const result = generateGroceryListFromCatalog(allCatalog, {
+            budget,
+            days,
+            calories,
+            people,
+            diet,
+            stores,
+            allergies,
+            ownedItems,
+            bio,
           });
 
-          // Build items with real prices (qty = weeks needed), then greedily fit within budget
-          const budgetLimit = parseFloat(budget);
-          const qty = Math.ceil(days / 7);
-
-          const allMapped = Object.values(byKey).map(item => {
-            const itemPrice = parseFloat(((item.unit_price || 0) * qty).toFixed(2));
-            return {
-              name: item.product_name,
-              quantity: `${qty}x ${item.quantity_description || ""}`.trim(),
-              unit_price: item.unit_price || 0,
-              price: itemPrice,
-              normal_price: item.normal_price ? parseFloat((item.normal_price * qty).toFixed(2)) : null,
-              store: item.store,
-              calories_info: item.calories_info || "",
-              _cat: item.category || "Other"
-            };
-          });
-
-          // Prioritize items that have calorie info (more nutritionally relevant), then cheapest
-          allMapped.sort((a, b) => {
-            const aHasCal = a.calories_info ? 0 : 1;
-            const bHasCal = b.calories_info ? 0 : 1;
-            if (aHasCal !== bHasCal) return aHasCal - bHasCal;
-            return a.price - b.price;
-          });
-
-          let running = 0;
-          const categoryMap = {};
-          for (const item of allMapped) {
-            if (running + item.price > budgetLimit) continue; // skip items that would exceed budget
-            running += item.price;
-            if (!categoryMap[item._cat]) categoryMap[item._cat] = [];
-            const { _cat, ...rest } = item;
-            categoryMap[_cat].push(rest);
-          }
-
-          const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
-          const finalTotal = running;
-          setGroceries({ total_estimated_cost: parseFloat(finalTotal.toFixed(2)), categories });
+          setGroceries(result);
           setLoading(false);
           return;
         }
       }
-    } catch (_) {
-      // PriceCatalog not ready yet — fall through to AI generation
+    } catch (err) {
+      console.warn("PriceCatalog not ready, falling back to AI:", err.message);
     }
 
-    // For AI-generated lists, price date is today
-    setPriceDate(new Date().toISOString().split('T')[0]);
-
-    // Fall back to AI generation (and the result will seed the PriceCatalog via the scheduler)
+    // Fallback: AI generation if catalog is empty/insufficient
+    setPriceDate(new Date().toISOString().split("T")[0]);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
-
-Budget: €${budget} for ${days} days.
-Calories: ~${calories} kcal/day for all ${people} person(s).
-Stores: ${stores}.
-Language: ${currentLanguage.label}.
-${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
-Rules:
-1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
-2. Pick the cheapest store for each item.
-3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
-4. CRITICAL CALORIE RULE: The combined items in the grocery list MUST provide approximately ${calories} kcal/day × ${days} days = ${Math.round(calories * days)} kcal total for ${people} person(s). Choose quantities and items accordingly so a person can realistically eat ${calories} kcal/day from this list.
-5. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST NOT exceed €${budget}. Target between €${(budget*0.90).toFixed(0)} and €${budget}. Never go over €${budget} under any circumstances. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks.
-6. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
-7. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
-8. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
-${junkPercent > 0 ? `9. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent/100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "9. Keep the grocery list clean and healthy — no junk food or treats."}
-${saleHunt ? `10. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
-${bio ? `11. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
-${allergies.length > 0 ? `12. ALLERGIES / INTOLERANCES: NEVER include any products containing or derived from: ${allergies.join(", ")}. This is critical — exclude any item that contains these ingredients.` : ""}
-${ownedItems.length > 0 ? `13. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}
-${proteinSnackBudget > 0 ? `14. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`,
+Budget: €${budget}. Calories: ~${calories} kcal/day. Stores: ${stores}.
+Rules: Use real 2025 German supermarket prices. Pick cheapest store per item. price = unit_price × quantity for ${days} days.
+Calorie total must be ~${Math.round(calories * days * people)} kcal. Budget must not exceed €${budget}.
+Category names always in English. Include full branded product names.
+${allergies.length > 0 ? `ALLERGIES: never include ${allergies.join(", ")}.` : ""}
+${ownedItems.length > 0 ? `ALREADY OWNED: skip ${ownedItems.join(", ")}.` : ""}`,
         add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
@@ -206,9 +153,7 @@ ${proteinSnackBudget > 0 ? `14. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
       });
       setGroceries(result);
     } catch (err) {
-      if (retryCount < 2) {
-        return generateGroceries(retryCount + 1);
-      }
+      if (retryCount < 2) return generateGroceries(retryCount + 1);
       toast.error("Failed to generate grocery list. Please try again.");
     }
     setLoading(false);
@@ -933,6 +878,26 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
               </div>
             )}
           </div>
+
+          {/* Calorie summary (only shown for cache-generated lists) */}
+          {groceries?.fromCache && groceries?.calPerDay > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔥</span>
+                <div>
+                  <p className="text-xs font-semibold text-green-800">Estimated Calorie Coverage</p>
+                  <p className="text-xs text-green-700">~{groceries.calPerDay.toLocaleString()} kcal/day · {groceries.totalCalories?.toLocaleString()} kcal total</p>
+                </div>
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                Math.abs(groceries.calPerDay - calories) < calories * 0.15
+                  ? "bg-green-200 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}>
+                {Math.abs(groceries.calPerDay - calories) < calories * 0.15 ? "On target" : "Adjust qty"}
+              </span>
+            </div>
+          )}
 
           {/* Export Buttons */}
           <div className="flex gap-2 justify-end">
