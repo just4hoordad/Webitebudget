@@ -3,11 +3,8 @@ import { X, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePro } from "@/lib/usePro";
-import ProPaywall from "@/components/ProPaywall";
 
 export default function MealSwapModal({ meal, mealType, dayIndex, availableIngredients, targetCalories, diet, onSwap, onClose }) {
-  const { isPro, loading: proLoading } = usePro();
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -61,16 +58,8 @@ For each alternative, provide:
   };
 
   useEffect(() => {
-    if (isPro) fetchAlternatives();
-  }, [isPro]);
-
-  if (!proLoading && !isPro) {
-    return (
-      <AnimatePresence>
-        <ProPaywall featureName="AI Meal Swap" onClose={onClose} />
-      </AnimatePresence>
-    );
-  }
+    fetchAlternatives();
+  }, []);
 
   const handleConfirm = () => {
     if (!selected && selected !== 0) return;

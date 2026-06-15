@@ -1,26 +1,15 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X, Search, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
-import { usePro } from "@/lib/usePro";
-import ProPaywall from "@/components/ProPaywall";
 
 export default function AddItemModal({ stores, diet, onAdd, onClose }) {
-  const { isPro, loading: proLoading } = usePro();
   const { t } = useLanguage();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState([]);
   const [selected, setSelected] = useState(null);
-
-  if (!proLoading && !isPro) {
-    return (
-      <AnimatePresence>
-        <ProPaywall featureName="AI Item Search" onClose={onClose} />
-      </AnimatePresence>
-    );
-  }
 
   const search = async () => {
     const trimmed = query.trim();

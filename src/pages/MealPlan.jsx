@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
+const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 import { Button } from "@/components/ui/button";
 import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
@@ -11,16 +12,12 @@ import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
-import MealPlanButtons from "@/components/MealPlanButtons";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
-import { generateGroceryListFromCatalog } from "@/utils/planGenerator";
-
-const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
@@ -39,7 +36,6 @@ export default function MealPlan() {
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
 
   const [groceries, setGroceries] = useState(null);
-  const [priceDate, setPriceDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
@@ -61,64 +57,32 @@ export default function MealPlan() {
     generateGroceries();
   }, [currentLanguage.code]);
 
-  // --- Cache-first grocery generation (client-side, zero AI credits) ---
-  // Fetches PriceCatalog from DB, then runs the planning algorithm locally on the user's device.
-  // Falls back to AI only if the catalog has fewer than 20 items for the selected stores.
   const generateGroceries = async (retryCount = 0) => {
     setRemovedItems(new Set());
     setLoading(true);
-
-    try {
-      const allCatalog = await base44.entities.PriceCatalog.list();
-
-      if (allCatalog && allCatalog.length > 0) {
-        const storeList = stores.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
-        const filtered = storeList.length > 0
-          ? allCatalog.filter(item => storeList.some(s => s === (item.store || "").toLowerCase()))
-          : allCatalog;
-
-        if (filtered.length >= 20) {
-          // Set price date from the most recent last_updated in cached items
-          const latestDate = filtered.reduce((latest, item) => {
-            if (!item.last_updated) return latest;
-            return !latest || item.last_updated > latest ? item.last_updated : latest;
-          }, null);
-          setPriceDate(latestDate);
-
-          // Run the planner entirely on the user's device — zero AI credits
-          const result = generateGroceryListFromCatalog(allCatalog, {
-            budget,
-            days,
-            calories,
-            people,
-            diet,
-            stores,
-            allergies,
-            ownedItems,
-            bio,
-            saleHunt,
-          });
-
-          setGroceries(result);
-          setLoading(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("PriceCatalog not ready, falling back to AI:", err.message);
-    }
-
-    // Fallback: AI generation if catalog is empty/insufficient
-    setPriceDate(new Date().toISOString().split("T")[0]);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
-Budget: €${budget}. Calories: ~${calories} kcal/day. Stores: ${stores}.
-Rules: Use real 2025 German supermarket prices. Pick cheapest store per item. price = unit_price × quantity for ${days} days.
-Calorie total must be ~${Math.round(calories * days * people)} kcal. Budget must not exceed €${budget}.
-Category names always in English. Include full branded product names.
-${allergies.length > 0 ? `ALLERGIES: never include ${allergies.join(", ")}.` : ""}
-${ownedItems.length > 0 ? `ALREADY OWNED: skip ${ownedItems.join(", ")}.` : ""}`,
+
+Budget: €${budget} for ${days} days.
+Calories: ~${calories} kcal/day for all ${people} person(s).
+Stores: ${stores}.
+Language: ${currentLanguage.label}.
+${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
+Rules:
+1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
+2. Pick the cheapest store for each item.
+3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
+4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) must be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)} — as close to €${budget} as possible. Never exceed €${(budget*1.03).toFixed(0)} (3% over budget max). If you are under €${(budget*0.97).toFixed(0)}, add more items or increase quantities to get closer. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks.
+5. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
+6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
+${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent/100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
+${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
+${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
+${allergies.length > 0 ? `11. ALLERGIES / INTOLERANCES: NEVER include any products containing or derived from: ${allergies.join(", ")}. This is critical — exclude any item that contains these ingredients.` : ""}
+${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home, do NOT include them in the grocery list: ${ownedItems.join(", ")}.` : ""}
+${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`,
         add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
@@ -154,14 +118,13 @@ ${ownedItems.length > 0 ? `ALREADY OWNED: skip ${ownedItems.join(", ")}.` : ""}`
       });
       setGroceries(result);
     } catch (err) {
-      if (retryCount < 2) return generateGroceries(retryCount + 1);
+      if (retryCount < 2) {
+        return generateGroceries(retryCount + 1);
+      }
       toast.error("Failed to generate grocery list. Please try again.");
     }
     setLoading(false);
   };
-
-  // Helper: bucket calories to nearest 500 for template matching
-  const bucketCalories = (cal) => Math.round(cal / 500) * 500;
 
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
@@ -178,8 +141,7 @@ ${ownedItems.length > 0 ? `ALREADY OWNED: skip ${ownedItems.join(", ")}.` : ""}`
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
   const totalSaved = getActiveItems().reduce((sum, item) => {
     if (item.normal_price != null && item.normal_price > item.price) {
-      const cappedNormal = Math.min(item.normal_price, item.price * 1.5);
-      return sum + Math.max(0, cappedNormal - item.price);
+      return sum + (item.normal_price - item.price);
     }
     return sum;
   }, 0);
@@ -395,26 +357,13 @@ Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${M
 RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
   const generateExactDaysPlan = async () => {
-    setLoadingPlan(true);
-
-    // Check cache first
-    try {
-      const cached = await base44.functions.invoke('getMealTemplate', {
-        diet, calories: bucketCalories(calories), people, days, budget,
-        language_code: currentLanguage.code, plan_type: 'exact'
-      });
-      if (cached?.data?.found) {
-        setWeeklyPlan({ type: "exact", weeks: cached.data.template.plan_data.weeks });
-        setLoadingPlan(false);
-        return;
-      }
-    } catch (_) { /* fall through to AI */ }
-
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
+
+    setLoadingPlan(true);
 
     const weeks = [];
     let daysRemaining = totalDays;
@@ -432,79 +381,35 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
       daysRemaining -= daysInThisWeek;
     }
 
-    const planData = { weeks };
     setWeeklyPlan({ type: "exact", weeks });
-
-    // Save to library for future users (fire and forget)
-    base44.functions.invoke('saveMealTemplate', {
-      diet, calories: bucketCalories(calories), people, days, budget,
-      language_code: currentLanguage.code, plan_data: planData, plan_type: 'exact'
-    }).catch(() => {});
-
     setLoadingPlan(false);
   };
 
   const generateWeeklyPlan = async () => {
-    setLoadingPlan(true);
-
-    // Check cache first
-    try {
-      const cached = await base44.functions.invoke('getMealTemplate', {
-        diet, calories: bucketCalories(calories), people, days, budget,
-        language_code: currentLanguage.code, plan_type: 'repeat'
-      });
-      if (cached?.data?.found) {
-        setWeeklyPlan({ type: "repeat", weeks: cached.data.template.plan_data.weeks });
-        setLoadingPlan(false);
-        return;
-      }
-    } catch (_) { /* fall through to AI */ }
-
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
+    setLoadingPlan(true);
     const daysInWeek = Math.min(totalDays, 7);
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek),
       response_json_schema: weeklyPlanSchema
     });
-    const weeks = [{ week: 1, days: result.days || [] }];
-    setWeeklyPlan({ type: "repeat", weeks });
-
-    // Save to library
-    base44.functions.invoke('saveMealTemplate', {
-      diet, calories: bucketCalories(calories), people, days, budget,
-      language_code: currentLanguage.code, plan_data: { weeks }, plan_type: 'repeat'
-    }).catch(() => {});
-
+    setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: result.days || [] }] });
     setLoadingPlan(false);
   };
 
   const generateUniqueMonthlyPlan = async () => {
-    setLoadingPlan(true);
-
-    // Check cache first
-    try {
-      const cached = await base44.functions.invoke('getMealTemplate', {
-        diet, calories: bucketCalories(calories), people, days, budget,
-        language_code: currentLanguage.code, plan_type: 'unique'
-      });
-      if (cached?.data?.found) {
-        setWeeklyPlan({ type: "unique", weeks: cached.data.template.plan_data.weeks });
-        setLoadingPlan(false);
-        return;
-      }
-    } catch (_) { /* fall through to AI */ }
-
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
+    setLoadingPlan(true);
     const weeks = [];
     let previousMeals = "";
     let daysRemaining = totalDays;
@@ -521,15 +426,7 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
       daysRemaining -= daysInThisWeek;
     }
 
-    const planData = { weeks };
     setWeeklyPlan({ type: "unique", weeks });
-
-    // Save to library
-    base44.functions.invoke('saveMealTemplate', {
-      diet, calories: bucketCalories(calories), people, days, budget,
-      language_code: currentLanguage.code, plan_data: planData, plan_type: 'unique'
-    }).catch(() => {});
-
     setLoadingPlan(false);
   };
 
@@ -776,25 +673,6 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
         <p className="text-sm text-muted-foreground">
           {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
         </p>
-        {priceDate && (() => {
-          const priceDays = Math.floor((Date.now() - new Date(priceDate).getTime()) / (1000 * 60 * 60 * 24));
-          const isStale = priceDays >= 2;
-          return (
-            <>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                🏷️ {t("pricesAsOf") || "Prices as of"} <span className="font-medium text-foreground">{new Date(priceDate).toLocaleDateString(currentLanguage.code || 'de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              </p>
-              {isStale && (
-                <div className="mt-2 flex items-start gap-2 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3 text-sm text-yellow-800">
-                  <span className="text-base shrink-0">⚠️</span>
-                  <span>
-                    <strong>Prices may have changed.</strong> Our data is {priceDays} day{priceDays > 1 ? "s" : ""} old. Please verify current prices in-store before shopping — especially for promotional offers.
-                  </span>
-                </div>
-              )}
-            </>
-          );
-        })()}
       </div>
 
       {loading ? (
@@ -863,42 +741,12 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
               );
             })()}
             {totalSaved > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
-                  <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
-                </div>
-                <div className="flex items-center justify-between mt-1 pt-1 border-t border-yellow-200">
-                  <p className="text-xs text-yellow-600">Regular price total</p>
-                  <p className="text-xs text-yellow-700 font-semibold line-through">€{(activeTotal + totalSaved).toFixed(2)}</p>
-                </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-xs text-yellow-600">You pay</p>
-                  <p className="text-xs font-bold text-yellow-800">€{activeTotal.toFixed(2)}</p>
-                </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
+                <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
               </div>
             )}
           </div>
-
-          {/* Calorie summary (only shown for cache-generated lists) */}
-          {groceries?.fromCache && groceries?.calPerDay > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🔥</span>
-                <div>
-                  <p className="text-xs font-semibold text-green-800">Estimated Calorie Coverage</p>
-                  <p className="text-xs text-green-700">~{groceries.calPerDay.toLocaleString()} kcal/day · {groceries.totalCalories?.toLocaleString()} kcal total</p>
-                </div>
-              </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                Math.abs(groceries.calPerDay - calories) < calories * 0.15
-                  ? "bg-green-200 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}>
-                {Math.abs(groceries.calPerDay - calories) < calories * 0.15 ? "On target" : "Adjust qty"}
-              </span>
-            </div>
-          )}
 
           {/* Export Buttons */}
           <div className="flex gap-2 justify-end">
@@ -936,33 +784,24 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
                      )}
                    </div>
                    <div className="flex items-center gap-3 ml-4">
-                    {!item._loading && (
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                        {item.unit_price != null && item.unit_price !== item.price && (
-                          <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} each × {Math.round(item.price / item.unit_price)}</p>
-                        )}
-                        {(() => {
-                          if (item.normal_price == null || item.normal_price <= item.price) return null;
-                          // Sanity check: normal_price shouldn't be more than 50% higher than budget price
-                          const cappedNormal = Math.min(item.normal_price, item.price * 1.5);
-                          if (cappedNormal <= item.price) return null;
-                          const saved = cappedNormal - item.price;
-                          const qty = item.unit_price > 0 ? Math.round(item.price / item.unit_price) : 1;
-                          const savePerUnit = qty > 1 ? saved / qty : null;
-                          return (
-                            <>
-                              <p className="text-xs text-muted-foreground line-through">€{cappedNormal.toFixed(2)}</p>
-                              <p className="text-xs font-medium text-green-600">saves €{saved.toFixed(2)}</p>
-                              {savePerUnit != null && savePerUnit > 0.005 && (
-                                <p className="text-xs text-green-500">€{savePerUnit.toFixed(2)}/item</p>
-                              )}
-                            </>
-                          );
-                        })()}
-                        {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
-                      </div>
-                    )}
+                     {!item._loading && (
+                       <div className="text-right">
+                         {item.unit_price != null && item.unit_price !== item.price ? (
+                           <>
+                             <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                             <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}</p>
+                           </>
+                         ) : (
+                           <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                         )}
+                         {item.normal_price != null && item.normal_price > item.price && (
+                           <p className="text-xs font-medium text-green-600">
+                             saves €{(item.normal_price - item.price).toFixed(2)}
+                           </p>
+                         )}
+                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                       </div>
+                     )}
                      <button
                        onClick={() => setGrocerySwapTarget({ item, category: category.name })}
                        className="text-muted-foreground hover:text-primary transition-colors"
@@ -1000,13 +839,35 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
             loadingPlan ? (
               <GeneratingLoader type="plan" />
             ) : (
-              <MealPlanButtons
-                days={days}
-                onExact={generateExactDaysPlan}
-                onRepeat={generateWeeklyPlan}
-                onUnique={generateUniqueMonthlyPlan}
-                t={t}
-              />
+              <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
+                <div>
+                  <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={generateExactDaysPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
+                  >
+                    <span className="text-base font-heading font-semibold">{t("generateExactDaysPlan", { days })}</span>
+                    <span className="text-xs opacity-80">{t("generateExactDaysPlanDesc", { days })}</span>
+                  </button>
+                  <button
+                    onClick={generateWeeklyPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 text-left"
+                  >
+                    <span className="text-base font-heading font-semibold">{t("repeatWeeklyPlan")}</span>
+                    <span className="text-xs opacity-80">{t("repeatWeeklyPlanDesc")}</span>
+                  </button>
+                  <button
+                    onClick={generateUniqueMonthlyPlan}
+                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 text-left"
+                  >
+                    <span className="text-base font-heading font-semibold">{t("uniqueMonthlyPlan")}</span>
+                    <span className="text-xs opacity-80">{t("uniqueMonthlyPlanDesc")}</span>
+                  </button>
+                </div>
+              </div>
             )
           )}
 

@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { useDietSaleScores } from "@/lib/useDietSaleScores";
-import { useStoreSaleScores } from "@/lib/useStoreSaleScores";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search } from "lucide-react";
@@ -51,10 +49,8 @@ const DIET_KEYS = [
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const storeSaleScores = useStoreSaleScores();
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
-  const dietSaleScores = useDietSaleScores(selectedStores);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
@@ -248,51 +244,35 @@ export default function BudgetForm() {
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-               {GROCERY_STORES.map((store) => {
-                 const score = storeSaleScores[store.id.toLowerCase()];
-                 return (
-                   <button
-                     key={store.id}
-                     onClick={() => toggleStore(store.id)}
-                     className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                       selectedStores.includes(store.id)
-                         ? store.color + " border-current"
-                         : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                     }`}
-                   >
-                     {store.name}
-                     {score && (
-                       <span className="text-xs font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-md">
-                         -{score}%
-                       </span>
-                     )}
-                   </button>
-                 );
-               })}
+               {GROCERY_STORES.map((store) => (
+                 <button
+                   key={store.id}
+                   onClick={() => toggleStore(store.id)}
+                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                     selectedStores.includes(store.id)
+                       ? store.color + " border-current"
+                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                   }`}
+                 >
+                   {store.name}
+                 </button>
+               ))}
              </div>
              <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
              <div className="flex flex-wrap gap-2">
-               {DRUGSTORES.map((store) => {
-                 const score = storeSaleScores[store.id.toLowerCase()];
-                 return (
-                   <button
-                     key={store.id}
-                     onClick={() => toggleStore(store.id)}
-                     className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                       selectedStores.includes(store.id)
-                         ? store.color + " border-current"
-                         : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                     }`}
-                   >
-                     {store.name}
-                     {score && (
-                       <span className="text-xs font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-md">
-                         -{score}%
-                       </span>
-                     )}
-                   </button>
-                 );
-               })}
+               {DRUGSTORES.map((store) => (
+                 <button
+                   key={store.id}
+                   onClick={() => toggleStore(store.id)}
+                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                     selectedStores.includes(store.id)
+                       ? store.color + " border-current"
+                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                   }`}
+                 >
+                   {store.name}
+                 </button>
+               ))}
              </div>
           </div>
         )}
@@ -325,14 +305,7 @@ export default function BudgetForm() {
 
       {/* Diet Type */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
-          {selectedStores.length > 0 && Object.keys(dietSaleScores).length > 0 && (
-            <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded-lg">
-              💰 Savings at {selectedStores.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ")}
-            </span>
-          )}
-        </div>
+        <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {DIET_KEYS.map((diet) => {
             const Icon = diet.icon;
@@ -347,19 +320,12 @@ export default function BudgetForm() {
                     : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
                 }`}
               >
-                <div className={`mb-1 flex items-start justify-between w-full ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
-                  <span>
-                    {diet.id === "halal" ? (
-                      <span className="text-xl font-bold leading-none">حلال</span>
-                    ) : Icon ? (
-                      <Icon className="h-6 w-6" />
-                    ) : null}
-                  </span>
-                  {dietSaleScores[diet.id] && (
-                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${isSelected ? "bg-white/20 text-white" : "bg-green-100 text-green-700"}`}>
-                      -{dietSaleScores[diet.id]}%
-                    </span>
-                  )}
+                <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
+                  {diet.id === "halal" ? (
+                    <span className="text-xl font-bold leading-none">حلال</span>
+                  ) : Icon ? (
+                    <Icon className="h-6 w-6" />
+                  ) : null}
                 </div>
                 <span className={`font-heading font-semibold text-sm leading-tight ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
                   {t(diet.nameKey)}
