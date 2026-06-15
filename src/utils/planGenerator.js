@@ -295,17 +295,16 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     }
   }
   
-  // Enforce minimum calories from each balanced diet category (budget-permitting)
+  // Enforce minimum calories from each balanced diet category
   Object.entries(BALANCED_DIET_TARGETS).forEach(([cat, targets]) => {
     const minCal = calTarget * targets.min;
     const currentCal = categoryCalories[cat] || 0;
     if (currentCal >= minCal) return; // Already meeting minimum
     
-    // Add more items from this category until we meet the minimum OR budget is tight
+    // Add more items from this category until we meet the minimum
     const catItems = scored.filter(i => i.category === cat && !selected.find(s => s.comparison_key === i.comparison_key));
     for (const item of catItems) {
       if (categoryCalories[cat] >= minCal) break;
-      // Skip if adding this item would exceed budget
       if (runningCost + item.unit_price > budgetNum) break;
       tryAdd(item, false);
     }
@@ -363,6 +362,35 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     runningCal += addedCal;
     if (categoryCalories[cat] !== undefined) {
       categoryCalories[cat] += addedCal;
+    }
+  }
+
+  // Final pass: fill remaining budget with best value items (prioritize calorie density)
+  const budgetRemaining = budgetNum - runningCost;
+  if (budgetRemaining >= 1) {
+    for (const item of scored) {
+      if (runningCost >= budgetNum) break;
+      const alreadySelected = selected.find(s => s.comparison_key === item.comparison_key);
+      if (alreadySelected) {
+        // Try to add more units of already-selected items
+        const cat = item.category || "Other";
+        const hardCap = MAX_TOTAL_UNITS[cat] || 2;
+        if (alreadySelected.unitsNeeded < hardCap && runningCost + item.unit_price <= budgetNum) {
+          alreadySelected.unitsNeeded++;
+          alreadySelected.totalPrice = parseFloat((item.unit_price * alreadySelected.unitsNeeded).toFixed(2));
+          alreadySelected.quantity = `${alreadySelected.unitsNeeded}x ${item.quantity_description || ""}`.trim();
+          runningCost += item.unit_price;
+          runningCal += item.calPerUnit;
+          if (categoryCalories[cat] !== undefined) {
+            categoryCalories[cat] += item.calPerUnit;
+          }
+        }
+      } else {
+        // Add new item if it fits
+        if (runningCost + item.unit_price <= budgetNum) {
+          tryAdd(item, true);
+        }
+      }
     }
   }
 
