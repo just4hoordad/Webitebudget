@@ -4,7 +4,6 @@
  * Zero AI credits — runs entirely in the browser.
  */
 
-// Known calorie density (kcal per 100g or 100ml) for common comparison_keys.
 const CALORIE_DENSITY_MAP = {
   "Vollmilch 1L":          61,
   "Halbfettmilch 1L":      46,
@@ -49,26 +48,26 @@ const CALORIE_DENSITY_MAP = {
   "Vollmilchschokolade 100g": 535,
 };
 
-// Non-food categories don't contribute calories
-const NON_FOOD_CATEGORIES = ["Household", "Health & Beauty"];
+// Categories that don't count toward calorie target (oils, sauces, drinks, cleaning)
+const NON_CALORIC_CATEGORIES = ["Household", "Health & Beauty", "Pantry", "Spreads", "Drinks"];
 
-// Pantry/condiment items that shouldn't be bulk-bought to fill calorie targets
-const CONDIMENT_CATEGORIES = ["Pantry", "Spreads"];
-
-// Max units per week by category (prevents absurd quantities)
-const MAX_UNITS_PER_WEEK = {
-  "Dairy": 3,
-  "Meat & Fish": 2,
-  "Grains & Pasta": 3,
-  "Bread & Bakery": 2,
-  "Vegetables": 3,
-  "Fruits": 3,
+// Max total units for entire period — prevents any single item dominating
+const MAX_TOTAL_UNITS = {
+  "Dairy": 5,
+  "Meat & Fish": 4,
+  "Grains & Pasta": 4,
+  "Bread & Bakery": 4,
+  "Vegetables": 5,
+  "Fruits": 5,
   "Drinks": 4,
-  "Snacks": 2,
+  "Snacks": 3,
   "Pantry": 1,
   "Spreads": 1,
   "Household": 1,
 };
+
+// High-calorie-density staples capped at 2 units to prevent them from swallowing the calorie budget
+const HIGH_CAL_STAPLE_KEYS = ["Butter", "Olivenöl", "Sonnenblumenöl", "Haferflocken", "Müsli", "Schokolade", "Erdnussbutter"];
 
 function parseCaloriesPer100(info) {
   if (!info) return null;
@@ -91,17 +90,14 @@ function parseQuantityGrams(qtyStr) {
 }
 
 function estimateCaloriesPerUnit(item) {
-  if (NON_FOOD_CATEGORIES.includes(item.category)) return 0;
+  if (NON_CALORIC_CATEGORIES.includes(item.category)) return 0;
   const per100 = parseCaloriesPer100(item.calories_info);
   const grams = parseQuantityGrams(item.quantity_description);
-  if (per100 !== null && grams !== null) {
-    return (per100 / 100) * grams;
-  }
+  if (per100 !== null && grams !== null) return (per100 / 100) * grams;
   const key = item.comparison_key || "";
   for (const [mapKey, density] of Object.entries(CALORIE_DENSITY_MAP)) {
     if (key.toLowerCase().includes(mapKey.split(" ")[0].toLowerCase())) {
-      const g = grams || 500;
-      return (density / 100) * g;
+      return (density / 100) * (grams || 500);
     }
   }
   return 0;
@@ -126,20 +122,17 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
   const budgetNum = parseFloat(budget);
   const daysNum = parseInt(days, 10);
   const peopleNum = parseInt(people, 10);
-  const calPerDayTarget = parseFloat(calories); // user's daily calorie goal
-  const calTarget = calPerDayTarget * daysNum * peopleNum; // total kcal needed
-  const weeks = Math.ceil(daysNum / 7);
+  const calPerDayGoal = parseFloat(calories);
+  const calTarget = calPerDayGoal * daysNum * peopleNum;
 
-  // 1. Filter catalog to selected stores
+  // 1. Filter to selected stores
   const storeList = (typeof stores === "string" ? stores.split(",") : stores)
-    .map(s => s.trim().toLowerCase())
-    .filter(Boolean);
-
+    .map(s => s.trim().toLowerCase()).filter(Boolean);
   let pool = storeList.length > 0
     ? catalog.filter(item => storeList.some(s => s === (item.store || "").toLowerCase()))
     : catalog;
 
-  // 2. Apply diet filter
+  // 2. Diet filter
   if (diet === "vegan") {
     pool = pool.filter(item =>
       !["Meat & Fish", "Dairy"].includes(item.category) ||
@@ -155,9 +148,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
 
   // 3. Bio filter
   if (bio) {
-    const bioPool = pool.filter(item =>
-      /bio|alnatura|bioland|demeter|organic/i.test(item.product_name)
-    );
+    const bioPool = pool.filter(item => /bio|alnatura|bioland|demeter|organic/i.test(item.product_name));
     if (bioPool.length >= 15) pool = bioPool;
   }
 
@@ -179,13 +170,11 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     });
   }
 
-  // 6. Deduplicate by comparison_key — pick cheapest
+  // 6. Deduplicate by comparison_key — cheapest per key
   const byKey = {};
   pool.forEach(item => {
     const key = item.comparison_key || item.product_name;
-    if (!byKey[key] || item.unit_price < byKey[key].unit_price) {
-      byKey[key] = item;
-    }
+    if (!byKey[key] || item.unit_price < byKey[key].unit_price) byKey[key] = item;
   });
 
   // 7. Compute calPerUnit for each candidate
@@ -193,73 +182,95 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     .filter(item => item.unit_price > 0)
     .map(item => ({ ...item, calPerUnit: estimateCaloriesPerUnit(item) }));
 
-  // 8. Score: calorie-dense food first; condiments and non-food deprioritised
+  // 8. Score and sort: calorie-dense food first; non-caloric items last
   const scored = candidates.map(item => {
     const cat = item.category || "Other";
-    let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 10;
-    if (CONDIMENT_CATEGORIES.includes(cat)) calPerEuro *= 0.05;
-    if (NON_FOOD_CATEGORIES.includes(cat)) calPerEuro = 1;
+    let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 5;
+    if (NON_CALORIC_CATEGORIES.includes(cat)) calPerEuro = 0.5;
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 
-  // Helper: how many units of this item to buy
-  function scaleUnits(item, calStillNeeded, budgetLeft) {
-    const cat = item.category || "Other";
-    const maxPerWeek = MAX_UNITS_PER_WEEK[cat] || 2;
-    const hardCap = weeks * maxPerWeek;
-
-    if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(cat) || CONDIMENT_CATEGORIES.includes(cat)) {
-      return 1;
-    }
-    const unitsForCal = calStillNeeded > 0 ? Math.ceil(calStillNeeded / item.calPerUnit) : 1;
-    const unitsForBudget = Math.floor(budgetLeft / item.unit_price);
-    return Math.max(1, Math.min(unitsForCal, unitsForBudget, hardCap));
+  // 9. Helper: is this a calorie-counted food item?
+  function isCaloricFood(item) {
+    return !NON_CALORIC_CATEGORIES.includes(item.category || "Other") && item.calPerUnit > 0;
   }
 
-  // 9. Greedy selection
-  let runningCost = 0;
-  let runningCal = 0;
-  const selected = [];
-  const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Pantry", "Snacks", "Drinks", "Household", "Other"];
+  // 10. Helper: how many units to buy
+  function scaleUnits(item, calStillNeeded, budgetLeft) {
+    const cat = item.category || "Other";
+    const hardCap = MAX_TOTAL_UNITS[cat] || 2;
+    const compKey = item.comparison_key || "";
+    const isHighCal = HIGH_CAL_STAPLE_KEYS.some(k => compKey.includes(k));
+    const effectiveCap = isHighCal ? Math.min(hardCap, 2) : hardCap;
 
-  // First pass: one item per category
+    if (!isCaloricFood(item)) return 1;
+    const unitsForCal = calStillNeeded > 0 ? Math.ceil(calStillNeeded / item.calPerUnit) : 1;
+    const unitsForBudget = Math.floor(budgetLeft / item.unit_price);
+    return Math.max(1, Math.min(unitsForCal, unitsForBudget, effectiveCap));
+  }
+
+  // 11. Greedy selection
+  let runningCost = 0;
+  let runningCal = 0; // only tracks caloric food calories
+  const selected = [];
+  const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Snacks", "Pantry", "Drinks", "Household", "Other"];
+
+  function tryAdd(item, forceSingleUnit = false) {
+    if (runningCost + item.unit_price > budgetNum) return false;
+    const calLeft = calTarget - runningCal;
+    const units = forceSingleUnit ? 1 : scaleUnits(item, Math.max(calLeft, 1), budgetNum - runningCost);
+    const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
+    if (runningCost + totalPrice > budgetNum) return false;
+    selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
+    runningCost += totalPrice;
+    if (isCaloricFood(item)) runningCal += item.calPerUnit * units;
+    return true;
+  }
+
+  // First pass: add 1 base unit per category to ensure variety (no scaling yet)
   for (const cat of categoryPriority) {
     const catItems = scored.filter(i => i.category === cat || (cat === "Other" && !categoryPriority.includes(i.category)));
     for (const item of catItems.slice(0, 2)) {
-      const isFood = !NON_FOOD_CATEGORIES.includes(cat) && !CONDIMENT_CATEGORIES.includes(cat) && item.calPerUnit > 0;
-      if (isFood && runningCal >= calTarget) break; // already hit target
-      const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
-      const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
-      if (runningCost + totalPrice <= budgetNum) {
-        selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
-        runningCost += totalPrice;
-        runningCal += item.calPerUnit * units;
-        break;
-      }
+      if (tryAdd(item, true)) break; // always 1 unit in first pass
     }
   }
 
-  // Second pass: fill remaining calorie gap (stop adding food once calTarget is met)
+  // Second pass: scale up caloric items to meet calorie target, add non-caloric variety
   for (const item of scored) {
     if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
-    if (runningCost + item.unit_price > budgetNum) continue;
-
-    const cat = item.category || "Other";
-    const isFood = !NON_FOOD_CATEGORIES.includes(cat) && !CONDIMENT_CATEGORIES.includes(cat) && item.calPerUnit > 0;
-
-    // Don't add more food items once calorie target is met
-    if (isFood && runningCal >= calTarget) continue;
-
-    const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
-    const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
-    if (runningCost + totalPrice > budgetNum) continue;
-
-    selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
-    runningCost += totalPrice;
-    runningCal += item.calPerUnit * units;
+    const caloric = isCaloricFood(item);
+    const calLeft = calTarget - runningCal;
+    // If we already hit calorie target, add everything at 1 unit (variety + budget spending)
+    tryAdd(item, !caloric || calLeft <= 0);
   }
 
-  // 10. Build output grouped by category
+  // Third pass: scale up existing caloric items if we're still short on calories
+  // (happens when second pass added many 1-unit items without filling the gap)
+  for (const item of selected.filter(i => isCaloricFood(i))) {
+    const calLeft = calTarget - runningCal;
+    if (calLeft <= 0) break;
+    const cat = item.category || "Other";
+    const hardCap = MAX_TOTAL_UNITS[cat] || 2;
+    const compKey = item.comparison_key || "";
+    const isHighCal = HIGH_CAL_STAPLE_KEYS.some(k => compKey.includes(k));
+    const effectiveCap = isHighCal ? Math.min(hardCap, 2) : hardCap;
+    if (item.unitsNeeded >= effectiveCap) continue;
+    const additionalUnits = Math.min(
+      Math.ceil(calLeft / item.calPerUnit),
+      effectiveCap - item.unitsNeeded,
+      Math.floor((budgetNum - runningCost) / item.unit_price)
+    );
+    if (additionalUnits <= 0) continue;
+    const extraCost = parseFloat((item.unit_price * additionalUnits).toFixed(2));
+    if (runningCost + extraCost > budgetNum) continue;
+    item.unitsNeeded += additionalUnits;
+    item.totalPrice = parseFloat((item.unit_price * item.unitsNeeded).toFixed(2));
+    item.quantity = `${item.unitsNeeded}x ${item.quantity_description || ""}`.trim();
+    runningCost += extraCost;
+    runningCal += item.calPerUnit * additionalUnits;
+  }
+
+  // 12. Build output grouped by category
   const categoryMap = {};
   for (const item of selected) {
     const cat = item.category || "Other";
@@ -279,14 +290,11 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
 
   const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
 
-  // Clamp reported calPerDay to the user's goal (slight overshoot from integer unit rounding is expected)
-  const actualCalPerDay = Math.round(runningCal / daysNum / peopleNum);
-
   return {
     total_estimated_cost: parseFloat(runningCost.toFixed(2)),
     categories,
     totalCalories: Math.round(runningCal),
-    calPerDay: actualCalPerDay,
+    calPerDay: Math.round(runningCal / daysNum / peopleNum),
     fromCache: true,
   };
 }
