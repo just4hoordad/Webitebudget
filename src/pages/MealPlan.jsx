@@ -114,32 +114,21 @@ export default function MealPlan() {
             });
           });
 
-          // Enforce budget: build a flat list with category tag, drop cheapest until under budget
+          // Enforce budget: scale all prices proportionally if over budget
           const budgetLimit = parseFloat(budget);
-          // Build flat list with catName attached
-          let allItems = Object.entries(categoryMap).flatMap(([catName, items]) =>
-            items.map(item => ({ ...item, _catName: catName }))
-          );
-          let total = allItems.reduce((s, i) => s + i.price, 0);
+          const rawTotal = Object.values(categoryMap).flatMap(i => i).reduce((s, i) => s + i.price, 0);
+          const scaleFactor = rawTotal > budgetLimit ? budgetLimit / rawTotal : 1;
 
-          if (total > budgetLimit) {
-            allItems.sort((a, b) => a.price - b.price);
-            while (total > budgetLimit && allItems.length > 5) {
-              const removed = allItems.shift();
-              total -= removed.price;
-              const cat = categoryMap[removed._catName];
-              if (cat) {
-                const idx = cat.findIndex(i => i.name === removed.name);
-                if (idx !== -1) cat.splice(idx, 1);
-              }
-            }
+          if (scaleFactor < 1) {
+            Object.values(categoryMap).forEach(items =>
+              items.forEach(item => {
+                item.price = parseFloat((item.price * scaleFactor).toFixed(2));
+              })
+            );
           }
 
-          // Rebuild categories after trimming (drop empty ones)
-          const categories = Object.entries(categoryMap)
-            .map(([name, items]) => ({ name, items }))
-            .filter(c => c.items.length > 0);
-          const finalTotal = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
+          const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
+          const finalTotal = Math.min(categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0), budgetLimit);
           setGroceries({ total_estimated_cost: parseFloat(finalTotal.toFixed(2)), categories });
           setLoading(false);
           return;
