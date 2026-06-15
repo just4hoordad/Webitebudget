@@ -257,11 +257,12 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     const hardCap = weeks * maxPerWeek;
 
     if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(cat) || CONDIMENT_CATEGORIES.includes(cat)) {
-      return Math.min(weeks, hardCap); // condiments/non-food: just 1/week
+      return 1; // condiments/non-food: just 1 unit
     }
-    const maxUnitsForCal = Math.ceil(calStillNeeded / item.calPerUnit);
-    const maxUnitsForBudget = Math.floor(budgetLeft / item.unit_price);
-    return Math.max(1, Math.min(maxUnitsForCal, maxUnitsForBudget, hardCap));
+    // Only buy as many units as needed to hit remaining calorie target
+    const unitsForCal = Math.ceil(calStillNeeded / item.calPerUnit);
+    const unitsForBudget = Math.floor(budgetLeft / item.unit_price);
+    return Math.max(1, Math.min(unitsForCal, unitsForBudget, hardCap));
   }
 
   // 9. Greedy selection: fill budget, track calories
@@ -304,6 +305,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
   for (const item of selected) {
     const cat = item.category || "Other";
     if (!categoryMap[cat]) categoryMap[cat] = [];
+    const totalItemCal = Math.round(item.calPerUnit * item.unitsNeeded);
     categoryMap[cat].push({
       name: item.product_name,
       quantity: item.quantity,
@@ -311,8 +313,8 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
       price: item.totalPrice,
       normal_price: item.normal_price ? parseFloat((item.normal_price * item.unitsNeeded).toFixed(2)) : null,
       store: item.store,
-      calories_info: item.calories_info || "",
-      _cal: Math.round(item.calPerUnit * item.unitsNeeded),
+      calories_info: totalItemCal > 0 ? `~${totalItemCal.toLocaleString()} kcal total` : (item.calories_info || ""),
+      _cal: totalItemCal,
     });
   }
 
