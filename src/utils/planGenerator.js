@@ -52,6 +52,16 @@ const CALORIE_DENSITY_MAP = {
 // Pantry, Spreads, and Drinks DO have calories and should be counted
 const NON_CALORIC_CATEGORIES = ["Household", "Health & Beauty"];
 
+// Minimum calorie percentage from each category for a balanced diet
+const BALANCED_DIET_TARGETS = {
+  "Grains & Pasta": { min: 0.25, max: 0.35 },  // 25-35% from grains
+  "Vegetables": { min: 0.15, max: 0.25 },      // 15-25% from vegetables
+  "Fruits": { min: 0.10, max: 0.20 },          // 10-20% from fruits
+  "Meat & Fish": { min: 0.15, max: 0.25 },     // 15-25% from protein
+  "Dairy": { min: 0.10, max: 0.20 },           // 10-20% from dairy
+  "Bread & Bakery": { min: 0.10, max: 0.20 },  // 10-20% from bread
+};
+
 // Max total units for entire period — prevents any single item dominating
 // Increased limits for calorie-dense categories (Pantry, Spreads) to help reach calorie targets
 const MAX_TOTAL_UNITS = {
@@ -247,11 +257,15 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     return Math.max(1, Math.min(unitsForCal, unitsForBudget, effectiveCap));
   }
 
-  // 11. Greedy selection
+  // 11. Greedy selection with balanced diet enforcement
   let runningCost = 0;
   let runningCal = 0; // tracks all meaningful calories
   const selected = [];
+  const categoryCalories = {}; // track calories per category for balance
   const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Snacks", "Pantry", "Drinks", "Household", "Other"];
+  
+  // Initialize category calorie tracking
+  Object.keys(BALANCED_DIET_TARGETS).forEach(cat => categoryCalories[cat] = 0);
 
   function tryAdd(item, forceSingleUnit = false) {
     if (runningCost + item.unit_price > budgetNum) return false;
@@ -261,7 +275,12 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     if (runningCost + totalPrice > budgetNum) return false;
     selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
     runningCost += totalPrice;
-    if (hasMeaningfulCalories(item)) runningCal += item.calPerUnit * units;
+    const itemCal = hasMeaningfulCalories(item) ? item.calPerUnit * units : 0;
+    runningCal += itemCal;
+    // Track calories per category for balance monitoring
+    if (categoryCalories[item.category] !== undefined) {
+      categoryCalories[item.category] += itemCal;
+    }
     return true;
   }
 
@@ -272,34 +291,57 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
       if (tryAdd(item, true)) break; // always 1 unit in first pass
     }
   }
-
-  // Second pass: prioritize high-calorie items to meet target, then add variety
-  const highCalItems = scored.filter(i => hasMeaningfulCalories(i) && i.calPerUnit >= 500);
-  const otherItems = scored.filter(i => !highCalItems.includes(i));
   
-  // First add high-calorie items to reach target
-  for (const item of highCalItems) {
+  // Enforce minimum calories from each balanced diet category
+  Object.entries(BALANCED_DIET_TARGETS).forEach(([cat, targets]) => {
+    const minCal = calTarget * targets.min;
+    const currentCal = categoryCalories[cat] || 0;
+    if (currentCal >= minCal) return; // Already meeting minimum
+    
+    // Add more items from this category until we meet the minimum
+    const catItems = scored.filter(i => i.category === cat && !selected.find(s => s.comparison_key === i.comparison_key));
+    for (const item of catItems) {
+      if (categoryCalories[cat] >= minCal) break;
+      if (runningCost + item.unit_price > budgetNum) break;
+      tryAdd(item, false);
+    }
+  });
+
+  // Second pass: fill remaining calorie target while respecting category maximums
+  for (const item of scored) {
     if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
     const calLeft = calTarget - runningCal;
-    if (calLeft > 0) tryAdd(item, false);
-  }
-  
-  // Then add remaining items for variety
-  for (const item of otherItems) {
-    if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
-    const calLeft = calTarget - runningCal;
-    tryAdd(item, calLeft <= 0);
+    if (calLeft <= 0) break;
+    
+    // Check if adding this item would exceed category maximum
+    const cat = item.category;
+    if (BALANCED_DIET_TARGETS[cat]) {
+      const maxCal = calTarget * BALANCED_DIET_TARGETS[cat].max;
+      const currentCatCal = categoryCalories[cat] || 0;
+      const projectedCal = currentCatCal + item.calPerUnit;
+      if (projectedCal > maxCal && currentCatCal >= maxCal * 0.9) continue; // Skip if at 90% of max
+    }
+    
+    tryAdd(item, false);
   }
 
-  // Third pass: scale up existing items with meaningful calories if we're still short
+  // Third pass: scale up existing items if we're still short on calories, respecting balance
   for (const item of selected.filter(i => hasMeaningfulCalories(i))) {
     const calLeft = calTarget - runningCal;
     if (calLeft <= 0) break;
     const cat = item.category || "Other";
+    
+    // Check category max before scaling
+    if (BALANCED_DIET_TARGETS[cat]) {
+      const maxCal = calTarget * BALANCED_DIET_TARGETS[cat].max;
+      const currentCatCal = categoryCalories[cat] || 0;
+      if (currentCatCal >= maxCal) continue; // Don't scale if at category max
+    }
+    
     const hardCap = MAX_TOTAL_UNITS[cat] || 2;
     const compKey = item.comparison_key || "";
     const isHighCal = HIGH_CAL_STAPLE_KEYS.some(k => compKey.includes(k));
-    const effectiveCap = isHighCal ? Math.min(hardCap, 2) : hardCap;
+    const effectiveCap = isHighCal ? Math.min(hardCap, 3) : hardCap;
     if (item.unitsNeeded >= effectiveCap) continue;
     const additionalUnits = Math.min(
       Math.ceil(calLeft / item.calPerUnit),
@@ -313,7 +355,11 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     item.totalPrice = parseFloat((item.unit_price * item.unitsNeeded).toFixed(2));
     item.quantity = `${item.unitsNeeded}x ${item.quantity_description || ""}`.trim();
     runningCost += extraCost;
-    runningCal += item.calPerUnit * additionalUnits;
+    const addedCal = item.calPerUnit * additionalUnits;
+    runningCal += addedCal;
+    if (categoryCalories[cat] !== undefined) {
+      categoryCalories[cat] += addedCal;
+    }
   }
 
   // 12. Build output grouped by category
