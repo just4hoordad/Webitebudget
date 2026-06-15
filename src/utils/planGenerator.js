@@ -147,8 +147,15 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     );
   }
 
-  // 3. Bio preference — boost organic/natural items by giving them priority in scoring later
-  // We don't hard-filter (catalog has few bio items) — instead we flag them for a score bonus
+  // 3. Bio filter — hard-filter to only bio/organic items when enabled
+  if (bio) {
+    const bioPool = pool.filter(item =>
+      item.bio === true ||
+      /bio|alnatura|bioland|demeter|organic|naturkind|gut bio/i.test(item.product_name)
+    );
+    // Only apply the filter if we have enough items to build a meaningful list
+    if (bioPool.length >= 10) pool = bioPool;
+  }
 
   // 4. Remove owned items
   if (ownedItems.length > 0) {
@@ -190,11 +197,6 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     if (saleHunt && item.normal_price && item.normal_price > item.unit_price) {
       const discountPct = (item.normal_price - item.unit_price) / item.normal_price;
       calPerEuro *= (1 + discountPct * 2); // up to 2x boost for a 50% discount
-    }
-
-    // Bio preference: boost items with organic/natural branding
-    if (bio && /bio|alnatura|bioland|demeter|organic|naturkind/i.test(item.product_name)) {
-      calPerEuro *= 1.5;
     }
 
     return { ...item, calPerEuro };

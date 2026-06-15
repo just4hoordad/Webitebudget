@@ -200,6 +200,74 @@ const CATALOG_DATA = {
   ],
 };
 
+// Bio / organic products available at major German chains
+const BIO_CATALOG_DATA = [
+  // Rewe Bio line
+  { store: "Rewe", product_name: "Rewe Bio Vollmilch 3,5% 1L", category: "Dairy", comparison_key: "Vollmilch 1L", unit_price: 1.29, normal_price: 1.59, quantity_description: "1L", calories_info: "~65 kcal/100ml", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Butter 250g", category: "Dairy", comparison_key: "Butter 250g", unit_price: 2.49, normal_price: 2.99, quantity_description: "250g", calories_info: "~717 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Naturjoghurt 500g", category: "Dairy", comparison_key: "Naturjoghurt 500g", unit_price: 0.99, normal_price: 1.29, quantity_description: "500g", calories_info: "~61 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Eier 10er", category: "Dairy", comparison_key: "Eier 10er", unit_price: 3.49, normal_price: 3.99, quantity_description: "10er", calories_info: "~155 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Gouda 400g", category: "Dairy", comparison_key: "Gouda 400g", unit_price: 3.49, normal_price: 3.99, quantity_description: "400g", calories_info: "~356 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Hähnchenbrust 500g", category: "Meat & Fish", comparison_key: "Hähnchenbrust 500g", unit_price: 5.99, normal_price: 6.99, quantity_description: "500g", calories_info: "~165 kcal/100g", diet_tags: ["balanced"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Hackfleisch Rind 400g", category: "Meat & Fish", comparison_key: "Hackfleisch 500g", unit_price: 5.49, normal_price: 6.49, quantity_description: "400g", calories_info: "~215 kcal/100g", diet_tags: ["balanced"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Spaghetti 500g", category: "Grains & Pasta", comparison_key: "Nudeln Spaghetti 500g", unit_price: 1.29, normal_price: 1.59, quantity_description: "500g", calories_info: "~352 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Langkornreis 1kg", category: "Grains & Pasta", comparison_key: "Reis Langkorn 1kg", unit_price: 1.99, normal_price: 2.49, quantity_description: "1kg", calories_info: "~350 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Haferflocken 500g", category: "Grains & Pasta", comparison_key: "Haferflocken 500g", unit_price: 1.09, normal_price: 1.39, quantity_description: "500g", calories_info: "~372 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Müsli 500g", category: "Grains & Pasta", comparison_key: "Müsli 500g", unit_price: 1.99, normal_price: 2.49, quantity_description: "500g", calories_info: "~375 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Vollkornbrot 500g", category: "Bread & Bakery", comparison_key: "Vollkornbrot 500g", unit_price: 1.79, normal_price: 2.19, quantity_description: "500g", calories_info: "~224 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Tomaten 500g", category: "Vegetables", comparison_key: "Tomaten 500g", unit_price: 1.69, normal_price: 1.99, quantity_description: "500g", calories_info: "~18 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Karotten 1kg", category: "Vegetables", comparison_key: "Karotten 1kg", unit_price: 1.49, normal_price: 1.79, quantity_description: "1kg", calories_info: "~41 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Kartoffeln 1,5kg", category: "Vegetables", comparison_key: "Kartoffeln 2kg", unit_price: 1.99, normal_price: 2.49, quantity_description: "1,5kg", calories_info: "~77 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Zwiebeln 1kg", category: "Vegetables", comparison_key: "Zwiebeln 1kg", unit_price: 1.29, normal_price: 1.59, quantity_description: "1kg", calories_info: "~40 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Paprika rot 3er", category: "Vegetables", comparison_key: "Paprika rot 3er", unit_price: 2.29, normal_price: 2.79, quantity_description: "3er", calories_info: "~31 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Brokkoli 500g", category: "Vegetables", comparison_key: "Brokkoli 500g", unit_price: 1.79, normal_price: 2.19, quantity_description: "500g", calories_info: "~34 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Bananen 1kg", category: "Fruits", comparison_key: "Bananen 1kg", unit_price: 1.49, normal_price: 1.79, quantity_description: "1kg", calories_info: "~89 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Äpfel 1kg", category: "Fruits", comparison_key: "Äpfel 1kg", unit_price: 2.29, normal_price: 2.79, quantity_description: "1kg", calories_info: "~52 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Olivenöl 500ml", category: "Pantry", comparison_key: "Olivenöl 750ml", unit_price: 4.99, normal_price: 5.99, quantity_description: "500ml", calories_info: "~884 kcal/100ml", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Tomaten Passata 500g", category: "Pantry", comparison_key: "Tomaten Passata 500g", unit_price: 1.29, normal_price: 1.59, quantity_description: "500g", calories_info: "~30 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Erdbeerkonfitüre 330g", category: "Spreads", comparison_key: "Erdbeermarmelade 450g", unit_price: 1.99, normal_price: 2.49, quantity_description: "330g", calories_info: "~250 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Rewe", product_name: "Rewe Bio Orangensaft 1L", category: "Drinks", comparison_key: "Orangensaft 1L", unit_price: 1.49, normal_price: 1.79, quantity_description: "1L", calories_info: "~45 kcal/100ml", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  // Aldi Bio / GUT BIO line
+  { store: "Aldi", product_name: "GUT BIO Vollmilch 3,5% 1L", category: "Dairy", comparison_key: "Vollmilch 1L", unit_price: 1.09, normal_price: 1.39, quantity_description: "1L", calories_info: "~65 kcal/100ml", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Butter 250g", category: "Dairy", comparison_key: "Butter 250g", unit_price: 2.29, normal_price: 2.79, quantity_description: "250g", calories_info: "~717 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Naturjoghurt 500g", category: "Dairy", comparison_key: "Naturjoghurt 500g", unit_price: 0.89, normal_price: 1.19, quantity_description: "500g", calories_info: "~61 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Eier 10er", category: "Dairy", comparison_key: "Eier 10er", unit_price: 3.29, normal_price: 3.79, quantity_description: "10er", calories_info: "~155 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Spaghetti 500g", category: "Grains & Pasta", comparison_key: "Nudeln Spaghetti 500g", unit_price: 1.19, normal_price: 1.49, quantity_description: "500g", calories_info: "~352 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Langkornreis 1kg", category: "Grains & Pasta", comparison_key: "Reis Langkorn 1kg", unit_price: 1.79, normal_price: 2.19, quantity_description: "1kg", calories_info: "~350 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Haferflocken 500g", category: "Grains & Pasta", comparison_key: "Haferflocken 500g", unit_price: 0.89, normal_price: 1.19, quantity_description: "500g", calories_info: "~372 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Tomaten 500g", category: "Vegetables", comparison_key: "Tomaten 500g", unit_price: 1.49, normal_price: 1.79, quantity_description: "500g", calories_info: "~18 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Karotten 1kg", category: "Vegetables", comparison_key: "Karotten 1kg", unit_price: 1.29, normal_price: 1.59, quantity_description: "1kg", calories_info: "~41 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Kartoffeln 1,5kg", category: "Vegetables", comparison_key: "Kartoffeln 2kg", unit_price: 1.79, normal_price: 2.19, quantity_description: "1,5kg", calories_info: "~77 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Bananen 1kg", category: "Fruits", comparison_key: "Bananen 1kg", unit_price: 1.29, normal_price: 1.59, quantity_description: "1kg", calories_info: "~89 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Äpfel 1kg", category: "Fruits", comparison_key: "Äpfel 1kg", unit_price: 1.99, normal_price: 2.49, quantity_description: "1kg", calories_info: "~52 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Olivenöl 500ml", category: "Pantry", comparison_key: "Olivenöl 750ml", unit_price: 3.99, normal_price: 4.99, quantity_description: "500ml", calories_info: "~884 kcal/100ml", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Vollkornbrot 500g", category: "Bread & Bakery", comparison_key: "Vollkornbrot 500g", unit_price: 1.59, normal_price: 1.99, quantity_description: "500g", calories_info: "~224 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Aldi", product_name: "GUT BIO Tomaten Passata 500g", category: "Pantry", comparison_key: "Tomaten Passata 500g", unit_price: 1.09, normal_price: 1.39, quantity_description: "500g", calories_info: "~30 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  // Lidl Bio line
+  { store: "Lidl", product_name: "Bio Vollmilch 3,5% 1L", category: "Dairy", comparison_key: "Vollmilch 1L", unit_price: 1.09, normal_price: 1.39, quantity_description: "1L", calories_info: "~65 kcal/100ml", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Lidl", product_name: "Bio Butter 250g", category: "Dairy", comparison_key: "Butter 250g", unit_price: 2.29, normal_price: 2.79, quantity_description: "250g", calories_info: "~717 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Lidl", product_name: "Bio Naturjoghurt 500g", category: "Dairy", comparison_key: "Naturjoghurt 500g", unit_price: 0.89, normal_price: 1.19, quantity_description: "500g", calories_info: "~61 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Lidl", product_name: "Bio Eier 10er", category: "Dairy", comparison_key: "Eier 10er", unit_price: 3.19, normal_price: 3.69, quantity_description: "10er", calories_info: "~155 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Lidl", product_name: "Bio Spaghetti 500g", category: "Grains & Pasta", comparison_key: "Nudeln Spaghetti 500g", unit_price: 1.19, normal_price: 1.49, quantity_description: "500g", calories_info: "~352 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Langkornreis 1kg", category: "Grains & Pasta", comparison_key: "Reis Langkorn 1kg", unit_price: 1.79, normal_price: 2.19, quantity_description: "1kg", calories_info: "~350 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Haferflocken 500g", category: "Grains & Pasta", comparison_key: "Haferflocken 500g", unit_price: 0.89, normal_price: 1.19, quantity_description: "500g", calories_info: "~372 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Tomaten 500g", category: "Vegetables", comparison_key: "Tomaten 500g", unit_price: 1.49, normal_price: 1.79, quantity_description: "500g", calories_info: "~18 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Karotten 1kg", category: "Vegetables", comparison_key: "Karotten 1kg", unit_price: 1.29, normal_price: 1.59, quantity_description: "1kg", calories_info: "~41 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Kartoffeln 1,5kg", category: "Vegetables", comparison_key: "Kartoffeln 2kg", unit_price: 1.79, normal_price: 2.19, quantity_description: "1,5kg", calories_info: "~77 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Bananen 1kg", category: "Fruits", comparison_key: "Bananen 1kg", unit_price: 1.19, normal_price: 1.49, quantity_description: "1kg", calories_info: "~89 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Äpfel 1kg", category: "Fruits", comparison_key: "Äpfel 1kg", unit_price: 1.99, normal_price: 2.49, quantity_description: "1kg", calories_info: "~52 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Lidl", product_name: "Bio Olivenöl 500ml", category: "Pantry", comparison_key: "Olivenöl 750ml", unit_price: 3.99, normal_price: 4.79, quantity_description: "500ml", calories_info: "~884 kcal/100ml", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  // Edeka Bio line
+  { store: "Edeka", product_name: "Edeka Bio Vollmilch 3,5% 1L", category: "Dairy", comparison_key: "Vollmilch 1L", unit_price: 1.19, normal_price: 1.49, quantity_description: "1L", calories_info: "~65 kcal/100ml", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Butter 250g", category: "Dairy", comparison_key: "Butter 250g", unit_price: 2.49, normal_price: 2.99, quantity_description: "250g", calories_info: "~717 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Eier 10er", category: "Dairy", comparison_key: "Eier 10er", unit_price: 3.49, normal_price: 3.99, quantity_description: "10er", calories_info: "~155 kcal/100g", diet_tags: ["balanced", "vegetarian"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Spaghetti 500g", category: "Grains & Pasta", comparison_key: "Nudeln Spaghetti 500g", unit_price: 1.29, normal_price: 1.59, quantity_description: "500g", calories_info: "~352 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Tomaten 500g", category: "Vegetables", comparison_key: "Tomaten 500g", unit_price: 1.59, normal_price: 1.99, quantity_description: "500g", calories_info: "~18 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Karotten 1kg", category: "Vegetables", comparison_key: "Karotten 1kg", unit_price: 1.39, normal_price: 1.69, quantity_description: "1kg", calories_info: "~41 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Bananen 1kg", category: "Fruits", comparison_key: "Bananen 1kg", unit_price: 1.39, normal_price: 1.69, quantity_description: "1kg", calories_info: "~89 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+  { store: "Edeka", product_name: "Edeka Bio Äpfel 1kg", category: "Fruits", comparison_key: "Äpfel 1kg", unit_price: 2.19, normal_price: 2.69, quantity_description: "1kg", calories_info: "~52 kcal/100g", diet_tags: ["balanced", "vegetarian", "vegan"], bio: true },
+];
+
 // Additional stores use Aldi prices as baseline with slight adjustments
 const EXTRA_STORES = ["Kaufland", "Norma", "Globus", "Tegut"];
 
@@ -223,6 +291,36 @@ Deno.serve(async (req) => {
         }
         console.log(`Deleted ${existing.length} old records`);
       }
+    }
+
+    // Seed bio items (store-agnostic pass — always run unless specific store requested)
+    if (!specificStore || reseed) {
+      const bioStoresToRun = specificStore
+        ? BIO_CATALOG_DATA.filter(i => i.store.toLowerCase() === specificStore.toLowerCase())
+        : BIO_CATALOG_DATA;
+      const bioByStore = {};
+      for (const item of bioStoresToRun) {
+        if (!bioByStore[item.store]) bioByStore[item.store] = [];
+        bioByStore[item.store].push(item);
+      }
+      for (const [store, items] of Object.entries(bioByStore)) {
+        const existingBio = await base44.asServiceRole.entities.PriceCatalog.filter({ store, last_updated: today, bio: true });
+        if (!reseed && existingBio.length >= 5) {
+          console.log(`${store} bio: already up to date (${existingBio.length} items), skipping`);
+          continue;
+        }
+        const records = items.map(item => ({ ...item, last_updated: today }));
+        await base44.asServiceRole.entities.PriceCatalog.bulkCreate(records);
+        console.log(`${store} bio: inserted ${records.length} bio products`);
+      }
+    }
+
+    // Always ensure bio items are seeded (check by bio flag)
+    const existingBio = await base44.asServiceRole.entities.PriceCatalog.filter({ bio: true });
+    if (existingBio.length < BIO_CATALOG_DATA.length) {
+      const bioToInsert = BIO_CATALOG_DATA.map(item => ({ ...item, last_updated: today }));
+      await base44.asServiceRole.entities.PriceCatalog.bulkCreate(bioToInsert);
+      console.log(`Seeded ${bioToInsert.length} bio products`);
     }
 
     const storesToRun = specificStore ? [specificStore] : Object.keys(CATALOG_DATA);

@@ -44,6 +44,11 @@
     "last_updated": {
       "type": "string",
       "description": "ISO date string of last price check"
+    },
+    "bio": {
+      "type": "boolean",
+      "description": "True if this is an organic/bio certified product",
+      "default": false
     }
   },
   "required": [
