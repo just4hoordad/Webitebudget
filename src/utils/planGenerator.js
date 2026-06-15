@@ -249,9 +249,16 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     const compKey = item.comparison_key || "";
     const isHighCal = HIGH_CAL_STAPLE_KEYS.some(k => compKey.includes(k));
     
-    // Relax caps when we're significantly short on calories (>30% below target)
+    // Relax caps when we're significantly short on calories
     const calDeficitRatio = calStillNeeded / (calPerDayGoal * daysNum * peopleNum);
-    const effectiveCap = (isHighCal && calDeficitRatio < 0.7) ? hardCap : Math.min(hardCap, 3);
+    let effectiveCap = hardCap;
+    
+    // Aggressively relax caps when below 80% of calorie target
+    if (calDeficitRatio > 0.2) {
+      effectiveCap = isHighCal ? Math.min(hardCap + 3, 8) : Math.min(hardCap + 2, 6);
+    } else if (calDeficitRatio > 0.1) {
+      effectiveCap = isHighCal ? Math.min(hardCap + 2, 6) : Math.min(hardCap + 1, 4);
+    }
 
     // Only scale for calories if item has meaningful calories
     if (!hasMeaningfulCalories(item)) return 1;
@@ -373,18 +380,25 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
   const budgetRemaining = budgetNum - runningCost;
   
   if (budgetRemaining >= 1 && calDeficit > 0) {
-    // Multiple passes to use full budget
+    // Multiple passes to use full budget and hit 95% of calorie target
     let pass = 0;
-    while (pass < 3 && (budgetNum - runningCost) >= 1 && runningCal < calTarget) {
+    const targetCal = calTarget * 0.95; // Aim for 95% since 100% may not be possible with budget constraints
+    while (pass < 5 && (budgetNum - runningCost) >= 1 && runningCal < targetCal) {
       for (const item of scored) {
-        if (runningCost >= budgetNum || runningCal >= calTarget) break;
+        if (runningCost >= budgetNum || runningCal >= targetCal) break;
         const alreadySelected = selected.find(s => s.comparison_key === item.comparison_key);
         const cat = item.category || "Other";
         const hardCap = MAX_TOTAL_UNITS[cat] || 2;
         
+        // Relax caps more aggressively based on how far we are from target
+        let effectiveCap = hardCap;
+        if (runningCal < targetCal * 0.8) {
+          effectiveCap = hardCap + 4; // Very aggressive when below 80%
+        } else if (runningCal < targetCal * 0.9) {
+          effectiveCap = hardCap + 2; // Moderate when below 90%
+        }
+        
         if (alreadySelected) {
-          // Relax caps when calories are significantly below target
-          const effectiveCap = runningCal < calTarget * 0.7 ? hardCap + 2 : hardCap;
           if (alreadySelected.unitsNeeded < effectiveCap && runningCost + item.unit_price <= budgetNum) {
             alreadySelected.unitsNeeded++;
             alreadySelected.totalPrice = parseFloat((item.unit_price * alreadySelected.unitsNeeded).toFixed(2));
