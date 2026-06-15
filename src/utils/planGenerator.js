@@ -228,23 +228,32 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 
+  // Helper to compute scaled units for an item to meet remaining calorie need
+  function scaleUnits(item, calStillNeeded, budgetLeft) {
+    if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(item.category)) {
+      return weeks; // non-food: 1/week
+    }
+    const maxUnitsForCal = Math.ceil(calStillNeeded / item.calPerUnit);
+    const maxUnitsForBudget = Math.floor(budgetLeft / item.unit_price);
+    return Math.max(1, Math.min(maxUnitsForCal, maxUnitsForBudget, weeks * 4)); // cap at 4/week
+  }
+
   // 9. Greedy selection: fill budget, track calories
   let runningCost = 0;
   let runningCal = 0;
   const selected = [];
-  const categoryPriority = ["Grains & Pasta", "Dairy", "Vegetables", "Fruits", "Meat & Fish", "Bread & Bakery", "Pantry", "Snacks", "Drinks", "Household", "Other"];
+  const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Pantry", "Snacks", "Drinks", "Household", "Other"];
 
-  // First pass: ensure at least one item per priority category (if within budget)
-  const addedCategories = new Set();
-
+  // First pass: ensure at least one item per priority category, scaled to calorie need
   for (const cat of categoryPriority) {
     const catItems = scored.filter(i => i.category === cat || (cat === "Other" && !categoryPriority.includes(i.category)));
-    for (const item of catItems.slice(0, 2)) { // up to 2 per category in first pass
-      if (runningCost + item.totalPrice <= budgetNum) {
-        selected.push(item);
-        runningCost += item.totalPrice;
-        runningCal += item.calPerUnit * item.unitsNeeded;
-        addedCategories.add(cat);
+    for (const item of catItems.slice(0, 2)) {
+      const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
+      const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
+      if (runningCost + totalPrice <= budgetNum) {
+        selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
+        runningCost += totalPrice;
+        runningCal += item.calPerUnit * units;
         break;
       }
     }
@@ -253,26 +262,13 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
   // Second pass: fill remaining budget, prioritising calorie density
   for (const item of scored) {
     if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
-    if (runningCost + item.totalPrice > budgetNum) continue;
+    if (runningCost + item.unit_price > budgetNum) continue;
 
-    // Dynamically adjust quantity to fit more calories if still under target
-    let units = item.unitsNeeded;
-    if (item.calPerUnit > 0 && runningCal < calTarget) {
-      const calStillNeeded = calTarget - runningCal;
-      const maxUnitsForCal = Math.ceil(calStillNeeded / item.calPerUnit);
-      const maxUnitsForBudget = Math.floor((budgetNum - runningCost) / item.unit_price);
-      units = Math.max(1, Math.min(maxUnitsForCal, maxUnitsForBudget, weeks * 3)); // cap at 3/week
-    }
-
+    const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
     const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
     if (runningCost + totalPrice > budgetNum) continue;
 
-    selected.push({
-      ...item,
-      unitsNeeded: units,
-      totalPrice,
-      quantity: `${units}x ${item.quantity_description || ""}`.trim(),
-    });
+    selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
     runningCost += totalPrice;
     runningCal += item.calPerUnit * units;
   }
