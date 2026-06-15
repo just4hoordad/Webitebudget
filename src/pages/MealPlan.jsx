@@ -113,21 +113,24 @@ export default function MealPlan() {
           allCatalogItems.forEach(item => {
             const cat = item.category || "Other";
             if (!categoryMap[cat]) categoryMap[cat] = [];
-            const qty = Math.round(effectiveWeeks);
-            const itemPrice = parseFloat(((item.unit_price || 0) * effectiveWeeks).toFixed(2));
+            const qty = Math.max(1, Math.floor(effectiveWeeks));
+            const itemPrice = parseFloat(((item.unit_price || 0) * qty).toFixed(2));
             categoryMap[cat].push({
               name: item.product_name,
               quantity: `${qty}x ${item.quantity_description || ""}`.trim(),
               unit_price: item.unit_price,
               price: itemPrice,
-              normal_price: item.normal_price,
+              normal_price: item.normal_price ? parseFloat((item.normal_price * qty).toFixed(2)) : null,
               store: item.store,
               calories_info: item.calories_info || ""
             });
           });
 
           const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
-          const finalTotal = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
+          const finalTotal = Math.min(
+            categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0),
+            budgetLimit
+          );
           setGroceries({ total_estimated_cost: parseFloat(finalTotal.toFixed(2)), categories });
           setLoading(false);
           return;
