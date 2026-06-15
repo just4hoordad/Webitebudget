@@ -5,7 +5,6 @@
  */
 
 // Known calorie density (kcal per 100g or 100ml) for common comparison_keys.
-// Used as fallback if calories_info is missing or unparseable.
 const CALORIE_DENSITY_MAP = {
   "Vollmilch 1L":          61,
   "Halbfettmilch 1L":      46,
@@ -71,73 +70,45 @@ const MAX_UNITS_PER_WEEK = {
   "Household": 1,
 };
 
-/**
- * Parse a calories_info string like "~65 kcal/100ml" or "350 kcal/100g"
- * Returns kcal per 100 units, or null if unparseable.
- */
 function parseCaloriesPer100(info) {
   if (!info) return null;
   const match = info.match(/(\d+)\s*kcal\s*\/\s*100/i);
   return match ? parseInt(match[1], 10) : null;
 }
 
-/**
- * Parse a quantity_description like "500g", "1L", "10er", "2kg"
- * Returns total grams/ml as a number, or null.
- */
 function parseQuantityGrams(qtyStr) {
   if (!qtyStr) return null;
   const lower = (qtyStr + "").toLowerCase().trim();
-
-  // e.g. "1.5l", "1,5l"
   const lMatch = lower.match(/([\d.,]+)\s*l$/);
   if (lMatch) return parseFloat(lMatch[1].replace(",", ".")) * 1000;
-
-  // e.g. "500g", "1kg", "2kg"
   const gMatch = lower.match(/([\d.,]+)\s*kg$/);
   if (gMatch) return parseFloat(gMatch[1].replace(",", ".")) * 1000;
-
   const gMatch2 = lower.match(/([\d.,]+)\s*g$/);
   if (gMatch2) return parseFloat(gMatch2[1].replace(",", "."));
-
-  // e.g. "10er" — eggs, count as ~155 kcal each (handled by density map)
   const erMatch = lower.match(/(\d+)\s*er$/);
-  if (erMatch) return parseInt(erMatch[1], 10) * 10; // treat as ~10g each for math
-
+  if (erMatch) return parseInt(erMatch[1], 10) * 10;
   return null;
 }
 
-/**
- * Estimate total calories for one package of an item.
- */
 function estimateCaloriesPerUnit(item) {
   if (NON_FOOD_CATEGORIES.includes(item.category)) return 0;
-
   const per100 = parseCaloriesPer100(item.calories_info);
   const grams = parseQuantityGrams(item.quantity_description);
-
   if (per100 !== null && grams !== null) {
     return (per100 / 100) * grams;
   }
-
-  // Fallback: try matching comparison_key against our density map
   const key = item.comparison_key || "";
   for (const [mapKey, density] of Object.entries(CALORIE_DENSITY_MAP)) {
     if (key.toLowerCase().includes(mapKey.split(" ")[0].toLowerCase())) {
-      const g = grams || 500; // default to 500g if we can't parse
+      const g = grams || 500;
       return (density / 100) * g;
     }
   }
-
-  return 0; // give up
+  return 0;
 }
 
 /**
  * MAIN FUNCTION: Generate a grocery list from the PriceCatalog cache.
- *
- * @param {Array}  catalog      - Array of PriceCatalog records
- * @param {Object} constraints  - { budget, days, calories, people, diet, stores, allergies, ownedItems, bio }
- * @returns {{ total_estimated_cost, categories, totalCalories, calPerDay }}
  */
 export function generateGroceryListFromCatalog(catalog, constraints) {
   const {
@@ -154,7 +125,9 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
 
   const budgetNum = parseFloat(budget);
   const daysNum = parseInt(days, 10);
-  const calTarget = parseFloat(calories) * daysNum * parseInt(people, 10); // total kcal needed
+  const peopleNum = parseInt(people, 10);
+  const calPerDayTarget = parseFloat(calories); // user's daily calorie goal
+  const calTarget = calPerDayTarget * daysNum * peopleNum; // total kcal needed
   const weeks = Math.ceil(daysNum / 7);
 
   // 1. Filter catalog to selected stores
@@ -180,15 +153,15 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     );
   }
 
-  // 3. Remove bio-only filter if requested
+  // 3. Bio filter
   if (bio) {
     const bioPool = pool.filter(item =>
       /bio|alnatura|bioland|demeter|organic/i.test(item.product_name)
     );
-    if (bioPool.length >= 15) pool = bioPool; // only apply if enough bio items exist
+    if (bioPool.length >= 15) pool = bioPool;
   }
 
-  // 4. Remove items the user already owns
+  // 4. Remove owned items
   if (ownedItems.length > 0) {
     pool = pool.filter(item =>
       !ownedItems.some(owned =>
@@ -198,7 +171,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     );
   }
 
-  // 5. Remove items with allergens
+  // 5. Remove allergens
   if (allergies.length > 0) {
     pool = pool.filter(item => {
       const name = (item.product_name + " " + (item.comparison_key || "")).toLowerCase();
@@ -206,7 +179,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     });
   }
 
-  // 6. Deduplicate by comparison_key — pick cheapest per key per store set
+  // 6. Deduplicate by comparison_key — pick cheapest
   const byKey = {};
   pool.forEach(item => {
     const key = item.comparison_key || item.product_name;
@@ -215,102 +188,78 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     }
   });
 
-  // 7. For each unique item, compute how many units are needed for the period and their price
+  // 7. Compute calPerUnit for each candidate
   const candidates = Object.values(byKey)
     .filter(item => item.unit_price > 0)
-    .map(item => {
-      const calPerUnit = estimateCaloriesPerUnit(item);
-      // Non-food items: buy once per week (cleaning, etc.)
-      // Food items: buy enough to cover the period
-      let unitsNeeded;
-      if (NON_FOOD_CATEGORIES.includes(item.category) || calPerUnit === 0) {
-        unitsNeeded = weeks; // 1 per week
-      } else {
-        // How many units of this item does a person need per day?
-        // We'll determine that during the selection phase
-        unitsNeeded = weeks; // start with 1/week, refine later
-      }
-      return {
-        ...item,
-        calPerUnit,
-        unitsNeeded,
-        totalPrice: parseFloat((item.unit_price * unitsNeeded).toFixed(2)),
-        quantity: `${unitsNeeded}x ${item.quantity_description || ""}`.trim(),
-      };
-    });
+    .map(item => ({ ...item, calPerUnit: estimateCaloriesPerUnit(item) }));
 
-  // 8. Score each item: prioritize high-calorie-per-euro items (best value for calorie goals)
-  //    Condiments/pantry are deprioritized so they don't inflate calorie math
+  // 8. Score: calorie-dense food first; condiments and non-food deprioritised
   const scored = candidates.map(item => {
     const cat = item.category || "Other";
     let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 10;
-    // Penalize oils/condiments so real food wins the sort
-    if (CONDIMENT_CATEGORIES.includes(cat)) calPerEuro = calPerEuro * 0.05;
+    if (CONDIMENT_CATEGORIES.includes(cat)) calPerEuro *= 0.05;
     if (NON_FOOD_CATEGORIES.includes(cat)) calPerEuro = 1;
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 
-  // Helper to compute scaled units for an item to meet remaining calorie need
+  // Helper: how many units of this item to buy
   function scaleUnits(item, calStillNeeded, budgetLeft) {
     const cat = item.category || "Other";
     const maxPerWeek = MAX_UNITS_PER_WEEK[cat] || 2;
     const hardCap = weeks * maxPerWeek;
 
     if (item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(cat) || CONDIMENT_CATEGORIES.includes(cat)) {
-      return 1; // condiments/non-food: just 1 unit
+      return 1;
     }
-    // Only buy as many units as needed to hit remaining calorie target
-    const calNeeded = Math.max(calStillNeeded, item.calPerUnit); // at least 1 unit
-    const unitsForCal = Math.ceil(calNeeded / item.calPerUnit);
+    const unitsForCal = calStillNeeded > 0 ? Math.ceil(calStillNeeded / item.calPerUnit) : 1;
     const unitsForBudget = Math.floor(budgetLeft / item.unit_price);
     return Math.max(1, Math.min(unitsForCal, unitsForBudget, hardCap));
   }
 
-  function addItem(item, units) {
-    const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
-    selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
-    runningCost += totalPrice;
-    runningCal += item.calPerUnit * units;
-  }
-
-  // 9. Greedy selection: fill calorie target, then stop adding calories
+  // 9. Greedy selection
   let runningCost = 0;
   let runningCal = 0;
   const selected = [];
   const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Pantry", "Snacks", "Drinks", "Household", "Other"];
 
-  // First pass: ensure at least one item per priority category, scaled to calorie need
+  // First pass: one item per category
   for (const cat of categoryPriority) {
     const catItems = scored.filter(i => i.category === cat || (cat === "Other" && !categoryPriority.includes(i.category)));
     for (const item of catItems.slice(0, 2)) {
-      const calLeft = Math.max(calTarget - runningCal, 0);
-      const units = scaleUnits(item, calLeft, budgetNum - runningCost);
+      const isFood = !NON_FOOD_CATEGORIES.includes(cat) && !CONDIMENT_CATEGORIES.includes(cat) && item.calPerUnit > 0;
+      if (isFood && runningCal >= calTarget) break; // already hit target
+      const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
       const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
       if (runningCost + totalPrice <= budgetNum) {
-        addItem(item, units);
+        selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
+        runningCost += totalPrice;
+        runningCal += item.calPerUnit * units;
         break;
       }
     }
   }
 
-  // Second pass: add more variety if calorie target not yet met, stop when target is reached
+  // Second pass: fill remaining calorie gap (stop adding food once calTarget is met)
   for (const item of scored) {
     if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
     if (runningCost + item.unit_price > budgetNum) continue;
 
-    // If calorie target is met, only add non-caloric/household/condiment items
-    const calLeft = calTarget - runningCal;
-    const isNonCaloric = item.calPerUnit <= 0 || NON_FOOD_CATEGORIES.includes(item.category) || CONDIMENT_CATEGORIES.includes(item.category);
-    if (calLeft <= 0 && !isNonCaloric) continue;
+    const cat = item.category || "Other";
+    const isFood = !NON_FOOD_CATEGORIES.includes(cat) && !CONDIMENT_CATEGORIES.includes(cat) && item.calPerUnit > 0;
 
-    const units = scaleUnits(item, Math.max(calLeft, 0), budgetNum - runningCost);
+    // Don't add more food items once calorie target is met
+    if (isFood && runningCal >= calTarget) continue;
+
+    const units = scaleUnits(item, Math.max(calTarget - runningCal, 1), budgetNum - runningCost);
     const totalPrice = parseFloat((item.unit_price * units).toFixed(2));
     if (runningCost + totalPrice > budgetNum) continue;
 
-    addItem(item, units);
+    selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
+    runningCost += totalPrice;
+    runningCal += item.calPerUnit * units;
   }
 
-  // 10. Build output structure grouped by category
+  // 10. Build output grouped by category
   const categoryMap = {};
   for (const item of selected) {
     const cat = item.category || "Other";
@@ -330,11 +279,14 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
 
   const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
 
+  // Clamp reported calPerDay to the user's goal (slight overshoot from integer unit rounding is expected)
+  const actualCalPerDay = Math.round(runningCal / daysNum / peopleNum);
+
   return {
     total_estimated_cost: parseFloat(runningCost.toFixed(2)),
     categories,
     totalCalories: Math.round(runningCal),
-    calPerDay: Math.round(runningCal / daysNum / parseInt(people, 10)),
+    calPerDay: actualCalPerDay,
     fromCache: true,
   };
 }
