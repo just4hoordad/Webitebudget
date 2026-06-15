@@ -114,9 +114,32 @@ export default function MealPlan() {
             });
           });
 
-          const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
-          const total = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
-          setGroceries({ total_estimated_cost: parseFloat(total.toFixed(2)), categories });
+          // Enforce budget: sort all items by price desc and drop cheapest until under budget
+          const budgetLimit = parseFloat(budget);
+          let allItems = Object.values(categoryMap).flatMap(items => items);
+          let total = allItems.reduce((s, i) => s + i.price, 0);
+
+          if (total > budgetLimit) {
+            // Sort by price ascending so we drop cheapest items first (least impactful)
+            allItems.sort((a, b) => a.price - b.price);
+            while (total > budgetLimit && allItems.length > 5) {
+              const removed = allItems.shift();
+              total -= removed.price;
+              // Remove from categoryMap too
+              const cat = categoryMap[removed.category || "Other"];
+              if (cat) {
+                const idx = cat.findIndex(i => i.name === removed.name);
+                if (idx !== -1) cat.splice(idx, 1);
+              }
+            }
+          }
+
+          // Rebuild categories after trimming (drop empty ones)
+          const categories = Object.entries(categoryMap)
+            .map(([name, items]) => ({ name, items }))
+            .filter(c => c.items.length > 0);
+          const finalTotal = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
+          setGroceries({ total_estimated_cost: parseFloat(finalTotal.toFixed(2)), categories });
           setLoading(false);
           return;
         }
@@ -142,7 +165,7 @@ Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
-4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) must be between €${(budget*0.97).toFixed(0)} and €${(budget*1.03).toFixed(0)} — as close to €${budget} as possible. Never exceed €${(budget*1.03).toFixed(0)} (3% over budget max). If you are under €${(budget*0.97).toFixed(0)}, add more items or increase quantities to get closer. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks.
+4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST NOT exceed €${budget}. Target between €${(budget*0.90).toFixed(0)} and €${budget}. Never go over €${budget} under any circumstances. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks.
 5. All text in ${currentLanguage.label}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
 7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
