@@ -66,7 +66,7 @@ const BALANCED_DIET_TARGETS = {
 // Increased limits for calorie-dense categories (Pantry, Spreads) to help reach calorie targets
 const MAX_TOTAL_UNITS = {
   "Dairy": 6,
-  "Meat & Fish": 5,
+  "Meat & Fish": 8,
   "Grains & Pasta": 6,
   "Bread & Bakery": 5,
   "Vegetables": 5,
@@ -295,17 +295,18 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     }
   }
   
-  // Enforce minimum calories from each balanced diet category
+  // Enforce minimum calories from each balanced diet category (budget-permitting)
   Object.entries(BALANCED_DIET_TARGETS).forEach(([cat, targets]) => {
     const minCal = calTarget * targets.min;
     const currentCal = categoryCalories[cat] || 0;
     if (currentCal >= minCal) return; // Already meeting minimum
     
-    // Add more items from this category until we meet the minimum
+    // Add more items from this category until we meet the minimum OR budget is tight
     const catItems = scored.filter(i => i.category === cat && !selected.find(s => s.comparison_key === i.comparison_key));
     for (const item of catItems) {
       if (categoryCalories[cat] >= minCal) break;
-      if (runningCost + item.unit_price > budgetNum) break;
+      // Skip if adding this item would use more than 15% of remaining budget
+      if (runningCost + item.unit_price > budgetNum * 0.85) break;
       tryAdd(item, false);
     }
   });
