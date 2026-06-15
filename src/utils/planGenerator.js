@@ -117,6 +117,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     allergies = [],
     ownedItems = [],
     bio = false,
+    saleHunt = false,
   } = constraints;
 
   const budgetNum = parseFloat(budget);
@@ -146,11 +147,8 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     );
   }
 
-  // 3. Bio filter
-  if (bio) {
-    const bioPool = pool.filter(item => /bio|alnatura|bioland|demeter|organic/i.test(item.product_name));
-    if (bioPool.length >= 15) pool = bioPool;
-  }
+  // 3. Bio preference — boost organic/natural items by giving them priority in scoring later
+  // We don't hard-filter (catalog has few bio items) — instead we flag them for a score bonus
 
   // 4. Remove owned items
   if (ownedItems.length > 0) {
@@ -182,11 +180,23 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     .filter(item => item.unit_price > 0)
     .map(item => ({ ...item, calPerUnit: estimateCaloriesPerUnit(item) }));
 
-  // 8. Score and sort: calorie-dense food first; non-caloric items last
+  // 8. Score and sort: calorie-dense food first; apply bio/saleHunt bonuses
   const scored = candidates.map(item => {
     const cat = item.category || "Other";
     let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 5;
     if (NON_CALORIC_CATEGORIES.includes(cat)) calPerEuro = 0.5;
+
+    // Sale Hunt: heavily boost items that are currently on sale (unit_price < normal_price)
+    if (saleHunt && item.normal_price && item.normal_price > item.unit_price) {
+      const discountPct = (item.normal_price - item.unit_price) / item.normal_price;
+      calPerEuro *= (1 + discountPct * 2); // up to 2x boost for a 50% discount
+    }
+
+    // Bio preference: boost items with organic/natural branding
+    if (bio && /bio|alnatura|bioland|demeter|organic|naturkind/i.test(item.product_name)) {
+      calPerEuro *= 1.5;
+    }
+
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 

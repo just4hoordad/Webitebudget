@@ -96,6 +96,7 @@ export default function MealPlan() {
             allergies,
             ownedItems,
             bio,
+            saleHunt,
           });
 
           setGroceries(result);
