@@ -96,39 +96,38 @@ export default function MealPlan() {
             }
           });
 
-          // Group cheapest items by category
+          // Group cheapest items by category — keep unit prices real, scale quantity to fit budget
+          const budgetLimit = parseFloat(budget);
+          const weeksNeeded = Math.ceil(days / 7);
+          const allCatalogItems = Object.values(byKey);
+
+          // Calculate raw total at full weeks
+          const rawTotal = allCatalogItems.reduce((s, item) => s + (item.unit_price || 0) * weeksNeeded, 0);
+
+          // If over budget, reduce effective weeks proportionally (keeps prices real, just fewer units)
+          const effectiveWeeks = rawTotal > budgetLimit
+            ? Math.max(1, (budgetLimit / rawTotal) * weeksNeeded)
+            : weeksNeeded;
+
           const categoryMap = {};
-          Object.values(byKey).forEach(item => {
+          allCatalogItems.forEach(item => {
             const cat = item.category || "Other";
             if (!categoryMap[cat]) categoryMap[cat] = [];
-            const weeksNeeded = Math.ceil(days / 7);
-            const scaledPrice = (item.unit_price || 0) * weeksNeeded;
+            const qty = Math.round(effectiveWeeks);
+            const itemPrice = parseFloat(((item.unit_price || 0) * effectiveWeeks).toFixed(2));
             categoryMap[cat].push({
               name: item.product_name,
-              quantity: `${weeksNeeded}x ${item.quantity_description || ""}`.trim(),
+              quantity: `${qty}x ${item.quantity_description || ""}`.trim(),
               unit_price: item.unit_price,
-              price: parseFloat(scaledPrice.toFixed(2)),
+              price: itemPrice,
               normal_price: item.normal_price,
               store: item.store,
               calories_info: item.calories_info || ""
             });
           });
 
-          // Enforce budget: scale all prices proportionally if over budget
-          const budgetLimit = parseFloat(budget);
-          const rawTotal = Object.values(categoryMap).flatMap(i => i).reduce((s, i) => s + i.price, 0);
-          const scaleFactor = rawTotal > budgetLimit ? budgetLimit / rawTotal : 1;
-
-          if (scaleFactor < 1) {
-            Object.values(categoryMap).forEach(items =>
-              items.forEach(item => {
-                item.price = parseFloat((item.price * scaleFactor).toFixed(2));
-              })
-            );
-          }
-
           const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
-          const finalTotal = Math.min(categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0), budgetLimit);
+          const finalTotal = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
           setGroceries({ total_estimated_cost: parseFloat(finalTotal.toFixed(2)), categories });
           setLoading(false);
           return;
