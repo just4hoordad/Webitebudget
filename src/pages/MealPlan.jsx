@@ -811,11 +811,25 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
         <p className="text-sm text-muted-foreground">
           {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
         </p>
-        {priceDate && (
-          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-            🏷️ Prices as of <span className="font-medium text-foreground">{new Date(priceDate).toLocaleDateString(currentLanguage.code || 'de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          </p>
-        )}
+        {priceDate && (() => {
+          const priceDays = Math.floor((Date.now() - new Date(priceDate).getTime()) / (1000 * 60 * 60 * 24));
+          const isStale = priceDays >= 2;
+          return (
+            <>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                🏷️ {t("pricesAsOf") || "Prices as of"} <span className="font-medium text-foreground">{new Date(priceDate).toLocaleDateString(currentLanguage.code || 'de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </p>
+              {isStale && (
+                <div className="mt-2 flex items-start gap-2 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3 text-sm text-yellow-800">
+                  <span className="text-base shrink-0">⚠️</span>
+                  <span>
+                    <strong>Prices may have changed.</strong> Our data is {priceDays} day{priceDays > 1 ? "s" : ""} old. Please verify current prices in-store before shopping — especially for promotional offers.
+                  </span>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {loading ? (
