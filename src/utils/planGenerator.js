@@ -193,10 +193,14 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     let calPerEuro = item.calPerUnit > 0 ? item.calPerUnit / item.unit_price : 5;
     if (NON_CALORIC_CATEGORIES.includes(cat)) calPerEuro = 0.5;
 
-    // Sale Hunt: heavily boost items that are currently on sale (unit_price < normal_price)
-    if (saleHunt && item.normal_price && item.normal_price > item.unit_price) {
+    const isOnSale = item.normal_price && item.normal_price > item.unit_price * 1.05;
+    if (saleHunt && isOnSale) {
+      // Sale Hunt ON: heavily boost discounted items
       const discountPct = (item.normal_price - item.unit_price) / item.normal_price;
-      calPerEuro *= (1 + discountPct * 2); // up to 2x boost for a 50% discount
+      calPerEuro *= (1 + discountPct * 2);
+    } else if (!saleHunt && isOnSale) {
+      // Sale Hunt OFF: penalize sale items so regular-priced items are preferred
+      calPerEuro *= 0.3;
     }
 
     return { ...item, calPerEuro };
