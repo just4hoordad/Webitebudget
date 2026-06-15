@@ -305,8 +305,8 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     const catItems = scored.filter(i => i.category === cat && !selected.find(s => s.comparison_key === i.comparison_key));
     for (const item of catItems) {
       if (categoryCalories[cat] >= minCal) break;
-      // Skip if adding this item would use more than 15% of remaining budget
-      if (runningCost + item.unit_price > budgetNum * 0.85) break;
+      // Skip if adding this item would exceed budget
+      if (runningCost + item.unit_price > budgetNum) break;
       tryAdd(item, false);
     }
   });
@@ -329,10 +329,10 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     tryAdd(item, false);
   }
 
-  // Third pass: scale up existing items if we're still short on calories, respecting balance
+  // Third pass: scale up existing items if we're still short on calories, respecting balance and budget
   for (const item of selected.filter(i => hasMeaningfulCalories(i))) {
     const calLeft = calTarget - runningCal;
-    if (calLeft <= 0) break;
+    if (calLeft <= 0 || runningCost >= budgetNum) break;
     const cat = item.category || "Other";
     
     // Check category max before scaling
@@ -363,6 +363,18 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     runningCal += addedCal;
     if (categoryCalories[cat] !== undefined) {
       categoryCalories[cat] += addedCal;
+    }
+  }
+
+  // Final safeguard: ensure total cost never exceeds budget (trim if needed)
+  if (runningCost > budgetNum) {
+    console.warn(`Budget exceeded (${runningCost} > ${budgetNum}), trimming list...`);
+    while (runningCost > budgetNum && selected.length > 0) {
+      const lastItem = selected.pop();
+      runningCost -= lastItem.totalPrice;
+      if (categoryCalories[lastItem.category] !== undefined) {
+        categoryCalories[lastItem.category] -= (lastItem.calPerUnit * lastItem.unitsNeeded);
+      }
     }
   }
 
