@@ -328,6 +328,9 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     tryAdd(item, false);
   }
 
+  // Log current status before final fill pass
+  console.log(`After main passes: €${runningCost.toFixed(2)} / €${budgetNum}, ${Math.round(runningCal)} / ${Math.round(calTarget)} cal (${Math.round(runningCal/calTarget*100)}%)`);
+
   // Third pass: scale up existing items if we're still short on calories, respecting balance and budget
   for (const item of selected.filter(i => hasMeaningfulCalories(i))) {
     const calLeft = calTarget - runningCal;
@@ -365,34 +368,42 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     }
   }
 
-  // Final pass: fill remaining budget with best value items (prioritize calorie density)
+  // Final pass: aggressively fill remaining budget to hit calorie target
+  const calDeficit = calTarget - runningCal;
   const budgetRemaining = budgetNum - runningCost;
-  if (budgetRemaining >= 1) {
-    for (const item of scored) {
-      if (runningCost >= budgetNum) break;
-      const alreadySelected = selected.find(s => s.comparison_key === item.comparison_key);
-      if (alreadySelected) {
-        // Try to add more units of already-selected items
+  
+  if (budgetRemaining >= 1 && calDeficit > 0) {
+    // Multiple passes to use full budget
+    let pass = 0;
+    while (pass < 3 && (budgetNum - runningCost) >= 1 && runningCal < calTarget) {
+      for (const item of scored) {
+        if (runningCost >= budgetNum || runningCal >= calTarget) break;
+        const alreadySelected = selected.find(s => s.comparison_key === item.comparison_key);
         const cat = item.category || "Other";
         const hardCap = MAX_TOTAL_UNITS[cat] || 2;
-        if (alreadySelected.unitsNeeded < hardCap && runningCost + item.unit_price <= budgetNum) {
-          alreadySelected.unitsNeeded++;
-          alreadySelected.totalPrice = parseFloat((item.unit_price * alreadySelected.unitsNeeded).toFixed(2));
-          alreadySelected.quantity = `${alreadySelected.unitsNeeded}x ${item.quantity_description || ""}`.trim();
-          runningCost += item.unit_price;
-          runningCal += item.calPerUnit;
-          if (categoryCalories[cat] !== undefined) {
-            categoryCalories[cat] += item.calPerUnit;
+        
+        if (alreadySelected) {
+          // Relax caps when calories are significantly below target
+          const effectiveCap = runningCal < calTarget * 0.7 ? hardCap + 2 : hardCap;
+          if (alreadySelected.unitsNeeded < effectiveCap && runningCost + item.unit_price <= budgetNum) {
+            alreadySelected.unitsNeeded++;
+            alreadySelected.totalPrice = parseFloat((item.unit_price * alreadySelected.unitsNeeded).toFixed(2));
+            alreadySelected.quantity = `${alreadySelected.unitsNeeded}x ${item.quantity_description || ""}`.trim();
+            runningCost += item.unit_price;
+            runningCal += item.calPerUnit;
+            if (categoryCalories[cat] !== undefined) {
+              categoryCalories[cat] += item.calPerUnit;
+            }
           }
-        }
-      } else {
-        // Add new item if it fits
-        if (runningCost + item.unit_price <= budgetNum) {
+        } else if (runningCost + item.unit_price <= budgetNum) {
           tryAdd(item, true);
         }
       }
+      pass++;
     }
   }
+  
+  console.log(`Final: €${runningCost.toFixed(2)} / €${budgetNum}, ${Math.round(runningCal)} / ${Math.round(calTarget)} cal (${Math.round(runningCal/calTarget*100)}%)`);
 
   // Final safeguard: ensure total cost never exceeds budget (trim if needed)
   if (runningCost > budgetNum) {
