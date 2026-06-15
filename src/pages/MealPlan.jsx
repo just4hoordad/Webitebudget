@@ -114,19 +114,20 @@ export default function MealPlan() {
             });
           });
 
-          // Enforce budget: sort all items by price desc and drop cheapest until under budget
+          // Enforce budget: build a flat list with category tag, drop cheapest until under budget
           const budgetLimit = parseFloat(budget);
-          let allItems = Object.values(categoryMap).flatMap(items => items);
+          // Build flat list with catName attached
+          let allItems = Object.entries(categoryMap).flatMap(([catName, items]) =>
+            items.map(item => ({ ...item, _catName: catName }))
+          );
           let total = allItems.reduce((s, i) => s + i.price, 0);
 
           if (total > budgetLimit) {
-            // Sort by price ascending so we drop cheapest items first (least impactful)
             allItems.sort((a, b) => a.price - b.price);
             while (total > budgetLimit && allItems.length > 5) {
               const removed = allItems.shift();
               total -= removed.price;
-              // Remove from categoryMap too
-              const cat = categoryMap[removed.category || "Other"];
+              const cat = categoryMap[removed._catName];
               if (cat) {
                 const idx = cat.findIndex(i => i.name === removed.name);
                 if (idx !== -1) cat.splice(idx, 1);
