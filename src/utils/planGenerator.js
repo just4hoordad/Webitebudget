@@ -48,26 +48,28 @@ const CALORIE_DENSITY_MAP = {
   "Vollmilchschokolade 100g": 535,
 };
 
-// Categories that don't count toward calorie target (oils, sauces, drinks, cleaning)
-const NON_CALORIC_CATEGORIES = ["Household", "Health & Beauty", "Pantry", "Spreads", "Drinks"];
+// Categories that don't count toward calorie target (cleaning, health products)
+// Pantry, Spreads, and Drinks DO have calories and should be counted
+const NON_CALORIC_CATEGORIES = ["Household", "Health & Beauty"];
 
 // Max total units for entire period — prevents any single item dominating
+// Increased limits for calorie-dense categories (Pantry, Spreads) to help reach calorie targets
 const MAX_TOTAL_UNITS = {
-  "Dairy": 5,
-  "Meat & Fish": 4,
-  "Grains & Pasta": 4,
-  "Bread & Bakery": 4,
+  "Dairy": 6,
+  "Meat & Fish": 5,
+  "Grains & Pasta": 6,
+  "Bread & Bakery": 5,
   "Vegetables": 5,
   "Fruits": 5,
   "Drinks": 4,
-  "Snacks": 3,
-  "Pantry": 1,
-  "Spreads": 1,
+  "Snacks": 4,
+  "Pantry": 3,
+  "Spreads": 3,
   "Household": 1,
 };
 
-// High-calorie-density staples capped at 2 units to prevent them from swallowing the calorie budget
-const HIGH_CAL_STAPLE_KEYS = ["Butter", "Olivenöl", "Sonnenblumenöl", "Haferflocken", "Müsli", "Schokolade", "Erdnussbutter"];
+// High-calorie-density staples — cap relaxed when calorie target is not met
+const HIGH_CAL_STAPLE_KEYS = ["Butter", "Olivenöl", "Sonnenblumenöl", "Haferflocken", "Müsli", "Schokolade", "Erdnussbutter", "Nudeln", "Reis", "Toastbrot"];
 
 function parseCaloriesPer100(info) {
   if (!info) return null;
@@ -90,17 +92,33 @@ function parseQuantityGrams(qtyStr) {
 }
 
 function estimateCaloriesPerUnit(item) {
-  if (NON_CALORIC_CATEGORIES.includes(item.category)) return 0;
+  // First priority: use explicit calories_info if available
   const per100 = parseCaloriesPer100(item.calories_info);
   const grams = parseQuantityGrams(item.quantity_description);
   if (per100 !== null && grams !== null) return (per100 / 100) * grams;
+  
+  // Second priority: use calorie density map
   const key = item.comparison_key || "";
   for (const [mapKey, density] of Object.entries(CALORIE_DENSITY_MAP)) {
     if (key.toLowerCase().includes(mapKey.split(" ")[0].toLowerCase())) {
       return (density / 100) * (grams || 500);
     }
   }
-  return 0;
+  
+  // Fallback: estimate based on category averages
+  const categoryCalories = {
+    "Dairy": 60,
+    "Meat & Fish": 180,
+    "Grains & Pasta": 350,
+    "Bread & Bakery": 250,
+    "Vegetables": 35,
+    "Fruits": 50,
+    "Pantry": 200,
+    "Spreads": 400,
+    "Drinks": 45,
+    "Snacks": 400,
+  };
+  return (categoryCalories[item.category] || 100) / 100 * (grams || 500);
 }
 
 /**
@@ -206,9 +224,9 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     return { ...item, calPerEuro };
   }).sort((a, b) => b.calPerEuro - a.calPerEuro);
 
-  // 9. Helper: is this a calorie-counted food item?
-  function isCaloricFood(item) {
-    return !NON_CALORIC_CATEGORIES.includes(item.category || "Other") && item.calPerUnit > 0;
+  // 9. Helper: does this item have meaningful calories (>10 cal per unit)?
+  function hasMeaningfulCalories(item) {
+    return !NON_CALORIC_CATEGORIES.includes(item.category || "Other") && item.calPerUnit > 10;
   }
 
   // 10. Helper: how many units to buy
@@ -217,9 +235,13 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     const hardCap = MAX_TOTAL_UNITS[cat] || 2;
     const compKey = item.comparison_key || "";
     const isHighCal = HIGH_CAL_STAPLE_KEYS.some(k => compKey.includes(k));
-    const effectiveCap = isHighCal ? Math.min(hardCap, 2) : hardCap;
+    
+    // Relax caps when we're significantly short on calories (>30% below target)
+    const calDeficitRatio = calStillNeeded / (calPerDayGoal * daysNum * peopleNum);
+    const effectiveCap = (isHighCal && calDeficitRatio < 0.7) ? hardCap : Math.min(hardCap, 3);
 
-    if (!isCaloricFood(item)) return 1;
+    // Only scale for calories if item has meaningful calories
+    if (!hasMeaningfulCalories(item)) return 1;
     const unitsForCal = calStillNeeded > 0 ? Math.ceil(calStillNeeded / item.calPerUnit) : 1;
     const unitsForBudget = Math.floor(budgetLeft / item.unit_price);
     return Math.max(1, Math.min(unitsForCal, unitsForBudget, effectiveCap));
@@ -227,7 +249,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
 
   // 11. Greedy selection
   let runningCost = 0;
-  let runningCal = 0; // only tracks caloric food calories
+  let runningCal = 0; // tracks all meaningful calories
   const selected = [];
   const categoryPriority = ["Grains & Pasta", "Dairy", "Meat & Fish", "Bread & Bakery", "Vegetables", "Fruits", "Snacks", "Pantry", "Drinks", "Household", "Other"];
 
@@ -239,7 +261,7 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     if (runningCost + totalPrice > budgetNum) return false;
     selected.push({ ...item, unitsNeeded: units, totalPrice, quantity: `${units}x ${item.quantity_description || ""}`.trim() });
     runningCost += totalPrice;
-    if (isCaloricFood(item)) runningCal += item.calPerUnit * units;
+    if (hasMeaningfulCalories(item)) runningCal += item.calPerUnit * units;
     return true;
   }
 
@@ -251,18 +273,26 @@ export function generateGroceryListFromCatalog(catalog, constraints) {
     }
   }
 
-  // Second pass: scale up caloric items to meet calorie target, add non-caloric variety
-  for (const item of scored) {
+  // Second pass: prioritize high-calorie items to meet target, then add variety
+  const highCalItems = scored.filter(i => hasMeaningfulCalories(i) && i.calPerUnit >= 500);
+  const otherItems = scored.filter(i => !highCalItems.includes(i));
+  
+  // First add high-calorie items to reach target
+  for (const item of highCalItems) {
     if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
-    const caloric = isCaloricFood(item);
     const calLeft = calTarget - runningCal;
-    // If we already hit calorie target, add everything at 1 unit (variety + budget spending)
-    tryAdd(item, !caloric || calLeft <= 0);
+    if (calLeft > 0) tryAdd(item, false);
+  }
+  
+  // Then add remaining items for variety
+  for (const item of otherItems) {
+    if (selected.find(s => s.comparison_key === item.comparison_key)) continue;
+    const calLeft = calTarget - runningCal;
+    tryAdd(item, calLeft <= 0);
   }
 
-  // Third pass: scale up existing caloric items if we're still short on calories
-  // (happens when second pass added many 1-unit items without filling the gap)
-  for (const item of selected.filter(i => isCaloricFood(i))) {
+  // Third pass: scale up existing items with meaningful calories if we're still short
+  for (const item of selected.filter(i => hasMeaningfulCalories(i))) {
     const calLeft = calTarget - runningCal;
     if (calLeft <= 0) break;
     const cat = item.category || "Other";
