@@ -54,12 +54,12 @@ const NON_CALORIC_CATEGORIES = ["Household", "Health & Beauty"];
 
 // Minimum calorie percentage from each category for a balanced diet
 const BALANCED_DIET_TARGETS = {
-  "Grains & Pasta": { min: 0.25, max: 0.35 },  // 25-35% from grains
+  "Grains & Pasta": { min: 0.20, max: 0.30 },  // 20-30% from grains
   "Vegetables": { min: 0.15, max: 0.25 },      // 15-25% from vegetables
-  "Fruits": { min: 0.10, max: 0.20 },          // 10-20% from fruits
-  "Meat & Fish": { min: 0.15, max: 0.25 },     // 15-25% from protein
-  "Dairy": { min: 0.10, max: 0.20 },           // 10-20% from dairy
-  "Bread & Bakery": { min: 0.10, max: 0.20 },  // 10-20% from bread
+  "Fruits": { min: 0.08, max: 0.15 },          // 8-15% from fruits
+  "Meat & Fish": { min: 0.30, max: 0.45 },     // 30-45% from protein (high protein)
+  "Dairy": { min: 0.10, max: 0.18 },           // 10-18% from dairy
+  "Bread & Bakery": { min: 0.08, max: 0.15 },  // 8-15% from bread
 };
 
 // Max total units for entire period — prevents any single item dominating
