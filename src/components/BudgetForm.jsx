@@ -51,10 +51,10 @@ const DIET_KEYS = [
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const dietSaleScores = useDietSaleScores(selectedStores);
   const storeSaleScores = useStoreSaleScores();
   const [budget, setBudget] = useState([150]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
+  const dietSaleScores = useDietSaleScores(selectedStores);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
