@@ -62,46 +62,64 @@ export default function MealPlan() {
 
   // --- Cache-first grocery generation ---
   // We first check the PriceCatalog for known items matching this diet/stores combo.
-  // If we have enough data (>= 15 items), we skip the expensive LLM+internet call
-  // and assemble the list from the database instead.
+  // If we have enough data (>= 20 items across selected stores), we skip the expensive LLM call.
   const generateGroceries = async (retryCount = 0) => {
     setRemovedItems(new Set());
     setLoading(true);
 
     // Try to serve from PriceCatalog first (zero AI credits)
     try {
-      const cached = await base44.entities.PriceCatalog.filter({ store: stores.split(",")[0] });
-      if (cached && cached.length >= 15) {
-        // Set price date from the most recent last_updated in cached items
-        const latestDate = cached.reduce((latest, item) => {
-          if (!item.last_updated) return latest;
-          return !latest || item.last_updated > latest ? item.last_updated : latest;
-        }, null);
-        setPriceDate(latestDate);
+      const storeList = stores.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+      // Fetch all catalog items at once
+      const allCatalog = await base44.entities.PriceCatalog.list();
 
-        // Group by category and build the groceries structure from cached prices
-        const categoryMap = {};
-        cached.forEach(item => {
-          const cat = item.category || "Other";
-          if (!categoryMap[cat]) categoryMap[cat] = [];
-          // Scale price to cover `days` days (unit_price is per unit, assume 1 unit/week)
-          const weeksNeeded = Math.ceil(days / 7);
-          const scaledPrice = (item.unit_price || 0) * weeksNeeded;
-          categoryMap[cat].push({
-            name: item.product_name,
-            quantity: `${weeksNeeded}x ${item.quantity_description || ""}`.trim(),
-            unit_price: item.unit_price,
-            price: parseFloat(scaledPrice.toFixed(2)),
-            normal_price: item.normal_price,
-            store: item.store,
-            calories_info: item.calories_info || ""
+      if (allCatalog && allCatalog.length > 0) {
+        // Filter to only items from the user's selected stores
+        const filtered = storeList.length > 0
+          ? allCatalog.filter(item => storeList.some(s => s === (item.store || '').toLowerCase()))
+          : allCatalog;
+
+        if (filtered.length >= 20) {
+          // Set price date from the most recent last_updated in cached items
+          const latestDate = filtered.reduce((latest, item) => {
+            if (!item.last_updated) return latest;
+            return !latest || item.last_updated > latest ? item.last_updated : latest;
+          }, null);
+          setPriceDate(latestDate);
+
+          // For each comparison_key, pick the cheapest item across selected stores
+          const byKey = {};
+          filtered.forEach(item => {
+            const key = item.comparison_key || item.product_name;
+            if (!byKey[key] || item.unit_price < byKey[key].unit_price) {
+              byKey[key] = item;
+            }
           });
-        });
-        const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
-        const total = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
-        setGroceries({ total_estimated_cost: parseFloat(total.toFixed(2)), categories });
-        setLoading(false);
-        return;
+
+          // Group cheapest items by category
+          const categoryMap = {};
+          Object.values(byKey).forEach(item => {
+            const cat = item.category || "Other";
+            if (!categoryMap[cat]) categoryMap[cat] = [];
+            const weeksNeeded = Math.ceil(days / 7);
+            const scaledPrice = (item.unit_price || 0) * weeksNeeded;
+            categoryMap[cat].push({
+              name: item.product_name,
+              quantity: `${weeksNeeded}x ${item.quantity_description || ""}`.trim(),
+              unit_price: item.unit_price,
+              price: parseFloat(scaledPrice.toFixed(2)),
+              normal_price: item.normal_price,
+              store: item.store,
+              calories_info: item.calories_info || ""
+            });
+          });
+
+          const categories = Object.entries(categoryMap).map(([name, items]) => ({ name, items }));
+          const total = categories.flatMap(c => c.items).reduce((s, i) => s + i.price, 0);
+          setGroceries({ total_estimated_cost: parseFloat(total.toFixed(2)), categories });
+          setLoading(false);
+          return;
+        }
       }
     } catch (_) {
       // PriceCatalog not ready yet — fall through to AI generation
