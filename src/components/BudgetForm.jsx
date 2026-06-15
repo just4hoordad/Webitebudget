@@ -325,7 +325,14 @@ export default function BudgetForm() {
 
       {/* Diet Type */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
+          {selectedStores.length > 0 && Object.keys(dietSaleScores).length > 0 && (
+            <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded-lg">
+              💰 Savings at {selectedStores.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ")}
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {DIET_KEYS.map((diet) => {
             const Icon = diet.icon;
