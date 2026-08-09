@@ -30,19 +30,22 @@ export default function MacroRatioControl({ value, onChange }) {
   };
 
   const adjust = (key, newVal) => {
+    const delta = newVal - value[key];
+    if (delta === 0) return;
     const others = ["protein", "carbs", "fats"].filter((k) => k !== key);
-    const otherSum = others.reduce((s, k) => s + value[k], 0);
-    const remaining = 100 - newVal;
     const next = { ...value, [key]: newVal };
-    if (otherSum === 0) {
-      next[others[0]] = Math.round(remaining / 2);
-      next[others[1]] = remaining - next[others[0]];
-    } else {
-      others.forEach((k) => {
-        next[k] = Math.round((value[k] / otherSum) * remaining);
-      });
-      const diff = remaining - (next[others[0]] + next[others[1]]);
-      next[others[1]] += diff;
+    // Only one other macro absorbs the change — pick the one with the most room
+    // (largest current value when decreasing, smallest when increasing) so values stay valid.
+    const target =
+      delta > 0
+        ? others.reduce((a, b) => (value[a] >= value[b] ? a : b)) // take from the biggest
+        : others.reduce((a, b) => (value[a] <= value[b] ? a : b)); // give to the smallest
+    next[target] = Math.max(0, Math.min(100, value[target] - delta));
+    // If the chosen target would go out of range, spill the remainder onto the other one
+    const leftover = 100 - (next[key] + next[target] + value[others.find((k) => k !== target)]);
+    if (leftover !== 0) {
+      const otherKey = others.find((k) => k !== target);
+      next[otherKey] = Math.max(0, Math.min(100, value[otherKey] + leftover));
     }
     onChange(next);
   };
