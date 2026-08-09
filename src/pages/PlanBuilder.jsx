@@ -187,7 +187,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         groceryList: res,
       })
         .then(() => toast.success(t("planAutoSaved")))
-        .catch(() => { /* ignore auto-save errors */ });
+        .catch((e) => { console.error("Auto-save failed:", e); toast.error(t("planAutoSaveFailed")); });
 
       // Prep guide streams in afterwards and updates the result view when ready.
       prepPromise

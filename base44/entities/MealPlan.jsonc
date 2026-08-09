@@ -21,7 +21,10 @@
       "type": "string"
     },
     "plan": {
-      "type": "object"
+      "type": [
+        "object",
+        "array"
+      ]
     },
     "groceryList": {
       "type": "object"
