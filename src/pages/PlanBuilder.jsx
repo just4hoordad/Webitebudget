@@ -115,7 +115,6 @@ For each meal, determine the realistic ingredients and quantities needed for 1 p
 - quantity = total amount/package needed. price = unit_price × units needed for ${people} person(s) over ${plan.length} day(s).
 - All item names in ${currentLanguage.label}, category names in English.
 ${diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}`,
-        add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
           type: "object",
@@ -168,28 +167,37 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         },
       });
 
-      const [gRes, pRes] = await Promise.allSettled([groceryPromise, prepPromise]);
-      if (gRes.status !== "fulfilled") throw gRes.reason;
-      const res = gRes.value;
-      const prepRes = pRes.status === "fulfilled" ? pRes.value : null;
+      // Show the grocery list the moment it's ready — don't block on the prep guide.
+      const res = await groceryPromise;
       setGrocery(res);
-      setPrep(prepRes);
       setPhase("result");
+
+      // Cache so re-generation on the same plan is instant.
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: null }));
       } catch { /* ignore cache write errors */ }
-      // Auto-save every generated plan to the user's library
-      try {
-        await base44.entities.MealPlan.create({
-          name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
-          diet,
-          people,
-          stores: stores.join(", "),
-          plan,
-          groceryList: res,
-        });
-        toast.success(t("planAutoSaved"));
-      } catch { /* ignore auto-save errors */ }
+
+      // Auto-save to the library (fire-and-forget, doesn't block the UI).
+      base44.entities.MealPlan.create({
+        name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
+        diet,
+        people,
+        stores: stores.join(", "),
+        plan,
+        groceryList: res,
+      })
+        .then(() => toast.success(t("planAutoSaved")))
+        .catch(() => { /* ignore auto-save errors */ });
+
+      // Prep guide streams in afterwards and updates the result view when ready.
+      prepPromise
+        .then((prepRes) => {
+          setPrep(prepRes);
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
+          } catch { /* ignore cache write errors */ }
+        })
+        .catch(() => { /* prep is optional */ });
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
     } finally {
