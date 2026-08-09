@@ -18,6 +18,10 @@ export const planBuilderTranslations = {
     generateGroceryFromPlan: "Generate grocery list",
     generatingGroceries: "Building grocery list…",
     planGroceryTitle: "Your grocery list",
+    planPrepTitle: "Meal prep guide",
+    planPrepSubtitle: "Portions & how to cook each meal in your plan",
+    planPrepLoading: "Writing your prep guide…",
+    portionLabel: "Portion",
   },
   de: {
     planBuilderNav: "Plan-Builder",
@@ -35,5 +39,9 @@ export const planBuilderTranslations = {
     generateGroceryFromPlan: "Einkaufsliste erstellen",
     generatingGroceries: "Einkaufsliste wird erstellt…",
     planGroceryTitle: "Deine Einkaufsliste",
+    planPrepTitle: "Zubereitungsleitfaden",
+    planPrepSubtitle: "Portionen & Zubereitung für jedes Gericht",
+    planPrepLoading: "Leitfaden wird erstellt…",
+    portionLabel: "Portion",
   },
 };

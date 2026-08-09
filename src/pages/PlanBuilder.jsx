@@ -17,6 +17,7 @@ export default function PlanBuilder() {
   const [stores, setStores] = useState(["Aldi", "Lidl"]);
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
+  const [prep, setPrep] = useState(null);
   const [loadingGrocery, setLoadingGrocery] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
@@ -83,6 +84,7 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
         const cached = JSON.parse(raw);
         if (cached.key === cacheKey && cached.date === todayStr()) {
           setGrocery(cached.grocery);
+          setPrep(cached.prep || null);
           setPhase("result");
           toast.success(t("usingCachedList"));
           return;
@@ -90,7 +92,6 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
       }
     } catch { /* ignore cache read errors */ }
 
-    setLoadingGrocery(true);
     setLoadingGrocery(true);
     try {
       const lines = plan
@@ -104,7 +105,7 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
         })
         .join("\n");
 
-      const res = await base44.integrations.Core.InvokeLLM({
+      const groceryPromise = base44.integrations.Core.InvokeLLM({
         prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s) on a ${diet} diet:
 ${lines}
 
@@ -143,10 +144,39 @@ ${diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}
           },
         },
       });
+
+      const prepPromise = base44.integrations.Core.InvokeLLM({
+        prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s):
+${lines}
+
+For each day and each meal that has a name, write a short cooking guide. Return an array "days" with exactly ${plan.length} entries. For each meal object provide: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical steps to cook it). Leave a meal object empty (meal: "") if the user left that slot blank. All text in ${currentLanguage.label}.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            days: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  breakfast: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                  lunch: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                  dinner: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const [gRes, pRes] = await Promise.allSettled([groceryPromise, prepPromise]);
+      if (gRes.status !== "fulfilled") throw gRes.reason;
+      const res = gRes.value;
+      const prepRes = pRes.status === "fulfilled" ? pRes.value : null;
       setGrocery(res);
+      setPrep(prepRes);
       setPhase("result");
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
       } catch { /* ignore cache write errors */ }
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
@@ -158,7 +188,7 @@ ${diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}
   const reset = () => { setPhase("setup"); setGrocery(null); };
 
   if (phase === "result" && grocery) {
-    return <PlanGroceryResult grocery={grocery} days={plan.length} people={people} onReset={reset} />;
+    return <PlanGroceryResult grocery={grocery} prep={prep} days={plan.length} people={people} onReset={reset} />;
   }
 
   if (phase === "grid") {

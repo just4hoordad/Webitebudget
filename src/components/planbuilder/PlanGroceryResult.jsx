@@ -1,15 +1,20 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
-import { ArrowLeft, RefreshCw, ShoppingBasket, Store } from "lucide-react";
+import { ArrowLeft, RefreshCw, ShoppingBasket, Store, ChefHat, Loader2 } from "lucide-react";
 
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
-export default function PlanGroceryResult({ grocery, days, people, onReset }) {
+const MEAL_SLOTS = [
+  { key: "breakfast", labelKey: "breakfast" },
+  { key: "lunch", labelKey: "lunch" },
+  { key: "dinner", labelKey: "dinner" },
+];
+
+export default function PlanGroceryResult({ grocery, prep, days, people, onReset }) {
   const { t, currentLanguage } = useLanguage();
   const total = grocery.total_estimated_cost || 0;
   const catMap = allCategoryTranslations[currentLanguage.code] || {};
-
   const trCat = (name) => catMap[name] || name;
 
   return (
@@ -28,33 +33,79 @@ export default function PlanGroceryResult({ grocery, days, people, onReset }) {
         </div>
       </div>
 
-      <div className="space-y-4">
-        {grocery.categories?.map((cat) => (
-          <div key={cat.name} className="border border-border rounded-2xl bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-border bg-muted/40">
-              <h3 className="font-heading font-semibold text-sm uppercase tracking-wide">{trCat(cat.name)}</h3>
-            </div>
-            <div className="divide-y divide-border">
-              {cat.items?.map((item, i) => (
-                <div key={i} className="flex items-center justify-between px-5 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <span>{item.quantity}</span>
-                      {item.store && <span className="flex items-center gap-1"><Store className="h-3 w-3" /> {item.store}</span>}
+      <div className="grid lg:grid-cols-2 gap-5 items-start">
+        {/* Grocery list */}
+        <div className="space-y-4">
+          {grocery.categories?.map((cat) => (
+            <div key={cat.name} className="border border-border rounded-2xl bg-card overflow-hidden">
+              <div className="px-5 py-3 border-b border-border bg-muted/40">
+                <h3 className="font-heading font-semibold text-sm uppercase tracking-wide">{trCat(cat.name)}</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {cat.items?.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between px-5 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <span>{item.quantity}</span>
+                        {item.store && <span className="flex items-center gap-1"><Store className="h-3 w-3" /> {item.store}</span>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-heading font-bold text-sm">€{(item.price || 0).toFixed(2)}</p>
+                      {item.normal_price && item.normal_price > item.price && (
+                        <p className="text-xs text-muted-foreground line-through">€{item.normal_price.toFixed(2)}</p>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-heading font-bold text-sm">€{(item.price || 0).toFixed(2)}</p>
-                    {item.normal_price && item.normal_price > item.price && (
-                      <p className="text-xs text-muted-foreground line-through">€{item.normal_price.toFixed(2)}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Prep guide */}
+        <div className="space-y-3 lg:sticky lg:top-20">
+          <div className="flex items-center gap-2 text-primary text-sm font-medium">
+            <ChefHat className="h-4 w-4" /> {t("planPrepTitle")}
           </div>
-        ))}
+          <p className="text-xs text-muted-foreground">{t("planPrepSubtitle")}</p>
+          {!prep ? (
+            <div className="border border-dashed border-border rounded-2xl p-6 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> {t("planPrepLoading")}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {prep.days?.map((d, i) => {
+                const meals = MEAL_SLOTS.map((s) => ({ ...s, data: d[s.key] })).filter((s) => s.data && s.data.meal);
+                if (!meals.length) return null;
+                return (
+                  <div key={i} className="border border-border rounded-2xl bg-card p-4">
+                    <h4 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                      {t("day") || "Day"} {i + 1}
+                    </h4>
+                    <div className="space-y-3">
+                      {meals.map((s) => (
+                        <div key={s.key} className="border-t border-border pt-2 first:border-0 first:pt-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium text-foreground">{s.data.meal}</p>
+                            <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded px-1.5 py-0.5">
+                              {t(s.labelKey)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium text-foreground">{t("portionLabel")}:</span> {s.data.portion}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{s.data.prep}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <button onClick={onReset} className="w-full h-12 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/40 transition-colors flex items-center justify-center gap-2">
