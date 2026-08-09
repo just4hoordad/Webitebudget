@@ -90,6 +90,9 @@ const translations = {
     pantryAmountPlaceholder: "Amount",
     pantryAddBtn: "Add to Pantry",
     generateBtn: "Generate My Meal Plan",
+    onboardingSkip: "Skip",
+    onboardingNext: "Next",
+    onboardingStart: "Start Planning",
 
     // MealPlan
     back: "Back",
@@ -261,6 +264,9 @@ const translations = {
     pantryAmountPlaceholder: "Menge",
     pantryAddBtn: "Zum Vorratsschrank hinzufügen",
     generateBtn: "Meinen Mahlzeitenplan erstellen",
+    onboardingSkip: "Überspringen",
+    onboardingNext: "Weiter",
+    onboardingStart: "Jetzt planen",
     back: "Zurück",
     yourGroceryList: "Ihre Einkaufsliste",
     generatingGroceries: "Ihre personalisierte Einkaufsliste wird erstellt...",
