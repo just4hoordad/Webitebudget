@@ -7,6 +7,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 import PantryManager from "@/components/PantryManager";
+import MacroRatioControl from "@/components/MacroRatioControl";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -72,6 +73,7 @@ export default function BudgetForm() {
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
+  const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [proteinSnackBudget, setProteinSnackBudget] = useState(0);
   const [allergyInput, setAllergyInput] = useState("");
   const [allergies, setAllergies] = useState([]);
@@ -129,6 +131,7 @@ export default function BudgetForm() {
       proteinSnackBudget: proteinSnackBudget,
       allergies: allergies.join(","),
       owned: pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","),
+      macros: `${macros.protein},${macros.carbs},${macros.fats}`,
     });
     navigate(`/meal-plan?${params.toString()}`);
   };
@@ -233,7 +236,7 @@ export default function BudgetForm() {
             <SectionHeader
               icon={Leaf}
               label={t("dietSection") || "Diet & Nutrition"}
-              summary={`${dietLabel}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}`}
+              summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}`}
             />
           </AccordionTrigger>
           <AccordionContent>
@@ -298,6 +301,9 @@ export default function BudgetForm() {
                   })}
                 </div>
               </div>
+
+              {/* Macronutrient Ratios */}
+              <MacroRatioControl value={macros} onChange={setMacros} />
 
               {/* Allergies */}
               <div className="space-y-2">

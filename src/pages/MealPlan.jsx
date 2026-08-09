@@ -34,6 +34,10 @@ export default function MealPlan() {
   const proteinSnackBudget = parseInt(params.get("proteinSnackBudget") || "0", 10);
   const allergies = params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [];
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
+  const macrosParam = params.get("macros");
+  const macros = macrosParam
+    ? (() => { const [p, c, f] = macrosParam.split(",").map(Number); return { protein: p || 30, carbs: c || 40, fats: f || 30 }; })()
+    : null;
 
   const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +73,7 @@ Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Language: ${currentLanguage.label}.
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
+${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats).` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item.
@@ -342,6 +347,7 @@ ${availableItems}
 
 Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
 Target calories per day: ${calories} kcal
+${macros ? ` Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}% carbs, ~${macros.fats}% fats. Distribute foods across meals so the day's macros approach this ratio.` : ""}
 Number of people: ${people}
 
 CRITICAL RULES:
