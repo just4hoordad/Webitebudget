@@ -30,25 +30,11 @@ export default function MacroRatioControl({ value, onChange }) {
   };
 
   const adjust = (key, newVal) => {
-    const delta = newVal - value[key];
-    if (delta === 0) return;
-    const others = ["protein", "carbs", "fats"].filter((k) => k !== key);
-    const next = { ...value, [key]: newVal };
-    // Only one other macro absorbs the change — pick the one with the most room
-    // (largest current value when decreasing, smallest when increasing) so values stay valid.
-    const target =
-      delta > 0
-        ? others.reduce((a, b) => (value[a] >= value[b] ? a : b)) // take from the biggest
-        : others.reduce((a, b) => (value[a] <= value[b] ? a : b)); // give to the smallest
-    next[target] = Math.max(0, Math.min(100, value[target] - delta));
-    // If the chosen target would go out of range, spill the remainder onto the other one
-    const leftover = 100 - (next[key] + next[target] + value[others.find((k) => k !== target)]);
-    if (leftover !== 0) {
-      const otherKey = others.find((k) => k !== target);
-      next[otherKey] = Math.max(0, Math.min(100, value[otherKey] + leftover));
-    }
-    onChange(next);
+    onChange({ ...value, [key]: newVal });
   };
+
+  const total = value.protein + value.carbs + value.fats;
+  const isMismatch = total !== 100;
 
   return (
     <div className="space-y-4">
@@ -91,7 +77,7 @@ export default function MacroRatioControl({ value, onChange }) {
                 </div>
                 <span className="text-sm font-medium text-foreground">{t(`macro_${key}`)}</span>
               </div>
-              <span className="font-heading font-bold text-sm text-foreground">{value[key]}%</span>
+              <span className={`font-heading font-bold text-sm ${isMismatch ? "text-destructive" : "text-foreground"}`}>{value[key]}%</span>
             </div>
             <Slider
               value={[value[key]]}
@@ -107,12 +93,14 @@ export default function MacroRatioControl({ value, onChange }) {
 
       {/* Total indicator */}
       <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium ${
-        value.protein + value.carbs + value.fats === 100
-          ? "bg-green-50 text-green-700"
-          : "bg-destructive/10 text-destructive"
+        isMismatch
+          ? "bg-destructive/10 text-destructive"
+          : "bg-green-50 text-green-700"
       }`}>
         <span>{t("macroTotal")}</span>
-        <span className="font-heading font-bold">{value.protein + value.carbs + value.fats}%</span>
+        <span className="font-heading font-bold">
+          {total}%{isMismatch && <span className="ml-1 font-normal">(needs 100%)</span>}
+        </span>
       </div>
     </div>
   );
