@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Salad } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
@@ -126,18 +126,6 @@ export default function Layout() {
               </Link>
             );
           })}
-          <Link
-            to="/diet-grocery"
-            className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
-              location.pathname === "/diet-grocery" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
-            }`}
-          >
-            <Salad className="h-5 w-5 shrink-0" />
-            <span className="truncate w-full text-center px-1">Diet List</span>
-            {location.pathname === "/diet-grocery" && (
-              <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
-            )}
-          </Link>
           <Link
             to="/about"
             className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
