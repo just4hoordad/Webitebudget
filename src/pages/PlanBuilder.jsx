@@ -178,6 +178,18 @@ For each day and each meal that has a name, write a short cooking guide. Return 
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
       } catch { /* ignore cache write errors */ }
+      // Auto-save every generated plan to the user's library
+      try {
+        await base44.entities.MealPlan.create({
+          name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
+          diet,
+          people,
+          stores: stores.join(", "),
+          plan,
+          groceryList: res,
+        });
+        toast.success(t("planAutoSaved"));
+      } catch { /* ignore auto-save errors */ }
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
     } finally {
