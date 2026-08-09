@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp } from "lucide-react";
@@ -11,10 +11,12 @@ export default function SavedMealPlans() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
+  const location = useLocation();
 
   useEffect(() => {
-    loadPlans();
-  }, []);
+    if (location.pathname === "/saved-plans") loadPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const loadPlans = async () => {
     try {
@@ -62,9 +64,9 @@ export default function SavedMealPlans() {
                         <Leaf className="h-4 w-4" />
                         {plan.diet}
                       </span>
-                      <span>€{plan.budget?.toFixed(2)}{t("budgetPerMonth")}</span>
-                      <span>{plan.calories} kcal/day</span>
-                      <span>{plan.people} {t("personS")}</span>
+                      {plan.budget != null && <span>€{plan.budget?.toFixed(2)}{t("budgetPerMonth")}</span>}
+                      {plan.calories != null && <span>{plan.calories} kcal/day</span>}
+                      {plan.people != null && <span>{plan.people} {t("personS")}</span>}
                     </div>
                     {plan.stores && (
                       <p className="text-xs text-muted-foreground mt-2">
@@ -77,12 +79,14 @@ export default function SavedMealPlans() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
-                      <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
-                        <BarChart2 className="h-3.5 w-3.5" />
-                        {t("nutrition")}
-                      </button>
-                    </Link>
+                    {plan.budget != null && (
+                      <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
+                        <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
+                          <BarChart2 className="h-3.5 w-3.5" />
+                          {t("nutrition")}
+                        </button>
+                      </Link>
+                    )}
                     <button
                       onClick={() => deletePlan(plan.id)}
                       className="text-muted-foreground hover:text-destructive transition-colors p-2"
@@ -129,7 +133,25 @@ export default function SavedMealPlans() {
                   </div>
                 )}
 
-                {plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
+                {Array.isArray(plan.plan) ? (
+                  <div className="bg-card border border-border rounded-xl overflow-hidden">
+                    <div className="bg-primary px-5 py-3">
+                      <h3 className="font-heading font-semibold text-primary-foreground">{plan.plan.length}-{t("days")}</h3>
+                    </div>
+                    <div className="divide-y divide-border">
+                      {plan.plan.map((day, idx) => (
+                        <div key={idx} className="px-5 py-3 text-sm">
+                          <div className="font-semibold text-foreground text-xs mb-1.5">{t("day") || "Day"} {idx + 1}</div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("breakfast")}</span><span className="text-foreground">{day.breakfast || "—"}</span></div>
+                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("lunch")}</span><span className="text-foreground">{day.lunch || "—"}</span></div>
+                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("dinner")}</span><span className="text-foreground">{day.dinner || "—"}</span></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
                   <div key={weekIdx} className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="bg-primary px-5 py-3">
                       <h3 className="font-heading font-semibold text-primary-foreground">
