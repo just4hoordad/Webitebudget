@@ -487,7 +487,7 @@ export default function BudgetForm() {
       <Button
         onClick={handleGenerate}
         disabled={selectedStoreLocations.length === 0 && selectedStores.length === 0}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 transition-all duration-300"
+        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
         size="lg"
       >
         {t("generateBtn")}

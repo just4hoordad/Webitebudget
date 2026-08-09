@@ -45,6 +45,11 @@ module.exports = {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			border: 'hsl(var(--border))',
+  			dark: {
+  				DEFAULT: 'hsl(var(--dark))',
+  				foreground: 'hsl(var(--dark-foreground))',
+  				muted: 'hsl(var(--dark-muted))'
+  			},
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			chart: {

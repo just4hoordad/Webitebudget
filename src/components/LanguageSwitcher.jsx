@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+        className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium text-dark-muted hover:text-dark-foreground hover:bg-white/10 transition-all duration-200"
       >
         <span className="text-base">{currentLanguage.flag}</span>
         <span className="hidden sm:inline">{currentLanguage.code.toUpperCase()}</span>
@@ -27,15 +27,15 @@ export default function LanguageSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-44 max-h-80 bg-background border border-border rounded-xl shadow-xl overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 mt-2 w-44 max-h-80 bg-dark border border-white/10 rounded-xl shadow-2xl overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-150">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
               onClick={() => { changeLanguage(lang.code); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary transition-colors duration-150"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-dark-muted hover:text-dark-foreground hover:bg-white/10 transition-colors duration-150"
             >
               <span className="text-base">{lang.flag}</span>
-              <span className="flex-1 text-left text-foreground">{lang.label}</span>
+              <span className="flex-1 text-left">{lang.label}</span>
               {currentLanguage.code === lang.code && (
                 <Check className="h-3.5 w-3.5 text-primary" />
               )}

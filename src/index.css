@@ -9,74 +9,80 @@
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
 
-    --background: 140 20% 98%;
-    --foreground: 160 30% 8%;
+    /* Bold & Energetic palette */
+    --background: 0 0% 100%;
+    --foreground: 217 39% 11%;
+
     --card: 0 0% 100%;
-    --card-foreground: 160 30% 8%;
+    --card-foreground: 217 39% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 160 30% 8%;
-    --primary: 158 64% 40%;
+    --popover-foreground: 217 39% 11%;
+
+    --primary: 142 71% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 140 15% 93%;
-    --secondary-foreground: 160 30% 15%;
-    --muted: 140 10% 94%;
-    --muted-foreground: 160 10% 45%;
-    --accent: 38 92% 55%;
-    --accent-foreground: 38 92% 15%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 140 15% 90%;
-    --input: 140 15% 88%;
-    --ring: 158 64% 40%;
-    --chart-1: 158 64% 40%;
-    --chart-2: 38 92% 55%;
-    --chart-3: 200 70% 50%;
-    --chart-4: 280 60% 55%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 217 39% 15%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 42%;
+
+    --accent: 45 96% 51%;
+    --accent-foreground: 45 96% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 89%;
+    --input: 220 14% 89%;
+    --ring: 142 71% 45%;
+
+    /* Dark surface (hero / header / bottom nav) */
+    --dark: 139 35% 9%;
+    --dark-foreground: 0 0% 100%;
+    --dark-muted: 140 16% 72%;
+
+    --chart-1: 142 71% 45%;
+    --chart-2: 45 96% 51%;
+    --chart-3: 200 80% 50%;
+    --chart-4: 280 60% 58%;
     --chart-5: 340 70% 55%;
-    --radius: 0.75rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 158 64% 40%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 140 15% 93%;
-    --sidebar-accent-foreground: 160 30% 15%;
-    --sidebar-border: 140 15% 90%;
-    --sidebar-ring: 158 64% 40%;
+
+    --radius: 0.875rem;
+
+    --sidebar-background: 139 35% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 142 71% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 139 30% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 139 30% 16%;
+    --sidebar-ring: 142 71% 45%;
   }
 
   .dark {
-    --background: 160 20% 5%;
+    --background: 139 35% 7%;
     --foreground: 140 10% 95%;
-    --card: 160 15% 8%;
+    --card: 139 30% 10%;
     --card-foreground: 140 10% 95%;
-    --popover: 160 15% 8%;
+    --popover: 139 30% 10%;
     --popover-foreground: 140 10% 95%;
-    --primary: 158 64% 45%;
+    --primary: 142 71% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 160 15% 14%;
+    --secondary: 139 25% 16%;
     --secondary-foreground: 140 10% 90%;
-    --muted: 160 10% 14%;
-    --muted-foreground: 140 8% 55%;
-    --accent: 38 92% 55%;
-    --accent-foreground: 38 92% 95%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 160 10% 15%;
-    --input: 160 10% 15%;
-    --ring: 158 64% 45%;
-    --chart-1: 158 64% 45%;
-    --chart-2: 38 92% 55%;
-    --chart-3: 200 70% 55%;
-    --chart-4: 280 60% 60%;
-    --chart-5: 340 70% 60%;
-    --sidebar-background: 160 20% 5%;
-    --sidebar-foreground: 140 10% 95%;
-    --sidebar-primary: 158 64% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 15% 14%;
-    --sidebar-accent-foreground: 140 10% 90%;
-    --sidebar-border: 160 10% 15%;
-    --sidebar-ring: 158 64% 45%;
+    --muted: 139 20% 16%;
+    --muted-foreground: 140 8% 60%;
+    --accent: 45 96% 55%;
+    --accent-foreground: 45 96% 12%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 139 25% 18%;
+    --input: 139 25% 18%;
+    --ring: 142 71% 50%;
+    --dark: 139 35% 7%;
+    --dark-foreground: 0 0% 100%;
+    --dark-muted: 140 16% 72%;
   }
 }
 
@@ -86,7 +92,20 @@
   }
 
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
     overscroll-behavior-y: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

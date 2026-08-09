@@ -47,21 +47,23 @@ export default function Layout() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Header */}
       <header
-        className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border"
+        className="sticky top-0 z-50 bg-dark/95 backdrop-blur-xl border-b border-white/10"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           {isRoot ? (
             <Link to="/" className="flex items-center gap-2.5 select-none">
-              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
+              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
                 <ShoppingCart className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-heading font-bold text-lg tracking-tight">BudgetBite</span>
+              <span className="font-heading font-bold text-lg tracking-tight text-dark-foreground">
+                Budget<span className="text-primary">Bite</span>
+              </span>
             </Link>
           ) : (
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-sm font-medium text-foreground select-none"
+              className="flex items-center gap-2 text-sm font-medium text-dark-foreground hover:text-primary transition-colors select-none"
             >
               <ArrowLeft className="h-5 w-5" />
               {t("back")}
@@ -100,7 +102,7 @@ export default function Layout() {
 
       {/* Bottom Tab Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-dark/95 backdrop-blur-xl border-t border-white/10"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="flex items-stretch w-full overflow-x-auto scrollbar-hide">
@@ -112,46 +114,58 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
-                  isActive ? "text-primary" : "text-muted-foreground"
+                className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
+                  isActive ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="truncate w-full text-center px-1">{item.label}</span>
+                {isActive && (
+                  <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
+                )}
               </Link>
             );
           })}
           <Link
             to="/about"
-            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
-              location.pathname === "/about" ? "text-primary" : "text-muted-foreground"
+            className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
+              location.pathname === "/about" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
             }`}
           >
             <span className="text-lg leading-none shrink-0">ℹ️</span>
             <span className="truncate w-full text-center px-1">About</span>
+            {location.pathname === "/about" && (
+              <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
+            )}
           </Link>
           <Link
             to="/contact"
-            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
-              location.pathname === "/contact" ? "text-primary" : "text-muted-foreground"
+            className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
+              location.pathname === "/contact" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
             }`}
           >
             <span className="text-lg leading-none shrink-0">✉️</span>
             <span className="truncate w-full text-center px-1">Contact</span>
+            {location.pathname === "/contact" && (
+              <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
+            )}
           </Link>
           <Link
             to="/datenschutz"
-            className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none ${
-              location.pathname === "/datenschutz" ? "text-primary" : "text-muted-foreground"
+            className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
+              location.pathname === "/datenschutz" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
             }`}
           >
             <span className="text-lg leading-none shrink-0">🔒</span>
             <span className="truncate w-full text-center px-1">{t("privacyNav")}</span>
+            {location.pathname === "/datenschutz" && (
+              <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
+            )}
           </Link>
           {installPrompt && !isInstalled && (
             <button
               onClick={handleInstall}
-              className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-3 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-primary"
+              className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none text-dark-muted hover:text-primary"
             >
               <Download className="h-5 w-5 shrink-0" />
               <span className="truncate w-full text-center px-1">Install</span>
