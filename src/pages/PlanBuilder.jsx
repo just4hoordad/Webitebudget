@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ export default function PlanBuilder() {
   const [prep, setPrep] = useState(null);
   const [loadingGrocery, setLoadingGrocery] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  const savedPlanId = useRef(null);
 
   const CACHE_KEY = "bb_plan_grocery_cache";
 
@@ -93,6 +94,7 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
     } catch { /* ignore cache read errors */ }
 
     setLoadingGrocery(true);
+    savedPlanId.current = null;
     try {
       const lines = plan
         .map((day, d) => {
@@ -186,16 +188,21 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         plan,
         groceryList: res,
       })
-        .then(() => toast.success(t("planAutoSaved")))
+        .then((rec) => { savedPlanId.current = rec?.id ?? null; toast.success(t("planAutoSaved")); })
         .catch((e) => { console.error("Auto-save failed:", e); toast.error(t("planAutoSaveFailed")); });
 
       // Prep guide streams in afterwards and updates the result view when ready.
       prepPromise
-        .then((prepRes) => {
+        .then(async (prepRes) => {
           setPrep(prepRes);
           try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
           } catch { /* ignore cache write errors */ }
+          const id = savedPlanId.current;
+          if (id) {
+            try { await base44.entities.MealPlan.update(id, { prep: prepRes }); }
+            catch (e) { console.error("Prep save failed:", e); }
+          }
         })
         .catch(() => { /* prep is optional */ });
     } catch {

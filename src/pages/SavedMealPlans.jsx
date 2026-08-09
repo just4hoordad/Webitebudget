@@ -146,16 +146,28 @@ export default function SavedMealPlans() {
                       <h3 className="font-heading font-semibold text-primary-foreground">{plan.plan.length}-{t("days")}</h3>
                     </div>
                     <div className="divide-y divide-border">
-                      {plan.plan.map((day, idx) => (
-                        <div key={idx} className="px-5 py-3 text-sm">
-                          <div className="font-semibold text-foreground text-xs mb-1.5">{t("day") || "Day"} {idx + 1}</div>
-                          <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("breakfast")}</span><span className="text-foreground">{day.breakfast || "—"}</span></div>
-                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("lunch")}</span><span className="text-foreground">{day.lunch || "—"}</span></div>
-                            <div><span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t("dinner")}</span><span className="text-foreground">{day.dinner || "—"}</span></div>
+                      {plan.plan.map((day, idx) => {
+                        const dayPrep = plan.prep?.days?.[idx];
+                        const cell = (type, val) => (
+                          <div>
+                            <span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t(type)}</span>
+                            <span className="text-foreground">{val || "—"}</span>
+                            {dayPrep?.[type]?.portion && (
+                              <span className="block text-[10px] text-primary mt-0.5">🍽 {dayPrep[type].portion}</span>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                        return (
+                          <div key={idx} className="px-5 py-3 text-sm">
+                            <div className="font-semibold text-foreground text-xs mb-1.5">{t("day") || "Day"} {idx + 1}</div>
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              {cell("breakfast", day.breakfast)}
+                              {cell("lunch", day.lunch)}
+                              {cell("dinner", day.dinner)}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (

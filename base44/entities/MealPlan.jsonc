@@ -42,6 +42,9 @@
     },
     "groceryList": {
       "type": "object"
+    },
+    "prep": {
+      "type": "object"
     }
   },
   "required": [
