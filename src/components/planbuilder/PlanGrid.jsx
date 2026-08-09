@@ -1,7 +1,7 @@
 import { useLanguage } from "@/lib/LanguageContext";
-import { ArrowRight, Utensils } from "lucide-react";
+import { ArrowRight, Utensils, Sparkles, Loader2 } from "lucide-react";
 
-export default function PlanGrid({ days, plan, setSlot, onGenerate, generating }) {
+export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating }) {
   const { t } = useLanguage();
   const mealTypes = [
     { key: "breakfast", label: t("breakfast") },
@@ -17,6 +17,15 @@ export default function PlanGrid({ days, plan, setSlot, onGenerate, generating }
         </div>
         <p className="text-muted-foreground text-sm">{t("planGridSubtitle")}</p>
       </div>
+
+      <button
+        onClick={onAutoFill}
+        disabled={autofilling}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all disabled:opacity-60"
+      >
+        {autofilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+        {t("autoFillMeals")}
+      </button>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {plan.map((day, d) => (

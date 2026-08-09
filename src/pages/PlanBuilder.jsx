@@ -18,6 +18,11 @@ export default function PlanBuilder() {
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
   const [loadingGrocery, setLoadingGrocery] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
+
+  const CACHE_KEY = "bb_plan_grocery_cache";
+
+  const todayStr = () => new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD (local)
 
   const toggleStore = (s) => setStores((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
 
@@ -30,7 +35,62 @@ export default function PlanBuilder() {
   const setSlot = (d, type, value) =>
     setPlan((prev) => prev.map((day, i) => (i === d ? { ...day, [type]: value } : day)));
 
+  const autoFillMeals = async () => {
+    setAutofilling(true);
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `Create a ${plan.length}-day meal plan for ${people} person(s) on a ${diet} diet in Germany.
+Return exactly ${plan.length} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
+Keep names short and realistic (home cooking). Vary meals across days so it's not repetitive.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            days: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  breakfast: { type: "string" },
+                  lunch: { type: "string" },
+                  dinner: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      });
+      const filled = res.days || [];
+      setPlan((prev) =>
+        prev.map((day, i) =>
+          filled[i]
+            ? { breakfast: filled[i].breakfast || "", lunch: filled[i].lunch || "", dinner: filled[i].dinner || "" }
+            : day
+        )
+      );
+    } catch {
+      toast.error("Autofill failed. Please try again.");
+    } finally {
+      setAutofilling(false);
+    }
+  };
+
   const generateGrocery = async () => {
+    // Reuse today's generated list if the plan hasn't changed (saves credits).
+    const cacheKey = JSON.stringify({ plan, diet, people, stores, lang: currentLanguage.code });
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.key === cacheKey && cached.date === todayStr()) {
+          setGrocery(cached.grocery);
+          setPhase("result");
+          toast.success(t("usingCachedList"));
+          return;
+        }
+      }
+    } catch { /* ignore cache read errors */ }
+
+    setLoadingGrocery(true);
     setLoadingGrocery(true);
     try {
       const lines = plan
@@ -85,6 +145,9 @@ ${diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}
       });
       setGrocery(res);
       setPhase("result");
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res }));
+      } catch { /* ignore cache write errors */ }
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
     } finally {
@@ -107,7 +170,7 @@ ${diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onGenerate={generateGrocery} generating={loadingGrocery} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={generateGrocery} generating={loadingGrocery} />
         )}
       </div>
     );
