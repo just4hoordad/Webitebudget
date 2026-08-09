@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import Layout from './components/Layout';
 import MealPlan from './pages/MealPlan.jsx';
+import DietGrocery from './pages/DietGrocery.jsx';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
 import About from './pages/About';
@@ -24,6 +25,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={null} />
                 <Route path="/meal-plan" element={<MealPlan />} />
+                <Route path="/diet-grocery" element={<DietGrocery />} />
                 <Route path="/saved-plans" element={null} />
                 <Route path="/nutrition" element={<Nutrition />} />
                 <Route path="/about" element={<About />} />
