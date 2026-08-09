@@ -20,6 +20,20 @@
     "stores": {
       "type": "string"
     },
+    "macros": {
+      "type": "object",
+      "properties": {
+        "protein": {
+          "type": "number"
+        },
+        "carbs": {
+          "type": "number"
+        },
+        "fats": {
+          "type": "number"
+        }
+      }
+    },
     "plan": {
       "type": [
         "object",

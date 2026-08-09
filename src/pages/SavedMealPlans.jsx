@@ -67,6 +67,13 @@ export default function SavedMealPlans() {
                       {plan.budget != null && <span>€{plan.budget?.toFixed(2)}{t("budgetPerMonth")}</span>}
                       {plan.calories != null && <span>{plan.calories} kcal/day</span>}
                       {plan.people != null && <span>{plan.people} {t("personS")}</span>}
+                      {plan.macros && (
+                        <span className="flex items-center gap-1.5">
+                          <span>🥩 {plan.macros.protein}%</span>
+                          <span>🍞 {plan.macros.carbs}%</span>
+                          <span>🥑 {plan.macros.fats}%</span>
+                        </span>
+                      )}
                     </div>
                     {plan.stores && (
                       <p className="text-xs text-muted-foreground mt-2">
