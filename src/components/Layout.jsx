@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
@@ -40,6 +40,7 @@ export default function Layout() {
   const isRoot = location.pathname === "/";
   const navItems = [
     { path: "/", label: t("home"), icon: Home },
+    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
   ];
 

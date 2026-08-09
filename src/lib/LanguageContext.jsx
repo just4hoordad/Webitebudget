@@ -1,8 +1,14 @@
 import { createContext, useContext, useState } from "react";
 import translations from "./translations";
 import { euTranslations } from "./translations_eu";
+import { planBuilderTranslations } from "./translations_planbuilder";
 
-const allTranslations = { ...translations, ...euTranslations };
+// Deep-merge per language so Plan Builder keys don't overwrite full language objects.
+const _merged = { ...translations };
+Object.keys(planBuilderTranslations).forEach((lang) => {
+  _merged[lang] = { ...(_merged[lang] || {}), ...planBuilderTranslations[lang] };
+});
+const allTranslations = { ..._merged, ...euTranslations };
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
