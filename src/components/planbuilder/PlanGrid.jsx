@@ -8,7 +8,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
     { key: "lunch", label: t("lunch"), abbr: "L" },
     { key: "dinner", label: t("dinner"), abbr: "D" },
   ];
-  const inputCls = "w-full border border-border rounded-md px-2 py-1.5 text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/40";
+  const inputCls = "w-full border border-border rounded px-1.5 py-1 text-[11px] bg-card focus:outline-none focus:ring-1 focus:ring-primary/40";
 
   return (
     <div className="space-y-4">
@@ -36,9 +36,9 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         <span>{t("dinner")}</span>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         {plan.map((day, d) => (
-          <div key={d} className="bg-card border border-border rounded-lg p-2">
+          <div key={d} className="bg-card border border-border rounded-md px-1.5 py-1">
             {/* Desktop: single row */}
             <div className="hidden sm:grid grid-cols-[52px_1fr_1fr_1fr] gap-2 items-center">
               <span className="font-heading font-semibold text-xs text-muted-foreground">#{d + 1}</span>
