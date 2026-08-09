@@ -10,7 +10,7 @@ import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
 import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -46,19 +46,28 @@ export default function MealPlan() {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [saving, setSaving] = useState(false);
   const isFirstRender = useRef(true);
-
+  const location = useLocation();
+  const searchKey = window.location.search;
+  const lastGenKey = useRef(null);
 
   useEffect(() => {
+    if (location.pathname !== "/meal-plan") return;
+    if (lastGenKey.current === searchKey) return;
+    lastGenKey.current = searchKey;
     generateGroceries();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, searchKey]);
 
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
+    if (location.pathname !== "/meal-plan") return;
     setWeeklyPlan(null);
+    lastGenKey.current = searchKey;
     generateGroceries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage.code]);
 
   const generateGroceries = async (retryCount = 0) => {

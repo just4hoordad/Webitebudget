@@ -4,8 +4,6 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import Layout from './components/Layout';
-import MealPlan from './pages/MealPlan.jsx';
-import PlanBuilder from './pages/PlanBuilder.jsx';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
 import About from './pages/About';
@@ -24,8 +22,8 @@ function App() {
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={null} />
-                <Route path="/meal-plan" element={<MealPlan />} />
-                <Route path="/plan-builder" element={<PlanBuilder />} />
+                <Route path="/meal-plan" element={null} />
+                <Route path="/plan-builder" element={null} />
                 <Route path="/saved-plans" element={null} />
                 <Route path="/nutrition" element={<Nutrition />} />
                 <Route path="/about" element={<About />} />

@@ -6,6 +6,8 @@ import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils } from "l
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
+import MealPlanPage from "../pages/MealPlan";
+import PlanBuilderPage from "../pages/PlanBuilder";
 import { useState, useEffect } from "react";
 
 export default function Layout() {
@@ -35,8 +37,8 @@ export default function Layout() {
     }
   };
 
-  const TAB_PATHS = ["/", "/saved-plans"];
-  const isTabRoute = TAB_PATHS.includes(location.pathname);
+  const PERSIST_PATHS = ["/", "/saved-plans", "/meal-plan", "/plan-builder"];
+  const isPersistRoute = PERSIST_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
     { path: "/", label: t("home"), icon: Home },
@@ -83,8 +85,14 @@ export default function Layout() {
         <div style={{ display: location.pathname === "/saved-plans" ? "block" : "none" }}>
           <SavedMealPlansPage />
         </div>
-        {/* Non-tab routes (e.g. /meal-plan) */}
-        {!isTabRoute && (
+        <div style={{ display: location.pathname === "/meal-plan" ? "block" : "none" }}>
+          <MealPlanPage />
+        </div>
+        <div style={{ display: location.pathname === "/plan-builder" ? "block" : "none" }}>
+          <PlanBuilderPage />
+        </div>
+        {/* Non-persistent routes (About, Contact, etc.) */}
+        {!isPersistRoute && (
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
