@@ -319,27 +319,33 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
     pdf.save(`grocery-list-${diet}-${budget}eur.pdf`);
   };
 
-  const weeklyPlanSchema = {
+  const daySchema = {
     type: "object",
     properties: {
-      days: {
+      day: { type: "string" },
+      breakfast: { type: "string" },
+      breakfast_calories: { type: "number" },
+      breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
+      lunch: { type: "string" },
+      lunch_calories: { type: "number" },
+      lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
+      dinner: { type: "string" },
+      dinner_calories: { type: "number" },
+      dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
+    }
+  };
+
+  const weeklyPlanSchema = {
+    type: "object",
+    properties: { days: { type: "array", minItems: 7, items: daySchema } }
+  };
+
+  const multiWeekPlanSchema = {
+    type: "object",
+    properties: {
+      weeks: {
         type: "array",
-        minItems: 7,
-        items: {
-          type: "object",
-          properties: {
-            day: { type: "string" },
-            breakfast: { type: "string" },
-            breakfast_calories: { type: "number" },
-            breakfast_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
-            lunch: { type: "string" },
-            lunch_calories: { type: "number" },
-            lunch_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } },
-            dinner: { type: "string" },
-            dinner_calories: { type: "number" },
-            dinner_ingredients: { type: "array", items: { type: "object", properties: { name: { type: "string" }, quantity: { type: "string" } } } }
-          }
-        }
+        items: { type: "object", properties: { week: { type: "number" }, days: { type: "array", items: daySchema } } }
       }
     }
   };
@@ -348,10 +354,14 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
   const totalWeeks = Math.ceil(totalDays / 7);
 
   const buildWeekPrompt = (availableItems, weekNum, totalWks, daysInThisWeek, previousWeeksSummary = "") => `Create a complete ${daysInThisWeek}-day meal plan for week ${weekNum} of ${totalWks}.
+...
+RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
+
+  const buildMultiWeekPrompt = (availableItems) => `Create a complete ${totalDays}-day meal plan split across ${totalWeeks} week(s).
 
 IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
 
-AVAILABLE FROZEN PRODUCTS (TOTAL for ${totalDays} days = ${totalWks} week(s)):
+AVAILABLE PRODUCTS (TOTAL for ${totalDays} days = ${totalWeeks} week(s)):
 ${availableItems}
 
 Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
@@ -362,16 +372,16 @@ Number of people: ${people}
 CRITICAL RULES:
 1. Use ONLY the products listed above — no substitutions or additions
 2. The quantities listed are the TOTAL available for ALL ${totalDays} days
-3. Divide product usage roughly equally across all ${totalWks} weeks — use approx 1/${totalWks} of total quantity per week
-4. For each meal, specify EXACTLY which frozen product is used and heating instructions (e.g. "Oven 200°C for 20 min" or "Microwave 3 min")
-${diet === "frozen" ? `5. FROZEN FOODS MODE: Each meal entry MUST be the exact frozen product name + heating method. Format: "🥡 [Product Name] — [Heating instruction]". No cooking involved, just reheating. Example: "🥡 iglo Fischstäbchen — Oven 200°C, 15 min"` : ""}
-${previousWeeksSummary ? `${diet === "frozen" ? "6" : "5"}. VARIETY: The following meals were used in previous weeks — do NOT repeat them:\n${previousWeeksSummary}` : ""}
+3. Divide product usage roughly equally across all ${totalWeeks} weeks — use approx 1/${totalWeeks} of total quantity per week
+4. For each meal, specify EXACTLY which product is used${diet === "frozen" ? " and heating instructions (e.g. \"Oven 200°C for 20 min\" or \"Microwave 3 min\")" : ""}
+${diet === "frozen" ? `5. FROZEN FOODS MODE: Each meal entry MUST be the exact frozen product name + heating method. Format: "🥡 [Product Name] — [Heating instruction]". No cooking involved, just reheating.` : ""}
+6. VARIETY: Make each week different — do NOT repeat the same meals across weeks.
 
 Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
 
-RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
+Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has a "days" array. Weeks 1 to ${totalWeeks - 1} have 7 days each; the final week has ${totalDays - (totalWeeks - 1) * 7} days. Total days across all weeks MUST equal ${totalDays}, with no gaps or missing meals.`;
 
-  const generateExactDaysPlan = async () => {
+  const generateAllWeeks = async () => {
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
@@ -379,25 +389,20 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
     ).join(", ");
 
     setLoadingPlan(true);
-
-    const weeks = [];
-    let daysRemaining = totalDays;
-    let previousMeals = "";
-
-    for (let w = 1; w <= totalWeeks; w++) {
-      const daysInThisWeek = Math.min(daysRemaining, 7);
+    try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: buildWeekPrompt(availableItems, w, totalWeeks, daysInThisWeek, previousMeals),
-        response_json_schema: weeklyPlanSchema
+        prompt: buildMultiWeekPrompt(availableItems),
+        response_json_schema: multiWeekPlanSchema
       });
-      const weekDays = result.days || [];
-      weeks.push({ week: w, days: weekDays });
-      previousMeals += `\nWeek ${w}: ` + weekDays.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
-      daysRemaining -= daysInThisWeek;
+      return (result.weeks || []).map((w, i) => ({ week: i + 1, days: w.days || [] }));
+    } finally {
+      setLoadingPlan(false);
     }
+  };
 
+  const generateExactDaysPlan = async () => {
+    const weeks = await generateAllWeeks();
     setWeeklyPlan({ type: "exact", weeks });
-    setLoadingPlan(false);
   };
 
   const generateWeeklyPlan = async () => {
@@ -418,31 +423,8 @@ RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
   };
 
   const generateUniqueMonthlyPlan = async () => {
-    const availableItems = groceries?.categories?.flatMap(cat =>
-      cat.items
-        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
-        .map(item => `${item.name} (${item.quantity})`)
-    ).join(", ");
-
-    setLoadingPlan(true);
-    const weeks = [];
-    let previousMeals = "";
-    let daysRemaining = totalDays;
-
-    for (let w = 1; w <= totalWeeks; w++) {
-      const daysInThisWeek = Math.min(daysRemaining, 7);
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: buildWeekPrompt(availableItems, w, totalWeeks, daysInThisWeek, previousMeals),
-        response_json_schema: weeklyPlanSchema
-      });
-      const weekDays = result.days || [];
-      weeks.push({ week: w, days: weekDays });
-      previousMeals += `\nWeek ${w}: ` + weekDays.flatMap(d => [d.breakfast, d.lunch, d.dinner]).filter(Boolean).join(", ");
-      daysRemaining -= daysInThisWeek;
-    }
-
+    const weeks = await generateAllWeeks();
     setWeeklyPlan({ type: "unique", weeks });
-    setLoadingPlan(false);
   };
 
   const [saved, setSaved] = useState(false);
