@@ -1,7 +1,8 @@
 import { useLanguage } from "@/lib/LanguageContext";
-import { ArrowRight, Utensils, Sparkles, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowRight, Utensils, Sparkles, Loader2, ChefHat } from "lucide-react";
 
-export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating }) {
+export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled }) {
   const { t } = useLanguage();
   const slots = [
     { key: "breakfast", label: t("breakfast"), abbr: "B" },
@@ -60,6 +61,14 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="flex items-center justify-between px-1 py-1">
+        <div className="flex items-center gap-2">
+          <ChefHat className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">{t("includePrepGuide") || "Include meal prep guide"}</span>
+        </div>
+        <Switch checked={prepEnabled} onCheckedChange={setPrepEnabled} aria-label="Toggle prep guide" />
       </div>
 
       <button

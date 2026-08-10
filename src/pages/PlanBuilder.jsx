@@ -17,6 +17,7 @@ export default function PlanBuilder() {
   const [stores, setStores] = useState(["Aldi", "Lidl"]);
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
+  const [prepEnabled, setPrepEnabled] = useState(true);
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
   const [prep, setPrep] = useState(null);
@@ -44,6 +45,7 @@ export default function PlanBuilder() {
     setAutofilling(true);
     try {
       const res = await base44.integrations.Core.InvokeLLM({
+        model: "gemini_3_flash",
         prompt: `Create a ${plan.length}-day meal plan for ${enabled.people ? people : 1} person(s)${enabled.diet ? ` on a ${diet} diet` : ""} in Germany.
 ${enabled.macros ? `Target macronutrient split: protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%. Choose meals whose natural macros match this split as closely as possible.` : "No specific macro target — pick balanced meals."}
 Return exactly ${plan.length} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
@@ -82,7 +84,7 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
 
   const generateGrocery = async () => {
     // Reuse today's generated list if the plan hasn't changed (saves credits).
-    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, macros, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, macros, prepEnabled, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -152,28 +154,31 @@ ${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat 
         },
       });
 
-      const prepPromise = base44.integrations.Core.InvokeLLM({
-        prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s):
+      const prepPromise = prepEnabled
+        ? base44.integrations.Core.InvokeLLM({
+            model: "gemini_3_flash",
+            prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s):
 ${lines}
 
 For each day and each meal that has a name, write a short cooking guide. Return an array "days" with exactly ${plan.length} entries. For each meal object provide: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical steps to cook it). Leave a meal object empty (meal: "") if the user left that slot blank. All text in ${currentLanguage.label}.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            days: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  breakfast: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
-                  lunch: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
-                  dinner: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+            response_json_schema: {
+              type: "object",
+              properties: {
+                days: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      breakfast: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                      lunch: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                      dinner: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      });
+          })
+        : null;
 
       // Show the grocery list the moment it's ready — don't block on the prep guide.
       const res = await groceryPromise;
@@ -199,19 +204,21 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         .catch((e) => { console.error("Auto-save failed:", e); toast.error(t("planAutoSaveFailed")); });
 
       // Prep guide streams in afterwards and updates the result view when ready.
-      prepPromise
-        .then(async (prepRes) => {
-          setPrep(prepRes);
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
-          } catch { /* ignore cache write errors */ }
-          const id = savedPlanId.current;
-          if (id) {
-            try { await base44.entities.MealPlan.update(id, { prep: prepRes }); }
-            catch (e) { console.error("Prep save failed:", e); }
-          }
-        })
-        .catch(() => { /* prep is optional */ });
+      if (prepPromise) {
+        prepPromise
+          .then(async (prepRes) => {
+            setPrep(prepRes);
+            try {
+              localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
+            } catch { /* ignore cache write errors */ }
+            const id = savedPlanId.current;
+            if (id) {
+              try { await base44.entities.MealPlan.update(id, { prep: prepRes }); }
+              catch (e) { console.error("Prep save failed:", e); }
+            }
+          })
+          .catch(() => { /* prep is optional */ });
+      }
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
     } finally {
@@ -234,7 +241,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={generateGrocery} generating={loadingGrocery} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={generateGrocery} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} />
         )}
       </div>
     );
