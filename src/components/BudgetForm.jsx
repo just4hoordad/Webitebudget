@@ -3,6 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
@@ -60,6 +61,17 @@ function SectionHeader({ icon: Icon, label, summary }) {
   );
 }
 
+function SectionToggle({ active, onToggle, label }) {
+  return (
+    <Switch
+      checked={active}
+      onCheckedChange={onToggle}
+      aria-label={`Toggle ${label}`}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+}
+
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -81,6 +93,10 @@ export default function BudgetForm() {
   const [pantryItems, setPantryItems] = useState([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityCoords, setCityCoords] = useState(null);
+
+  const [enabled, setEnabled] = useState({ basics: true, diet: true, stores: true, lifestyle: true, pantry: true });
+  const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
+  const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
   const addTag = (value, list, setList, setInput) => {
     const trimmed = value.trim();
@@ -112,27 +128,34 @@ export default function BudgetForm() {
   };
 
   const handleGenerate = () => {
-    const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
-    const totalCalories = goalKcal * people;
-    // Use pinned specific locations if available, otherwise fall back to chain names
-    const storesParam = selectedStoreLocations.length > 0
-      ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
-      : selectedStores.join(",");
-    const params = new URLSearchParams({
-      budget: budget[0],
-      days: days,
-      stores: storesParam,
-      diet: selectedDiet,
-      people: people,
-      calories: totalCalories,
-      saleHunt: saleHunt,
-      bio: bio,
-      junkPercent: junkPercent[0],
-      proteinSnackBudget: proteinSnackBudget,
-      allergies: allergies.join(","),
-      owned: pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","),
-      macros: `${macros.protein},${macros.carbs},${macros.fats}`,
-    });
+    const params = new URLSearchParams();
+    if (enabled.basics) {
+      params.set("budget", budget[0]);
+      params.set("days", days);
+      params.set("people", people);
+      const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
+      params.set("calories", goalKcal * people);
+    }
+    if (enabled.diet) {
+      params.set("diet", selectedDiet);
+      params.set("macros", `${macros.protein},${macros.carbs},${macros.fats}`);
+      params.set("bio", bio);
+      params.set("allergies", allergies.join(","));
+    }
+    if (enabled.stores) {
+      const storesParam = selectedStoreLocations.length > 0
+        ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
+        : selectedStores.join(",");
+      params.set("stores", storesParam);
+    }
+    if (enabled.lifestyle) {
+      params.set("saleHunt", saleHunt);
+      params.set("junkPercent", junkPercent[0]);
+      params.set("proteinSnackBudget", proteinSnackBudget);
+    }
+    if (enabled.pantry) {
+      params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
+    }
     navigate(`/meal-plan?${params.toString()}`);
   };
 
@@ -144,15 +167,18 @@ export default function BudgetForm() {
       <Accordion type="single" collapsible defaultValue="basics" className="space-y-3">
         {/* ── Basics ── */}
         <AccordionItem value="basics" className="border border-border rounded-2xl px-5 bg-card">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <SectionHeader
-              icon={Wallet}
-              label={t("basicsSection") || "Basics"}
-              summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${people} ${people === 1 ? t("person") : t("people")}`}
-            />
-          </AccordionTrigger>
+          <div className="flex items-center gap-2 py-4">
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+              <SectionHeader
+                icon={Wallet}
+                label={t("basicsSection") || "Basics"}
+                summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${people} ${people === 1 ? t("person") : t("people")}`}
+              />
+            </AccordionTrigger>
+            <SectionToggle active={enabled.basics} onToggle={() => toggleSection("basics")} label={t("basicsSection") || "Basics"} />
+          </div>
           <AccordionContent>
-            <div className="space-y-7 pt-1">
+            <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
               {/* Budget Slider */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -232,15 +258,18 @@ export default function BudgetForm() {
 
         {/* ── Diet & Nutrition ── */}
         <AccordionItem value="diet" className="border border-border rounded-2xl px-5 bg-card">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <SectionHeader
-              icon={Leaf}
-              label={t("dietSection") || "Diet & Nutrition"}
-              summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}`}
-            />
-          </AccordionTrigger>
+          <div className="flex items-center gap-2 py-4">
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+              <SectionHeader
+                icon={Leaf}
+                label={t("dietSection") || "Diet & Nutrition"}
+                summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}`}
+              />
+            </AccordionTrigger>
+            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet & Nutrition"} />
+          </div>
           <AccordionContent>
-            <div className="space-y-7 pt-1">
+            <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
               {/* Diet Type */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
@@ -358,15 +387,18 @@ export default function BudgetForm() {
 
         {/* ── Stores ── */}
         <AccordionItem value="stores" className="border border-border rounded-2xl px-5 bg-card">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <SectionHeader
-              icon={MapPin}
-              label={t("storesSection") || "Stores"}
-              summary={`${storeCount} ${storeCount === 1 ? (t("store") || "store") : (t("stores") || "stores")}`}
-            />
-          </AccordionTrigger>
+          <div className="flex items-center gap-2 py-4">
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+              <SectionHeader
+                icon={MapPin}
+                label={t("storesSection") || "Stores"}
+                summary={`${storeCount} ${storeCount === 1 ? (t("store") || "store") : (t("stores") || "stores")}`}
+              />
+            </AccordionTrigger>
+            <SectionToggle active={enabled.stores} onToggle={() => toggleSection("stores")} label={t("storesSection") || "Stores"} />
+          </div>
           <AccordionContent>
-            <div className="space-y-3 pt-1">
+            <div className={`space-y-3 pt-1 ${dimCls("stores")}`}>
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
                 <StoreMapPicker
@@ -451,15 +483,18 @@ export default function BudgetForm() {
 
         {/* ── Lifestyle ── */}
         <AccordionItem value="lifestyle" className="border border-border rounded-2xl px-5 bg-card">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <SectionHeader
-              icon={Sparkles}
-              label={t("lifestyleSection") || "Lifestyle"}
-              summary={`${junkPercent[0]}% junk${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}${saleHunt ? " · sale hunt" : ""}`}
-            />
-          </AccordionTrigger>
+          <div className="flex items-center gap-2 py-4">
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+              <SectionHeader
+                icon={Sparkles}
+                label={t("lifestyleSection") || "Lifestyle"}
+                summary={`${junkPercent[0]}% junk${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}${saleHunt ? " · sale hunt" : ""}`}
+              />
+            </AccordionTrigger>
+            <SectionToggle active={enabled.lifestyle} onToggle={() => toggleSection("lifestyle")} label={t("lifestyleSection") || "Lifestyle"} />
+          </div>
           <AccordionContent>
-            <div className="space-y-7 pt-1">
+            <div className={`space-y-7 pt-1 ${dimCls("lifestyle")}`}>
               {/* Junk Food Allowance */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -557,15 +592,18 @@ export default function BudgetForm() {
 
         {/* ── Pantry ── */}
         <AccordionItem value="pantry" className="border border-border rounded-2xl px-5 bg-card">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <SectionHeader
-              icon={Package}
-              label={t("pantrySection") || "Pantry"}
-              summary={pantryItems.length > 0 ? `${pantryItems.length} ${t("items") || "items"}` : (t("pantryEmptySummary") || "Add staples you already have")}
-            />
-          </AccordionTrigger>
+          <div className="flex items-center gap-2 py-4">
+            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+              <SectionHeader
+                icon={Package}
+                label={t("pantrySection") || "Pantry"}
+                summary={pantryItems.length > 0 ? `${pantryItems.length} ${t("items") || "items"}` : (t("pantryEmptySummary") || "Add staples you already have")}
+              />
+            </AccordionTrigger>
+            <SectionToggle active={enabled.pantry} onToggle={() => toggleSection("pantry")} label={t("pantrySection") || "Pantry"} />
+          </div>
           <AccordionContent>
-            <div className="pt-1">
+            <div className={`pt-1 ${dimCls("pantry")}`}>
               <PantryManager onPantryChange={setPantryItems} />
             </div>
           </AccordionContent>
@@ -575,7 +613,7 @@ export default function BudgetForm() {
       {/* Generate Button */}
       <Button
         onClick={handleGenerate}
-        disabled={selectedStoreLocations.length === 0 && selectedStores.length === 0}
+        disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
         size="lg"
       >
