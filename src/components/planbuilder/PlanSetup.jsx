@@ -1,5 +1,6 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { Slider } from "@/components/ui/slider";
+import MacroRatioControl from "@/components/MacroRatioControl";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
   Store, ArrowRight, Sparkles, ShoppingCart,
@@ -18,7 +19,7 @@ const DIET_KEYS = [
 
 const STORES = ["Aldi", "Lidl", "REWE", "Edeka", "Penny", "Netto"];
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, onBuild, loading }) {
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, onBuild, loading }) {
   const { t } = useLanguage();
   return (
     <div className="space-y-6">
@@ -91,9 +92,14 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         </div>
       </div>
 
+      {/* Macros */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <MacroRatioControl value={macros} onChange={setMacros} />
+      </div>
+
       <button
         onClick={onBuild}
-        disabled={loading || stores.length === 0}
+        disabled={loading || stores.length === 0 || macros.protein + macros.carbs + macros.fats !== 100}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
       >
         <Sparkles className="h-5 w-5 mr-2" />

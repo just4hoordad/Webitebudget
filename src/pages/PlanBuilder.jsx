@@ -15,6 +15,7 @@ export default function PlanBuilder() {
   const [days, setDays] = useState(7);
   const [people, setPeople] = useState(1);
   const [stores, setStores] = useState(["Aldi", "Lidl"]);
+  const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
   const [prep, setPrep] = useState(null);
@@ -42,6 +43,7 @@ export default function PlanBuilder() {
     try {
       const res = await base44.integrations.Core.InvokeLLM({
         prompt: `Create a ${plan.length}-day meal plan for ${people} person(s) on a ${diet} diet in Germany.
+Target macronutrient split: protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%. Choose meals whose natural macros match this split as closely as possible.
 Return exactly ${plan.length} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
 Keep names short and realistic (home cooking). Vary meals across days so it's not repetitive.`,
         response_json_schema: {
@@ -78,7 +80,7 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
 
   const generateGrocery = async () => {
     // Reuse today's generated list if the plan hasn't changed (saves credits).
-    const cacheKey = JSON.stringify({ plan, diet, people, stores, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, diet, people, stores, macros, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -111,7 +113,10 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
         prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s) on a ${diet} diet:
 ${lines}
 
+The user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.
+
 For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${people} person(s) over the whole plan.
+- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly).
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${people} person(s).
 - Use real 2024-2025 German supermarket branded product names from these stores: ${stores.join(", ")}. Pick the cheapest store per item.
 - quantity = total amount/package needed. price = unit_price × units needed for ${people} person(s) over ${plan.length} day(s).
@@ -185,6 +190,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         diet,
         people,
         stores: stores.join(", "),
+        macros,
         plan,
         groceryList: res,
       })
@@ -233,5 +239,5 @@ For each day and each meal that has a name, write a short cooking guide. Return 
     );
   }
 
-  return <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} onBuild={startPlan} loading={false} />;
+  return <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} onBuild={startPlan} loading={false} />;
 }
