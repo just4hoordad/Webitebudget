@@ -1,5 +1,6 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
@@ -19,8 +20,22 @@ const DIET_KEYS = [
 
 const STORES = ["Aldi", "Lidl", "REWE", "Edeka", "Penny", "Netto"];
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, onBuild, loading }) {
+function SectionHeader({ icon: Icon, label, active, onToggle }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <label className="text-sm font-medium text-foreground flex items-center gap-2">
+        {Icon && <Icon className="h-4 w-4 text-primary" />} {label}
+      </label>
+      <Switch checked={active} onCheckedChange={onToggle} aria-label={`Toggle ${label}`} />
+    </div>
+  );
+}
+
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading }) {
   const { t } = useLanguage();
+  const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
+  const macroTotal = macros.protein + macros.carbs + macros.fats;
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,10 +48,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Diet */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-3 block flex items-center gap-2">
-          <Leaf className="h-4 w-4 text-primary" /> {t("dietPreference")}
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <SectionHeader icon={Leaf} label={t("dietPreference")} active={enabled.diet} onToggle={() => toggleSetting("diet")} />
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${disabledCls("diet")}`}>
           {DIET_KEYS.map((d) => {
             const Icon = d.icon;
             const sel = diet === d.id;
@@ -61,8 +74,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* People */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground flex items-center gap-2"><Users className="h-4 w-4" /> {t("numberOfPeople")}</label>
-        <div className="flex gap-2">
+        <SectionHeader icon={Users} label={t("numberOfPeople")} active={enabled.people} onToggle={() => toggleSetting("people")} />
+        <div className={`flex gap-2 ${disabledCls("people")}`}>
           {[1, 2, 3, 4].map((n) => (
             <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
               {n} {n === 1 ? t("person") : t("people")}
@@ -73,8 +86,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Days */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground flex items-center gap-2"><CalendarDays className="h-4 w-4" /> {t("durationDays") || "Duration"}</label>
-        <div className="flex items-center gap-4">
+        <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} active={enabled.days} onToggle={() => toggleSetting("days")} />
+        <div className={`flex items-center gap-4 ${disabledCls("days")}`}>
           <Slider value={[days]} onValueChange={([v]) => setDays(v)} min={1} max={30} step={1} className="flex-1" />
           <span className="font-heading font-bold text-lg w-20 text-right">{days} {t("days")}</span>
         </div>
@@ -82,8 +95,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Stores */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground flex items-center gap-2"><Store className="h-4 w-4" /> {t("preferredStores")}</label>
-        <div className="flex flex-wrap gap-2">
+        <SectionHeader icon={Store} label={t("preferredStores")} active={enabled.stores} onToggle={() => toggleSetting("stores")} />
+        <div className={`flex flex-wrap gap-2 ${disabledCls("stores")}`}>
           {STORES.map((s) => (
             <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
               {s}
@@ -93,13 +106,13 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       </div>
 
       {/* Macros */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <MacroRatioControl value={macros} onChange={setMacros} />
+      <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
+        <MacroRatioControl value={macros} onChange={setMacros} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
       </div>
 
       <button
         onClick={onBuild}
-        disabled={loading || stores.length === 0 || macros.protein + macros.carbs + macros.fats !== 100}
+        disabled={loading || (enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100)}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
       >
         <Sparkles className="h-5 w-5 mr-2" />

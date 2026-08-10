@@ -1,4 +1,5 @@
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Beef, Wheat, Droplet } from "lucide-react";
 
@@ -20,7 +21,7 @@ function matchesPreset(value, preset) {
   return value.protein === preset.protein && value.carbs === preset.carbs && value.fats === preset.fats;
 }
 
-export default function MacroRatioControl({ value, onChange }) {
+export default function MacroRatioControl({ value, onChange, active, onToggle }) {
   const { t } = useLanguage();
 
   const activePreset = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p)) || "custom";
@@ -38,9 +39,14 @@ export default function MacroRatioControl({ value, onChange }) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="text-sm font-medium text-foreground">{t("macroTitle")}</label>
-        <p className="text-xs text-muted-foreground mt-0.5">{t("macroDesc")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <label className="text-sm font-medium text-foreground">{t("macroTitle")}</label>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("macroDesc")}</p>
+        </div>
+        {onToggle && (
+          <Switch checked={active} onCheckedChange={onToggle} aria-label="Toggle macros" />
+        )}
       </div>
 
       {/* Presets */}
