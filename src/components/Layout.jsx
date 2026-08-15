@@ -195,7 +195,7 @@ export default function Layout() {
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           {/* Tier 1: Primary */}
-          <div className="bg-black flex items-stretch w-full pt-3">
+          <div className="bg-black flex items-stretch w-full pt-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -206,15 +206,14 @@ export default function Layout() {
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
                   className="relative flex-1 flex flex-col items-center min-w-0 select-none"
                 >
-                  <span className={`flex flex-col items-center gap-1 px-4 py-2 rounded-full transition-all duration-200 ${
+                  <span className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all duration-200 ${
                     isActive
-                      ? "bg-primary text-primary-foreground -translate-y-3 shadow-lg shadow-primary/30"
+                      ? "bg-primary text-primary-foreground -translate-y-2 shadow-md shadow-primary/30"
                       : "text-white/90"
                   }`}>
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className="truncate max-w-[64px] text-center text-[10px] font-medium leading-none">{item.label}</span>
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate max-w-[60px] text-center text-[9px] font-medium leading-none">{item.label}</span>
                   </span>
-                  <span className="h-2" aria-hidden />
                 </Link>
               );
             })}
@@ -229,7 +228,7 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex-1 flex items-center justify-center py-2 text-[11px] font-medium text-white/90 truncate px-1 ${
+                  className={`flex-1 flex items-center justify-center py-1 text-[10px] font-medium text-white/90 truncate px-1 ${
                     isActive ? "text-primary" : "hover:text-white"
                   }`}
                 >
@@ -240,7 +239,7 @@ export default function Layout() {
             {installPrompt && !isInstalled ? (
               <button
                 onClick={handleInstall}
-                className="flex-1 flex items-center justify-center py-2 text-[11px] font-medium text-white/90 hover:text-white truncate px-1"
+                className="flex-1 flex items-center justify-center py-1 text-[10px] font-medium text-white/90 hover:text-white truncate px-1"
               >
                 {t("installApp")}
               </button>
