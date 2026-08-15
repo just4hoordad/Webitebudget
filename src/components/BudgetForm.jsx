@@ -63,12 +63,14 @@ function SectionHeader({ icon: Icon, label, summary }) {
 
 function SectionToggle({ active, onToggle, label }) {
   return (
-    <Switch
-      checked={active}
-      onCheckedChange={onToggle}
-      aria-label={`Toggle ${label}`}
-      onClick={(e) => e.stopPropagation()}
-    />
+    <div className="shrink-0">
+      <Switch
+        checked={active}
+        onCheckedChange={onToggle}
+        aria-label={`Toggle ${label}`}
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
   );
 }
 
