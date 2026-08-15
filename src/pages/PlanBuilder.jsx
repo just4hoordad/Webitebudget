@@ -200,7 +200,16 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         plan,
         groceryList: res,
       })
-        .then((rec) => { savedPlanId.current = rec?.id ?? null; toast.success(t("planAutoSaved")); })
+        .then((rec) => {
+          savedPlanId.current = rec?.id ?? null;
+          toast.success(t("planAutoSaved"));
+          // Auto-sync the saved plan to Google Calendar when the user is connected (fire-and-forget).
+          if (rec?.id) {
+            base44.functions.invoke("googleCalendarSync", { planId: rec.id })
+              .then(() => toast.success(t("calendarSynced") || "Synced to Google Calendar"))
+              .catch(() => { /* not connected / not authenticated — ignore */ });
+          }
+        })
         .catch((e) => { console.error("Auto-save failed:", e); toast.error(t("planAutoSaveFailed")); });
 
       // Prep guide streams in afterwards and updates the result view when ready.

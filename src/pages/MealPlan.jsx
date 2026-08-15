@@ -643,7 +643,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         base44.auth.redirectToLogin();
         return;
       }
-      await base44.entities.MealPlan.create({
+      const rec = await base44.entities.MealPlan.create({
         name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
         diet,
         budget: parseFloat(budget),
@@ -656,6 +656,12 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       });
       setSaved(true);
       toast.success(t("planSaved"));
+      // Auto-sync to Google Calendar when the user is connected (fire-and-forget).
+      if (rec?.id) {
+        base44.functions.invoke("googleCalendarSync", { planId: rec.id })
+          .then(() => toast.success(t("calendarSynced") || "Synced to Google Calendar"))
+          .catch(() => { /* not connected / not authenticated — ignore */ });
+      }
     } catch (error) {
       toast.error("Failed to save meal plan: " + (error?.message || "Unknown error"));
     } finally {
