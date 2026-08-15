@@ -164,7 +164,11 @@ export default function BudgetForm() {
 
   return (
     <div className="space-y-5">
-      <Accordion type="single" collapsible defaultValue="basics" className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Left column - Plan Your Meals */}
+        <div className="space-y-3">
+          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
+          <Accordion type="single" collapsible defaultValue="basics" className="space-y-3">
         {/* ── Basics ── */}
         <AccordionItem value="basics" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
@@ -255,7 +259,13 @@ export default function BudgetForm() {
             </div>
           </AccordionContent>
         </AccordionItem>
+          </Accordion>
+        </div>
 
+        {/* Right column - Configure Preferences */}
+        <div className="space-y-3">
+          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
+          <Accordion type="single" collapsible className="space-y-3">
         {/* ── Diet & Nutrition ── */}
         <AccordionItem value="diet" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
@@ -608,7 +618,9 @@ export default function BudgetForm() {
             </div>
           </AccordionContent>
         </AccordionItem>
-      </Accordion>
+          </Accordion>
+        </div>
+      </div>
 
       {/* Generate Button */}
       <Button
