@@ -21,8 +21,8 @@ export default function LanguageSwitcher() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium text-dark-muted hover:text-dark-foreground hover:bg-white/10 transition-all duration-200"
       >
-        <span className="text-base">{currentLanguage.flag}</span>
-        <span className="hidden sm:inline">{currentLanguage.code.toUpperCase()}</span>
+        <span className="text-xl">{currentLanguage.flag}</span>
+        <span className="hidden sm:inline ml-0.5 text-xs font-semibold">{currentLanguage.code.toUpperCase()}</span>
         <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
