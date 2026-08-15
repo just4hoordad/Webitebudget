@@ -275,7 +275,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={Leaf}
                 label={t("dietSection") || "Diet & Nutrition"}
-                summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}`}
+                summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet & Nutrition"} />
@@ -393,6 +393,27 @@ export default function BudgetForm() {
                   <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${bio ? "translate-x-4" : "translate-x-0"}`} />
                 </div>
               </button>
+
+              {/* Sale Hunt */}
+              <button
+                onClick={() => setSaleHunt((v) => !v)}
+                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
+                  saleHunt
+                    ? "bg-accent/10 border-accent text-accent-foreground"
+                    : "bg-card border-border hover:border-accent/40"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Tag className={`h-5 w-5 ${saleHunt ? "text-accent-foreground" : "text-muted-foreground"}`} />
+                  <div className="text-left">
+                    <p className={`text-sm font-semibold ${saleHunt ? "text-accent-foreground" : "text-foreground"}`}>{t("saleHunt")}</p>
+                    <p className={`text-xs ${saleHunt ? "text-accent-foreground/70" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
+                  </div>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${saleHunt ? "bg-accent" : "bg-muted"}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${saleHunt ? "translate-x-4" : "translate-x-0"}`} />
+                </div>
+              </button>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -500,7 +521,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={Sparkles}
                 label={t("lifestyleSection") || "Lifestyle"}
-                summary={`${junkPercent[0]}% junk${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}${saleHunt ? " · sale hunt" : ""}`}
+                summary={`${junkPercent[0]}% junk${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.lifestyle} onToggle={() => toggleSection("lifestyle")} label={t("lifestyleSection") || "Lifestyle"} />
@@ -578,26 +599,6 @@ export default function BudgetForm() {
                 </div>
               </div>
 
-              {/* Sale Hunt */}
-              <button
-                onClick={() => setSaleHunt((v) => !v)}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
-                  saleHunt
-                    ? "bg-accent/10 border-accent text-accent-foreground"
-                    : "bg-card border-border hover:border-accent/40"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Tag className={`h-5 w-5 ${saleHunt ? "text-accent-foreground" : "text-muted-foreground"}`} />
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${saleHunt ? "text-accent-foreground" : "text-foreground"}`}>{t("saleHunt")}</p>
-                    <p className={`text-xs ${saleHunt ? "text-accent-foreground/70" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
-                  </div>
-                </div>
-                <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${saleHunt ? "bg-accent" : "bg-muted"}`}>
-                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${saleHunt ? "translate-x-4" : "translate-x-0"}`} />
-                </div>
-              </button>
             </div>
           </AccordionContent>
         </AccordionItem>
