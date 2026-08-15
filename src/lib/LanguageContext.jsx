@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import translations from "./translations";
 import { euTranslations } from "./translations_eu";
 import { planBuilderTranslations } from "./translations_planbuilder";
+import navTranslations from "./translations_nav";
 
 // Deep-merge per language so Plan Builder keys don't overwrite full language objects.
 const _merged = { ...translations };
@@ -9,6 +10,10 @@ Object.keys(planBuilderTranslations).forEach((lang) => {
   _merged[lang] = { ...(_merged[lang] || {}), ...planBuilderTranslations[lang] };
 });
 const allTranslations = { ..._merged, ...euTranslations };
+// Merge nav labels last so they apply to every language (main + EU).
+Object.keys(navTranslations).forEach((lang) => {
+  allTranslations[lang] = { ...(allTranslations[lang] || {}), ...navTranslations[lang] };
+});
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },

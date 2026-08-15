@@ -87,7 +87,7 @@ export default function Home() {
       {/* Footer */}
       <div className="text-center pb-4">
         <Link to="/datenschutz" className="text-xs text-muted-foreground hover:text-primary underline transition-colors">
-          Datenschutzerklärung
+          {t("privacyNav")}
         </Link>
       </div>
 

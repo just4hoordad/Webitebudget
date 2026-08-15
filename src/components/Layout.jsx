@@ -142,7 +142,7 @@ export default function Layout() {
             }`}
           >
             <span className="text-lg leading-none shrink-0">ℹ️</span>
-            <span className="truncate w-full text-center px-1">About</span>
+            <span className="truncate w-full text-center px-1">{t("aboutNav")}</span>
             {location.pathname === "/about" && (
               <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
             )}
@@ -154,7 +154,7 @@ export default function Layout() {
             }`}
           >
             <span className="text-lg leading-none shrink-0">✉️</span>
-            <span className="truncate w-full text-center px-1">Contact</span>
+            <span className="truncate w-full text-center px-1">{t("contactNav")}</span>
             {location.pathname === "/contact" && (
               <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
             )}
@@ -177,7 +177,7 @@ export default function Layout() {
               className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none text-dark-muted hover:text-primary"
             >
               <Download className="h-5 w-5 shrink-0" />
-              <span className="truncate w-full text-center px-1">Install</span>
+              <span className="truncate w-full text-center px-1">{t("installApp")}</span>
             </button>
           )}
         </div>
