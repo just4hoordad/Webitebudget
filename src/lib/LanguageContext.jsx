@@ -51,7 +51,13 @@ const LANGUAGES = [
   { code: "vi", label: "Tiếng Việt", flag: "🇻🇳", cc: "vn" },
 ];
 
-const LanguageContext = createContext(null);
+const LanguageContext = createContext({
+  language: "en",
+  currentLanguage: { code: "en", label: "English", flag: "🇬🇧", cc: "gb" },
+  changeLanguage: () => {},
+  LANGUAGES: [{ code: "en", label: "English", flag: "🇬🇧", cc: "gb" }],
+  t: (key) => key,
+});
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(
