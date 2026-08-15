@@ -1,4 +1,4 @@
-import { Slider } from "@/components/ui/slider";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Beef, Wheat, Droplet } from "lucide-react";
@@ -11,10 +11,11 @@ const PRESETS = [
   { id: "custom", key: "custom", protein: 30, carbs: 40, fats: 30 },
 ];
 
-const MACROS = [
-  { key: "protein", icon: Beef, color: "text-red-600", bg: "bg-red-100" },
-  { key: "carbs", icon: Wheat, color: "text-amber-600", bg: "bg-amber-100" },
-  { key: "fats", icon: Droplet, color: "text-blue-600", bg: "bg-blue-100" },
+// Bar segment colors — order: protein, carbs, fats
+const SEGMENTS = [
+  { key: "protein", icon: Beef, bar: "bg-red-500", chip: "bg-red-100", text: "text-red-600" },
+  { key: "carbs", icon: Wheat, bar: "bg-amber-500", chip: "bg-amber-100", text: "text-amber-600" },
+  { key: "fats", icon: Droplet, bar: "bg-blue-500", chip: "bg-blue-100", text: "text-blue-600" },
 ];
 
 function matchesPreset(value, preset) {
@@ -30,12 +31,20 @@ export default function MacroRatioControl({ value, onChange, active, onToggle })
     onChange({ protein: preset.protein, carbs: preset.carbs, fats: preset.fats });
   };
 
-  const adjust = (key, newVal) => {
-    onChange({ ...value, [key]: newVal });
-  };
+  // The two handles sit at the protein and protein+carbs boundaries,
+  // splitting the bar into 3 sections that always sum to 100%.
+  const proteinEnd = value.protein;
+  const carbsEnd = value.protein + value.carbs;
 
-  const total = value.protein + value.carbs + value.fats;
-  const isMismatch = total !== 100;
+  const handleChange = (vals) => {
+    const p = vals[0];
+    const c = vals[1];
+    onChange({
+      protein: p,
+      carbs: c - p,
+      fats: 100 - c,
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -72,41 +81,42 @@ export default function MacroRatioControl({ value, onChange, active, onToggle })
         })}
       </div>
 
-      {/* Sliders */}
-      <div className="space-y-4 pt-1">
-        {MACROS.map(({ key, icon: Icon, color, bg }) => (
-          <div key={key} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`h-7 w-7 rounded-lg ${bg} flex items-center justify-center`}>
-                  <Icon className={`h-4 w-4 ${color}`} />
-                </div>
-                <span className="text-sm font-medium text-foreground">{t(`macro_${key}`)}</span>
-              </div>
-              <span className={`font-heading font-bold text-sm ${isMismatch ? "text-destructive" : "text-foreground"}`}>{value[key]}%</span>
+      {/* Single 2-handle bar — sections = protein | carbs | fats */}
+      <div className="space-y-3 pt-1">
+        <SliderPrimitive.Root
+          value={[proteinEnd, carbsEnd]}
+          onValueChange={handleChange}
+          max={100}
+          min={0}
+          step={5}
+          aria-label="Macro split"
+          className="relative flex w-full touch-none select-none items-center"
+        >
+          <SliderPrimitive.Track className="relative h-3 w-full grow overflow-hidden rounded-full bg-muted">
+            <div className="absolute inset-0 flex">
+              <div style={{ width: `${value.protein}%` }} className={`${SEGMENTS[0].bar}`} />
+              <div style={{ width: `${value.carbs}%` }} className={`${SEGMENTS[1].bar}`} />
+              <div style={{ width: `${value.fats}%` }} className={`${SEGMENTS[2].bar}`} />
             </div>
-            <Slider
-              value={[value[key]]}
-              onValueChange={([v]) => adjust(key, v)}
-              max={100}
-              min={0}
-              step={5}
-              className="w-full"
-            />
-          </div>
-        ))}
-      </div>
+          </SliderPrimitive.Track>
+          <SliderPrimitive.Thumb className="block h-6 w-6 -translate-y-1 rounded-full border-2 border-white bg-white shadow-md ring-1 ring-black/5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2" />
+          <SliderPrimitive.Thumb className="block h-6 w-6 -translate-y-1 rounded-full border-2 border-white bg-white shadow-md ring-1 ring-black/5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2" />
+        </SliderPrimitive.Root>
 
-      {/* Total indicator */}
-      <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium ${
-        isMismatch
-          ? "bg-destructive/10 text-destructive"
-          : "bg-green-50 text-green-700"
-      }`}>
-        <span>{t("macroTotal")}</span>
-        <span className="font-heading font-bold">
-          {total}%{isMismatch && <span className="ml-1 font-normal">(needs 100%)</span>}
-        </span>
+        {/* Legend */}
+        <div className="grid grid-cols-3 gap-2">
+          {SEGMENTS.map(({ key, icon: Icon, chip, text }) => (
+            <div key={key} className="flex items-center gap-2">
+              <div className={`h-7 w-7 rounded-lg ${chip} flex items-center justify-center shrink-0`}>
+                <Icon className={`h-4 w-4 ${text}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground leading-tight">{t(`macro_${key}`)}</p>
+                <p className="font-heading font-bold text-sm text-foreground leading-tight">{value[key]}%</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
