@@ -49,7 +49,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
             </div>
             {/* Mobile: compact 3-col with abbreviations */}
             <div className="sm:hidden space-y-1.5">
-              <div className="font-heading font-semibold text-xs text-muted-foreground">Day {d + 1}</div>
+              <div className="font-heading font-semibold text-xs text-muted-foreground">{t("day")} {d + 1}</div>
               <div className="grid grid-cols-3 gap-1.5">
                 {slots.map((s) => (
                   <div key={s.key}>
