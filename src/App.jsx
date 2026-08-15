@@ -17,9 +17,11 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import { AuthProvider } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <LanguageProvider>
         <QueryClientProvider client={queryClientInstance}>
@@ -48,6 +50,7 @@ function App() {
         </QueryClientProvider>
       </LanguageProvider>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

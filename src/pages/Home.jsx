@@ -3,7 +3,7 @@ import BudgetForm from "../components/BudgetForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingCart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -50,21 +50,23 @@ export default function Home() {
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-6">
         {/* Hero Banner */}
-        <div className="relative rounded-3xl overflow-hidden h-72 sm:h-80">
-          <img
-            src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
-            alt="Fresh ingredients"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
-          <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white leading-tight">
+        <div className="relative rounded-3xl overflow-hidden border border-border bg-card">
+          <div className="px-6 py-10 sm:px-10 sm:py-14 sm:max-w-lg">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
+                <ShoppingCart className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <span className="font-heading font-bold text-xl tracking-tight text-foreground">
+                Budget<span className="text-primary">Bite</span>
+              </span>
+            </div>
+            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-foreground leading-tight">
               {t("heroTitle1")} <span className="text-primary">{t("heroTitle2")}</span>
             </h1>
-            <p className="text-sm text-white/80 mt-2">{t("planSubtitle")}</p>
+            <p className="text-sm text-muted-foreground mt-3">{t("planSubtitle")}</p>
             <Button
               onClick={scrollToForm}
-              className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-semibold"
+              className="mt-5 font-heading font-semibold"
             >
               {t("planYourMeals")} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
