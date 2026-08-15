@@ -1021,6 +1021,25 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
            </div>
           )}
 
+          {/* Estimated total summary (based on active selections) */}
+          <div className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <ShoppingBasket className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("estimatedTotal")}</p>
+                <p className="font-heading text-2xl font-bold text-primary">€{activeTotal.toFixed(2)}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">{getActiveItems().length} {t("items") || "items"}</p>
+              <p className={`text-sm font-semibold ${activeTotal <= parseFloat(budget) + proteinSnackBudget ? "text-green-600" : "text-destructive"}`}>
+                {activeTotal <= parseFloat(budget) + proteinSnackBudget
+                  ? `€${(parseFloat(budget) + proteinSnackBudget - activeTotal).toFixed(2)} ${t("remaining")}`
+                  : `€${(activeTotal - parseFloat(budget) - proteinSnackBudget).toFixed(2)} over`}
+              </p>
+            </div>
+          </div>
+
           <div className="pb-8">
             <Button onClick={generateGroceries} variant="outline" className="w-full">
               {t("regenerate")}
