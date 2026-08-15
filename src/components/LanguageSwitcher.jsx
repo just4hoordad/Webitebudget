@@ -21,7 +21,12 @@ export default function LanguageSwitcher() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium text-dark-muted hover:text-dark-foreground hover:bg-white/10 transition-all duration-200"
       >
-        <span className="text-xl">{currentLanguage.flag}</span>
+        <img
+          src={`https://flagcdn.com/w40/${currentLanguage.cc}.png`}
+          alt={currentLanguage.label}
+          className="h-4 w-6 rounded-sm object-cover"
+          loading="lazy"
+        />
         <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
@@ -33,7 +38,12 @@ export default function LanguageSwitcher() {
               onClick={() => { changeLanguage(lang.code); setOpen(false); }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-dark-muted hover:text-dark-foreground hover:bg-white/10 transition-colors duration-150"
             >
-              <span className="text-base">{lang.flag}</span>
+              <img
+                src={`https://flagcdn.com/w40/${lang.cc}.png`}
+                alt={lang.label}
+                className="h-4 w-6 rounded-sm object-cover"
+                loading="lazy"
+              />
               <span className="flex-1 text-left">{lang.label}</span>
               {currentLanguage.code === lang.code && (
                 <Check className="h-3.5 w-3.5 text-primary" />
