@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 
@@ -35,6 +35,27 @@ export default function SavedMealPlans() {
     if (!confirm(t("deletePlanConfirm"))) return;
     setPlans(prev => prev.filter(p => p.id !== id));
     await base44.entities.MealPlan.delete(id);
+  };
+
+  const exportToSheets = (plan) => {
+    const rows = [["Category", "Item", "Quantity", "Price (EUR)", "Store", "Calories Info"]];
+    let total = 0;
+    plan.groceryList?.categories?.forEach((cat) => {
+      cat.items?.forEach((item) => {
+        rows.push([cat.name, item.name, item.quantity, (item.price || 0).toFixed(2), item.store || "", item.calories_info || ""]);
+        total += item.price || 0;
+      });
+    });
+    rows.push(["", "", "", "", "", ""]);
+    rows.push(["", "TOTAL", "", total.toFixed(2), "", ""]);
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(plan.name || "meal-plan").replace(/[^a-z0-9]+/gi, "_")}_grocery.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -117,6 +138,14 @@ export default function SavedMealPlans() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => exportToSheets(plan)}
+                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
+                      title={t("exportToSheets") || "Export to Google Sheets"}
+                    >
+                      <FileSpreadsheet className="h-3.5 w-3.5" />
+                      {t("export") || "Export"}
+                    </button>
                     {plan.budget != null && (
                       <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
                         <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
