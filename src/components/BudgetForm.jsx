@@ -49,7 +49,7 @@ const DIET_KEYS = [
 
 function SectionHeader({ icon: Icon, label, summary }) {
   return (
-    <div className="flex items-center gap-3 w-full pr-2">
+    <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
       <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
         <Icon className="h-[18px] w-[18px] text-primary" />
       </div>
