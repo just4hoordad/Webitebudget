@@ -3,6 +3,7 @@
 
 export const sectionLabelTranslations = {
   en: {
+    configurePreferences: "Configure Preferences",
     macroTitle: "Macronutrient ratio",
     macroDesc: "Set the proportion of protein, carbs & fats in your diet",
     basicsSection: "Basics",
@@ -13,6 +14,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Add staples you already have",
   },
   de: {
+    configurePreferences: "Einstellungen",
     macroTitle: "Makronährstoff-Verhältnis",
     macroDesc: "Lege den Anteil von Protein, Kohlenhydraten & Fetten in deiner Ernährung fest",
     basicsSection: "Grundlagen",
@@ -23,6 +25,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Füge Grundnahrungsmittel hinzu, die du schon hast",
   },
   fr: {
+    configurePreferences: "Configurer les préférences",
     macroTitle: "Répartition des macronutriments",
     macroDesc: "Définis la part de protéines, glucides et lipides dans ton alimentation",
     basicsSection: "Bases",
@@ -33,6 +36,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Ajoute les aliments de base que tu as déjà",
   },
   es: {
+    configurePreferences: "Configurar preferencias",
     macroTitle: "Proporción de macronutrientes",
     macroDesc: "Define la proporción de proteínas, carbohidratos y grasas en tu dieta",
     basicsSection: "Básico",
@@ -43,6 +47,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Añade alimentos básicos que ya tienes",
   },
   ar: {
+    configurePreferences: "ضبط التفضيلات",
     macroTitle: "نسبة المغذيات الكبرى",
     macroDesc: "حدد نسبة البروتين والكربوهيدرات والدهون في نظامك الغذائي",
     basicsSection: "الأساسيات",
@@ -53,6 +58,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "أضف الأطعمة الأساسية التي لديك بالفعل",
   },
   ru: {
+    configurePreferences: "Настроить параметры",
     macroTitle: "Соотношение макронутриентов",
     macroDesc: "Настройте долю белков, углеводов и жиров в вашем рационе",
     basicsSection: "Основное",
@@ -63,8 +69,9 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Добавьте базовые продукты, которые у вас уже есть",
   },
   uk: {
+    configurePreferences: "Налаштувати параметри",
     macroTitle: "Співвідношення макронутрієнтів",
-    macroDesc: "Налаштуйте частку білків, вуглеводів та жирів у вашому раціоні",
+    macroDesc: "Налаштуйте частку білків, вуглеводнів та жирів у вашому раціоні",
     basicsSection: "Основне",
     dietSection: "Дієта та харчування",
     storesSection: "Магазини",
@@ -73,6 +80,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Додайте базові продукти, які у вас вже є",
   },
   fa: {
+    configurePreferences: "تنظیم ترجیحات",
     macroTitle: "نسبت درشت‌مغذی‌ها",
     macroDesc: "نسبت پروتئین، کربوهیدرات و چربی در رژیم غذایی خود را تنظیم کنید",
     basicsSection: "پایه",
@@ -83,6 +91,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "مواد غذایی پایه‌ای که از قبل دارید را اضافه کنید",
   },
   zh: {
+    configurePreferences: "配置偏好",
     macroTitle: "常量营养素比例",
     macroDesc: "设定饮食中蛋白质、碳水与脂肪的比例",
     basicsSection: "基本",
@@ -93,6 +102,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "添加你已有的基本食材",
   },
   vi: {
+    configurePreferences: "Cấu hình tùy chọn",
     macroTitle: "Tỉ lệ chất dinh dưỡng",
     macroDesc: "Thiết lập tỷ lệ protein, tinh bột và chất béo trong chế độ ăn",
     basicsSection: "Cơ bản",
@@ -103,6 +113,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Thêm các thực phẩm cơ bản bạn đã có",
   },
   tr: {
+    configurePreferences: "Tercihleri ayarla",
     macroTitle: "Makro besin oranı",
     macroDesc: "Beslenmenizdeki protein, karbonhidrat ve yağ oranını ayarlayın",
     basicsSection: "Temel",
@@ -113,6 +124,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Elinizde bulunan temel gıdaları ekleyin",
   },
   it: {
+    configurePreferences: "Configura preferenze",
     macroTitle: "Ripartizione dei macronutrienti",
     macroDesc: "Imposta la proporzione di proteine, carboidrati e grassi nella tua dieta",
     basicsSection: "Basi",
@@ -123,6 +135,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Aggiungi i prodotti base che hai già",
   },
   pt: {
+    configurePreferences: "Configurar preferências",
     macroTitle: "Proporção de macronutrientes",
     macroDesc: "Defina a proporção de proteínas, carboidratos e gorduras na sua dieta",
     basicsSection: "Básico",
@@ -133,6 +146,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Adicione os alimentos básicos que já tem",
   },
   pl: {
+    configurePreferences: "Ustaw preferencje",
     macroTitle: "Proporcja makroskładników",
     macroDesc: "Ustaw proporcję białka, węglowodanów i tłuszczów w swojej diecie",
     basicsSection: "Podstawy",
@@ -143,6 +157,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Dodaj podstawowe produkty, które już masz",
   },
   nl: {
+    configurePreferences: "Voorkeuren instellen",
     macroTitle: "Verhouding macrovoedingsstoffen",
     macroDesc: "Stel de verhouding van eiwit, koolhydraten en vetten in je dieet in",
     basicsSection: "Basis",
@@ -153,6 +168,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Voeg basisproducten toe die je al hebt",
   },
   sv: {
+    configurePreferences: "Ställ in preferenser",
     macroTitle: "Makronäringsfördelning",
     macroDesc: "Ställ in andelen protein, kolhydrater och fetter i din kost",
     basicsSection: "Grundläggande",
@@ -163,6 +179,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Lägg till basvaror du redan har",
   },
   no: {
+    configurePreferences: "Still inn preferanser",
     macroTitle: "Makronæringsfordeling",
     macroDesc: "Still inn andelen protein, karbohydrater og fett i kostholdet ditt",
     basicsSection: "Grunnleggende",
@@ -173,6 +190,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Legg til basisvarer du allerede har",
   },
   da: {
+    configurePreferences: "Indstil præferencer",
     macroTitle: "Makronæringsfordeling",
     macroDesc: "Indstil andelen af protein, kulhydrater og fedt i din kost",
     basicsSection: "Grundlæggende",
@@ -183,6 +201,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Tilføj basisvarer du allerede har",
   },
   fi: {
+    configurePreferences: "Määritä asetukset",
     macroTitle: "Makroravintoaineiden suhde",
     macroDesc: "Aseta ruokavaliosi proteiinin, hiilihydraattien ja rasvojen suhde",
     basicsSection: "Perusteet",
@@ -193,6 +212,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Lisää peruselintarvikkeet, jotka sinulla jo on",
   },
   cs: {
+    configurePreferences: "Nastavit předvolby",
     macroTitle: "Poměr makroživin",
     macroDesc: "Nastavte poměr bílkovin, sacharidů a tuků ve vaší stravě",
     basicsSection: "Základní",
@@ -203,6 +223,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Přidejte základní potraviny, které už máte",
   },
   hu: {
+    configurePreferences: "Beállítások",
     macroTitle: "Makrotápanyag-arány",
     macroDesc: "Állítsd be a fehérje, szénhidrát és zsír arányát az étrendedben",
     basicsSection: "Alapok",
@@ -213,6 +234,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Add hozzá az alapélelmiszereket, amik már megvannak",
   },
   ro: {
+    configurePreferences: "Configurează preferințele",
     macroTitle: "Proporția macronutrienților",
     macroDesc: "Setează proporția de proteine, carbohidrați și grăsimi din dieta ta",
     basicsSection: "Baze",
@@ -223,6 +245,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Adaugă alimentele de bază pe care le ai deja",
   },
   el: {
+    configurePreferences: "Ρύθμιση προτιμήσεων",
     macroTitle: "Αναλογία μακροθρεπτικών",
     macroDesc: "Όρισε την αναλογία πρωτεϊνών, υδατανθράκων και λιπών στη διατροφή σου",
     basicsSection: "Βασικά",
