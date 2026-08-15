@@ -190,6 +190,14 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
     const pagePadding = 48;
     const contentWidth = pageWidth - pagePadding * 2;
 
+    // Escape user-controlled text before injecting into HTML strings (prevents DOM XSS during PDF export).
+    const esc = (s) => String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
     const headerHtml = `
       <div style="margin:0 -48px 28px;padding:24px 48px 26px;background:#0f4c35;color:white;">
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;margin-bottom:12px;">
@@ -197,26 +205,26 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
           <span>${new Date().toLocaleDateString(currentLanguage.code || 'en-DE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
         <h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:800;">${t("yourGroceryList")}</h1>
-        <p style="margin:0;font-size:14px;opacity:.9;">${diet} · €${budget}/${t("month")} · ${calories} kcal · ${people} ${t("personS")}</p>
+        <p style="margin:0;font-size:14px;opacity:.9;">${esc(diet)} · €${esc(budget)}/${t("month")} · ${esc(calories)} kcal · ${esc(people)} ${t("personS")}</p>
       </div>
     `;
 
     const itemHtml = (item) => `
       <div style="display:flex;justify-content:space-between;gap:18px;padding:12px 16px;border-top:1px solid #f3f4f6;break-inside:avoid;">
         <div>
-          <div style="font-size:14px;font-weight:700;color:#111827;">${item.name || ''}</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:3px;">${item.quantity || ''}</div>
+          <div style="font-size:14px;font-weight:700;color:#111827;">${esc(item.name || '')}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:3px;">${esc(item.quantity || '')}</div>
         </div>
         <div style="text-align:right;min-width:90px;">
           <div style="font-size:15px;font-weight:800;color:#0f4c35;">€${(item.price || 0).toFixed(2)}</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:3px;">${item.store || ''}</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:3px;">${esc(item.store || '')}</div>
         </div>
       </div>
     `;
 
     const sectionHtml = (catName, catItems) => `
       <section style="break-inside:avoid;margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
-        <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>
+        <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${esc(translateCategory(catName))}</h2>
         ${catItems.map(itemHtml).join('')}
       </section>
     `;
@@ -264,7 +272,7 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
 
       if (currentHeight > 0) pushPage();
 
-      const heading = `<section style="margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;"><h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${translateCategory(catName)}</h2>`;
+      const heading = `<section style="margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;"><h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${esc(translateCategory(catName))}</h2>`;
       const close = `</section>`;
       let sectionBlocks = [heading];
       let sectionHeight = measure(heading + close);
