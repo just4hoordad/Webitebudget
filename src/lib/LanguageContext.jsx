@@ -4,6 +4,7 @@ import { euTranslations } from "./translations_eu";
 import { planBuilderTranslations } from "./translations_planbuilder";
 import navTranslations from "./translations_nav";
 import macroLabelTranslations from "./translations_macros";
+import sectionLabelTranslations from "./translations_sections";
 
 // Deep-merge per language so Plan Builder keys don't overwrite full language objects.
 const _merged = { ...translations };
@@ -18,6 +19,10 @@ Object.keys(navTranslations).forEach((lang) => {
 // Merge macro section labels (Protein/Carbs/Fats) for every language.
 Object.keys(macroLabelTranslations).forEach((lang) => {
   allTranslations[lang] = { ...(allTranslations[lang] || {}), ...macroLabelTranslations[lang] };
+});
+// Merge BudgetForm section headers + macro title/desc for every language.
+Object.keys(sectionLabelTranslations).forEach((lang) => {
+  allTranslations[lang] = { ...(allTranslations[lang] || {}), ...sectionLabelTranslations[lang] };
 });
 
 const LANGUAGES = [
