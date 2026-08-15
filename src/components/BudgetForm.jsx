@@ -285,7 +285,7 @@ export default function BudgetForm() {
               {/* Diet Type */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {DIET_KEYS.map((diet) => {
                     const Icon = diet.icon;
                     const isSelected = selectedDiet === diet.id;
