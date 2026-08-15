@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package, MoreHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
@@ -16,6 +16,7 @@ export default function Layout() {
   const { t } = useLanguage();
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -189,12 +190,12 @@ export default function Layout() {
 
         <CookieBanner />
 
-        {/* Bottom Tab Bar — mobile only */}
+        {/* Floating Dock — mobile only */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark/95 backdrop-blur-xl border-t border-white/10"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="flex items-stretch w-full overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 rounded-2xl bg-card/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/40 px-1.5 py-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -203,65 +204,81 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
+                  className={`flex flex-col items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-heading font-semibold uppercase tracking-wide transition-colors select-none ${
                     isActive ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
                   }`}
                 >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="truncate w-full text-center px-1">{item.label}</span>
-                  {isActive && (
-                    <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(209,250,108,0.7)]" />
-                  )}
+                  <span className={`flex items-center justify-center h-9 w-9 rounded-full transition-colors ${isActive ? "bg-primary text-primary-foreground" : ""}`}>
+                    <Icon className="h-5 w-5 shrink-0" />
+                  </span>
+                  <span className="truncate max-w-[56px] text-center">{item.label}</span>
                 </Link>
               );
             })}
-            <Link
-              to="/about"
-              className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
-                location.pathname === "/about" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
-              }`}
+            <button
+              onClick={() => setMoreOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-heading font-semibold uppercase tracking-wide text-dark-muted hover:text-dark-foreground transition-colors select-none"
             >
-              <span className="text-lg leading-none shrink-0">ℹ️</span>
-              <span className="truncate w-full text-center px-1">{t("aboutNav")}</span>
-              {location.pathname === "/about" && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(209,250,108,0.7)]" />
-              )}
-            </Link>
-            <Link
-              to="/contact"
-              className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
-                location.pathname === "/contact" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
-              }`}
-            >
-              <span className="text-lg leading-none shrink-0">✉️</span>
-              <span className="truncate w-full text-center px-1">{t("contactNav")}</span>
-              {location.pathname === "/contact" && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(209,250,108,0.7)]" />
-              )}
-            </Link>
-            <Link
-              to="/datenschutz"
-              className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none ${
-                location.pathname === "/datenschutz" ? "text-primary" : "text-dark-muted hover:text-dark-foreground"
-              }`}
-            >
-              <span className="text-lg leading-none shrink-0">🔒</span>
-              <span className="truncate w-full text-center px-1">{t("privacyNav")}</span>
-              {location.pathname === "/datenschutz" && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(209,250,108,0.7)]" />
-              )}
-            </Link>
-            {installPrompt && !isInstalled && (
-              <button
-                onClick={handleInstall}
-                className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2.5 text-xs font-medium transition-colors select-none text-dark-muted hover:text-primary"
-              >
-                <Download className="h-5 w-5 shrink-0" />
-                <span className="truncate w-full text-center px-1">{t("installApp")}</span>
-              </button>
-            )}
+              <span className="flex items-center justify-center h-9 w-9 rounded-full">
+                <MoreHorizontal className="h-5 w-5 shrink-0" />
+              </span>
+              <span className="truncate text-center">{t("more") || "More"}</span>
+            </button>
           </div>
         </nav>
+
+        {/* More sheet — mobile only */}
+        <AnimatePresence>
+          {moreOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMoreOpen(false)}
+                className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 28, stiffness: 300 }}
+                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-white/10 p-4"
+                style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
+              >
+                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+                <div className="grid grid-cols-3 gap-3">
+                  {secondaryNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setMoreOpen(false)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors ${
+                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary border-border text-dark-foreground"
+                        }`}
+                      >
+                        <Icon className="h-6 w-6" />
+                        <span className="text-xs font-medium text-center leading-tight">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {installPrompt && !isInstalled && (
+                  <button
+                    onClick={() => { handleInstall(); setMoreOpen(false); }}
+                    className="mt-3 w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm"
+                  >
+                    <Download className="h-5 w-5" />
+                    {t("installApp")}
+                  </button>
+                )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
