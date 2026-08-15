@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
@@ -44,6 +44,7 @@ export default function Layout() {
     { path: "/", label: t("home"), icon: Home },
     { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
+    { path: "/pantry-dashboard", label: t("pantryNav") || "Pantry", icon: Package },
   ];
 
   const secondaryNavItems = [

@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import Layout from './components/Layout';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
+import PantryDashboard from './pages/PantryDashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/meal-plan" element={null} />
                 <Route path="/plan-builder" element={null} />
                 <Route path="/saved-plans" element={null} />
+                <Route path="/pantry-dashboard" element={<PantryDashboard />} />
                 <Route path="/nutrition" element={<Nutrition />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />

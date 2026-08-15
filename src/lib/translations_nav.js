@@ -2,7 +2,7 @@
 // Merged into the language context so every language gets a real translation.
 
 export const navTranslations = {
-  en: { aboutNav: "About", contactNav: "Contact", installApp: "Install" },
+  en: { aboutNav: "About", contactNav: "Contact", installApp: "Install", pantryNav: "Pantry" },
   de: { aboutNav: "Über", contactNav: "Kontakt", installApp: "Installieren" },
   fr: { aboutNav: "À propos", contactNav: "Contact", installApp: "Installer" },
   es: { aboutNav: "Acerca", contactNav: "Contacto", installApp: "Instalar" },
