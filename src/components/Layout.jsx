@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package, MoreHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
@@ -16,6 +16,7 @@ export default function Layout() {
   const { t } = useLanguage();
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -189,13 +190,12 @@ export default function Layout() {
 
         <CookieBanner />
 
-        {/* Stepped Base Tier — mobile only */}
+        {/* Floating Pill Dock — mobile only */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          {/* Tier 1: Primary */}
-          <div className="bg-black flex items-stretch w-full pt-1.5">
+          <div className="flex items-center gap-1 rounded-full bg-[#1C1F27] border border-white/10 shadow-2xl shadow-black/40 px-2 py-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -204,50 +204,79 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className="relative flex-1 flex flex-col items-center min-w-0 select-none"
-                >
-                  <span className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-full transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full text-[9px] font-heading font-semibold uppercase tracking-wide transition-colors select-none ${
                     isActive
-                      ? "bg-primary text-primary-foreground -translate-y-2 shadow-md shadow-primary/30"
-                      : "text-white/90"
-                  }`}>
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate max-w-[60px] text-center text-[9px] font-medium leading-none">{item.label}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Tier 2: Secondary */}
-          <div className="bg-[#666666] flex items-stretch w-full">
-            {secondaryNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex-1 flex items-center justify-center py-1 text-[10px] font-medium text-white/90 truncate px-1 ${
-                    isActive ? "text-primary" : "hover:text-white"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                      : "text-white/90 hover:text-white"
                   }`}
                 >
-                  {item.label}
+                  <Icon className="h-[18px] w-[18px] shrink-0" />
+                  <span className="truncate max-w-[56px] text-center leading-none">{item.label}</span>
                 </Link>
               );
             })}
-            {installPrompt && !isInstalled ? (
-              <button
-                onClick={handleInstall}
-                className="flex-1 flex items-center justify-center py-1 text-[10px] font-medium text-white/90 hover:text-white truncate px-1"
-              >
-                {t("installApp")}
-              </button>
-            ) : (
-              <span className="flex-1" aria-hidden />
-            )}
+            <button
+              onClick={() => setMoreOpen(true)}
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-[#242731] text-white/70 hover:text-white transition-colors shrink-0"
+              title={t("more") || "More"}
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
           </div>
         </nav>
+
+        {/* More sheet — mobile only */}
+        <AnimatePresence>
+          {moreOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMoreOpen(false)}
+                className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 28, stiffness: 300 }}
+                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-white/10 p-4"
+                style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
+              >
+                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+                <div className="grid grid-cols-3 gap-3">
+                  {secondaryNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setMoreOpen(false)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors ${
+                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary border-border text-dark-foreground"
+                        }`}
+                      >
+                        <Icon className="h-6 w-6" />
+                        <span className="text-xs font-medium text-center leading-tight">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {installPrompt && !isInstalled && (
+                  <button
+                    onClick={() => { handleInstall(); setMoreOpen(false); }}
+                    className="mt-3 w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm"
+                  >
+                    <Download className="h-5 w-5" />
+                    {t("installApp")}
+                  </button>
+                )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
