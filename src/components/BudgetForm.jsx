@@ -293,7 +293,7 @@ export default function BudgetForm() {
                       <button
                         key={diet.id}
                         onClick={() => setSelectedDiet(diet.id)}
-                        className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border ${
+                        className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border min-w-0 overflow-hidden ${
                           isSelected
                             ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
                             : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
@@ -306,10 +306,10 @@ export default function BudgetForm() {
                             <Icon className="h-6 w-6" />
                           ) : null}
                         </div>
-                        <span className={`font-heading font-semibold text-sm leading-tight ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                        <span className={`font-heading font-semibold text-sm leading-tight break-words ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
                           {t(diet.nameKey)}
                         </span>
-                        <span className={`text-xs leading-tight ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                        <span className={`text-xs leading-tight break-words ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                            {t(diet.descKey)}
                         </span>
                       </button>
