@@ -9,6 +9,7 @@ import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
 import AddItemModal from "@/components/AddItemModal";
+import MacroChart from "@/components/MacroChart";
 import { AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
@@ -983,6 +984,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                  </div>
                );
              })()}
+
+             {/* Macro breakdown chart */}
+             <MacroChart calories={parseFloat(calories)} macros={macros} />
 
              {/* Nutrition CTA */}
              <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block">
