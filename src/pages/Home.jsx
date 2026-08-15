@@ -11,6 +11,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 export default function Home() {
   const { t } = useLanguage();
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding_completed")
@@ -22,7 +23,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {}).finally(() => setAuthChecked(true));
   }, []);
 
   const handleDeleteAccount = async () => {
@@ -92,6 +93,23 @@ export default function Home() {
               <Trash2 className="h-4 w-4" />
               {deleting ? "Deleting..." : "Delete Account"}
             </Button>
+          </div>
+        )}
+
+        {!user && authChecked && (
+          <div className="border border-border rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-medium text-sm text-foreground">{t("loginToSave") || "Log in to save plans and sync your pantry"}</p>
+              <p className="text-xs text-muted-foreground">{t("loginSubtitle") || "Optional — you can still plan without an account."}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Link to="/login">
+                <Button variant="outline" size="sm">{t("login") || "Log in"}</Button>
+              </Link>
+              <Link to="/register">
+                <Button size="sm">{t("signUp") || "Sign up"}</Button>
+              </Link>
+            </div>
           </div>
         )}
 

@@ -11,6 +11,10 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
 import RepoStats from './pages/RepoStats';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import { AuthProvider } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 
@@ -21,6 +25,10 @@ function App() {
         <QueryClientProvider client={queryClientInstance}>
           <Router>
             <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route element={<Layout />}>
                 <Route path="/" element={null} />
                 <Route path="/meal-plan" element={null} />
