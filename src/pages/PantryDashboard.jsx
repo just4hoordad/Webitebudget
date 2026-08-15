@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Package, BarChart3, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from "recharts";
+import PantryUsageAlerts from "@/components/PantryUsageAlerts";
 
 // Keyword-based categorizer (en + de + a little fr/es) since pantry items
 // are stored without a category. Falls back to "Other".
@@ -31,6 +32,8 @@ export default function PantryDashboard() {
   const { t } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -49,6 +52,54 @@ export default function PantryDashboard() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed) { setPlans([]); return; }
+        const data = await base44.entities.MealPlan.list();
+        setPlans(data);
+      } catch {
+        setPlans([]);
+      } finally {
+        setLoadingPlans(false);
+      }
+    })();
+  }, []);
+
+  const usageCounts = useMemo(() => {
+    const counts = {};
+    items.forEach((it) => { counts[(it.name || "").toLowerCase().trim()] = 0; });
+    plans.forEach((plan) => {
+      const names = new Set();
+      plan.groceryList?.categories?.forEach((cat) =>
+        cat.items?.forEach((i) => {
+          const n = (i.name || "").toLowerCase().trim();
+          if (n) names.add(n);
+        })
+      );
+      names.forEach((n) => { if (n in counts) counts[n]++; });
+    });
+    return counts;
+  }, [items, plans]);
+
+  const updateThreshold = async (item, value) => {
+    const minUsage = Math.max(0, parseInt(value, 10) || 0);
+    setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, minUsage } : it)));
+    try {
+      const authed = await base44.auth.isAuthenticated();
+      if (authed && item.id && !String(item.id).includes("Date")) {
+        await base44.entities.PantryItem.update(item.id, { minUsage });
+      } else {
+        const stored = JSON.parse(localStorage.getItem("pantry_items") || "[]");
+        const next = stored.map((it) => (it.id === item.id ? { ...it, minUsage } : it));
+        localStorage.setItem("pantry_items", JSON.stringify(next));
+      }
+    } catch {
+      // silent
+    }
+  };
 
   const byCategory = {};
   items.forEach((item) => {
@@ -86,6 +137,12 @@ export default function PantryDashboard() {
         </div>
       ) : (
         <>
+          <PantryUsageAlerts
+            items={items}
+            usageCounts={usageCounts}
+            onUpdateThreshold={updateThreshold}
+            loadingPlans={loadingPlans}
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-card border border-border rounded-xl p-4">
               <p className="text-xs uppercase text-muted-foreground">{t("totalItems") || "Total items"}</p>

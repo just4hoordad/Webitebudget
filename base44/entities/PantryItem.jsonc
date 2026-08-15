@@ -13,6 +13,11 @@
     "category": {
       "type": "string",
       "description": "Category like Spices, Oils, Grains, etc."
+    },
+    "minUsage": {
+      "type": "number",
+      "description": "Minimum number of saved meal plans this item should appear in. The dashboard warns when actual usage drops below this threshold.",
+      "default": 0
     }
   },
   "required": [
