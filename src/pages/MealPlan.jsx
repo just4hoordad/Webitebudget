@@ -363,7 +363,25 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
   const totalWeeks = Math.ceil(totalDays / 7);
 
   const buildWeekPrompt = (availableItems, weekNum, totalWks, daysInThisWeek, previousWeeksSummary = "") => `Create a complete ${daysInThisWeek}-day meal plan for week ${weekNum} of ${totalWks}.
-...
+
+IMPORTANT: Return ALL text (meal names, day names, ingredient names) in ${currentLanguage.label} language.
+
+AVAILABLE PRODUCTS (these are the TOTAL available for all ${totalDays} days — use roughly 1/${totalWks} of each product this week):
+${availableItems}
+
+Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
+Target calories per day: ${calories} kcal
+${macros ? `Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}% carbs, ~${macros.fats}% fats. Distribute foods across meals so the day's macros approach this ratio.` : ""}
+Number of people: ${people}
+
+CRITICAL RULES:
+1. Use ONLY the products listed above — no substitutions or additions.
+2. For each meal, specify EXACTLY which product is used${diet === "frozen" ? " and the heating instruction (e.g. \"Oven 200°C for 20 min\" or \"Microwave 3 min\")" : ""}.
+${diet === "frozen" ? `3. FROZEN FOODS MODE: Each meal entry MUST be the exact frozen product name + heating method. Format: "🥡 [Product Name] — [Heating instruction]".` : "3. Vary meals across the days — do NOT repeat the same meal every day."}
+4. Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+${previousWeeksSummary ? `5. AVOID repeating meals already used in earlier weeks — keep this week different:\n${previousWeeksSummary}` : ""}
+
+Return a "days" array with EXACTLY ${daysInThisWeek} day objects. Each day object: { day, breakfast, breakfast_calories, breakfast_ingredients[{name,quantity}], lunch, lunch_calories, lunch_ingredients, dinner, dinner_calories, dinner_ingredients }.
 RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
   const buildMultiWeekPrompt = (availableItems) => `Create a complete ${totalDays}-day meal plan split across ${totalWeeks} week(s).
@@ -397,13 +415,34 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
+    const allWeeks = [];
+    let usedMeals = [];
     setLoadingPlan(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: buildMultiWeekPrompt(availableItems),
-        response_json_schema: multiWeekPlanSchema
-      });
-      return (result.weeks || []).map((w, i) => ({ week: i + 1, days: w.days || [] }));
+      for (let w = 0; w < totalWeeks; w++) {
+        const weekNum = w + 1;
+        const daysInThisWeek = w === totalWeeks - 1 ? totalDays - w * 7 : 7;
+        const prevSummary = usedMeals.slice(-42).join(", ");
+        let weekDays = null;
+        for (let attempt = 0; attempt < 3 && !weekDays; attempt++) {
+          try {
+            const result = await base44.integrations.Core.InvokeLLM({
+              prompt: buildWeekPrompt(availableItems, weekNum, totalWeeks, daysInThisWeek, prevSummary),
+              response_json_schema: { type: "object", properties: { days: { type: "array", items: daySchema } } },
+            });
+            if (Array.isArray(result.days) && result.days.length > 0) {
+              weekDays = result.days.slice(0, daysInThisWeek);
+            }
+          } catch (e) {
+            if (attempt === 2) throw e;
+          }
+        }
+        allWeeks.push({ week: weekNum, days: weekDays || [] });
+        usedMeals = allWeeks
+          .flatMap((wk) => wk.days.flatMap((d) => [d.breakfast, d.lunch, d.dinner]))
+          .filter(Boolean);
+      }
+      return allWeeks;
     } finally {
       setLoadingPlan(false);
     }
