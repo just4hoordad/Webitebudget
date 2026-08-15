@@ -3,8 +3,9 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
+import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 
 export default function SavedMealPlans() {
   const { t } = useLanguage();
@@ -12,6 +13,7 @@ export default function SavedMealPlans() {
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
   const location = useLocation();
+  const cal = useGoogleCalendarSync();
 
   useEffect(() => {
     if (location.pathname === "/saved-plans") loadPlans();
@@ -41,6 +43,35 @@ export default function SavedMealPlans() {
         <div>
           <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
           <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
+        </div>
+
+        {/* Google Calendar sync */}
+        <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <CalendarPlus className="h-5 w-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-heading font-semibold text-sm text-foreground">{t("calendarSync") || "Google Calendar sync"}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {cal.status === "loading" ? (t("loading") || "Loading…") :
+                 cal.status === "unauthenticated" ? (t("calLoginNeeded") || "Log in to sync your meal plan to your calendar") :
+                 cal.status === "connected" ? (t("calConnected") || "Connected — sync a plan to see what you're cooking each day") :
+                 (t("calNotConnected") || "Connect Google Calendar to sync your plans")}
+              </p>
+              {cal.error && <p className="text-xs text-destructive truncate mt-0.5">{cal.error}</p>}
+            </div>
+          </div>
+          <div className="shrink-0">
+            {cal.status === "loading" ? null :
+             cal.status === "unauthenticated" ? (
+               <Button size="sm" variant="outline" onClick={cal.login}><LogIn className="h-4 w-4" />{t("login") || "Log in"}</Button>
+             ) : cal.status === "connected" ? (
+               <Button size="sm" variant="outline" onClick={cal.disconnect}><Unlink className="h-4 w-4" />{t("disconnect") || "Disconnect"}</Button>
+             ) : (
+               <Button size="sm" onClick={cal.connect}><Link2 className="h-4 w-4" />{t("connectCalendar") || "Connect"}</Button>
+             )}
+          </div>
         </div>
 
         {loading ? (
@@ -93,6 +124,21 @@ export default function SavedMealPlans() {
                           {t("nutrition")}
                         </button>
                       </Link>
+                    )}
+                    {cal.status === "connected" && (
+                      <button
+                        onClick={() => { cal.sync(plan.id).catch(() => {}); }}
+                        disabled={cal.syncingId === plan.id}
+                        className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                        title={t("syncToCalendar") || "Sync to Google Calendar"}
+                      >
+                        {cal.syncingId === plan.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
+                         cal.syncedIds.has(plan.id) ? <Check className="h-3.5 w-3.5" /> :
+                         <CalendarPlus className="h-3.5 w-3.5" />}
+                        {cal.syncingId === plan.id ? (t("syncing") || "Syncing…") :
+                         cal.syncedIds.has(plan.id) ? (t("synced") || "Synced") :
+                         (t("syncToCalendar") || "Sync")}
+                      </button>
                     )}
                     <button
                       onClick={() => deletePlan(plan.id)}
