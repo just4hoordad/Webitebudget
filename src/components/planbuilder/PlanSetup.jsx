@@ -106,8 +106,11 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       </div>
 
       {/* Macros */}
-      <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
-        <MacroRatioControl value={macros} onChange={setMacros} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
+      <div className="space-y-3">
+        <SectionHeader icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
+        <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
+          <MacroRatioControl value={macros} onChange={setMacros} />
+        </div>
       </div>
 
       <button
