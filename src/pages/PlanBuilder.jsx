@@ -6,13 +6,13 @@ import PlanSetup from "@/components/planbuilder/PlanSetup";
 import PlanGrid from "@/components/planbuilder/PlanGrid";
 import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
-import CreditPill from "@/components/monetization/CreditPill";
+import CreditBar from "@/components/monetization/CreditBar";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft } from "lucide-react";
 
 export default function PlanBuilder() {
   const { t, currentLanguage } = useLanguage();
-  const { guarded, credits, isPro } = useMonetization();
+  const { guarded } = useMonetization();
   const [phase, setPhase] = useState("setup");
   const [diet, setDiet] = useState("balanced");
   const [days, setDays] = useState(7);
@@ -268,7 +268,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
           <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" /> {t("back")}
           </button>
-          <CreditPill credits={credits} isPro={isPro} />
+          <CreditBar variant="onLight" />
         </div>
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
@@ -281,9 +281,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <CreditPill credits={credits} isPro={isPro} />
-      </div>
+      <CreditBar variant="onLight" />
       <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} />
     </div>
   );
