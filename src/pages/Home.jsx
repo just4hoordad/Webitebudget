@@ -3,16 +3,15 @@ import BudgetForm from "../components/BudgetForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingCart } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingCart, Leaf, Crown } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
-import CreditPill from "@/components/monetization/CreditPill";
 import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function Home() {
   const { t } = useLanguage();
-  const { credits, isPro } = useMonetization();
+  const { credits, isPro, openWatchAd, openPricing } = useMonetization();
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -60,10 +59,42 @@ export default function Home() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
-          <div className="absolute top-4 right-4 z-10">
-            <CreditPill credits={credits} isPro={isPro} />
-          </div>
           <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+            {/* Credit header — inline on the glass card */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {isPro ? (
+                  <Crown className="h-4 w-4 text-primary" />
+                ) : (
+                  <Leaf className="h-4 w-4 text-primary" />
+                )}
+                <span className="text-white font-heading text-2xl font-bold leading-none">{credits}</span>
+                <span className="text-[10px] font-heading font-bold uppercase tracking-wide text-white/70">
+                  {isPro ? "PRO LEFT" : "FREE GEN"}
+                </span>
+              </div>
+              {isPro ? (
+                <span className="text-[11px] font-medium text-white/80">Ad-free 👑</span>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={openWatchAd}
+                    className="px-3 py-1 rounded-full border border-white/40 text-white text-[11px] font-medium hover:bg-white/15 transition-colors"
+                  >
+                    +1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openPricing}
+                    className="px-3 py-1 rounded-full border border-white/40 text-white text-[11px] font-medium hover:bg-white/15 transition-colors"
+                  >
+                    Pro →
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="border-t border-white/15 -mx-6 mb-4" />
             <div className="flex items-center gap-2.5 mb-3">
               <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
                 <ShoppingCart className="h-4 w-4 text-primary-foreground" />
