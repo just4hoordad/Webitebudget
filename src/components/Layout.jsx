@@ -23,7 +23,7 @@ export default function Layout() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const { isPro, credits, openPricing, openDonation } = useMonetization();
-  const showUpgrade = !isPro && credits <= 0;
+  const showUpgrade = !isPro;
 
   useEffect(() => {
     const handler = (e) => {
