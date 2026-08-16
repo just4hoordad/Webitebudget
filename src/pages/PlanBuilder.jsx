@@ -279,5 +279,12 @@ For each day and each meal that has a name, write a short cooking guide. Return 
     );
   }
 
-  return <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} />;
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <CreditPill credits={credits} isPro={isPro} />
+      </div>
+      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} />
+    </div>
+  );
 }

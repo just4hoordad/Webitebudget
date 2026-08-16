@@ -7,9 +7,12 @@ import { Trash2, ArrowRight, ShoppingCart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
+import CreditPill from "@/components/monetization/CreditPill";
+import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function Home() {
   const { t } = useLanguage();
+  const { credits, isPro } = useMonetization();
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -57,6 +60,9 @@ export default function Home() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
+          <div className="absolute top-4 right-4 z-10">
+            <CreditPill credits={credits} isPro={isPro} />
+          </div>
           <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
             <div className="flex items-center gap-2.5 mb-3">
               <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
