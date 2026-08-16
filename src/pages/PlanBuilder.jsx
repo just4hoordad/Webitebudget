@@ -6,10 +6,13 @@ import PlanSetup from "@/components/planbuilder/PlanSetup";
 import PlanGrid from "@/components/planbuilder/PlanGrid";
 import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
+import CreditPill from "@/components/monetization/CreditPill";
+import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft } from "lucide-react";
 
 export default function PlanBuilder() {
   const { t, currentLanguage } = useLanguage();
+  const { guarded, credits, isPro } = useMonetization();
   const [phase, setPhase] = useState("setup");
   const [diet, setDiet] = useState("balanced");
   const [days, setDays] = useState(7);
@@ -31,6 +34,23 @@ export default function PlanBuilder() {
 
   const toggleStore = (s) => setStores((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
   const toggleSetting = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const hasValidCache = () => {
+    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, macros, prepEnabled, lang: currentLanguage.code });
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.key === cacheKey && cached.date === todayStr()) return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  };
+
+  const handleGenerate = () => {
+    if (hasValidCache()) { generateGrocery(); return; }
+    guarded(generateGrocery);
+  };
 
   const startPlan = () => {
     setPlan(Array.from({ length: days }, () => ({ breakfast: "", lunch: "", dinner: "" })));
@@ -244,13 +264,16 @@ For each day and each meal that has a name, write a short cooking guide. Return 
   if (phase === "grid") {
     return (
       <div className="space-y-5">
-        <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-          <ArrowLeft className="h-4 w-4" /> {t("back")}
-        </button>
+        <div className="flex items-center justify-between">
+          <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="h-4 w-4" /> {t("back")}
+          </button>
+          <CreditPill credits={credits} isPro={isPro} />
+        </div>
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={generateGrocery} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} />
         )}
       </div>
     );

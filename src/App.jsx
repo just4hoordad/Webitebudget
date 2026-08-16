@@ -18,6 +18,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import { AuthProvider } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
+import { MonetizationProvider } from '@/lib/MonetizationContext';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <QueryClientProvider client={queryClientInstance}>
+          <MonetizationProvider>
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -46,6 +48,7 @@ function App() {
               <Route path="*" element={<PageNotFound />} />
             </Routes>
           </Router>
+          </MonetizationProvider>
           <Toaster />
         </QueryClientProvider>
       </LanguageProvider>

@@ -1,0 +1,36 @@
+{
+  "name": "ProSubscription",
+  "type": "object",
+  "properties": {
+    "stripeCustomerId": {
+      "type": "string",
+      "description": "Stripe customer ID"
+    },
+    "email": {
+      "type": "string",
+      "description": "Subscriber email"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the subscription is currently active"
+    },
+    "creditsRemaining": {
+      "type": "number",
+      "default": 30,
+      "description": "Pro generations remaining this billing period"
+    },
+    "periodEnd": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO date when the current billing period ends and credits reset"
+    },
+    "stripeSubscriptionId": {
+      "type": "string",
+      "description": "Stripe subscription ID"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

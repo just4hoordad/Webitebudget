@@ -19,9 +19,12 @@ import html2canvas from "html2canvas";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
+import CreditPill from "@/components/monetization/CreditPill";
+import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
+  const { guarded, credits, isPro } = useMonetization();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
@@ -55,7 +58,7 @@ export default function MealPlan() {
     if (location.pathname !== "/meal-plan") return;
     if (lastGenKey.current === searchKey) return;
     lastGenKey.current = searchKey;
-    generateGroceries();
+    guarded(generateGroceries);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, searchKey]);
 
@@ -67,7 +70,7 @@ export default function MealPlan() {
     if (location.pathname !== "/meal-plan") return;
     setWeeklyPlan(null);
     lastGenKey.current = searchKey;
-    generateGroceries();
+    guarded(generateGroceries);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage.code]);
 
@@ -720,11 +723,14 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
   return (
     <PullToRefresh onRefresh={generateGroceries}>
     <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
+          <p className="text-sm text-muted-foreground">
+            {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
+          </p>
+        </div>
+        <CreditPill credits={credits} isPro={isPro} />
       </div>
 
       {loading ? (
@@ -1092,7 +1098,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           </div>
 
           <div className="pb-8">
-            <Button onClick={generateGroceries} variant="outline" className="w-full">
+            <Button onClick={() => guarded(generateGroceries)} variant="outline" className="w-full">
               {t("regenerate")}
             </Button>
           </div>

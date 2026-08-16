@@ -1,0 +1,26 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Donor email (optional)"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Donated amount in major currency unit (e.g. euros)"
+    },
+    "currency": {
+      "type": "string",
+      "default": "eur",
+      "description": "ISO currency code"
+    },
+    "stripeSessionId": {
+      "type": "string",
+      "description": "Stripe checkout session ID"
+    }
+  },
+  "required": [
+    "amount"
+  ]
+}

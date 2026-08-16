@@ -5,6 +5,10 @@ import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
 import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package, MoreHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import ProBadge from "@/components/monetization/ProBadge";
+import SupportUsButton from "@/components/monetization/SupportUsButton";
+import UpgradeBanner from "@/components/monetization/UpgradeBanner";
+import { useMonetization } from "@/lib/MonetizationContext";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
 import MealPlanPage from "../pages/MealPlan";
@@ -18,6 +22,8 @@ export default function Layout() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const { isPro, credits, openPricing, openDonation } = useMonetization();
+  const showUpgrade = !isPro && credits <= 0;
 
   useEffect(() => {
     const handler = (e) => {
@@ -68,6 +74,7 @@ export default function Layout() {
             <span className="font-heading font-bold text-lg tracking-tight text-foreground">
               Budget<span className="text-primary">Bite</span>
             </span>
+            {isPro && <ProBadge className="ml-1" />}
           </Link>
         </div>
 
@@ -115,6 +122,8 @@ export default function Layout() {
 
         {/* Footer */}
         <div className="p-4 border-t border-border shrink-0 space-y-3">
+          {showUpgrade && <UpgradeBanner onClick={openPricing} />}
+          <SupportUsButton onClick={openDonation} />
           {installPrompt && !isInstalled && (
             <button
               onClick={handleInstall}
@@ -149,6 +158,7 @@ export default function Layout() {
                 <span className="font-heading font-bold text-lg tracking-tight text-foreground">
                   Budget<span className="text-primary">Bite</span>
                 </span>
+                {isPro && <ProBadge className="ml-1" />}
               </Link>
             ) : (
               <button
@@ -272,6 +282,10 @@ export default function Layout() {
                       </Link>
                     );
                   })}
+                </div>
+                <div className="mt-3 space-y-2">
+                  {showUpgrade && <UpgradeBanner onClick={() => { setMoreOpen(false); openPricing(); }} variant="sheet" />}
+                  <SupportUsButton onClick={() => { setMoreOpen(false); openDonation(); }} variant="sheet" />
                 </div>
                 {installPrompt && !isInstalled && (
                   <button

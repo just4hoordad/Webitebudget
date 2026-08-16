@@ -1,0 +1,66 @@
+import { secrets } from "base44:runtime";
+
+export const PRO_PRODUCT_ID = "prod_UhEZVocIQ3jb9A";
+export const PRO_MONTHLY_CREDITS = 30;
+export const FREE_STARTER_CREDITS = 3;
+const STRIPE_API_VERSION = "2025-10-29.clover";
+
+export function getSecret(name) {
+  return secrets.get(name);
+}
+
+export function stripeHeaders(extra = {}) {
+  return {
+    Authorization: `Bearer ${getSecret("STRIPE_SECRET_KEY")}`,
+    "Stripe-Version": STRIPE_API_VERSION,
+    ...extra,
+  };
+}
+
+export function appId() {
+  return getSecret("BASE44_APP_ID") || "";
+}
+
+// Find the active recurring price for the Pro product.
+export async function findProPriceId() {
+  const res = await fetch(
+    `https://api.stripe.com/v1/prices?product=${PRO_PRODUCT_ID}&active=true&limit=10`,
+    { headers: stripeHeaders() }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || "Failed to list prices");
+  const recurring = (data.data || []).find((p) => p.type === "recurring");
+  if (!recurring) throw new Error("No active recurring price found for Pro product");
+  return recurring.id;
+}
+
+// Verify a Stripe webhook signature using Web Crypto HMAC-SHA256 (no SDK needed).
+export async function verifyStripeSignature(payload, signatureHeader, secret) {
+  if (!signatureHeader || !secret) return false;
+  const parts = {};
+  signatureHeader.split(",").forEach((p) => {
+    const idx = p.indexOf("=");
+    if (idx > -1) parts[p.slice(0, idx).trim()] = p.slice(idx + 1);
+  });
+  const timestamp = parts["t"];
+  const v1 = parts["v1"];
+  if (!timestamp || !v1) return false;
+
+  const signedPayload = `${timestamp}.${payload}`;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sigBuf = await crypto.subtle.sign("HMAC", key, encoder.encode(signedPayload));
+  const expected = [...new Uint8Array(sigBuf)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  if (expected.length !== v1.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ v1.charCodeAt(i);
+  return diff === 0;
+}
