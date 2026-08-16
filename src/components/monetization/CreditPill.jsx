@@ -1,8 +1,8 @@
-import { Crown } from "lucide-react";
+import { Crown, PlayCircle } from "lucide-react";
 import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function CreditPill({ credits, isPro }) {
-  const { openPricing } = useMonetization();
+  const { openPricing, openWatchAd } = useMonetization();
   const empty = credits <= 0;
 
   const accent = isPro
@@ -26,17 +26,28 @@ export default function CreditPill({ credits, isPro }) {
           {label}
         </span>
       </div>
-      {!isPro && (
-        <>
-          <div className="border-t border-border" />
+      {isPro ? (
+        <div className="border-t border-border py-1.5 text-center text-[10px] font-medium text-muted-foreground">
+          Ad-free 👑
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 border-t border-border">
+          <button
+            type="button"
+            onClick={openWatchAd}
+            className="flex items-center justify-center gap-1 py-1.5 bg-amber-50 dark:bg-amber-500/10 text-[10px] font-medium text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
+            title="Watch a short ad to earn 1 free generation"
+          >
+            <PlayCircle className="h-3 w-3" /> +1
+          </button>
           <button
             type="button"
             onClick={openPricing}
-            className="flex items-center justify-center py-1.5 bg-muted/40 text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center justify-center py-1.5 bg-muted/40 text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors border-l border-border"
           >
-            Go Pro →
+            Pro →
           </button>
-        </>
+        </div>
       )}
     </div>
   );

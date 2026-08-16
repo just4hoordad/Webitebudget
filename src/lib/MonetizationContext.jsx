@@ -153,6 +153,7 @@ export function MonetizationProvider({ children }) {
     const fn = pending.current;
     pending.current = null;
     if (fn && spend()) fn();
+    else if (!fn) toast.success("+1 free generation added 🎬");
   };
   const handleGoPro = () => {
     setShowOutOfCredits(false);
@@ -161,6 +162,7 @@ export function MonetizationProvider({ children }) {
 
   const openPricing = useCallback(() => setShowPricing(true), []);
   const openDonation = useCallback(() => setShowDonation(true), []);
+  const openWatchAd = useCallback(() => setShowAd(true), []);
 
   const value = {
     credits,
@@ -170,6 +172,7 @@ export function MonetizationProvider({ children }) {
     guarded,
     openPricing,
     openDonation,
+    openWatchAd,
     proStatus,
   };
 
@@ -206,6 +209,7 @@ export function useMonetization() {
       guarded: (fn) => fn(),
       openPricing: () => {},
       openDonation: () => {},
+      openWatchAd: () => {},
       proStatus: null,
     };
   }
