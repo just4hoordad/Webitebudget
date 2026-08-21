@@ -72,6 +72,8 @@ export default function PlanBuilder() {
     setPlan(Array.from({ length: days }, () => ({ breakfast: "", lunch: "", dinner: "" })));
     setGrocery(null);
     setPhase("grid");
+    // Prefill a full plan automatically — the default case should just work.
+    autoFillMeals();
   };
 
   const setSlot = (d, type, value) =>
@@ -115,9 +117,9 @@ export default function PlanBuilder() {
     try {
       const res = await base44.integrations.Core.InvokeLLM({
         model: "gemini_3_flash",
-        prompt: `Create a ${plan.length}-day meal plan for ${enabled.people ? people : 1} person(s)${enabled.diet ? ` on a ${diet} diet` : ""} in Germany.
+        prompt: `Create a ${days}-day meal plan for ${enabled.people ? people : 1} person(s)${enabled.diet ? ` on a ${diet} diet` : ""} in Germany.
 ${enabled.macros ? `Target macronutrient split: protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%. Choose meals whose natural macros match this split as closely as possible.` : "No specific macro target — pick balanced meals."}
-Return exactly ${plan.length} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
+Return exactly ${days} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
 Keep names short and realistic (home cooking). Vary meals across days so it's not repetitive.`,
         response_json_schema: {
           type: "object",
@@ -347,8 +349,10 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         </div>
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
+        ) : autofilling && plan.every((d) => !d.breakfast && !d.lunch && !d.dinner) ? (
+          <GeneratingLoader type="plan" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} />
         )}
       </div>
     );
