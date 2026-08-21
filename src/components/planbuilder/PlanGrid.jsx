@@ -7,7 +7,9 @@ import MealGallery from "@/components/planbuilder/MealGallery";
 
 export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
   const { t } = useLanguage();
-  const [activeSlot, setActiveSlot] = useState(null); // { day, type } — last focused input
+  const [slotType, setSlotType] = useState("breakfast"); // which slot a tapped card fills
+  const [scope, setScope] = useState("day"); // "day" | "all"
+  const [activeDay, setActiveDay] = useState(0);
 
   const slots = [
     { key: "breakfast", label: t("breakfast") },
@@ -25,30 +27,13 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
   );
   const dayFilled = (d) => slots.filter((s) => (plan[d][s.key] || "").trim()).length;
 
-  const handlePickRecent = (meal) => {
-    if (!activeSlot) {
-      toast.info(t("noActiveSlot"));
+  const handleAddMeal = (meal) => {
+    if (scope === "all") {
+      plan.forEach((_, d) => setSlot(d, slotType, meal));
       return;
     }
-    setSlot(activeSlot.day, activeSlot.type, meal);
-  };
-
-  const handlePickMeal = (meal) => {
-    if (activeSlot) {
-      setSlot(activeSlot.day, activeSlot.type, meal);
-      return;
-    }
-    // No slot focused yet — fill the first empty slot, top to bottom.
-    for (let d = 0; d < plan.length; d++) {
-      for (const s of slots) {
-        if (!(plan[d][s.key] || "").trim()) {
-          setSlot(d, s.key, meal);
-          setActiveSlot({ day: d, type: s.key });
-          return;
-        }
-      }
-    }
-    toast.info(t("allSlotsFilled") || "All slots are filled");
+    setSlot(activeDay, slotType, meal);
+    if (activeDay < plan.length - 1) setActiveDay(activeDay + 1);
   };
 
   const copyToNextDay = (d) => {
@@ -95,7 +80,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
             type="text"
             value={plan[d][s.key] || ""}
             onChange={(e) => setSlot(d, s.key, e.target.value)}
-            onFocus={() => setActiveSlot({ day: d, type: s.key })}
+            onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
             placeholder={t("mealNamePlaceholder")}
             className={inputCls}
           />
@@ -125,6 +110,39 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         <p className="text-muted-foreground text-sm">{t("planGridSubtitle")}</p>
       </div>
 
+      {/* Slot + scope selector */}
+      <div className="space-y-2.5">
+        <div className="grid grid-cols-3 gap-2">
+          {slots.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setSlotType(s.key)}
+              className={`py-2 rounded-lg text-xs font-medium border transition-all ${slotType === s.key ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-foreground border-border hover:border-primary/40"}`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setScope("day")} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${scope === "day" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
+            {t("thisDay") || "This day"}
+          </button>
+          <button type="button" onClick={() => setScope("all")} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${scope === "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
+            {t("everyDay") || "Every day"}
+          </button>
+          {scope === "day" && (
+            <div className="flex items-center gap-1 ml-auto">
+              <button type="button" onClick={() => setActiveDay((d) => Math.max(0, d - 1))} disabled={activeDay === 0} className="h-7 w-7 rounded-md border border-border text-muted-foreground hover:text-primary disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center">‹</button>
+              <span className="text-xs font-medium tabular-nums min-w-[56px] text-center">{t("day") || "Day"} {activeDay + 1}</span>
+              <button type="button" onClick={() => setActiveDay((d) => Math.min(plan.length - 1, d + 1))} disabled={activeDay >= plan.length - 1} className="h-7 w-7 rounded-md border border-border text-muted-foreground hover:text-primary disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center">›</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <MealGallery diet={diet} onPick={handleAddMeal} />
+
       <button
         onClick={onAutoFill}
         disabled={autofilling}
@@ -133,9 +151,6 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         {autofilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
         {t("autoFillMeals")}
       </button>
-
-      {/* Picture gallery — tap a meal photo to drop it into the active slot */}
-      <MealGallery diet={diet} onPick={handlePickMeal} />
 
       {/* Recently used meals — tap a slot, then a chip to fill it */}
       {recentMeals && recentMeals.length > 0 && (
@@ -146,7 +161,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
               <button
                 key={i}
                 type="button"
-                onClick={() => handlePickRecent(m)}
+                onClick={() => handleAddMeal(m)}
                 className="shrink-0 max-w-[180px] truncate px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
                 title={m}
               >
@@ -178,7 +193,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
                     type="text"
                     value={day[s.key] || ""}
                     onChange={(e) => setSlot(d, s.key, e.target.value)}
-                    onFocus={() => setActiveSlot({ day: d, type: s.key })}
+                    onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
                     placeholder={t("mealNamePlaceholder")}
                     className={inputCls}
                   />
