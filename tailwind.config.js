@@ -7,7 +7,6 @@ module.exports = {
   		fontFamily: {
   			heading: ['var(--font-heading)'],
   			body: ['var(--font-body)'],
-  			display: ['var(--font-display)'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -50,11 +49,6 @@ module.exports = {
   				DEFAULT: 'hsl(var(--dark))',
   				foreground: 'hsl(var(--dark-foreground))',
   				muted: 'hsl(var(--dark-muted))'
-  			},
-  			editorial: {
-  				DEFAULT: 'hsl(var(--editorial-accent))',
-  				bg: 'hsl(var(--editorial-bg))',
-  				ink: 'hsl(var(--editorial-ink))'
   			},
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

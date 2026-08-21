@@ -8,15 +8,17 @@ import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import CreditBar from "@/components/monetization/CreditBar";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
-import DishPickerSheet from "@/components/planbuilder/DishPickerSheet";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
-import { DISHES, localName } from "@/data/dishCatalog";
 import { ArrowLeft, Share2 } from "lucide-react";
 
 const PREFS_KEY = "bb_planbuilder_prefs";
+const RECENT_KEY = "bb_recent_meals";
 function loadPrefs() {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
+}
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
 }
 
 export default function PlanBuilder() {
@@ -34,7 +36,9 @@ export default function PlanBuilder() {
   const [grocery, setGrocery] = useState(null);
   const [prep, setPrep] = useState(null);
   const [loadingGrocery, setLoadingGrocery] = useState(false);
-  const [picker, setPicker] = useState(null); // { day, type }
+  const [autofilling, setAutofilling] = useState(false);
+  const [suggesting, setSuggesting] = useState({});
+  const [recentMeals, setRecentMeals] = useState(loadRecent);
   const [showShare, setShowShare] = useState(false);
   const savedPlanId = useRef(null);
   const savedPlanName = useRef(null);
@@ -75,26 +79,78 @@ export default function PlanBuilder() {
   const setSlot = (d, type, value) =>
     setPlan((prev) => prev.map((day, i) => (i === d ? { ...day, [type]: value } : day)));
 
-  // Instantly composes a plan from the curated dish catalog, filtered by diet.
-  const autoFillMeals = () => {
-    const pool = (type) => {
-      let list = DISHES.filter((d) => d.type === type);
-      if (enabled.diet && diet !== "balanced") {
-        const filtered = list.filter((d) => d.diets.includes(diet));
-        if (filtered.length) list = filtered;
+  const addRecentMeal = (name) => {
+    const n = (name || "").trim();
+    if (!n) return;
+    setRecentMeals((prev) => {
+      const next = [n, ...prev.filter((m) => m.toLowerCase() !== n.toLowerCase())].slice(0, 12);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const suggestMeal = async (dayIndex, slotKey) => {
+    const key = `${dayIndex}-${slotKey}`;
+    setSuggesting((prev) => ({ ...prev, [key]: true }));
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        model: "gemini_3_flash",
+        prompt: `Suggest a single realistic ${slotKey} meal${enabled.diet ? ` suitable for a ${diet} diet` : ""}. Return ONLY a JSON object with a "meal" field containing the meal name in ${currentLanguage.label}. Keep it short and home-cooking friendly.`,
+        response_json_schema: { type: "object", properties: { meal: { type: "string" } } },
+      });
+      const name = (res?.meal || "").trim();
+      if (name) {
+        setSlot(dayIndex, slotKey, name);
+        addRecentMeal(name);
+      } else {
+        toast.error(t("suggestFailed"));
       }
-      return list;
-    };
-    const b = pool("breakfast");
-    const l = pool("lunch");
-    const dnr = pool("dinner");
-    setPlan((prev) =>
-      prev.map((day, i) => ({
-        breakfast: localName(b[i % b.length], currentLanguage.code),
-        lunch: localName(l[i % l.length], currentLanguage.code),
-        dinner: localName(dnr[i % dnr.length], currentLanguage.code),
-      }))
-    );
+    } catch {
+      toast.error(t("suggestFailed"));
+    } finally {
+      setSuggesting((prev) => { const next = { ...prev }; delete next[key]; return next; });
+    }
+  };
+
+  const autoFillMeals = async () => {
+    setAutofilling(true);
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        model: "gemini_3_flash",
+        prompt: `Create a ${days}-day meal plan for ${enabled.people ? people : 1} person(s)${enabled.diet ? ` on a ${diet} diet` : ""} in Germany.
+${enabled.macros ? `Target macronutrient split: protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%. Choose meals whose natural macros match this split as closely as possible.` : "No specific macro target — pick balanced meals."}
+Return exactly ${days} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
+Keep names short and realistic (home cooking). Vary meals across days so it's not repetitive.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            days: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  breakfast: { type: "string" },
+                  lunch: { type: "string" },
+                  dinner: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      });
+      const filled = res.days || [];
+      setPlan((prev) =>
+        prev.map((day, i) =>
+          filled[i]
+            ? { breakfast: filled[i].breakfast || "", lunch: filled[i].lunch || "", dinner: filled[i].dinner || "" }
+            : day
+        )
+      );
+    } catch {
+      toast.error("Autofill failed. Please try again.");
+    } finally {
+      setAutofilling(false);
+    }
   };
 
   const generateGrocery = async () => {
@@ -114,6 +170,10 @@ export default function PlanBuilder() {
       }
     } catch { /* ignore cache read errors */ }
 
+    plan.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => {
+      const v = (day[k] || "").trim();
+      if (v) addRecentMeal(v);
+    }));
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
@@ -282,35 +342,18 @@ For each day and each meal that has a name, write a short cooking guide. Return 
     return (
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-editorial transition-colors">
+          <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" /> {t("back")}
           </button>
           <CreditBar variant="onLight" />
         </div>
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
+        ) : autofilling && plan.every((d) => !d.breakfast && !d.lunch && !d.dinner) ? (
+          <GeneratingLoader type="plan" />
         ) : (
-          <PlanGrid
-            days={days}
-            plan={plan}
-            onPickSlot={(day, type) => setPicker({ day, type })}
-            onSetSlot={setSlot}
-            onAutoFill={autoFillMeals}
-            onGenerate={handleGenerate}
-            generating={loadingGrocery}
-            prepEnabled={prepEnabled}
-            setPrepEnabled={setPrepEnabled}
-          />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} />
         )}
-        <DishPickerSheet
-          open={!!picker}
-          onClose={() => setPicker(null)}
-          mealType={picker?.type}
-          diet={enabled.diet ? diet : null}
-          currentName={picker ? plan[picker.day]?.[picker.type] : ""}
-          onPick={(name) => { if (picker) setSlot(picker.day, picker.type, name); setPicker(null); }}
-          onClear={() => { if (picker) setSlot(picker.day, picker.type, ""); setPicker(null); }}
-        />
       </div>
     );
   }
