@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
+import { DISH_IMAGES } from "@/lib/dishImages";
 import { Search, Plus, ArrowRight } from "lucide-react";
 
 function MealCard({ meal, onPick }) {
   const { t } = useLanguage();
   const [broken, setBroken] = useState(false);
+  const photo = DISH_IMAGES[meal.name] || meal.img;
   return (
     <button
       type="button"
@@ -13,9 +15,9 @@ function MealCard({ meal, onPick }) {
       className="group relative rounded-xl overflow-hidden border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all active:scale-95 hover:shadow-xl hover:border-primary/50 hover:-translate-y-0.5"
     >
       <div className="relative aspect-[4/3]">
-        {meal.img && !broken ? (
+        {photo && !broken ? (
           <img
-            src={meal.img}
+            src={photo}
             alt={meal.name}
             loading="lazy"
             onError={() => setBroken(true)}
