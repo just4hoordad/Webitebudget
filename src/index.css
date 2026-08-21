@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:opsz,wght@9..144,300..900&family=Space+Grotesk:wght@300..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -42,6 +42,11 @@
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
 
+    --font-display: 'Fraunces', serif;
+    --editorial-bg: 40 30% 94%;
+    --editorial-ink: 20 14% 12%;
+    --editorial-accent: 12 58% 51%;
+
     --chart-1: 83 67% 45%;
     --chart-2: 200 80% 50%;
     --chart-3: 280 60% 58%;
@@ -83,6 +88,10 @@
     --dark: 220 24% 11%;
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
+
+    --editorial-bg: 222 20% 13%;
+    --editorial-ink: 40 20% 90%;
+    --editorial-accent: 12 58% 51%;
   }
 }
 

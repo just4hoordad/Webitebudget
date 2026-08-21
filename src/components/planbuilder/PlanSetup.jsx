@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
-  Store, ArrowRight, Sparkles, ShoppingCart,
+  Store, ArrowRight, Check,
 } from "lucide-react";
 
 const DIET_KEYS = [
@@ -20,12 +20,15 @@ const DIET_KEYS = [
 
 const STORES = ["Aldi", "Lidl", "REWE", "Edeka", "Penny", "Netto"];
 
-function SectionHeader({ icon: Icon, label, active, onToggle }) {
+function SectionHeader({ index, icon: Icon, label, active, onToggle }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <label className="text-sm font-medium text-foreground flex items-center gap-2">
-        {Icon && <Icon className="h-4 w-4 text-primary" />} {label}
-      </label>
+      <div className="flex items-center gap-2.5">
+        <span className="font-display font-semibold text-editorial text-sm tabular-nums">{index}</span>
+        <label className="text-sm font-medium text-editorial-ink flex items-center gap-2">
+          {Icon && <Icon className="h-4 w-4 text-editorial" />} {label}
+        </label>
+      </div>
       <Switch checked={active} onCheckedChange={onToggle} aria-label={`Toggle ${label}`} />
     </div>
   );
@@ -41,18 +44,22 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
     : null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
-          <ShoppingCart className="h-4 w-4" /> {t("planBuilderBadge")}
-        </div>
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-balance">{t("planBuilderTitle")}</h1>
-        <p className="text-muted-foreground text-sm mt-1.5 text-balance">{t("planBuilderSubtitle")}</p>
+    <div className="space-y-7">
+      {/* Editorial hero band */}
+      <div className="relative overflow-hidden rounded-2xl bg-editorial-bg border border-border px-6 py-7">
+        <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-editorial/10 blur-2xl pointer-events-none" />
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-heading font-semibold uppercase tracking-widest text-editorial mb-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-editorial" /> {t("planBuilderBadge")}
+        </span>
+        <h1 className="font-display font-semibold text-3xl sm:text-4xl leading-[1.05] text-editorial-ink text-balance">
+          {t("planBuilderTitle")}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2 max-w-md text-balance">{t("planBuilderSubtitle")}</p>
       </div>
 
       {/* Diet */}
       <div>
-        <SectionHeader icon={Leaf} label={t("dietPreference")} active={enabled.diet} onToggle={() => toggleSetting("diet")} />
+        <SectionHeader index="01" icon={Leaf} label={t("dietPreference")} active={enabled.diet} onToggle={() => toggleSetting("diet")} />
         <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${disabledCls("diet")}`}>
           {DIET_KEYS.map((d) => {
             const Icon = d.icon;
@@ -61,15 +68,20 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
               <button
                 key={d.id}
                 onClick={() => setDiet(d.id)}
-                className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border ${
-                  sel ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20" : "bg-card text-foreground border-border hover:border-primary/40 hover:shadow-md"
+                className={`relative flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border ${
+                  sel ? "bg-editorial/5 border-editorial ring-1 ring-editorial" : "bg-card text-foreground border-border hover:border-editorial/40 hover:shadow-md"
                 }`}
               >
-                <div className={`mb-1 ${sel ? "text-primary-foreground" : "text-muted-foreground"}`}>
+                {sel && (
+                  <span className="absolute top-2 right-2 h-5 w-5 rounded-full bg-editorial text-white flex items-center justify-center">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+                <div className={`mb-1 ${sel ? "text-editorial" : "text-muted-foreground"}`}>
                   {d.id === "halal" ? <span className="text-xl font-bold leading-none">حلال</span> : Icon ? <Icon className="h-6 w-6" /> : null}
                 </div>
-                <span className={`font-heading font-semibold text-sm leading-tight ${sel ? "text-primary-foreground" : "text-foreground"}`}>{t(d.nameKey)}</span>
-                <span className={`text-xs leading-tight ${sel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t(d.descKey)}</span>
+                <span className={`font-display font-semibold text-sm leading-tight ${sel ? "text-editorial-ink" : "text-foreground"}`}>{t(d.nameKey)}</span>
+                <span className={`text-xs leading-tight ${sel ? "text-editorial-ink/70" : "text-muted-foreground"}`}>{t(d.descKey)}</span>
               </button>
             );
           })}
@@ -78,10 +90,10 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* People */}
       <div className="space-y-3">
-        <SectionHeader icon={Users} label={t("numberOfPeople")} active={enabled.people} onToggle={() => toggleSetting("people")} />
+        <SectionHeader index="02" icon={Users} label={t("numberOfPeople")} active={enabled.people} onToggle={() => toggleSetting("people")} />
         <div className={`flex gap-2 ${disabledCls("people")}`}>
           {[1, 2, 3, 4].map((n) => (
-            <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
+            <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-editorial text-white border-editorial" : "bg-card text-foreground border-border hover:border-editorial/40"}`}>
               {n} {n === 1 ? t("person") : t("people")}
             </button>
           ))}
@@ -90,19 +102,19 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Days */}
       <div className="space-y-3">
-        <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} active={enabled.days} onToggle={() => toggleSetting("days")} />
+        <SectionHeader index="03" icon={CalendarDays} label={t("durationDays") || "Duration"} active={enabled.days} onToggle={() => toggleSetting("days")} />
         <div className={`flex items-center gap-4 ${disabledCls("days")}`}>
           <Slider value={[days]} onValueChange={([v]) => setDays(v)} min={1} max={30} step={1} className="flex-1" />
-          <span className="font-heading font-bold text-lg w-20 text-right">{days} {t("days")}</span>
+          <span className="font-display font-semibold text-2xl w-24 text-right text-editorial-ink">{days} <span className="text-sm text-muted-foreground">{t("days")}</span></span>
         </div>
       </div>
 
       {/* Stores */}
       <div className="space-y-3">
-        <SectionHeader icon={Store} label={t("preferredStores")} active={enabled.stores} onToggle={() => toggleSetting("stores")} />
+        <SectionHeader index="04" icon={Store} label={t("preferredStores")} active={enabled.stores} onToggle={() => toggleSetting("stores")} />
         <div className={`flex flex-wrap gap-2 ${disabledCls("stores")}`}>
           {STORES.map((s) => (
-            <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
+            <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-editorial text-white border-editorial" : "bg-card text-muted-foreground border-border hover:border-editorial/40"}`}>
               {s}
             </button>
           ))}
@@ -111,7 +123,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Macros */}
       <div className="space-y-3">
-        <SectionHeader icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
+        <SectionHeader index="05" icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
         <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
           <MacroRatioControl value={macros} onChange={setMacros} />
         </div>
@@ -123,9 +135,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       <button
         onClick={onBuild}
         disabled={loading || (enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100)}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
+        className="w-full h-14 text-base font-display font-semibold rounded-xl bg-editorial text-white hover:bg-editorial/90 hover:shadow-lg hover:shadow-editorial/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center disabled:opacity-60"
       >
-        <Sparkles className="h-5 w-5 mr-2" />
         {t("buildMyPlan")}
         <ArrowRight className="ml-2 h-5 w-5" />
       </button>
