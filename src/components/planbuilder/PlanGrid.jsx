@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowRight, Utensils, Sparkles, Loader2, ChefHat, Copy, Eraser } from "lucide-react";
+import { ArrowRight, Utensils, Sparkles, Loader2, ChefHat, Copy, Eraser, Shuffle } from "lucide-react";
 import MealGallery from "@/components/planbuilder/MealGallery";
 
 export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
@@ -87,14 +87,27 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
       {withLabel && (
         <label className="text-[11px] font-medium text-muted-foreground block">{s.label}</label>
       )}
-      <input
-        type="text"
-        value={plan[d][s.key] || ""}
-        onChange={(e) => setSlot(d, s.key, e.target.value)}
-        onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
-        placeholder={t("mealNamePlaceholder")}
-        className={inputCls}
-      />
+      <div className="flex items-center gap-1.5">
+        <input
+          type="text"
+          value={plan[d][s.key] || ""}
+          onChange={(e) => setSlot(d, s.key, e.target.value)}
+          onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
+          placeholder={t("mealNamePlaceholder")}
+          className={inputCls}
+        />
+        {onSuggest && (
+          <button
+            type="button"
+            onClick={() => onSuggest(d, s.key)}
+            title={t("suggestMeal")}
+            aria-label={t("suggestMeal")}
+            className="shrink-0 inline-flex items-center justify-center h-[44px] w-[44px] rounded-lg border border-border bg-card text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Shuffle className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -185,15 +198,27 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
             <div className="hidden sm:grid grid-cols-[44px_1fr_1fr_1fr_auto] gap-2 items-center">
               <span className="font-heading font-semibold text-xs text-muted-foreground">#{d + 1}</span>
               {slots.map((s) => (
-                <input
-                  key={s.key}
-                  type="text"
-                  value={day[s.key] || ""}
-                  onChange={(e) => setSlot(d, s.key, e.target.value)}
-                  onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
-                  placeholder={t("mealNamePlaceholder")}
-                  className={inputCls}
-                />
+                <div key={s.key} className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={day[s.key] || ""}
+                    onChange={(e) => setSlot(d, s.key, e.target.value)}
+                    onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
+                    placeholder={t("mealNamePlaceholder")}
+                    className={inputCls}
+                  />
+                  {onSuggest && (
+                    <button
+                      type="button"
+                      onClick={() => onSuggest(d, s.key)}
+                      title={t("suggestMeal")}
+                      aria-label={t("suggestMeal")}
+                      className="shrink-0 inline-flex items-center justify-center h-[44px] w-[44px] rounded-lg border border-border bg-card text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Shuffle className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               ))}
               {renderDayActions(d)}
             </div>
