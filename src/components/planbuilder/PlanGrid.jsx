@@ -82,39 +82,21 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
     </div>
   );
 
-  const renderSlot = (d, s, withLabel) => {
-    const key = `${d}-${s.key}`;
-    const busy = !!suggesting?.[key];
-    return (
-      <div key={s.key} className="space-y-1">
-        {withLabel && (
-          <label className="text-[11px] font-medium text-muted-foreground block">{s.label}</label>
-        )}
-        <div className="flex items-center gap-1.5">
-          <input
-            type="text"
-            value={plan[d][s.key] || ""}
-            onChange={(e) => setSlot(d, s.key, e.target.value)}
-            onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
-            placeholder={t("mealNamePlaceholder")}
-            className={inputCls}
-          />
-          {onSuggest && (
-            <button
-              type="button"
-              onClick={() => onSuggest(d, s.key)}
-              disabled={busy}
-              title={t("suggestMeal")}
-              aria-label={t("suggestMeal")}
-              className="shrink-0 inline-flex items-center justify-center h-[44px] w-[44px] rounded-lg border border-border bg-card text-primary hover:bg-primary/10 disabled:opacity-60 transition-colors"
-            >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const renderSlot = (d, s, withLabel) => (
+    <div key={s.key} className="space-y-1">
+      {withLabel && (
+        <label className="text-[11px] font-medium text-muted-foreground block">{s.label}</label>
+      )}
+      <input
+        type="text"
+        value={plan[d][s.key] || ""}
+        onChange={(e) => setSlot(d, s.key, e.target.value)}
+        onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
+        placeholder={t("mealNamePlaceholder")}
+        className={inputCls}
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -203,28 +185,15 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
             <div className="hidden sm:grid grid-cols-[44px_1fr_1fr_1fr_auto] gap-2 items-center">
               <span className="font-heading font-semibold text-xs text-muted-foreground">#{d + 1}</span>
               {slots.map((s) => (
-                <div key={s.key} className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={day[s.key] || ""}
-                    onChange={(e) => setSlot(d, s.key, e.target.value)}
-                    onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
-                    placeholder={t("mealNamePlaceholder")}
-                    className={inputCls}
-                  />
-                  {onSuggest && (
-                    <button
-                      type="button"
-                      onClick={() => onSuggest(d, s.key)}
-                      disabled={!!suggesting?.[`${d}-${s.key}`]}
-                      title={t("suggestMeal")}
-                      aria-label={t("suggestMeal")}
-                      className="shrink-0 inline-flex items-center justify-center h-[44px] w-[44px] rounded-lg border border-border bg-card text-primary hover:bg-primary/10 disabled:opacity-60 transition-colors"
-                    >
-                      {suggesting?.[`${d}-${s.key}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    </button>
-                  )}
-                </div>
+                <input
+                  key={s.key}
+                  type="text"
+                  value={day[s.key] || ""}
+                  onChange={(e) => setSlot(d, s.key, e.target.value)}
+                  onFocus={() => { setSlotType(s.key); setActiveDay(d); setScope("day"); }}
+                  placeholder={t("mealNamePlaceholder")}
+                  className={inputCls}
+                />
               ))}
               {renderDayActions(d)}
             </div>
