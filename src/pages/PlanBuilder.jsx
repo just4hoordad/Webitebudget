@@ -10,14 +10,23 @@ import CreditBar from "@/components/monetization/CreditBar";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft } from "lucide-react";
 
+const PREFS_KEY = "bb_planbuilder_prefs";
+const RECENT_KEY = "bb_recent_meals";
+function loadPrefs() {
+  try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
+}
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+}
+
 export default function PlanBuilder() {
   const { t, currentLanguage } = useLanguage();
   const { guarded } = useMonetization();
   const [phase, setPhase] = useState("setup");
-  const [diet, setDiet] = useState("balanced");
+  const [diet, setDiet] = useState(() => loadPrefs().diet || "balanced");
   const [days, setDays] = useState(7);
-  const [people, setPeople] = useState(1);
-  const [stores, setStores] = useState(["Aldi", "Lidl"]);
+  const [people, setPeople] = useState(() => loadPrefs().people || 1);
+  const [stores, setStores] = useState(() => loadPrefs().stores || ["Aldi", "Lidl"]);
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
   const [prepEnabled, setPrepEnabled] = useState(true);
@@ -26,6 +35,8 @@ export default function PlanBuilder() {
   const [prep, setPrep] = useState(null);
   const [loadingGrocery, setLoadingGrocery] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  const [suggesting, setSuggesting] = useState({});
+  const [recentMeals, setRecentMeals] = useState(loadRecent);
   const savedPlanId = useRef(null);
 
   const CACHE_KEY = "bb_plan_grocery_cache";
@@ -53,6 +64,7 @@ export default function PlanBuilder() {
   };
 
   const startPlan = () => {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores })); } catch { /* ignore */ }
     setPlan(Array.from({ length: days }, () => ({ breakfast: "", lunch: "", dinner: "" })));
     setGrocery(null);
     setPhase("grid");
@@ -60,6 +72,39 @@ export default function PlanBuilder() {
 
   const setSlot = (d, type, value) =>
     setPlan((prev) => prev.map((day, i) => (i === d ? { ...day, [type]: value } : day)));
+
+  const addRecentMeal = (name) => {
+    const n = (name || "").trim();
+    if (!n) return;
+    setRecentMeals((prev) => {
+      const next = [n, ...prev.filter((m) => m.toLowerCase() !== n.toLowerCase())].slice(0, 12);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const suggestMeal = async (dayIndex, slotKey) => {
+    const key = `${dayIndex}-${slotKey}`;
+    setSuggesting((prev) => ({ ...prev, [key]: true }));
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        model: "gemini_3_flash",
+        prompt: `Suggest a single realistic ${slotKey} meal${enabled.diet ? ` suitable for a ${diet} diet` : ""}. Return ONLY a JSON object with a "meal" field containing the meal name in ${currentLanguage.label}. Keep it short and home-cooking friendly.`,
+        response_json_schema: { type: "object", properties: { meal: { type: "string" } } },
+      });
+      const name = (res?.meal || "").trim();
+      if (name) {
+        setSlot(dayIndex, slotKey, name);
+        addRecentMeal(name);
+      } else {
+        toast.error(t("suggestFailed"));
+      }
+    } catch {
+      toast.error(t("suggestFailed"));
+    } finally {
+      setSuggesting((prev) => { const next = { ...prev }; delete next[key]; return next; });
+    }
+  };
 
   const autoFillMeals = async () => {
     setAutofilling(true);
@@ -119,6 +164,10 @@ Keep names short and realistic (home cooking). Vary meals across days so it's no
       }
     } catch { /* ignore cache read errors */ }
 
+    plan.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => {
+      const v = (day[k] || "").trim();
+      if (v) addRecentMeal(v);
+    }));
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
@@ -273,7 +322,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} />
         )}
       </div>
     );

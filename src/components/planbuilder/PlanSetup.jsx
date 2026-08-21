@@ -35,6 +35,10 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
   const { t } = useLanguage();
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
+  const buildDisabled = !loading && ((enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100));
+  const disabledReason = buildDisabled
+    ? (enabled.stores && stores.length === 0 ? t("buildDisabledStore") : t("buildDisabledMacros"))
+    : null;
 
   return (
     <div className="space-y-6">
@@ -113,6 +117,9 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         </div>
       </div>
 
+      {disabledReason && (
+        <p className="text-xs text-destructive text-center font-medium">{disabledReason}</p>
+      )}
       <button
         onClick={onBuild}
         disabled={loading || (enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100)}
