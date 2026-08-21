@@ -45,6 +45,15 @@
     },
     "prep": {
       "type": "object"
+    },
+    "shareToken": {
+      "type": "string",
+      "description": "Unique public share token. When set, the plan is readable via the public share route (getSharedPlan). Empty/absent means not shared."
+    },
+    "sharedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the current share token was created."
     }
   },
   "required": [

@@ -7,8 +7,10 @@ import PlanGrid from "@/components/planbuilder/PlanGrid";
 import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import CreditBar from "@/components/monetization/CreditBar";
+import SharePlanModal from "@/components/planbuilder/SharePlanModal";
+import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Share2 } from "lucide-react";
 
 const PREFS_KEY = "bb_planbuilder_prefs";
 const RECENT_KEY = "bb_recent_meals";
@@ -37,7 +39,9 @@ export default function PlanBuilder() {
   const [autofilling, setAutofilling] = useState(false);
   const [suggesting, setSuggesting] = useState({});
   const [recentMeals, setRecentMeals] = useState(loadRecent);
+  const [showShare, setShowShare] = useState(false);
   const savedPlanId = useRef(null);
+  const savedPlanName = useRef(null);
 
   const CACHE_KEY = "bb_plan_grocery_cache";
 
@@ -271,6 +275,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
       })
         .then((rec) => {
           savedPlanId.current = rec?.id ?? null;
+          savedPlanName.current = rec?.name ?? null;
           toast.success(t("planAutoSaved"));
           // Auto-sync the saved plan to Google Calendar when the user is connected (fire-and-forget).
           if (rec?.id) {
@@ -307,7 +312,28 @@ For each day and each meal that has a name, write a short cooking guide. Return 
   const reset = () => { setPhase("setup"); setGrocery(null); };
 
   if (phase === "result" && grocery) {
-    return <PlanGroceryResult grocery={grocery} prep={prep} days={plan.length} people={people} onReset={reset} />;
+    const shareFooter = savedPlanId.current ? (
+      <Button onClick={() => setShowShare(true)} variant="outline" className="w-full h-12">
+        <Share2 className="h-4 w-4" /> {t("sharePlan") || "Share plan"}
+      </Button>
+    ) : null;
+    return (
+      <>
+        <PlanGroceryResult
+          grocery={grocery}
+          prep={prep}
+          days={plan.length}
+          people={people}
+          onReset={reset}
+          footer={shareFooter}
+        />
+        <SharePlanModal
+          plan={{ id: savedPlanId.current, name: savedPlanName.current || "", shareToken: "" }}
+          open={showShare}
+          onClose={() => setShowShare(false)}
+        />
+      </>
+    );
   }
 
   if (phase === "grid") {

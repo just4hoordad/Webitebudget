@@ -3,15 +3,17 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2 } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
+import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 
 export default function SavedMealPlans() {
   const { t } = useLanguage();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
+  const [sharePlan, setSharePlan] = useState(null);
   const location = useLocation();
   const cal = useGoogleCalendarSync();
 
@@ -138,6 +140,14 @@ export default function SavedMealPlans() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setSharePlan(plan)}
+                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
+                      title={t("sharePlan") || "Share plan"}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      {t("share") || "Share"}
+                    </button>
                     <button
                       onClick={() => exportToSheets(plan)}
                       className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
@@ -281,6 +291,7 @@ export default function SavedMealPlans() {
           </div>
         )}
       </div>
+      <SharePlanModal plan={sharePlan} open={!!sharePlan} onClose={() => setSharePlan(null)} />
     </PullToRefresh>
   );
 }

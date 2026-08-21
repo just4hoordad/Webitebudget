@@ -11,7 +11,7 @@ const MEAL_SLOTS = [
   { key: "dinner", labelKey: "dinner" },
 ];
 
-export default function PlanGroceryResult({ grocery, prep, days, people, onReset }) {
+export default function PlanGroceryResult({ grocery, prep, days, people, onReset, readOnly, footer }) {
   const { t, currentLanguage } = useLanguage();
   const total = grocery.total_estimated_cost || 0;
   const catMap = allCategoryTranslations[currentLanguage.code] || {};
@@ -19,9 +19,11 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
 
   return (
     <div className="space-y-5">
-      <button onClick={onReset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-        <ArrowLeft className="h-4 w-4" /> {t("back")}
-      </button>
+      {!readOnly && (
+        <button onClick={onReset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+          <ArrowLeft className="h-4 w-4" /> {t("back")}
+        </button>
+      )}
 
       <div className="rounded-2xl bg-dark p-6 text-dark-foreground">
         <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
@@ -108,9 +110,12 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
         </div>
       </div>
 
-      <button onClick={onReset} className="w-full h-12 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/40 transition-colors flex items-center justify-center gap-2">
-        <RefreshCw className="h-4 w-4" /> {t("regenerate") || "Regenerate"}
-      </button>
+      {!readOnly && (
+        <button onClick={onReset} className="w-full h-12 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/40 transition-colors flex items-center justify-center gap-2">
+          <RefreshCw className="h-4 w-4" /> {t("regenerate") || "Regenerate"}
+        </button>
+      )}
+      {footer}
     </div>
   );
 }

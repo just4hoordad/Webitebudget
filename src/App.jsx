@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
+import SharedPlan from './pages/SharedPlan';
 import Layout from './components/Layout';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/datenschutz" element={<Datenschutz />} />
                 <Route path="/repo-stats" element={<RepoStats />} />
               </Route>
+              <Route path="/share/:token" element={<SharedPlan />} />
               <Route path="*" element={<PageNotFound />} />
             </Routes>
           </Router>
