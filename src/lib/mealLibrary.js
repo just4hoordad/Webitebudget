@@ -16,10 +16,42 @@ const G = {
   pink: "from-pink-400/80 to-rose-500/80",
 };
 
-// Build a keyword-matched photo URL from the dish name (loremflickr serves
-// Creative Commons Flickr photos by keyword). lock=N keeps the same photo each load.
-const img = (name, lock) =>
-  `https://loremflickr.com/600/400/${name.toLowerCase().replace(/[^a-z0-9]+/g, ",").replace(/^,|,$/g, "")}?lock=${lock}`;
+// Real Unsplash food photos, matched to each dish by keyword. Each entry's
+// `img` is built from the dish name; MealCard falls back to a gradient +
+// emoji if a photo fails to load, so the gallery always renders offline.
+const U = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=600&h=450&q=80`;
+const PHOTOS = [
+  { kw: ["oatmeal", "porridge", "overnight", "granola", "chia"], img: U("1548807371-30dc1bbe6cb5") },
+  { kw: ["pancake", "waffle", "french toast", "croissant", "muffin", "bagel"], img: U("1497888329096-51c27beff665") },
+  { kw: ["yogurt", "smoothie", "labneh"], img: U("1547592166-23ac45744acd") },
+  { kw: ["egg", "omelette", "frittata", "scrambled", "shakshuka"], img: U("1662222516763-a05017d07018") },
+  { kw: ["avocado"], img: U("1617474019977-0e105d1b430e") },
+  { kw: ["soup"], img: U("1547592166-23ac45744acd") },
+  { kw: ["curry", "stew", "chili", "dahl"], img: U("1556040221-a1efce785fcc") },
+  { kw: ["pasta", "spaghetti", "ravioli", "gnocchi", "lasagna", "arrabbiata", "primavera", "penne", "carbonara", "noodle", "ramen", "udon"], img: U("1473093295043-cdd812d0e601") },
+  { kw: ["salad", "tabbouleh", "caprese"], img: U("1617474019977-0e105d1b430e") },
+  { kw: ["pizza"], img: U("1618416019363-34805b84d3c1") },
+  { kw: ["burger"], img: U("1568901346375-23c9450c58cd") },
+  { kw: ["taco", "quesadilla", "burrito"], img: U("1504544750208-dc0358e63f7f") },
+  { kw: ["chicken", "tikka", "biryani", "roti"], img: U("1630564510761-a560db92a09b") },
+  { kw: ["salmon", "fish", "tuna", "shrimp", "seafood", "calamari", "mussel", "trout", "cod", "prawn", "crab", "paella"], img: U("1556040221-a1efce785fcc") },
+  { kw: ["rice", "bowl", "bibimbap", "risotto", "mansaf", "poke", "bibimbap"], img: U("1781976250672-87b5f123c031") },
+  { kw: ["wrap", "shawarma", "doner", "falafel"], img: U("1574782091246-c65ed4510300") },
+  { kw: ["sandwich", "panini"], img: U("1568901346375-23c9450c58cd") },
+  { kw: ["stir fry", "stir-fry", "stroganoff"], img: U("1652545296821-09a023a9fd08") },
+  { kw: ["kebab", "skewer", "kofta", "chops"], img: U("1599487488170-d11ec9c172f0") },
+  { kw: ["lamb", "beef", "steak", "meatball", "pork", "meat"], img: U("1599487488170-d11ec9c172f0") },
+  { kw: ["tofu", "quinoa", "lentil", "chickpea", "bean"], img: U("1617474019977-0e105d1b430e") },
+  { kw: ["sushi"], img: U("1556040221-a1efce785fcc") },
+];
+const FALLBACK_IMG = U("1662222516763-a05017d07018");
+const img = (keywords) => {
+  const k = (keywords || "").toLowerCase();
+  for (const p of PHOTOS) {
+    if (p.kw.some((w) => k.includes(w))) return p.img;
+  }
+  return FALLBACK_IMG;
+};
 
 export const MEAL_LIBRARY = {
   balanced: [
