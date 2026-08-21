@@ -8,6 +8,7 @@ import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import CreditBar from "@/components/monetization/CreditBar";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
+import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -110,40 +111,21 @@ export default function PlanBuilder() {
     }
   };
 
-  const autoFillMeals = async () => {
+  const autoFillMeals = () => {
     setAutofilling(true);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
-        model: "gemini_3_flash",
-        prompt: `Create a ${plan.length}-day meal plan for ${enabled.people ? people : 1} person(s)${enabled.diet ? ` on a ${diet} diet` : ""} in Germany.
-${enabled.macros ? `Target macronutrient split: protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%. Choose meals whose natural macros match this split as closely as possible.` : "No specific macro target — pick balanced meals."}
-Return exactly ${plan.length} days, each with a breakfast, lunch and dinner. All meal names in ${currentLanguage.label}.
-Keep names short and realistic (home cooking). Vary meals across days so it's not repetitive.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            days: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  breakfast: { type: "string" },
-                  lunch: { type: "string" },
-                  dinner: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-      });
-      const filled = res.days || [];
-      setPlan((prev) =>
-        prev.map((day, i) =>
-          filled[i]
-            ? { breakfast: filled[i].breakfast || "", lunch: filled[i].lunch || "", dinner: filled[i].dinner || "" }
-            : day
-        )
-      );
+      const lib = MEAL_LIBRARY[diet] || FALLBACK_MEALS;
+      const pick = (type) => {
+        const opts = lib.filter((m) => m.type === type);
+        return opts.length ? opts[Math.floor(Math.random() * opts.length)].name : "";
+      };
+      const next = Array.from({ length: plan.length }, () => ({
+        breakfast: pick("breakfast"),
+        lunch: pick("lunch"),
+        dinner: pick("dinner"),
+      }));
+      setPlan(next);
+      next.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => { if (day[k]) addRecentMeal(day[k]); }));
     } catch {
       toast.error("Autofill failed. Please try again.");
     } finally {
@@ -348,7 +330,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
       </div>
     );
