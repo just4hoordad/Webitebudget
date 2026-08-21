@@ -348,7 +348,7 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={() => guarded(autoFillMeals)} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
       </div>
     );

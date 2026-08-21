@@ -3,8 +3,9 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowRight, Utensils, Sparkles, Loader2, ChefHat, Copy, Eraser } from "lucide-react";
+import MealGallery from "@/components/planbuilder/MealGallery";
 
-export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals }) {
+export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
   const { t } = useLanguage();
   const [activeSlot, setActiveSlot] = useState(null); // { day, type } — last focused input
 
@@ -30,6 +31,24 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
       return;
     }
     setSlot(activeSlot.day, activeSlot.type, meal);
+  };
+
+  const handlePickMeal = (meal) => {
+    if (activeSlot) {
+      setSlot(activeSlot.day, activeSlot.type, meal);
+      return;
+    }
+    // No slot focused yet — fill the first empty slot, top to bottom.
+    for (let d = 0; d < plan.length; d++) {
+      for (const s of slots) {
+        if (!(plan[d][s.key] || "").trim()) {
+          setSlot(d, s.key, meal);
+          setActiveSlot({ day: d, type: s.key });
+          return;
+        }
+      }
+    }
+    toast.info(t("allSlotsFilled") || "All slots are filled");
   };
 
   const copyToNextDay = (d) => {
@@ -114,6 +133,9 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         {autofilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
         {t("autoFillMeals")}
       </button>
+
+      {/* Picture gallery — tap a meal photo to drop it into the active slot */}
+      <MealGallery diet={diet} onPick={handlePickMeal} />
 
       {/* Recently used meals — tap a slot, then a chip to fill it */}
       {recentMeals && recentMeals.length > 0 && (
