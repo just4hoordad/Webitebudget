@@ -88,27 +88,13 @@ export default function PlanBuilder() {
     });
   };
 
-  const suggestMeal = async (dayIndex, slotKey) => {
-    const key = `${dayIndex}-${slotKey}`;
-    setSuggesting((prev) => ({ ...prev, [key]: true }));
-    try {
-      const res = await base44.integrations.Core.InvokeLLM({
-        model: "gemini_3_flash",
-        prompt: `Suggest a single realistic ${slotKey} meal${enabled.diet ? ` suitable for a ${diet} diet` : ""}. Return ONLY a JSON object with a "meal" field containing the meal name in ${currentLanguage.label}. Keep it short and home-cooking friendly.`,
-        response_json_schema: { type: "object", properties: { meal: { type: "string" } } },
-      });
-      const name = (res?.meal || "").trim();
-      if (name) {
-        setSlot(dayIndex, slotKey, name);
-        addRecentMeal(name);
-      } else {
-        toast.error(t("suggestFailed"));
-      }
-    } catch {
-      toast.error(t("suggestFailed"));
-    } finally {
-      setSuggesting((prev) => { const next = { ...prev }; delete next[key]; return next; });
-    }
+  const suggestMeal = (dayIndex, slotKey) => {
+    const lib = MEAL_LIBRARY[diet] || FALLBACK_MEALS;
+    const opts = lib.filter((m) => m.type === slotKey);
+    if (!opts.length) { toast.error(t("suggestFailed")); return; }
+    const name = opts[Math.floor(Math.random() * opts.length)].name;
+    setSlot(dayIndex, slotKey, name);
+    addRecentMeal(name);
   };
 
   const autoFillMeals = () => {
