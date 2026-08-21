@@ -22,48 +22,54 @@ const G = {
 const U = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=600&h=450&q=80`;
 const PHOTOS = [
   // Most-specific multi-word dishes first (so "avocado toast" beats "avocado").
-  { kw: ["avocado toast", "avocado bagel"], img: U("1588137378633-dea1336ce1e2") },
-  { kw: ["fruit salad"], img: U("1497888329096-51c27beff665") },
-  { kw: ["smoothie"], img: U("1497888329096-51c27beff665") },
-  { kw: ["eggplant", "aubergine"], img: U("1473093295043-cdd812d0e601") },
-  { kw: ["fried rice"], img: U("1781976250672-87b5f123c031") },
-  { kw: ["stir fry", "stir-fry", "stroganoff"], img: U("1652545296821-09a023a9fd08") },
+  // Each entry has a pool; the pick is deterministic per dish name (hash) so
+  // different dishes in the same category get different photos.
+  { kw: ["avocado toast", "avocado bagel"], imgs: ["1588137378633-dea1336ce1e2", "1628556820645-63ba5f90e6a2", "1631311915775-e8f4250a7d4e"] },
+  { kw: ["fruit salad"], imgs: ["1497888329096-51c27beff665"] },
+  { kw: ["smoothie"], imgs: ["1497888329096-51c27beff665"] },
+  { kw: ["eggplant", "aubergine"], imgs: ["1473093295043-cdd812d0e601"] },
+  { kw: ["fried rice"], imgs: ["1781976250672-87b5f123c031", "1556040221-a1efce785fcc"] },
+  { kw: ["stir fry", "stir-fry", "stroganoff"], imgs: ["1652545296821-09a023a9fd08", "1658833621083-01fd8a4acf19", "1662222516763-a05017d07018"] },
   // Dish types (beat ingredients: "chicken salad" → salad, not chicken).
-  { kw: ["salad", "tabbouleh", "caprese", "coleslaw"], img: U("1617474019977-0e105d1b430e") },
-  { kw: ["soup", "broth", "minestrone"], img: U("1547592166-23ac45744acd") },
-  { kw: ["curry", "stew", "chili", "dahl", "dhal"], img: U("1556040221-a1efce785fcc") },
-  { kw: ["pasta", "spaghetti", "ravioli", "gnocchi", "lasagna", "arrabbiata", "primavera", "penne", "carbonara"], img: U("1473093295043-cdd812d0e601") },
-  { kw: ["pizza", "flatbread"], img: U("1618416019363-34805b84d3c1") },
-  { kw: ["burger"], img: U("1568901346375-23c9450c58cd") },
-  { kw: ["taco", "quesadilla"], img: U("1504544750208-dc0358e63f7f") },
-  { kw: ["burrito"], img: U("1574782091246-c65ed4510300") },
-  { kw: ["ramen", "noodle", "udon", "pho"], img: U("1526318896980-cf78c088247c") },
-  { kw: ["sandwich", "panini", "melt"], img: U("1627308595181-555c07449ff3") },
-  { kw: ["toast"], img: U("1601585099780-6b176dc702af") },
-  { kw: ["wrap", "shawarma", "doner"], img: U("1574782091246-c65ed4510300") },
-  { kw: ["kebab", "skewer", "kofta", "chops"], img: U("1599487488170-d11ec9c172f0") },
-  { kw: ["risotto", "paella", "biryani", "mansaf", "bibimbap"], img: U("1781976250672-87b5f123c031") },
-  { kw: ["bowl", "poke"], img: U("1781976250672-87b5f123c031") },
-  { kw: ["rice", "rice porridge"], img: U("1781976250672-87b5f123c031") },
+  { kw: ["salad", "tabbouleh", "caprese", "coleslaw"], imgs: ["1617474019977-0e105d1b430e"] },
+  { kw: ["soup", "broth", "minestrone"], imgs: ["1547592166-23ac45744acd"] },
+  { kw: ["curry", "stew", "chili", "dahl", "dhal"], imgs: ["1556040221-a1efce785fcc", "1652545296821-09a023a9fd08"] },
+  { kw: ["pasta", "spaghetti", "ravioli", "gnocchi", "lasagna", "arrabbiata", "primavera", "penne", "carbonara"], imgs: ["1473093295043-cdd812d0e601", "1630492782892-74f99406dc59", "1555949258-eb67b1ef0ceb", "1576402738587-4f748fff5ba1", "1597393353296-d149e4d4d771", "1606325625602-2efd3bc49abd"] },
+  { kw: ["pizza", "flatbread"], imgs: ["1618416019363-34805b84d3c1"] },
+  { kw: ["burger"], imgs: ["1568901346375-23c9450c58cd", "1586190848861-99aa4a171e90", "1550547660-d9450f859349", "1549611016-3a70d82b5040"] },
+  { kw: ["taco", "quesadilla"], imgs: ["1504544750208-dc0358e63f7f", "1574782091246-c65ed4510300", "1683062332605-4e1209d75346"] },
+  { kw: ["burrito"], imgs: ["1574782091246-c65ed4510300", "1504544750208-dc0358e63f7f"] },
+  { kw: ["ramen", "noodle", "udon", "pho"], imgs: ["1526318896980-cf78c088247c", "1612927601601-6638404737ce", "1633352615955-f0c99e8b7e5a"] },
+  { kw: ["sandwich", "panini", "melt"], imgs: ["1627308595181-555c07449ff3", "1568901346375-23c9450c58cd"] },
+  { kw: ["toast"], imgs: ["1601585099780-6b176dc702af", "1613152834645-875f24eb961c"] },
+  { kw: ["wrap", "shawarma", "doner"], imgs: ["1574782091246-c65ed4510300", "1504544750208-dc0358e63f7f"] },
+  { kw: ["kebab", "skewer", "kofta", "chops"], imgs: ["1599487488170-d11ec9c172f0", "1621790404813-df280c2de418"] },
+  { kw: ["risotto", "paella", "biryani", "mansaf", "bibimbap"], imgs: ["1781976250672-87b5f123c031", "1556040221-a1efce785fcc", "1645066803665-d16a79a21566"] },
+  { kw: ["bowl", "poke"], imgs: ["1781976250672-87b5f123c031", "1556040221-a1efce785fcc", "1645066803665-d16a79a21566"] },
+  { kw: ["rice", "rice porridge"], imgs: ["1781976250672-87b5f123c031", "1556040221-a1efce785fcc"] },
   // Breakfast specifics.
-  { kw: ["omelette", "frittata", "quiche", "scrambled", "shakshuka", "egg muffin"], img: U("1613769049987-b31b641f25b1") },
-  { kw: ["egg", "omelet"], img: U("1525351484163-7529414344d8") },
-  { kw: ["avocado"], img: U("1631311915775-e8f4250a7d4e") },
-  { kw: ["oatmeal", "porridge", "overnight", "granola", "chia", "muesli"], img: U("1548807371-30dc1bbe6cb5") },
-  { kw: ["pancake", "waffle", "french toast"], img: U("1565299624946-b28f40a0ae38") },
-  { kw: ["croissant", "muffin", "bagel"], img: U("1613152834645-875f24eb961c") },
-  { kw: ["yogurt", "labneh", "parfait", "berries", "berry", "fruit"], img: U("1497888329096-51c27beff665") },
+  { kw: ["omelette", "frittata", "quiche", "scrambled", "shakshuka", "egg muffin"], imgs: ["1613769049987-b31b641f25b1", "1525351484163-7529414344d8"] },
+  { kw: ["egg", "omelet"], imgs: ["1525351484163-7529414344d8", "1613769049987-b31b641f25b1"] },
+  { kw: ["avocado"], imgs: ["1631311915775-e8f4250a7d4e", "1588137378633-dea1336ce1e2"] },
+  { kw: ["oatmeal", "porridge", "overnight", "granola", "chia", "muesli"], imgs: ["1548807371-30dc1bbe6cb5", "1497888329096-51c27beff665"] },
+  { kw: ["pancake", "waffle", "french toast"], imgs: ["1565299624946-b28f40a0ae38", "1528207776546-365bb710ee93", "1612182062966-c8fe45ecbf73", "1554520735-0a6b8b6ce8b7"] },
+  { kw: ["croissant", "muffin", "bagel"], imgs: ["1613152834645-875f24eb961c", "1601585099780-6b176dc702af"] },
+  { kw: ["yogurt", "labneh", "parfait", "berries", "berry", "fruit"], imgs: ["1497888329096-51c27beff665"] },
   // Ingredients (lowest priority).
-  { kw: ["chicken", "tikka", "roti"], img: U("1630564510761-a560db92a09b") },
-  { kw: ["salmon", "tuna", "shrimp", "seafood", "calamari", "mussel", "trout", "cod", "prawn", "crab", "sushi", "fish"], img: U("1556040221-a1efce785fcc") },
-  { kw: ["lamb", "beef", "steak", "meatball", "pork", "meat"], img: U("1599487488170-d11ec9c172f0") },
-  { kw: ["tofu", "quinoa", "lentil", "chickpea", "bean", "falafel", "hummus", "mushroom", "pepper", "potato", "vegetable", "veggie"], img: U("1617474019977-0e105d1b430e") },
+  { kw: ["chicken", "tikka", "roti"], imgs: ["1630564510761-a560db92a09b", "1712579733874-c3a79f0f9d12"] },
+  { kw: ["salmon", "tuna", "shrimp", "seafood", "calamari", "mussel", "trout", "cod", "prawn", "crab", "sushi", "fish"], imgs: ["1556040221-a1efce785fcc", "1781976250672-87b5f123c031"] },
+  { kw: ["lamb", "beef", "steak", "meatball", "pork", "meat"], imgs: ["1599487488170-d11ec9c172f0", "1621790404813-df280c2de418", "1645066803665-d16a79a21566"] },
+  { kw: ["tofu", "quinoa", "lentil", "chickpea", "bean", "falafel", "hummus", "mushroom", "pepper", "potato", "vegetable", "veggie"], imgs: ["1617474019977-0e105d1b430e"] },
 ];
 const FALLBACK_IMG = U("1662222516763-a05017d07018");
+const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
 const img = (keywords) => {
   const k = (keywords || "").toLowerCase();
   for (const p of PHOTOS) {
-    if (p.kw.some((w) => k.includes(w))) return p.img;
+    if (p.kw.some((w) => k.includes(w))) {
+      const pool = p.imgs.map(U);
+      return pool[hash(k) % pool.length];
+    }
   }
   return FALLBACK_IMG;
 };
