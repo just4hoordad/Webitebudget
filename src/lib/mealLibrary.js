@@ -23,6 +23,7 @@ const U = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&
 const PHOTOS = [
   // Most-specific multi-word dishes first (so "avocado toast" beats "avocado").
   { kw: ["avocado toast", "avocado bagel"], img: U("1588137378633-dea1336ce1e2") },
+  { kw: ["fruit salad"], img: U("1497888329096-51c27beff665") },
   { kw: ["smoothie"], img: U("1497888329096-51c27beff665") },
   { kw: ["eggplant", "aubergine"], img: U("1473093295043-cdd812d0e601") },
   { kw: ["fried rice"], img: U("1781976250672-87b5f123c031") },
@@ -37,7 +38,8 @@ const PHOTOS = [
   { kw: ["taco", "quesadilla"], img: U("1504544750208-dc0358e63f7f") },
   { kw: ["burrito"], img: U("1574782091246-c65ed4510300") },
   { kw: ["ramen", "noodle", "udon", "pho"], img: U("1526318896980-cf78c088247c") },
-  { kw: ["sandwich", "panini", "melt", "toast"], img: U("1568901346375-23c9450c58cd") },
+  { kw: ["sandwich", "panini", "melt"], img: U("1627308595181-555c07449ff3") },
+  { kw: ["toast"], img: U("1601585099780-6b176dc702af") },
   { kw: ["wrap", "shawarma", "doner"], img: U("1574782091246-c65ed4510300") },
   { kw: ["kebab", "skewer", "kofta", "chops"], img: U("1599487488170-d11ec9c172f0") },
   { kw: ["risotto", "paella", "biryani", "mansaf", "bibimbap"], img: U("1781976250672-87b5f123c031") },
@@ -48,7 +50,8 @@ const PHOTOS = [
   { kw: ["egg", "omelet"], img: U("1525351484163-7529414344d8") },
   { kw: ["avocado"], img: U("1631311915775-e8f4250a7d4e") },
   { kw: ["oatmeal", "porridge", "overnight", "granola", "chia", "muesli"], img: U("1548807371-30dc1bbe6cb5") },
-  { kw: ["pancake", "waffle", "french toast", "croissant", "muffin", "bagel"], img: U("1497888329096-51c27beff665") },
+  { kw: ["pancake", "waffle", "french toast"], img: U("1565299624946-b28f40a0ae38") },
+  { kw: ["croissant", "muffin", "bagel"], img: U("1613152834645-875f24eb961c") },
   { kw: ["yogurt", "labneh", "parfait", "berries", "berry", "fruit"], img: U("1497888329096-51c27beff665") },
   // Ingredients (lowest priority).
   { kw: ["chicken", "tikka", "roti"], img: U("1630564510761-a560db92a09b") },
