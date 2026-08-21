@@ -27,13 +27,28 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
   );
   const dayFilled = (d) => slots.filter((s) => (plan[d][s.key] || "").trim()).length;
 
+  const slotLabel = (slots.find((s) => s.key === slotType)?.label) || "";
+  const targetLabel = scope === "all"
+    ? `${t("everyDay") || "Every day"} · ${slotLabel}`
+    : `${t("day") || "Day"} ${activeDay + 1} · ${slotLabel}`;
+
   const handleAddMeal = (meal) => {
+    const prev = scope === "all" ? plan.map((d) => d[slotType] || "") : [plan[activeDay]?.[slotType] || ""];
     if (scope === "all") {
       plan.forEach((_, d) => setSlot(d, slotType, meal));
-      return;
+    } else {
+      setSlot(activeDay, slotType, meal);
+      if (activeDay < plan.length - 1) setActiveDay(activeDay + 1);
     }
-    setSlot(activeDay, slotType, meal);
-    if (activeDay < plan.length - 1) setActiveDay(activeDay + 1);
+    toast.success(`${meal} → ${targetLabel}`, {
+      action: {
+        label: t("undo") || "Undo",
+        onClick: () => {
+          if (scope === "all") prev.forEach((v, d) => setSlot(d, slotType, v));
+          else setSlot(activeDay, slotType, prev[0]);
+        },
+      },
+    });
   };
 
   const copyToNextDay = (d) => {
@@ -141,7 +156,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         </div>
       </div>
 
-      <MealGallery diet={diet} onPick={handleAddMeal} />
+      <MealGallery diet={diet} onPick={handleAddMeal} targetLabel={targetLabel} />
 
       <button
         onClick={onAutoFill}
