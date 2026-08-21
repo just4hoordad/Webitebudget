@@ -41,29 +41,27 @@ function MealCard({ meal, onPick }) {
   );
 }
 
-const SECTIONS = [
-  { key: "breakfast", labelKey: "breakfast" },
-  { key: "lunch", labelKey: "lunch" },
-  { key: "dinner", labelKey: "dinner" },
-];
-
-export default function MealGallery({ diet, onPick, targetLabel }) {
+export default function MealGallery({ diet, onPick, targetLabel, activeType }) {
   const { t } = useLanguage();
   const [query, setQuery] = useState("");
   const all = MEAL_LIBRARY[diet] || FALLBACK_MEALS;
 
-  const grouped = useMemo(() => {
+  const meals = useMemo(() => {
+    let list = all;
+    if (activeType) list = list.filter((m) => m.type === activeType);
     const q = query.trim().toLowerCase();
-    const filtered = !q ? all : all.filter((m) => m.name.toLowerCase().includes(q));
-    return SECTIONS.map((s) => ({ ...s, meals: filtered.filter((m) => m.type === s.key) }));
-  }, [all, query]);
+    if (q) list = list.filter((m) => m.name.toLowerCase().includes(q));
+    return list;
+  }, [all, activeType, query]);
 
-  const hasAny = grouped.some((s) => s.meals.length > 0);
+  const slotLabel = activeType ? (t(activeType) || activeType) : "";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-foreground">{t("addMealTitle") || "Tap a meal to add it"}</p>
+        <p className="text-sm font-medium text-foreground">
+          {slotLabel ? `${slotLabel} ${t("meals") || "meals"}` : (t("addMealTitle") || "Tap a meal to add it")}
+        </p>
         {targetLabel && (
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 rounded-full px-2.5 py-1 whitespace-nowrap">
             <ArrowRight className="h-3 w-3" /> {targetLabel}
@@ -82,21 +80,12 @@ export default function MealGallery({ diet, onPick, targetLabel }) {
         />
       </div>
 
-      {hasAny ? (
-        grouped.map((section) =>
-          section.meals.length === 0 ? null : (
-            <div key={section.key} className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
-                {t(section.labelKey) || section.key}
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {section.meals.map((m, i) => (
-                  <MealCard key={`${section.key}-${m.name}-${i}`} meal={m} onPick={() => onPick(m.name)} />
-                ))}
-              </div>
-            </div>
-          )
-        )
+      {meals.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {meals.map((m, i) => (
+            <MealCard key={`${m.name}-${i}`} meal={m} onPick={() => onPick(m.name)} />
+          ))}
+        </div>
       ) : (
         <p className="text-xs text-muted-foreground text-center py-4">
           {t("noMealsFound") || "No meals match your search."}

@@ -156,7 +156,7 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         </div>
       </div>
 
-      <MealGallery diet={diet} onPick={handleAddMeal} targetLabel={targetLabel} />
+      <MealGallery diet={diet} onPick={handleAddMeal} targetLabel={targetLabel} activeType={slotType} />
 
       <button
         onClick={onAutoFill}
