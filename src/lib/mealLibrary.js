@@ -230,7 +230,7 @@ export const MEAL_LIBRARY = {
     { name: "Peanut butter banana toast", emoji: "🍌", img: U(P.banana), color: G.yellow, type: "breakfast" },
     { name: "Berry smoothie", emoji: "🫐", img: U(P.smoothie), color: G.violet, type: "breakfast" },
     { name: "Granola with almond milk", emoji: "🥣", img: U(P.granola), color: G.amber, type: "breakfast" },
-    { name: "Tofu scramble", emoji: "🍳", img: U(P.eggs), color: G.yellow, type: "breakfast" },
+    { name: "Tofu scramble", emoji: "🍽️", img: U(P.vegBowl), color: G.green, type: "breakfast" },
     { name: "Chia pudding", emoji: "🥣", img: U(P.yogurt), color: G.violet, type: "breakfast" },
     { name: "Vegan pancakes", emoji: "🥞", img: U(P.pancakes), color: G.amber, type: "breakfast" },
     { name: "Fruit and nut bowl", emoji: "🥜", img: U(P.granola), color: G.amber, type: "breakfast" },
