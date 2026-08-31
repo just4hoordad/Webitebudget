@@ -54,6 +54,7 @@ export default function MealPlan() {
   const searchKey = window.location.search;
   const lastGenKey = useRef(null);
   const genCache = useRef({});
+  const planCache = useRef({});
 
   useEffect(() => {
     if (location.pathname !== "/meal-plan") return;
@@ -429,6 +430,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
+    const sig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, totalDays });
+    const cached = planCache.current[sig];
+    if (cached) return cached;
+
     const allWeeks = [];
     let usedMeals = [];
     setLoadingPlan(true);
@@ -456,6 +461,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           .flatMap((wk) => wk.days.flatMap((d) => [d.breakfast, d.lunch, d.dinner]))
           .filter(Boolean);
       }
+      planCache.current[sig] = allWeeks;
       return allWeeks;
     } finally {
       setLoadingPlan(false);
@@ -474,13 +480,21 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         .map(item => `${item.name} (${item.quantity})`)
     ).join(", ");
 
-    setLoadingPlan(true);
     const daysInWeek = Math.min(totalDays, 7);
+    const wkSig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, daysInWeek });
+    const wkCached = planCache.current[wkSig];
+    if (wkCached) {
+      setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: wkCached }] });
+      return;
+    }
+    setLoadingPlan(true);
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek),
       response_json_schema: weeklyPlanSchema
     });
-    setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: result.days || [] }] });
+    const days = result.days || [];
+    planCache.current[wkSig] = days;
+    setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days }] });
     setLoadingPlan(false);
   };
 
