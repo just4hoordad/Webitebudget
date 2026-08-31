@@ -14,6 +14,19 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
   const search = async () => {
     const trimmed = query.trim();
     if (!trimmed) return;
+    const addKey = JSON.stringify({ q: trimmed, stores, diet });
+    try {
+      const raw = localStorage.getItem("bb_additem_swaps");
+      if (raw) {
+        const map = JSON.parse(raw);
+        const entry = map[addKey];
+        if (entry && Date.now() - entry.ts < 24 * 60 * 60 * 1000) {
+          setAlternatives(entry.alternatives);
+          setSelected(null);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
     setLoading(true);
     setAlternatives([]);
     setSelected(null);
@@ -48,7 +61,14 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
         }
       }
     });
-    setAlternatives(result.alternatives || []);
+    const alts = result.alternatives || [];
+    setAlternatives(alts);
+    try {
+      const raw = localStorage.getItem("bb_additem_swaps");
+      const map = raw ? JSON.parse(raw) : {};
+      map[addKey] = { ts: Date.now(), alternatives: alts };
+      localStorage.setItem("bb_additem_swaps", JSON.stringify(map));
+    } catch { /* ignore */ }
     setLoading(false);
   };
 

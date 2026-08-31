@@ -53,6 +53,7 @@ export default function MealPlan() {
   const location = useLocation();
   const searchKey = window.location.search;
   const lastGenKey = useRef(null);
+  const genCache = useRef({});
 
   useEffect(() => {
     if (location.pathname !== "/meal-plan") return;
@@ -75,6 +76,14 @@ export default function MealPlan() {
   }, [currentLanguage.code]);
 
   const generateGroceries = async (retryCount = 0) => {
+    const langKey = `${searchKey}::${currentLanguage.code}`;
+    const cached = genCache.current[langKey];
+    if (cached && retryCount === 0) {
+      setRemovedItems(new Set());
+      setGroceries(cached);
+      setLoading(false);
+      return;
+    }
     setRemovedItems(new Set());
     setLoading(true);
     try {
@@ -135,8 +144,10 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
         }
       });
       setGroceries(result);
+      genCache.current[langKey] = result;
     } catch (err) {
-      if (retryCount < 2) {
+      const isTransient = err?.name === "TypeError" || err?.code === "ECONNABORTED" || /network|timeout|fetch/i.test(err?.message || "");
+      if (isTransient && retryCount < 2) {
         return generateGroceries(retryCount + 1);
       }
       toast.error("Failed to generate grocery list. Please try again.");

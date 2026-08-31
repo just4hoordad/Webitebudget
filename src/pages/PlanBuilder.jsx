@@ -154,7 +154,8 @@ export default function PlanBuilder() {
         })
         .join("\n");
 
-      const groceryPromise = base44.integrations.Core.InvokeLLM({
+      // Single merged call: grocery list + (optional) prep guide in one response — halves credit use vs two parallel calls.
+      const res = await base44.integrations.Core.InvokeLLM({
         prompt: `Here is a user's meal plan for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s)${enabled.diet ? ` on a ${diet} diet` : ""}:
 ${lines}
 ${enabled.macros ? `\nThe user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.` : ""}
@@ -165,9 +166,52 @@ ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers 
 - Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? stores.join(", ") : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.
 - quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
 - All item names in ${currentLanguage.label}, category names in English.
-${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}`,
+${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
+
+PREP GUIDE: In the same response, under "prep", write a short cooking guide for each day. Return a "days" array with exactly ${plan.length} entries, one per plan day in order. For each day provide "breakfast", "lunch", "dinner" objects; each object has: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical cooking steps). Leave a meal object with meal: "" if that slot is blank. All prep text in ${currentLanguage.label}.` : ""}`,
         model: "gemini_3_flash",
-        response_json_schema: {
+        response_json_schema: prepEnabled ? {
+          type: "object",
+          properties: {
+            total_estimated_cost: { type: "number" },
+            categories: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  items: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" }, quantity: { type: "string" },
+                        unit_price: { type: "number" }, price: { type: "number" },
+                        normal_price: { type: "number" }, store: { type: "string" }, calories_info: { type: "string" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            prep: {
+              type: "object",
+              properties: {
+                days: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      breakfast: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                      lunch: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                      dinner: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } : {
           type: "object",
           properties: {
             total_estimated_cost: { type: "number" },
@@ -195,43 +239,16 @@ ${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat 
         },
       });
 
-      const prepPromise = prepEnabled
-        ? base44.integrations.Core.InvokeLLM({
-            model: "gemini_3_flash",
-            prompt: `Here is a user's meal plan for ${people} person(s) over ${plan.length} day(s):
-${lines}
-
-For each day and each meal that has a name, write a short cooking guide. Return an array "days" with exactly ${plan.length} entries. For each meal object provide: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical steps to cook it). Leave a meal object empty (meal: "") if the user left that slot blank. All text in ${currentLanguage.label}.`,
-            response_json_schema: {
-              type: "object",
-              properties: {
-                days: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      breakfast: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
-                      lunch: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
-                      dinner: { type: "object", properties: { meal: { type: "string" }, portion: { type: "string" }, prep: { type: "string" } } },
-                    },
-                  },
-                },
-              },
-            },
-          })
-        : null;
-
-      // Show the grocery list the moment it's ready — don't block on the prep guide.
-      const res = await groceryPromise;
-      setGrocery(res);
+      const grocery = { total_estimated_cost: res.total_estimated_cost, categories: res.categories };
+      const prep = res.prep || null;
+      setGrocery(grocery);
+      setPrep(prep);
       setPhase("result");
 
-      // Cache so re-generation on the same plan is instant.
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: null }));
-      } catch { /* ignore cache write errors */ }
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery, prep }));
+      } catch { /* ignore */ }
 
-      // Auto-save to the library (fire-and-forget, doesn't block the UI).
       base44.entities.MealPlan.create({
         name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
         diet,
@@ -239,13 +256,13 @@ For each day and each meal that has a name, write a short cooking guide. Return 
         stores: stores.join(", "),
         macros,
         plan,
-        groceryList: res,
+        groceryList: grocery,
+        prep,
       })
         .then((rec) => {
           savedPlanId.current = rec?.id ?? null;
           savedPlanName.current = rec?.name ?? null;
           toast.success(t("planAutoSaved"));
-          // Auto-sync the saved plan to Google Calendar when the user is connected (fire-and-forget).
           if (rec?.id) {
             base44.functions.invoke("googleCalendarSync", { planId: rec.id })
               .then(() => toast.success(t("calendarSynced") || "Synced to Google Calendar"))
@@ -253,23 +270,6 @@ For each day and each meal that has a name, write a short cooking guide. Return 
           }
         })
         .catch((e) => { console.error("Auto-save failed:", e); toast.error(t("planAutoSaveFailed")); });
-
-      // Prep guide streams in afterwards and updates the result view when ready.
-      if (prepPromise) {
-        prepPromise
-          .then(async (prepRes) => {
-            setPrep(prepRes);
-            try {
-              localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: res, prep: prepRes }));
-            } catch { /* ignore cache write errors */ }
-            const id = savedPlanId.current;
-            if (id) {
-              try { await base44.entities.MealPlan.update(id, { prep: prepRes }); }
-              catch (e) { console.error("Prep save failed:", e); }
-            }
-          })
-          .catch(() => { /* prep is optional */ });
-      }
     } catch {
       toast.error("Failed to build grocery list. Please try again.");
     } finally {

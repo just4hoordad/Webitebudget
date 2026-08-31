@@ -9,7 +9,23 @@ export default function GrocerySwapModal({ item, category, diet, budget, onSwap,
   const [alternatives, setAlternatives] = useState(null);
   const [selected, setSelected] = useState(null);
 
-  const fetchAlternatives = async () => {
+  const fetchAlternatives = async (force = false) => {
+    const swapKey = JSON.stringify({ name: item.name, quantity: item.quantity, price: item.price, category, diet });
+    if (!force) {
+      try {
+        const raw = localStorage.getItem("bb_grocery_swaps");
+        if (raw) {
+          const map = JSON.parse(raw);
+          const entry = map[swapKey];
+          if (entry && Date.now() - entry.ts < 24 * 60 * 60 * 1000) {
+            setAlternatives(entry.alternatives);
+            setSelected(null);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+    }
     setLoading(true);
     setAlternatives(null);
     setSelected(null);
@@ -51,7 +67,14 @@ For each alternative, provide:
         }
       }
     });
-    setAlternatives(result.alternatives || []);
+    const alts = result.alternatives || [];
+    setAlternatives(alts);
+    try {
+      const raw = localStorage.getItem("bb_grocery_swaps");
+      const map = raw ? JSON.parse(raw) : {};
+      map[swapKey] = { ts: Date.now(), alternatives: alts };
+      localStorage.setItem("bb_grocery_swaps", JSON.stringify(map));
+    } catch { /* ignore */ }
     setLoading(false);
   };
 
@@ -137,7 +160,7 @@ For each alternative, provide:
 
         {/* Footer */}
         <div className="bg-card border-t border-border px-5 py-4 pb-6 flex gap-3 shrink-0">
-          <Button variant="outline" size="sm" onClick={fetchAlternatives} disabled={loading} className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => fetchAlternatives(true)} disabled={loading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Regenerate
           </Button>

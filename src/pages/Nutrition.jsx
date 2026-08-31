@@ -193,6 +193,18 @@ export default function Nutrition() {
   }, []);
 
   const fetchNutrition = async () => {
+    const nKey = JSON.stringify({ diet, budget, stores, people, calories, junkPercent });
+    try {
+      const raw = localStorage.getItem("bb_nutrition_cache");
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.key === nKey) {
+          setNutrition(cached.data);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
     setLoading(true);
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `You are a nutritionist. Estimate the total monthly macronutrient breakdown for a person following a ${diet} diet in Germany with these parameters:
@@ -252,6 +264,7 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
       },
     });
     setNutrition(result);
+    try { localStorage.setItem("bb_nutrition_cache", JSON.stringify({ key: nKey, data: result })); } catch { /* ignore */ }
     setLoading(false);
   };
 

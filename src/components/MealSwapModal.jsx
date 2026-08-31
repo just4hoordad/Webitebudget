@@ -1,60 +1,35 @@
 import { useState, useEffect } from "react";
 import { X, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
+import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 
 export default function MealSwapModal({ meal, mealType, dayIndex, availableIngredients, targetCalories, diet, onSwap, onClose }) {
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState(null);
   const [selected, setSelected] = useState(null);
 
-  const fetchAlternatives = async () => {
-    setLoading(true);
-    setAlternatives(null);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a meal planning assistant. Suggest exactly 3 alternative ${mealType} meals to replace: "${meal.name}".
-
-CONSTRAINTS:
-- Use ONLY ingredients from this list: ${availableIngredients.join(", ")}
-- Target calories: ~${targetCalories} kcal (±50 kcal)
-- Diet type: ${diet}
-- Meals must be realistic and easy to prepare
-
-For each alternative, provide:
-- A short creative meal name
-- Exact calorie count
-- List of ingredients used (name + quantity)
-- A one-line description`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          alternatives: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                calories: { type: "number" },
-                description: { type: "string" },
-                ingredients: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string" },
-                      quantity: { type: "string" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-    setAlternatives(result.alternatives || []);
-    setLoading(false);
+  const fetchAlternatives = () => {
+    const lib = MEAL_LIBRARY[diet] || FALLBACK_MEALS;
+    const pool = lib.filter((m) => m.type === mealType && m.name !== meal.name);
+    if (!pool.length) {
+      setAlternatives([]);
+      return;
+    }
+    // Fisher–Yates shuffle, take 3 distinct picks (instant, no LLM call).
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setAlternatives(
+      shuffled.slice(0, 3).map((m) => ({
+        name: m.name,
+        calories: Math.round(targetCalories),
+        description: "A simple pick from your meal library.",
+        ingredients: [],
+      }))
+    );
   };
 
   useEffect(() => {
