@@ -51,7 +51,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
     return () => clearTimeout(timer);
   }, [currentIndex, steps]);
 
-  const progress = ((currentIndex + 1) / steps.length) * 100;
+  const progress = Math.min(((currentIndex + 1) / steps.length) * 100, 90);
   const feedRef = useRef(null);
 
   useEffect(() => {
