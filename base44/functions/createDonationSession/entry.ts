@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
-import { stripeHeaders, appId } from "../../shared/stripe.ts";
+import { stripeHeaders, appId, safeOrigin } from "../../shared/stripe.ts";
 
 export default async function (req) {
   try {
@@ -23,7 +23,7 @@ export default async function (req) {
     }
     const unitAmount = Math.round(amount * 100);
 
-    const origin = body.origin || req.headers.get("origin") || "https://webitebudget.base44.app";
+    const origin = safeOrigin(body.origin, req.headers.get("origin"));
 
     const params = new URLSearchParams();
     params.set("mode", "payment");

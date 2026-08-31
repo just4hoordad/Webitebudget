@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
-import { stripeHeaders, findProPriceId, appId } from "../../shared/stripe.ts";
+import { stripeHeaders, findProPriceId, appId, safeOrigin } from "../../shared/stripe.ts";
 
 export default async function (req) {
   try {
@@ -15,7 +15,7 @@ export default async function (req) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const origin = body.origin || req.headers.get("origin") || "https://webitebudget.base44.app";
+    const origin = safeOrigin(body.origin, req.headers.get("origin"));
 
     const priceId = await findProPriceId();
 

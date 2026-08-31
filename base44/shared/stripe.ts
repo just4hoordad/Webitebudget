@@ -21,6 +21,16 @@ export function appId() {
   return getSecret("BASE44_APP_ID") || "";
 }
 
+const ALLOWED_ORIGINS = ["https://webitebudget.base44.app"];
+
+// Validate redirect origin against an allowlist to prevent open-redirect phishing.
+export function safeOrigin(...candidates) {
+  for (const c of candidates) {
+    if (c && ALLOWED_ORIGINS.includes(c)) return c;
+  }
+  return ALLOWED_ORIGINS[0];
+}
+
 // Find the active recurring price for the Pro product.
 export async function findProPriceId() {
   const res = await fetch(
@@ -45,6 +55,9 @@ export async function verifyStripeSignature(payload, signatureHeader, secret) {
   const timestamp = parts["t"];
   const v1 = parts["v1"];
   if (!timestamp || !v1) return false;
+  // Reject replayed webhooks: the signed timestamp must be within 5 minutes.
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
 
   const signedPayload = `${timestamp}.${payload}`;
   const encoder = new TextEncoder();

@@ -13,6 +13,11 @@ export default function Contact() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // Escape user input before inserting into email subject/body to prevent HTML/content injection.
+  const esc = (s) => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) return;
@@ -20,8 +25,8 @@ export default function Contact() {
     try {
       await base44.integrations.Core.SendEmail({
         to: "Hoordad.sedaghat@gmail.com",
-        subject: `Contact from ${form.name} <${form.email}>`,
-        body: `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
+        subject: `Contact from ${esc(form.name)} <${esc(form.email)}>`,
+        body: `Name: ${esc(form.name)}<br>Email: ${esc(form.email)}<br><br>${esc(form.message).replace(/\n/g, "<br>")}`,
       });
       setSent(true);
       toast.success(p.contactToast);
