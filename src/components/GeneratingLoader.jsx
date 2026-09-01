@@ -49,7 +49,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
       const next = currentIndex + 1;
       setCurrentIndex(next);
       setVisibleSteps((prev) => [...prev, steps[next]]);
-    }, 2600);
+    }, 4000);
     return () => clearTimeout(timer);
   }, [currentIndex, steps]);
 
