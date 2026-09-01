@@ -767,11 +767,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBasket className="h-5 w-5 text-primary" />
-                <span className="font-heading font-semibold text-foreground">{t("estimatedTotal")}</span>
+                <span className="font-heading font-semibold text-foreground">{t("estimatedTotalForDays", { days })}</span>
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
-              €{activeTotal.toFixed(2)}
-              <span className="text-sm font-normal text-muted-foreground ml-1">/ {days} {t("days")}</span>
+                €{activeTotal.toFixed(2)}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1108,7 +1107,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             <div className="flex items-center gap-3">
               <ShoppingBasket className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("estimatedTotal")}</p>
+                <p className="text-xs text-muted-foreground">{t("estimatedTotalForDays", { days })}</p>
                 <p className="font-heading text-2xl font-bold text-primary">€{activeTotal.toFixed(2)}</p>
               </div>
             </div>
