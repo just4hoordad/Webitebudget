@@ -35,10 +35,12 @@ export default function GeneratingLoader({ type = "grocery" }) {
   const steps = type === "plan" ? PLAN_STEPS : GROCERY_STEPS;
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [creep, setCreep] = useState(0);
 
   useEffect(() => {
     setVisibleSteps([steps[0]]);
     setCurrentIndex(0);
+    setCreep(0);
   }, [type]);
 
   useEffect(() => {
@@ -51,7 +53,17 @@ export default function GeneratingLoader({ type = "grocery" }) {
     return () => clearTimeout(timer);
   }, [currentIndex, steps]);
 
-  const progress = Math.min(((currentIndex + 1) / steps.length) * 100, 90);
+  // Once the step feed is done, creep slowly toward 99% so the bar keeps
+  // moving instead of freezing at 90% while the generation completes.
+  useEffect(() => {
+    if (currentIndex < steps.length - 1) return;
+    const delay = 1500 + creep * 350;
+    const timer = setTimeout(() => setCreep((c) => c + 1), delay);
+    return () => clearTimeout(timer);
+  }, [currentIndex, steps.length, creep]);
+
+  const baseProgress = Math.min(((currentIndex + 1) / steps.length) * 100, 90);
+  const progress = Math.min(baseProgress + creep, 99);
   const feedRef = useRef(null);
 
   useEffect(() => {
