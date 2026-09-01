@@ -4,7 +4,7 @@ import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2 } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -29,6 +29,7 @@ export default function MealPlan() {
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
   const diet = params.get("diet") || "balanced";
+  const goal = params.get("goal") || "maintain";
   const people = params.get("people") || 1;
   const calories = params.get("calories") || 2000;
   const days = parseInt(params.get("days") || "30", 10);
@@ -530,6 +531,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     return map[englishName] || englishName;
   };
 
+  const DIET_LABEL_KEYS = { balanced: "balanced", vegetarian: "vegetarian", vegan: "vegan", "high-protein": "highProtein", pescatarian: "pescatarian", "gluten-free": "glutenFree", halal: "halal", frozen: "frozenFoods", "half-cooked": "halfCooked" };
+  const GOAL_LABEL_KEYS = { lose: "loseWeight", maintain: "maintain", gain: "gainWeight", muscle: "buildMuscle" };
+  const dietLabel = t(DIET_LABEL_KEYS[diet] || "balanced");
+  const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
+
   const getAvailableIngredientNames = () =>
     groceries?.categories?.flatMap(cat =>
       cat.items
@@ -762,6 +768,14 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         <GeneratingLoader type="grocery" />
       ) : (
         <>
+          {/* List intro */}
+          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {t("groceryListIntro", { diet: dietLabel, days, goal: goalLabel })}
+            </p>
+          </div>
+
           {/* Budget Summary */}
           <div className="space-y-3">
             <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">

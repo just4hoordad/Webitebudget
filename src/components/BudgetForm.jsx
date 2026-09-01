@@ -137,6 +137,7 @@ export default function BudgetForm() {
       params.set("people", people);
       const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
       params.set("calories", goalKcal * people);
+      params.set("goal", calorieGoal);
     }
     if (enabled.diet) {
       params.set("diet", selectedDiet);
