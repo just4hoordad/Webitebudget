@@ -990,7 +990,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                <div key={weekIndex} className="bg-card border border-border rounded-xl overflow-hidden">
                  <div className="bg-primary px-5 py-3 flex items-center justify-between">
                    <h2 className="font-heading font-semibold text-primary-foreground">
-                     {weeklyPlan.type === "unique" ? `Week ${week.week}` : t("yourWeeklyMealPlan")}
+                     {t("weekLabel", { n: week.week })}
                    </h2>
                  </div>
                  <div className="divide-y divide-border">
