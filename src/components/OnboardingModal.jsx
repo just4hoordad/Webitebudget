@@ -3,12 +3,12 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Sparkles, TrendingDown, Salad, ShoppingCart, Zap, Lock, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Sparkles, TrendingDown, Salad, ShoppingCart, Zap, Lock, ArrowRight, ArrowLeft, Check, PartyPopper } from "lucide-react";
 
 const FEATURES = [
   { icon: TrendingDown, titleKey: "feature1Title", descKey: "feature1Desc", accent: "text-primary", wrap: "bg-primary/10" },
-  { icon: Salad, titleKey: "feature2Title", descKey: "feature2Desc", accent: "text-accent-foreground", wrap: "bg-accent/15" },
-  { icon: ShoppingCart, titleKey: "feature3Title", descKey: "feature3Desc", accent: "text-sky-600", wrap: "bg-sky-100" },
+  { icon: Salad, titleKey: "feature2Title", descKey: "feature2Desc", accent: "text-chart-2", wrap: "bg-chart-2/10" },
+  { icon: ShoppingCart, titleKey: "feature3Title", descKey: "feature3Desc", accent: "text-chart-4", wrap: "bg-chart-4/10" },
 ];
 
 export default function OnboardingModal({ open, onClose }) {
@@ -35,12 +35,12 @@ export default function OnboardingModal({ open, onClose }) {
         <DialogDescription className="sr-only">{t("heroSubtitle")}</DialogDescription>
 
         {/* Progress dots */}
-        <div className="flex items-center justify-center gap-1.5 pt-5 pb-2 bg-dark">
+        <div className="flex items-center justify-center gap-1.5 pt-5 pb-2 bg-card border-b border-border">
           {Array.from({ length: total }).map((_, i) => (
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === step ? "w-6 bg-primary" : i < step ? "w-1.5 bg-primary/50" : "w-1.5 bg-white/25"
+                i === step ? "w-6 bg-primary" : i < step ? "w-1.5 bg-primary/50" : "w-1.5 bg-muted-foreground/25"
               }`}
             />
           ))}
@@ -49,23 +49,25 @@ export default function OnboardingModal({ open, onClose }) {
         <div className="min-h-[320px]">
           {/* Step 0 — Welcome (hero) */}
           {step === 0 && (
-            <div className="bg-dark text-dark-foreground px-6 pb-8 pt-4 text-center relative overflow-hidden">
-              <div className="pointer-events-none absolute inset-0 opacity-[0.08] select-none">
-                <span className="absolute top-2 left-3 text-4xl">🥬</span>
-                <span className="absolute top-8 right-4 text-3xl">🥕</span>
-                <span className="absolute bottom-4 left-8 text-3xl">🍞</span>
-                <span className="absolute bottom-2 right-3 text-5xl">🛒</span>
-              </div>
-              <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-primary/25 blur-3xl" />
+            <div className="relative bg-gradient-to-br from-card via-card to-primary/5 px-6 pb-8 pt-6 text-center overflow-hidden">
+              <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
               <div className="relative space-y-4">
+                <div className="flex items-center justify-center gap-2.5">
+                  <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
+                    <ShoppingCart className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <span className="font-heading font-bold text-lg tracking-tight text-foreground">
+                    Budget<span className="text-primary">Bite</span>
+                  </span>
+                </div>
                 <div className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">
                   <Sparkles className="h-3.5 w-3.5" />
                   {t("aiPowered")}
                 </div>
-                <h2 className="font-heading text-2xl font-bold leading-tight text-balance">
+                <h2 className="font-heading text-2xl font-bold leading-tight text-balance text-foreground">
                   {t("heroTitle1")} <span className="text-primary">{t("heroTitle2")}</span>
                 </h2>
-                <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto">
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
                   {t("heroSubtitle")}
                 </p>
               </div>
@@ -75,7 +77,9 @@ export default function OnboardingModal({ open, onClose }) {
           {/* Step 1 — Free / no login */}
           {step === 1 && (
             <div className="px-6 py-8 text-center space-y-5">
-              <div className="text-4xl">🎉</div>
+              <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <PartyPopper className="h-7 w-7 text-primary" />
+              </div>
               <h2 className="font-heading text-xl font-bold text-balance">{t("freeBannerTitle")}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{t("freeBannerDesc")}</p>
               <div className="flex gap-2 justify-center flex-wrap">
