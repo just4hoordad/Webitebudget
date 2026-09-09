@@ -14,10 +14,10 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
     : "text-foreground";
   const labelColor = onGlass ? "text-white/70" : "text-muted-foreground";
   const wrapClass = onGlass
-    ? "flex items-center justify-between"
+    ? "flex items-center justify-between gap-2 flex-wrap"
     : "flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3";
 
-  const btnBase = "px-3 py-1 rounded-full text-[11px] font-medium transition-colors";
+  const btnBase = "px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors";
   const adBtn = onGlass
     ? `${btnBase} border border-white/40 text-white hover:bg-white/15`
     : `${btnBase} border border-amber-500/50 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10`;
@@ -28,13 +28,13 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
 
   return (
     <div className={`${wrapClass} ${className}`}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 min-w-0">
         {isPro ? (
-          <Crown className="h-4 w-4 text-primary" />
+          <Crown className="h-4 w-4 text-primary shrink-0" />
         ) : (
-          <Leaf className="h-4 w-4 text-primary" />
+          <Leaf className="h-4 w-4 text-primary shrink-0" />
         )}
-        <span className={`font-heading text-2xl font-bold leading-none ${numColor}`}>
+        <span className={`font-heading ${onGlass ? "text-xl" : "text-2xl"} font-bold leading-none ${numColor}`}>
           {credits}
         </span>
         <span className={`text-[10px] font-heading font-bold uppercase tracking-wide ${labelColor}`}>
@@ -44,7 +44,7 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
       {isPro ? (
         <span className={`text-[11px] font-medium ${proLabel}`}>Ad-free 👑</span>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button type="button" onClick={openWatchAd} className={adBtn}>
             +1
           </button>

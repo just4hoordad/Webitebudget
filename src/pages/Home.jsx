@@ -58,10 +58,10 @@ export default function Home() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
-          <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-hidden">
+          <div className="absolute bottom-6 left-5 right-5 sm:left-6 sm:right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 sm:p-6 overflow-hidden">
             {/* Credit header — inline on the glass card */}
             <CreditBar variant="onGlass" className="mb-3" />
-            <div className="border-t border-white/15 -mx-6 mb-4" />
+            <div className="border-t border-white/15 mb-4" />
             <div className="flex items-center gap-2.5 mb-3">
               <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
                 <ShoppingCart className="h-4 w-4 text-primary-foreground" />
