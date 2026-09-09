@@ -6,6 +6,9 @@ export const planBuilderTranslations = {
   en: {
     planBuilderNav: "Plan",
     planBuilderBadge: "Plan-first meal planning",
+    pbViewList: "List",
+    pbViewWeek: "Week",
+    pbViewMonth: "Month",
     planBuilderTitle: "Pick your meals. We'll shop for you.",
     planBuilderSubtitle: "Browse a meal library, fill your days, and get the exact grocery list you need to cook them.",
     buildMyPlan: "Build my plan",
@@ -73,6 +76,9 @@ export const planBuilderTranslations = {
   de: {
     planBuilderNav: "Plan",
     planBuilderBadge: "Planbasierte Planung",
+    pbViewList: "Liste",
+    pbViewWeek: "Woche",
+    pbViewMonth: "Monat",
     planBuilderTitle: "Wähle deine Gerichte. Wir kaufen ein.",
     planBuilderSubtitle: "Durchstöbere die Gerichte-Bibliothek, fülle deine Tage und erhalte die genaue Einkaufsliste zum Kochen.",
     buildMyPlan: "Plan erstellen",
