@@ -58,7 +58,7 @@ export default function Home() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
-          <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+          <div className="absolute bottom-6 left-6 right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-hidden">
             {/* Credit header — inline on the glass card */}
             <CreditBar variant="onGlass" className="mb-3" />
             <div className="border-t border-white/15 -mx-6 mb-4" />
