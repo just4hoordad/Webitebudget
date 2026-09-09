@@ -1,80 +1,83 @@
-import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle, Flame } from "lucide-react";
-import StoreBadge from "@/components/StoreBadge";
+import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle } from "lucide-react";
 
 export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought }) {
+  const kcalMatch = item.calories_info?.match(/(\d[\d.]*)\s*kcal/i);
+  const kcalShort = kcalMatch ? `${kcalMatch[1]} kcal` : null;
+
+  const hasMultiplier = item.unit_price != null && item.unit_price !== item.price && item.unit_price > 0;
+  const qty = hasMultiplier ? Math.round(item.price / item.unit_price) : null;
+  const displayPrice = hasMultiplier ? item.unit_price : item.price;
+  const savings = item.normal_price != null && item.normal_price > item.price ? item.normal_price - item.price : 0;
+
+  const subParts = [item.store, item.quantity, kcalShort].filter(Boolean);
+
+  const nameCls = bought ? "text-muted-foreground line-through opacity-60" : "text-foreground";
+
   return (
-    <div className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <button
-          onClick={onToggleBought}
-          className="shrink-0"
-          title="Mark as bought"
-          aria-label="Mark as bought"
-        >
-          {bought
-            ? <CheckCircle2 className="h-5 w-5 text-primary" />
-            : <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />}
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className={`font-medium flex items-center gap-2 flex-wrap ${bought ? "text-muted-foreground line-through opacity-60" : "text-foreground"}`}>
-            {item.name}
-            {item.store && !item._loading && <StoreBadge store={item.store} />}
-            {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+    <div className="flex items-center px-5 py-3.5 gap-3 hover:bg-muted/30 transition-colors">
+      <button
+        onClick={onToggleBought}
+        className="shrink-0"
+        title="Mark as bought"
+        aria-label="Mark as bought"
+      >
+        {bought
+          ? <CheckCircle2 className="h-5 w-5 text-primary" />
+          : <Circle className="h-5 w-5 text-muted-foreground/50 hover:text-primary transition-colors" />}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p className={`font-medium text-[15px] leading-tight truncate ${nameCls}`}>
+          {item.name}
+          {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary inline ml-2 align-middle" />}
+        </p>
+        {item._loading ? (
+          <p className="text-xs text-primary animate-pulse mt-1">Searching {stores} for best price…</p>
+        ) : (
+          <p className={`text-xs mt-1 truncate ${bought ? "text-muted-foreground/50 line-through" : "text-muted-foreground"}`}>
+            {subParts.map((p, i) => (
+              <span key={i}>
+                {i > 0 && <span className="mx-1.5 opacity-40">·</span>}
+                {p}
+              </span>
+            ))}
           </p>
-          {item._loading ? (
-            <p className="text-xs text-primary animate-pulse">Searching {stores} for best price…</p>
-          ) : (
-            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-              <span className={`text-xs ${bought ? "text-muted-foreground/60 line-through" : "text-muted-foreground"}`}>{item.quantity}</span>
-              {item.calories_info && (
-                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${bought ? "bg-muted text-muted-foreground/60 line-through" : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"}`}>
-                  <Flame className="h-3 w-3 shrink-0" />
-                  {item.calories_info}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-3 ml-4">
-        {!item._loading && (
-          <div className="text-right">
-            {item.unit_price != null && item.unit_price !== item.price ? (
-              <>
-                <p className={`font-heading text-xl font-bold leading-none ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>€{item.unit_price?.toFixed(2)}</p>
-                <div className="mt-1.5 flex items-center justify-end gap-1.5">
-                  <span className="inline-flex items-center bg-primary/15 text-primary text-xs font-heading font-bold px-2 py-0.5 rounded-full">
-                    × {Math.round(item.price / item.unit_price)}
-                  </span>
-                  <span className={`font-heading text-sm font-bold ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>= €{item.price?.toFixed(2)}</span>
-                </div>
-              </>
-            ) : (
-              <p className={`font-heading text-xl font-bold leading-none ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>€{item.price?.toFixed(2)}</p>
-            )}
-            {item.normal_price != null && item.normal_price > item.price && (
-              <p className="text-xs font-medium text-green-600">
-                saves €{(item.normal_price - item.price).toFixed(2)}
-              </p>
-            )}
-          </div>
         )}
-        <button
-          onClick={() => onSwap(item, categoryName)}
-          className="text-muted-foreground hover:text-primary transition-colors"
-          title="Find alternative"
-          disabled={!!item._loading}
-        >
-          <ArrowLeftRight className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => onRemove(categoryName, item.name)}
-          className="text-muted-foreground hover:text-destructive transition-colors"
-          title="Remove item"
-        >
-          <X className="h-4 w-4" />
-        </button>
       </div>
+
+      {!item._loading && (
+        <div className="text-right shrink-0 ml-2">
+          <p className={`font-heading text-2xl font-bold leading-none ${bought ? "text-muted-foreground/50 line-through" : "text-primary"}`}>
+            €{displayPrice?.toFixed(2)}
+          </p>
+          {savings > 0 && (
+            <span className="mt-1.5 inline-flex items-center border border-primary/50 text-primary text-[11px] font-medium px-2 py-0.5 rounded-full">
+              saves €{savings.toFixed(2)}
+            </span>
+          )}
+          {hasMultiplier && (
+            <p className={`mt-1 text-xs font-heading ${bought ? "text-muted-foreground/40 line-through" : "text-muted-foreground"}`}>
+              ×{qty} = €{item.price?.toFixed(2)}
+            </p>
+          )}
+          <div className="mt-1.5 flex items-center justify-end gap-0.5">
+            <button
+              onClick={() => onSwap(item, categoryName)}
+              className="text-muted-foreground/60 hover:text-primary transition-colors p-1"
+              title="Find alternative"
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => onRemove(categoryName, item.name)}
+              className="text-muted-foreground/60 hover:text-destructive transition-colors p-1"
+              title="Remove item"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
