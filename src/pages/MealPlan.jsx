@@ -9,6 +9,7 @@ import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
 import AddItemModal from "@/components/AddItemModal";
+import StoreBadge from "@/components/StoreBadge";
 import MacroChart from "@/components/MacroChart";
 import { AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
@@ -909,8 +910,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                {category.items?.filter(item => !removedItems.has(`${category.name}::${item.name}`)).map((item, idx) => (
                  <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors group">
                    <div className="flex-1">
-                     <p className="font-medium text-foreground flex items-center gap-2">
+                     <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
                        {item.name}
+                       {item.store && !item._loading && <StoreBadge store={item.store} />}
                        {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
                      </p>
                      {item._loading ? (
@@ -940,7 +942,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                              saves €{(item.normal_price - item.price).toFixed(2)}
                            </p>
                          )}
-                         {item.store && <p className="text-xs text-muted-foreground">{item.store}</p>}
+                         {/* store shown as brand-coloured badge next to the item name */}
                        </div>
                      )}
                      <button
