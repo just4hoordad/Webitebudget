@@ -99,30 +99,8 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
         })}
       </div>
 
-      {/* View body */}
-      {view === "list" && (
-        <ListView
-          plan={plan} slots={slots} setSlot={setSlot} onSuggest={onSuggest}
-          dayFilled={dayFilled} copyToNextDay={copyToNextDay} clearDay={clearDay}
-          dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} t={t} setActiveSlot={setActiveSlot}
-        />
-      )}
-      {view === "week" && (
-        <WeekView
-          plan={plan} slots={slots} selectCell={selectCell} activeDay={activeDay} slotType={slotType}
-          dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} weekOffset={weekOffset} setWeekOffset={setWeekOffset}
-        />
-      )}
-      {view === "month" && (
-        <MonthView
-          plan={plan} slots={slots} selectCell={selectCell} activeDay={activeDay}
-          monthAnchor={monthAnchor} setMonthAnchor={setMonthAnchor}
-          startDate={startDate} days={plan.length} currentLanguage={currentLanguage}
-        />
-      )}
-
-      {/* Shared editor footer */}
-      <div className="space-y-2.5 pt-2 border-t border-border">
+      {/* Meal picker — meals on top */}
+      <div className="space-y-2.5">
         <div className="grid grid-cols-3 gap-2">
           {slots.map((s) => {
             const Icon = s.icon;
@@ -184,6 +162,30 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
           </div>
         </div>
       )}
+
+      {/* Day plan list — below the meals */}
+      <div className="pt-3 border-t border-border space-y-3">
+        {view === "list" && (
+          <ListView
+            plan={plan} slots={slots} setSlot={setSlot} onSuggest={onSuggest}
+            dayFilled={dayFilled} copyToNextDay={copyToNextDay} clearDay={clearDay}
+            dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} t={t} setActiveSlot={setActiveSlot}
+          />
+        )}
+        {view === "week" && (
+          <WeekView
+            plan={plan} slots={slots} selectCell={selectCell} activeDay={activeDay} slotType={slotType}
+            dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} weekOffset={weekOffset} setWeekOffset={setWeekOffset}
+          />
+        )}
+        {view === "month" && (
+          <MonthView
+            plan={plan} slots={slots} selectCell={selectCell} activeDay={activeDay}
+            monthAnchor={monthAnchor} setMonthAnchor={setMonthAnchor}
+            startDate={startDate} days={plan.length} currentLanguage={currentLanguage}
+          />
+        )}
+      </div>
 
       <div className="flex items-center justify-between px-1 py-1">
         <div className="flex items-center gap-2">
