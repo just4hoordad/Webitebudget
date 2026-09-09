@@ -884,11 +884,16 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                        <div className="text-right">
                          {item.unit_price != null && item.unit_price !== item.price ? (
                            <>
-                             <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                             <p className="text-xs text-muted-foreground">€{item.unit_price?.toFixed(2)} × {Math.round(item.price / item.unit_price)}</p>
+                             <p className="font-heading text-xl font-bold text-foreground leading-none">€{item.unit_price?.toFixed(2)}</p>
+                             <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                               <span className="inline-flex items-center bg-primary/15 text-primary text-xs font-heading font-bold px-2 py-0.5 rounded-full">
+                                 × {Math.round(item.price / item.unit_price)}
+                               </span>
+                               <span className="font-heading text-sm font-bold text-foreground">= €{item.price?.toFixed(2)}</span>
+                             </div>
                            </>
                          ) : (
-                           <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
+                           <p className="font-heading text-xl font-bold text-foreground leading-none">€{item.price?.toFixed(2)}</p>
                          )}
                          {item.normal_price != null && item.normal_price > item.price && (
                            <p className="text-xs font-medium text-green-600">
