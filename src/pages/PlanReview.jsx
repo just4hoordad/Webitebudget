@@ -1,23 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
-import { useMonetization } from "@/lib/MonetizationContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, ShoppingBasket, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, Check } from "lucide-react";
 import { REASSURANCE_STR } from "@/components/ReassuranceRecap";
-import GeneratingLoader from "@/components/GeneratingLoader";
-import GroceryItemRow from "@/components/GroceryItemRow";
-import { categoryTranslations } from "@/lib/translations";
-import { euCategoryTranslations } from "@/lib/translations_eu";
-import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration } from "@/lib/generateGroceries";
-import { toast } from "sonner";
 
-const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
-const GOAL_NAME = { lose: "loseWeight", maintain: "maintain", gain: "gainWeight", muscle: "buildMuscle" };
+const DIET_LABEL_KEYS = { balanced: "balanced", vegetarian: "vegetarian", vegan: "vegan", "high-protein": "highProtein", pescatarian: "pescatarian", "gluten-free": "glutenFree", halal: "halal", frozen: "frozenFoods", "half-cooked": "halfCooked" };
+const GOAL_LABEL_KEYS = { lose: "loseWeight", maintain: "maintain", gain: "gainWeight", muscle: "buildMuscle" };
 
 export default function PlanReview() {
   const { t, currentLanguage } = useLanguage();
-  const { guarded } = useMonetization();
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
 
@@ -26,48 +18,45 @@ export default function PlanReview() {
   const people = parseInt(params.get("people") || "1", 10);
   const calories = parseInt(params.get("calories") || "2000", 10);
   const goal = params.get("goal") || "maintain";
-  const stores = params.get("stores") || "aldi,lidl";
+  const diet = params.get("diet") || "balanced";
+  const stores = (params.get("stores") || "aldi,lidl").split(",").filter(Boolean);
+  const saleHunt = params.get("saleHunt") === "true";
+  const bio = params.get("bio") === "true";
+  const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
+  const proteinSnackBudget = parseInt(params.get("proteinSnackBudget") || "0", 10);
+  const allergies = params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [];
+  const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
+  const macrosParam = params.get("macros");
+  const macros = macrosParam ? (() => { const [p, c, f] = macrosParam.split(",").map(Number); return { protein: p || 30, carbs: c || 40, fats: f || 30 }; })() : null;
 
-  const goalLabel = t(GOAL_NAME[goal] || "maintain");
   const recap = REASSURANCE_STR[currentLanguage.code] || REASSURANCE_STR.en;
+  const dietLabel = t(DIET_LABEL_KEYS[diet] || "balanced");
+  const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
 
   const [planStyle, setPlanStyle] = useState(params.get("planStyle") === "unique" ? "unique" : "repeat");
-  const [groceries, setGroceries] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  const translateCategory = (en) => (allCategoryTranslations[currentLanguage.code] || {})[en] || en;
+  const L = (k, fb) => { const v = t(k); return v === k ? fb : v; };
 
-  useEffect(() => {
-    const p = groceryParamsFromSearch(window.location.search);
-    const sig = grocerySignature(p, currentLanguage.code);
-    const cached = getCachedGroceries(sig);
-    if (cached) { setGroceries(cached); setLoading(false); return; }
-    setLoading(true);
-    setError(false);
-    guarded(async () => {
-      try {
-        const res = await runGroceryGeneration(p, currentLanguage.label);
-        setCachedGroceries(sig, res);
-        setGroceries(res);
-      } catch (e) {
-        setError(true);
-        toast.error("Failed to generate grocery list. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLanguage.code]);
-
-  const cards = [
-    { icon: Wallet, value: `€${budget.toFixed(0)}` },
-    { icon: Flame, value: `${calories} kcal` },
-    { icon: Users, value: `${people} ${t("personS")}` },
-    { icon: Target, value: goalLabel },
+  const headline = [
+    { icon: Wallet, value: `€${budget.toFixed(0)}`, label: L("yourBudget", "Budget") },
+    { icon: Flame, value: `${calories} kcal`, label: L("calorieGoal", "Calories") },
+    { icon: Users, value: `${people} ${t("personS")}`, label: L("numberOfPeople", "People") },
+    { icon: Target, value: goalLabel, label: L("goal", "Goal") },
   ];
 
-  const total = groceries?.categories?.flatMap((c) => c.items || []).reduce((s, i) => s + (i.price || 0), 0) || 0;
+  const details = [
+    { label: L("diet", "Diet"), value: dietLabel },
+    { label: L("stores", "Stores"), value: stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(", ") },
+    { label: L("days", "Days"), value: String(days) },
+    { label: L("goal", "Goal"), value: goalLabel },
+  ];
+  if (proteinSnackBudget > 0) details.push({ label: L("proteinSnackBudgetTitle", "Protein snack budget"), value: `€${proteinSnackBudget}` });
+  if (bio) details.push({ label: L("bio", "Organic"), value: L("yes", "Yes") });
+  if (saleHunt) details.push({ label: L("saleHunt", "Sale hunt"), value: L("yes", "Yes") });
+  if (junkPercent > 0) details.push({ label: L("junkFood", "Junk allowance"), value: `${junkPercent}%` });
+  if (allergies.length > 0) details.push({ label: L("allergies", "Allergies"), value: allergies.join(", ") });
+  if (ownedItems.length > 0) details.push({ label: L("owned", "Already owned"), value: ownedItems.join(", ") });
+  if (macros) details.push({ label: L("macros", "Macros"), value: `${macros.protein}/${macros.carbs}/${macros.fats}` });
 
   const confirm = () => {
     const u = new URLSearchParams(window.location.search);
@@ -86,88 +75,48 @@ export default function PlanReview() {
 
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">{t("reviewTitle") || "Confirm your plan"}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("reviewSubtitle") || "Here's exactly what we'll create for you."}</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}</p>
       </div>
 
-      {/* Param summary — 2x2 grid */}
+      {/* Headline params — 2x2 grid */}
       <div className="grid grid-cols-2 gap-3">
-        {cards.map((c, i) => {
+        {headline.map((c, i) => {
           const Icon = c.icon;
           return (
             <div key={i} className="flex items-center gap-3 bg-muted/40 rounded-2xl px-4 py-3.5">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Icon className="h-5 w-5 text-primary" />
               </div>
-              <span className="font-heading font-semibold text-foreground text-base sm:text-lg leading-tight">{c.value}</span>
+              <div className="min-w-0">
+                <p className="font-heading font-semibold text-foreground text-base sm:text-lg leading-tight truncate">{c.value}</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{c.label}</p>
+              </div>
             </div>
           );
         })}
       </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
-
-      {/* Grocery list preview — price-forward tiles */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
-            <ShoppingBasket className="h-5 w-5 text-primary" />
-            {t("yourGroceryList")}
-          </h2>
-          {!loading && groceries && (
-            <span className="font-heading text-xl font-bold text-primary">€{total.toFixed(2)}</span>
-          )}
+      {/* Everything you selected */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="bg-secondary px-4 py-2.5">
+          <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
+            {t("reviewYourSelections") || "Your selections"}
+          </h3>
         </div>
-
-        {loading ? (
-          <GeneratingLoader type="grocery" />
-        ) : error ? (
-          <div className="bg-destructive/5 border border-destructive/30 rounded-2xl p-5 text-center">
-            <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">Could not generate your grocery list.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const p = groceryParamsFromSearch(window.location.search);
-                const sig = grocerySignature(p, currentLanguage.code);
-                setLoading(true); setError(false);
-                guarded(async () => {
-                  try {
-                    const res = await runGroceryGeneration(p, currentLanguage.label);
-                    setCachedGroceries(sig, res);
-                    setGroceries(res);
-                  } catch (e) { setError(true); toast.error("Failed to generate grocery list. Please try again."); }
-                  finally { setLoading(false); }
-                });
-              }}
-            >
-              {t("regenerate")}
-            </Button>
-          </div>
-        ) : groceries?.categories?.map((cat) => (
-          <div key={cat.name} className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="bg-secondary px-5 py-2.5">
-              <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
-                {translateCategory(cat.name)}
-              </h3>
+        <div className="divide-y divide-border">
+          {details.map((d, i) => (
+            <div key={i} className="flex items-center justify-between gap-3 px-4 py-3">
+              <span className="text-sm text-muted-foreground">{d.label}</span>
+              <span className="text-sm font-medium text-foreground text-right">{d.value}</span>
             </div>
-            <div className="divide-y divide-border">
-              {cat.items?.map((item, i) => (
-                <GroceryItemRow
-                  key={i}
-                  item={item}
-                  categoryName={cat.name}
-                  stores={stores}
-                  readOnly
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
+      <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
+
       {/* Plan style selection */}
-      <div className="pt-2">
+      <div className="pt-1">
         <h2 className="font-heading text-xl font-bold text-foreground">{t("weeklyPlanTitle")}</h2>
         <p className="text-sm text-muted-foreground mt-0.5">{t("weeklyPlanSubtitle")}</p>
 
@@ -183,10 +132,11 @@ export default function PlanReview() {
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "repeat" ? "bg-amber-500/10" : "bg-muted"}`}>
               <RefreshCw className={`h-5 w-5 ${planStyle === "repeat" ? "text-amber-500" : "text-muted-foreground"}`} />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="font-heading font-semibold text-foreground">{t("repeatWeeklyPlan")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{t("repeatWeeklyPlanDesc")}</p>
             </div>
+            {planStyle === "repeat" && <Check className="h-5 w-5 text-primary shrink-0" />}
           </button>
 
           <button
@@ -200,18 +150,18 @@ export default function PlanReview() {
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "unique" ? "bg-primary/10" : "bg-muted"}`}>
               <CalendarDays className={`h-5 w-5 ${planStyle === "unique" ? "text-primary" : "text-muted-foreground"}`} />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="font-heading font-semibold text-foreground">{t("uniqueMonthlyPlan")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{t("uniqueMonthlyPlanDesc")}</p>
             </div>
+            {planStyle === "unique" && <Check className="h-5 w-5 text-primary shrink-0" />}
           </button>
         </div>
       </div>
 
       <Button
         onClick={confirm}
-        disabled={loading || error}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
         size="lg"
       >
         {t("reviewConfirm") || "Confirm & generate"}
