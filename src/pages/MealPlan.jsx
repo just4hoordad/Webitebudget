@@ -13,6 +13,7 @@ import MacroChart from "@/components/MacroChart";
 import { AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
+import ReassuranceRecap from "@/components/ReassuranceRecap";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -765,7 +766,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       </div>
 
       {loading ? (
-        <GeneratingLoader type="grocery" />
+        <div className="space-y-5">
+          <ReassuranceRecap />
+          <GeneratingLoader type="grocery" />
+        </div>
       ) : (
         <>
           {/* List intro */}
