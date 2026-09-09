@@ -1,7 +1,7 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { Salad, CalendarDays, Wallet, Flame, Users, Target, TrendingUp, Sparkles } from "lucide-react";
 
-const STR = {
+export const REASSURANCE_STR = {
   en: { title: "Here's what you chose", body: "You picked these yourself — now I'm building a grocery list tailored exactly to YOUR choices, and hunting down the cheapest prices across your stores to save you as much money as possible." },
   de: { title: "Das hast du gewählt", body: "Du hast das selbst ausgewählt — jetzt erstelle ich eine Einkaufsliste, die genau auf DEINE Wahl zugeschnitten ist, und suche die günstigsten Preise in deinen Märkten, um dich so viel wie möglich sparen zu lassen." },
   fr: { title: "Voici ce que vous avez choisi", body: "Vous avez choisi cela vous-même — je prépare maintenant une liste de courses adaptée exactement à VOS choix, et je déniche les prix les moins chers dans vos magasins pour vous faire économiser le plus possible." },
@@ -44,7 +44,7 @@ export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle })
     ? (() => { const [p, c, f] = macrosParam.split(",").map(Number); return { protein: p || 30, carbs: c || 40, fats: f || 30 }; })()
     : null;
 
-  const s = STR[currentLanguage.code] || STR.en;
+  const s = REASSURANCE_STR[currentLanguage.code] || REASSURANCE_STR.en;
   const dietLabel = t(DIET_LABEL_KEYS[diet] || "balanced");
   const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
 

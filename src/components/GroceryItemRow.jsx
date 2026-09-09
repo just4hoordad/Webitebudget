@@ -1,7 +1,7 @@
 import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle } from "lucide-react";
 import StoreBadge from "@/components/StoreBadge";
 
-export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought }) {
+export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought, readOnly = false }) {
   const kcalMatch = item.calories_info?.match(/(\d[\d.]*)\s*kcal/i);
   const kcalShort = kcalMatch ? `${kcalMatch[1]} kcal` : null;
 
@@ -15,16 +15,18 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
 
   return (
     <div className="flex items-start px-5 py-3.5 gap-3 hover:bg-muted/30 transition-colors">
-      <button
-        onClick={onToggleBought}
-        className="shrink-0 mt-0.5"
-        title="Mark as bought"
-        aria-label="Mark as bought"
-      >
-        {bought
-          ? <CheckCircle2 className="h-5 w-5 text-primary" />
-          : <Circle className="h-5 w-5 text-muted-foreground/50 hover:text-primary transition-colors" />}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={onToggleBought}
+          className="shrink-0 mt-0.5"
+          title="Mark as bought"
+          aria-label="Mark as bought"
+        >
+          {bought
+            ? <CheckCircle2 className="h-5 w-5 text-primary" />
+            : <Circle className="h-5 w-5 text-muted-foreground/50 hover:text-primary transition-colors" />}
+        </button>
+      )}
 
       <div className="flex-1 min-w-0">
         <p className={`font-medium text-[15px] leading-snug break-words ${nameCls}`}>
@@ -62,22 +64,24 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
               saves €{savings.toFixed(2)}
             </span>
           )}
-          <div className="flex items-center gap-0.5 mt-0.5">
-            <button
-              onClick={() => onSwap(item, categoryName)}
-              className="text-muted-foreground/60 hover:text-primary transition-colors p-1"
-              title="Find alternative"
-            >
-              <ArrowLeftRight className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => onRemove(categoryName, item.name)}
-              className="text-muted-foreground/60 hover:text-destructive transition-colors p-1"
-              title="Remove item"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {!readOnly && (
+            <div className="flex items-center gap-0.5 mt-0.5">
+              <button
+                onClick={() => onSwap(item, categoryName)}
+                className="text-muted-foreground/60 hover:text-primary transition-colors p-1"
+                title="Find alternative"
+              >
+                <ArrowLeftRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => onRemove(categoryName, item.name)}
+                className="text-muted-foreground/60 hover:text-destructive transition-colors p-1"
+                title="Remove item"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
