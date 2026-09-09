@@ -124,9 +124,9 @@ export default function SavedMealPlans() {
           <div className="grid gap-4">
             {plans.map((plan) => (
               <div key={plan.id} className="bg-card border border-border rounded-xl p-5 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-heading font-semibold text-foreground">{plan.name}</h3>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-semibold text-foreground break-words">{plan.name}</h3>
                     <div className="flex gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                       <span className="flex items-center gap-1">
                         <Leaf className="h-4 w-4" />
@@ -153,7 +153,7 @@ export default function SavedMealPlans() {
                       {new Date(plan.created_date).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={() => setSharePlan(plan)}
                       className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
