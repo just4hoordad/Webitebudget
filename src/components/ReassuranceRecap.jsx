@@ -30,7 +30,7 @@ const STR = {
 const DIET_LABEL_KEYS = { balanced: "balanced", vegetarian: "vegetarian", vegan: "vegan", "high-protein": "highProtein", pescatarian: "pescatarian", "gluten-free": "glutenFree", halal: "halal", frozen: "frozenFoods", "half-cooked": "halfCooked" };
 const GOAL_LABEL_KEYS = { lose: "loseWeight", maintain: "maintain", gain: "gainWeight", muscle: "buildMuscle" };
 
-export default function ReassuranceRecap() {
+export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle }) {
   const { t, currentLanguage } = useLanguage();
   const params = new URLSearchParams(window.location.search);
   const diet = params.get("diet") || "balanced";
@@ -87,6 +87,34 @@ export default function ReassuranceRecap() {
         <p className="text-sm text-muted-foreground leading-relaxed mt-4">
           {s.body}
         </p>
+        <div className="mt-5 pt-4 border-t border-border">
+          <h3 className="font-heading font-semibold text-foreground">{t("weeklyPlanTitle")}</h3>
+          <p className="text-xs text-muted-foreground mb-3">{t("weeklyPlanSubtitle")}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              onClick={() => setPlanStyle && setPlanStyle("repeat")}
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-xl border text-left transition-all ${
+                planStyle === "repeat"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-background hover:border-primary/40"
+              }`}
+            >
+              <span className="text-sm font-heading font-semibold text-foreground">{t("repeatWeeklyPlan")}</span>
+              <span className="text-xs text-muted-foreground">{t("repeatWeeklyPlanDesc")}</span>
+            </button>
+            <button
+              onClick={() => setPlanStyle && setPlanStyle("unique")}
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-xl border text-left transition-all ${
+                planStyle === "unique"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-background hover:border-primary/40"
+              }`}
+            >
+              <span className="text-sm font-heading font-semibold text-foreground">{t("uniqueMonthlyPlan")}</span>
+              <span className="text-xs text-muted-foreground">{t("uniqueMonthlyPlanDesc")}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -57,6 +57,8 @@ export default function MealPlan() {
   const lastGenKey = useRef(null);
   const genCache = useRef({});
   const planCache = useRef({});
+  const [planStyle, setPlanStyle] = useState("repeat");
+  const autoGenStarted = useRef(false);
 
   useEffect(() => {
     if (location.pathname !== "/meal-plan") return;
@@ -79,6 +81,8 @@ export default function MealPlan() {
   }, [currentLanguage.code]);
 
   const generateGroceries = async (retryCount = 0) => {
+    autoGenStarted.current = false;
+    setWeeklyPlan(null);
     const langKey = `${searchKey}::${currentLanguage.code}`;
     const cached = genCache.current[langKey];
     if (cached && retryCount === 0) {
@@ -470,11 +474,6 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     }
   };
 
-  const generateExactDaysPlan = async () => {
-    const weeks = await generateAllWeeks();
-    setWeeklyPlan({ type: "exact", weeks });
-  };
-
   const generateWeeklyPlan = async () => {
     const availableItems = groceries?.categories?.flatMap(cat =>
       cat.items
@@ -504,6 +503,23 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     const weeks = await generateAllWeeks();
     setWeeklyPlan({ type: "unique", weeks });
   };
+
+  // Auto-generate the meal plan once the grocery list is ready, using the
+  // style the user picked on the reassurance screen (repeat vs unique weeks).
+  useEffect(() => {
+    if (loading || !groceries || weeklyPlan || autoGenStarted.current) return;
+    autoGenStarted.current = true;
+    (async () => {
+      try {
+        if (planStyle === "repeat") await generateWeeklyPlan();
+        else await generateUniqueMonthlyPlan();
+      } catch (e) {
+        setLoadingPlan(false);
+        toast.error("Failed to generate meal plan. Try regenerating.");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, groceries, weeklyPlan, planStyle]);
 
   const [saved, setSaved] = useState(false);
   const [swapTarget, setSwapTarget] = useState(null);
@@ -767,7 +783,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
       {loading ? (
         <div className="space-y-5">
-          <ReassuranceRecap />
+          <ReassuranceRecap planStyle={planStyle} setPlanStyle={setPlanStyle} />
           <GeneratingLoader type="grocery" />
         </div>
       ) : (
@@ -959,41 +975,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             {t("addItemWithAI")}
           </button>
 
-          {/* Generate Weekly Plan Buttons */}
-          {!weeklyPlan && (
-            loadingPlan ? (
-              <GeneratingLoader type="plan" />
-            ) : (
-              <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-3">
-                <div>
-                  <h3 className="font-heading font-semibold">{t("weeklyPlanTitle")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("weeklyPlanSubtitle")}</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={generateExactDaysPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 text-left sm:col-span-2"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("generateExactDaysPlan", { days })}</span>
-                    <span className="text-xs opacity-80">{t("generateExactDaysPlanDesc", { days })}</span>
-                  </button>
-                  <button
-                    onClick={generateWeeklyPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 text-left"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("repeatWeeklyPlan")}</span>
-                    <span className="text-xs opacity-80">{t("repeatWeeklyPlanDesc")}</span>
-                  </button>
-                  <button
-                    onClick={generateUniqueMonthlyPlan}
-                    className="flex flex-col items-start gap-1 px-4 py-4 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 transition-all duration-200 text-left"
-                  >
-                    <span className="text-base font-heading font-semibold">{t("uniqueMonthlyPlan")}</span>
-                    <span className="text-xs opacity-80">{t("uniqueMonthlyPlanDesc")}</span>
-                  </button>
-                </div>
-              </div>
-            )
+          {/* Meal plan generates automatically once groceries are ready */}
+          {!weeklyPlan && loadingPlan && (
+            <GeneratingLoader type="plan" />
           )}
 
           {/* Weekly Plan Display */}
