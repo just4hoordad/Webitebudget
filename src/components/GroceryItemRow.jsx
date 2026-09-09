@@ -1,4 +1,4 @@
-import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle } from "lucide-react";
+import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle, Flame } from "lucide-react";
 import StoreBadge from "@/components/StoreBadge";
 
 export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought }) {
@@ -24,7 +24,15 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
           {item._loading ? (
             <p className="text-xs text-primary animate-pulse">Searching {stores} for best price…</p>
           ) : (
-            <p className={`text-xs ${bought ? "text-muted-foreground/60 line-through" : "text-muted-foreground"}`}>{item.quantity} · {item.calories_info}</p>
+            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+              <span className={`text-xs ${bought ? "text-muted-foreground/60 line-through" : "text-muted-foreground"}`}>{item.quantity}</span>
+              {item.calories_info && (
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${bought ? "bg-muted text-muted-foreground/60 line-through" : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"}`}>
+                  <Flame className="h-3 w-3 shrink-0" />
+                  {item.calories_info}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
