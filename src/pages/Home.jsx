@@ -50,8 +50,11 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-6">
+        {/* Credit summary — standalone row above the hero */}
+        <CreditBar />
+
         {/* Hero Banner */}
-        <div className="relative rounded-3xl overflow-hidden h-80 sm:h-96 border border-border">
+        <div className="relative rounded-3xl overflow-hidden h-96 sm:h-[28rem] border border-border">
           <img
             src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
             alt="Fresh groceries"
@@ -59,9 +62,6 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
           <div className="absolute bottom-6 left-5 right-5 sm:left-6 sm:right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 sm:p-6 overflow-hidden">
-            {/* Credit header — inline on the glass card */}
-            <CreditBar variant="onGlass" className="mb-3" />
-            <div className="border-t border-white/15 mb-4" />
             <div className="flex items-center gap-2.5 mb-3">
               <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
                 <ShoppingCart className="h-4 w-4 text-primary-foreground" />
