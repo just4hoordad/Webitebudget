@@ -31,6 +31,7 @@ import { AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import ReassuranceRecap from "@/components/ReassuranceRecap";
+import WeekMealGrid from "@/components/WeekMealGrid";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -1061,53 +1062,17 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
              </div>
 
              {weeklyPlan.weeks.map((week, weekIndex) => (
-               <div key={weekIndex} className="bg-card border border-border rounded-xl overflow-hidden">
-                 <div className="bg-primary/10 px-5 py-3 flex items-center justify-between border-b border-primary/20">
-                   <h2 className="font-heading font-semibold text-primary">
-                     {t("weekLabel", { n: week.week })}
-                   </h2>
-                 </div>
-                 <div className="divide-y divide-border">
-                   {week.days?.map((day, idx) => (
-                     <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
-                       <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
-                       {[
-                         { type: "breakfast", label: t("breakfast"), name: day.breakfast, cal: day.breakfast_calories, ings: day.breakfast_ingredients },
-                         { type: "lunch", label: t("lunch"), name: day.lunch, cal: day.lunch_calories, ings: day.lunch_ingredients },
-                         { type: "dinner", label: t("dinner"), name: day.dinner, cal: day.dinner_calories, ings: day.dinner_ingredients },
-                       ].map(({ type, label, name, cal, ings }) => (
-                         <div key={type} className="text-muted-foreground col-span-4 sm:col-span-1">
-                           <div className="flex items-center justify-between mb-0.5">
-                             <span className="font-medium text-foreground text-xs">{label} {cal && <span className="text-primary">({cal} kcal)</span>}</span>
-                             <div className="flex items-center gap-1">
-                               <button
-                                 onClick={() => setEditTarget({ weekIndex, dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
-                                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                                 title="Edit meal"
-                               >
-                                 <Edit2 className="h-3 w-3 group-hover:text-primary" />
-                               </button>
-                               <button
-                                 onClick={() => setSwapTarget({ weekIndex, dayIndex: idx, mealType: type, meal: { name, calories: cal, ingredients: ings } })}
-                                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                                 title="AI Swap"
-                               >
-                                 <Shuffle className="h-3 w-3 group-hover:text-primary" />
-                                 <span className="hidden sm:inline">Swap</span>
-                               </button>
-                             </div>
-                           </div>
-                           <span>{name}</span>
-                           {Array.isArray(ings) && ings.length > 0 && (
-                             <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">
-                               {ings.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}
-                             </ul>
-                           )}
-                         </div>
-                       ))}
-                     </div>
-                   ))}
-                 </div>
+               <div key={weekIndex} className="space-y-2">
+                 <h2 className="font-heading font-semibold text-primary text-sm px-1">
+                   {t("weekLabel", { n: week.week })}
+                 </h2>
+                 <WeekMealGrid
+                   week={week}
+                   weekIndex={weekIndex}
+                   t={t}
+                   onEdit={(wi, di, mt, meal) => setEditTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
+                   onSwap={(wi, di, mt, meal) => setSwapTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
+                 />
                </div>
              ))}
 
