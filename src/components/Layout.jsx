@@ -163,7 +163,7 @@ export default function Layout() {
             ) : (
               <button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors select-none"
+                className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors select-none -ml-2 px-2 min-h-[44px] py-2"
               >
                 <ArrowLeft className="h-5 w-5" />
                 {t("back")}
