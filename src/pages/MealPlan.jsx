@@ -988,8 +988,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
              {weeklyPlan.weeks.map((week, weekIndex) => (
                <div key={weekIndex} className="bg-card border border-border rounded-xl overflow-hidden">
-                 <div className="bg-primary px-5 py-3 flex items-center justify-between">
-                   <h2 className="font-heading font-semibold text-primary-foreground">
+                 <div className="bg-primary/10 px-5 py-3 flex items-center justify-between border-b border-primary/20">
+                   <h2 className="font-heading font-semibold text-primary">
                      {t("weekLabel", { n: week.week })}
                    </h2>
                  </div>
