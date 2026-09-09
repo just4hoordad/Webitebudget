@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
+import StoreSpeedHint from "@/components/StoreSpeedHint";
 import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
 
@@ -444,6 +445,7 @@ export default function BudgetForm() {
                   onCityCoordsUsed={() => setCityCoords(null)}
                 />
               </div>
+              <StoreSpeedHint />
               <div className="flex gap-2">
                 <input
                   type="text"
