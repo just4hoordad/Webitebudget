@@ -102,7 +102,48 @@ export default async function(req) {
       else errors.push({ day: i, status: res.status });
     }
 
-    return Response.json({ success: true, eventsCreated: created, totalDays: days.length, errors: errors.slice(0, 3) });
+    // Grocery list event — one all-day event on the plan start date containing
+    // the full shopping list, so it lands in the calendar alongside the meals.
+    let groceryCreated = false;
+    const gl = plan.groceryList;
+    if (gl && Array.isArray(gl.categories) && gl.categories.length > 0) {
+      const gLines = [];
+      let gTotal = 0;
+      for (const cat of gl.categories) {
+        gLines.push(`▸ ${cat.name}`);
+        for (const it of (cat.items || [])) {
+          gTotal += it.price || 0;
+          gLines.push(`  • ${it.name}${it.quantity ? ` — ${it.quantity}` : ""}${it.store ? ` [${it.store}]` : ""} — €${(it.price || 0).toFixed(2)}`);
+        }
+        gLines.push("");
+      }
+      gLines.push(`Total: €${gTotal.toFixed(2)}`);
+      const gSummary = `🛒 Grocery List · ${plan.name || "BudgetBite"}`;
+      const gDesc = gLines.join("\n").slice(0, 8000);
+      const gEventId = `bb-${baseId}-grocery`.slice(0, 60);
+      const gDateStr = toISODate(start);
+      const gEndStr = toISODate(new Date(start.getTime() + 86400000));
+      const gRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gEventId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          summary: gSummary,
+          description: gDesc,
+          start: { date: gDateStr },
+          end: { date: gEndStr },
+          extendedProperties: {
+            private: { budgetbite_plan_id: planId, budgetbite_grocery: "1" },
+          },
+        }),
+      });
+      groceryCreated = gRes.ok;
+      if (!gRes.ok) errors.push({ grocery: true, status: gRes.status });
+    }
+
+    return Response.json({ success: true, eventsCreated: created, groceryEvent: groceryCreated, totalDays: days.length, errors: errors.slice(0, 3) });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
