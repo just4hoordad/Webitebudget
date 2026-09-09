@@ -1,4 +1,5 @@
 import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle } from "lucide-react";
+import StoreBadge from "@/components/StoreBadge";
 
 export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought }) {
   const kcalMatch = item.calories_info?.match(/(\d[\d.]*)\s*kcal/i);
@@ -9,15 +10,14 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
   const displayPrice = hasMultiplier ? item.unit_price : item.price;
   const savings = item.normal_price != null && item.normal_price > item.price ? item.normal_price - item.price : 0;
 
-  const subParts = [item.store, item.quantity, kcalShort].filter(Boolean);
-
   const nameCls = bought ? "text-muted-foreground line-through opacity-60" : "text-foreground";
+  const subCls = bought ? "text-muted-foreground/50" : "text-muted-foreground";
 
   return (
-    <div className="flex items-center px-5 py-3.5 gap-3 hover:bg-muted/30 transition-colors">
+    <div className="flex items-start px-5 py-3.5 gap-3 hover:bg-muted/30 transition-colors">
       <button
         onClick={onToggleBought}
-        className="shrink-0"
+        className="shrink-0 mt-0.5"
         title="Mark as bought"
         aria-label="Mark as bought"
       >
@@ -27,40 +27,42 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
       </button>
 
       <div className="flex-1 min-w-0">
-        <p className={`font-medium text-[15px] leading-tight truncate ${nameCls}`}>
+        <p className={`font-medium text-[15px] leading-snug break-words ${nameCls}`}>
           {item.name}
           {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary inline ml-2 align-middle" />}
         </p>
         {item._loading ? (
           <p className="text-xs text-primary animate-pulse mt-1">Searching {stores} for best price…</p>
         ) : (
-          <p className={`text-xs mt-1 truncate ${bought ? "text-muted-foreground/50 line-through" : "text-muted-foreground"}`}>
-            {subParts.map((p, i) => (
-              <span key={i}>
-                {i > 0 && <span className="mx-1.5 opacity-40">·</span>}
-                {p}
-              </span>
-            ))}
-          </p>
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {item.store && <StoreBadge store={item.store} />}
+            {item.quantity && <span className={`text-xs ${subCls}`}>· {item.quantity}</span>}
+            {kcalShort && <span className={`text-xs ${subCls} ${bought ? "line-through" : ""}`}>· {kcalShort}</span>}
+          </div>
         )}
       </div>
 
       {!item._loading && (
-        <div className="text-right shrink-0 ml-2">
+        <div className="text-right shrink-0 ml-2 flex flex-col items-end gap-1.5">
           <p className={`font-heading text-2xl font-bold leading-none ${bought ? "text-muted-foreground/50 line-through" : "text-primary"}`}>
             €{displayPrice?.toFixed(2)}
           </p>
+          {hasMultiplier && (
+            <div className="flex items-center gap-1.5 justify-end">
+              <span className="bg-primary text-primary-foreground text-xs font-heading font-bold px-2 py-0.5 rounded-full leading-none">
+                ×{qty}
+              </span>
+              <span className={`font-heading text-sm font-bold ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>
+                €{item.price?.toFixed(2)}
+              </span>
+            </div>
+          )}
           {savings > 0 && (
-            <span className="mt-1.5 inline-flex items-center border border-primary/50 text-primary text-[11px] font-medium px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center border border-primary/50 text-primary text-[11px] font-medium px-2 py-0.5 rounded-full">
               saves €{savings.toFixed(2)}
             </span>
           )}
-          {hasMultiplier && (
-            <p className={`mt-1 text-xs font-heading ${bought ? "text-muted-foreground/40 line-through" : "text-muted-foreground"}`}>
-              ×{qty} = €{item.price?.toFixed(2)}
-            </p>
-          )}
-          <div className="mt-1.5 flex items-center justify-end gap-0.5">
+          <div className="flex items-center gap-0.5 mt-0.5">
             <button
               onClick={() => onSwap(item, categoryName)}
               className="text-muted-foreground/60 hover:text-primary transition-colors p-1"
