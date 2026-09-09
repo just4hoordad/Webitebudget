@@ -530,6 +530,21 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
   const [editTarget, setEditTarget] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [sortByStore, setSortByStore] = useState(false);
+  const planKey = `${diet}-${budget}-${days}-${people}-${calories}`;
+  const [boughtItems, setBoughtItems] = useState(() => {
+    try {
+      const raw = localStorage.getItem(`bb_bought_${planKey}`);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleBought = (key) => {
+    setBoughtItems(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      try { localStorage.setItem(`bb_bought_${planKey}`, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   const handleAddItem = (item) => {
     const targetCat = item.category || "Custom";
@@ -918,6 +933,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                         item={item}
                         categoryName={category.name}
                         stores={stores}
+                        bought={boughtItems.has(`${category.name}::${item.name}`)}
+                        onToggleBought={() => toggleBought(`${category.name}::${item.name}`)}
                         onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
                         onRemove={removeItem}
                       />
@@ -948,6 +965,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                           item={item}
                           categoryName={item.category}
                           stores={stores}
+                          bought={boughtItems.has(`${item.category}::${item.name}`)}
+                          onToggleBought={() => toggleBought(`${item.category}::${item.name}`)}
                           onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
                           onRemove={removeItem}
                         />

@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2 } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
@@ -14,6 +14,20 @@ export default function SavedMealPlans() {
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
   const [sharePlan, setSharePlan] = useState(null);
+  const [boughtItems, setBoughtItems] = useState(() => {
+    try {
+      const raw = localStorage.getItem("bb_bought_saved");
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleBought = (key) => {
+    setBoughtItems(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      try { localStorage.setItem("bb_bought_saved", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
   const location = useLocation();
   const cal = useGoogleCalendarSync();
 
@@ -209,15 +223,24 @@ export default function SavedMealPlans() {
                             <div className="bg-muted px-4 py-2">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat.name}</p>
                             </div>
-                            {cat.items?.map((item, i) => (
-                              <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
-                                <div>
-                                  <p className="font-medium text-foreground">{item.name}</p>
-                                  <p className="text-xs text-muted-foreground">{item.quantity} · {item.store}</p>
+                            {cat.items?.map((item, i) => {
+                              const bKey = `${plan.id}::${cat.name}::${item.name}`;
+                              const bought = boughtItems.has(bKey);
+                              return (
+                                <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
+                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <button onClick={() => toggleBought(bKey)} className="shrink-0" title="Mark as bought" aria-label="Mark as bought">
+                                      {bought ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />}
+                                    </button>
+                                    <div className="min-w-0">
+                                      <p className={`font-medium ${bought ? "text-muted-foreground line-through opacity-60" : "text-foreground"}`}>{item.name}</p>
+                                      <p className="text-xs text-muted-foreground">{item.quantity} · {item.store}</p>
+                                    </div>
+                                  </div>
+                                  <p className={`font-semibold ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>€{item.price?.toFixed(2)}</p>
                                 </div>
-                                <p className="font-semibold text-foreground">€{item.price?.toFixed(2)}</p>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ))}
                       </div>
