@@ -51,7 +51,7 @@ export default function Home() {
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-6">
         {/* Hero Banner */}
-        <div className="relative rounded-3xl overflow-hidden h-80 sm:h-96 border border-border">
+        <div className="relative rounded-3xl overflow-hidden h-96 border border-border">
           <img
             src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
             alt="Fresh groceries"
