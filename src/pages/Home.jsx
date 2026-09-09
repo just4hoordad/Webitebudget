@@ -3,7 +3,7 @@ import BudgetForm from "../components/BudgetForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingCart, Salad, Carrot, Fish, Croissant, Apple, Egg } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingCart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -50,50 +50,38 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-6">
-        {/* Credit summary — standalone row above the hero */}
-        <CreditBar />
-
         {/* Hero Banner */}
-        <section className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-card via-card to-primary/5">
-          <div className="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-primary/15 blur-3xl" aria-hidden />
-          <div className="absolute bottom-0 -left-24 h-56 w-56 rounded-full bg-chart-2/10 blur-3xl hidden sm:block" aria-hidden />
-          <div className="relative grid sm:grid-cols-[1.15fr_1fr] gap-6 p-6 sm:p-8">
-            {/* Copy */}
-            <div className="flex flex-col justify-center min-w-0">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-                  <ShoppingCart className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <span className="font-heading font-bold text-lg tracking-tight text-foreground">
-                  Budget<span className="text-primary">Bite</span>
-                </span>
+        <div className="relative rounded-3xl overflow-hidden h-80 sm:h-96 border border-border">
+          <img
+            src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
+            alt="Fresh groceries"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
+          <div className="absolute bottom-6 left-5 right-5 sm:left-6 sm:right-6 sm:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 sm:p-6 overflow-hidden">
+            {/* Credit header — inline on the glass card */}
+            <CreditBar variant="onGlass" className="mb-3" />
+            <div className="border-t border-white/15 mb-4" />
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
+                <ShoppingCart className="h-4 w-4 text-primary-foreground" />
               </div>
-              <h1 className="font-heading text-3xl sm:text-4xl font-bold leading-[1.08] text-foreground text-balance">
-                {t("heroTitle1")} <span className="text-primary">{t("heroTitle2")}</span>
-              </h1>
-              <p className="text-sm sm:text-base text-muted-foreground mt-3 max-w-md leading-relaxed">
-                {t("planSubtitle")}
-              </p>
-              <Button
-                onClick={scrollToForm}
-                className="mt-5 w-fit font-heading font-semibold"
-              >
-                {t("planYourMeals")} <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
+              <span className="font-heading font-bold text-lg tracking-tight text-white">
+                Budget<span className="text-primary">Bite</span>
+              </span>
             </div>
-            {/* Food icon cluster — minimalist line-art tiles */}
-            <div className="hidden sm:grid grid-cols-3 gap-3 content-center">
-              {[Salad, Carrot, Fish, Croissant, Apple, Egg].map((Icon, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-center aspect-square rounded-2xl border border-border bg-card/80 hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                >
-                  <Icon className="h-7 w-7 text-primary" />
-                </div>
-              ))}
-            </div>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white leading-tight">
+              {t("heroTitle1")} <span className="text-primary">{t("heroTitle2")}</span>
+            </h1>
+            <p className="text-sm text-white/80 mt-2">{t("planSubtitle")}</p>
+            <Button
+              onClick={scrollToForm}
+              className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-semibold"
+            >
+              {t("planYourMeals")} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
-        </section>
+        </div>
 
         {/* Budget Form */}
         <div id="plan-form">
