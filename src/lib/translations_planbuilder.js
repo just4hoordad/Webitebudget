@@ -4,7 +4,7 @@
 
 export const planBuilderTranslations = {
   en: {
-    planBuilderNav: "Plan Builder",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Plan-first meal planning",
     planBuilderTitle: "Pick your meals. We'll shop for you.",
     planBuilderSubtitle: "Browse a meal library, fill your days, and get the exact grocery list you need to cook them.",
@@ -71,7 +71,7 @@ export const planBuilderTranslations = {
     goHome: "Go home",
   },
   de: {
-    planBuilderNav: "Plan-Builder",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Planbasierte Planung",
     planBuilderTitle: "Wähle deine Gerichte. Wir kaufen ein.",
     planBuilderSubtitle: "Durchstöbere die Gerichte-Bibliothek, fülle deine Tage und erhalte die genaue Einkaufsliste zum Kochen.",
@@ -127,7 +127,7 @@ export const planBuilderTranslations = {
     goHome: "Zur Startseite",
   },
   fr: {
-    planBuilderNav: "Constructeur de plan",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Planification par repas",
     planBuilderTitle: "Choisis tes repas. On fait les courses.",
     planBuilderSubtitle: "Parcours la bibliothèque de repas, remplis tes jours et obtiens la liste de courses exacte pour cuisiner.",
@@ -154,7 +154,7 @@ export const planBuilderTranslations = {
     regenerate: "Régénérer",
   },
   es: {
-    planBuilderNav: "Creador de plan",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Planificación por platos",
     planBuilderTitle: "Elige tus platos. Nosotros compramos.",
     planBuilderSubtitle: "Explora la biblioteca de platos, rellena tus días y obtén la lista de la compra exacta para cocinarlos.",
@@ -181,7 +181,7 @@ export const planBuilderTranslations = {
     regenerate: "Regenerar",
   },
   ar: {
-    planBuilderNav: "منشئ الخطة",
+    planBuilderNav: "خطة",
     planBuilderBadge: "تخطيط قائم على الوجبات",
     planBuilderTitle: "اختر وجباتك. نتسوق نيابة عنك.",
     planBuilderSubtitle: "تصفح مكتبة الوجبات، املأ أيامك، واحصل على قائمة التسوق الدقيقة لطهيها.",
@@ -208,7 +208,7 @@ export const planBuilderTranslations = {
     regenerate: "إعادة الإنشاء",
   },
   ru: {
-    planBuilderNav: "Конструктор плана",
+    planBuilderNav: "План",
     planBuilderBadge: "Планирование по блюдам",
     planBuilderTitle: "Выберите блюда. Мы купим всё.",
     planBuilderSubtitle: "Просматривайте библиотеку блюд, заполняйте дни и получайте точный список покупок для готовки.",
@@ -235,7 +235,7 @@ export const planBuilderTranslations = {
     regenerate: "Создать заново",
   },
   uk: {
-    planBuilderNav: "Конструктор плану",
+    planBuilderNav: "План",
     planBuilderBadge: "Планування за стравами",
     planBuilderTitle: "Оберіть страви. Ми купимо усе.",
     planBuilderSubtitle: "Переглядайте бібліотеку страв, заповнюйте дні та отримуйте точний список покупок для готування.",
@@ -262,7 +262,7 @@ export const planBuilderTranslations = {
     regenerate: "Створити знову",
   },
   fa: {
-    planBuilderNav: "سازنده برنامه",
+    planBuilderNav: "برنامه",
     planBuilderBadge: "برنامه‌ریزی بر اساس وعده",
     planBuilderTitle: "وعده‌هایتان را انتخاب کنید. ما خرید می‌کنیم.",
     planBuilderSubtitle: "کتابخانه وعده‌ها را مرور کنید، روزهایتان را پر کنید و لیست خرید دقیق برای پختن دریافت کنید.",
@@ -289,7 +289,7 @@ export const planBuilderTranslations = {
     regenerate: "ساخت مجدد",
   },
   zh: {
-    planBuilderNav: "计划构建器",
+    planBuilderNav: "计划",
     planBuilderBadge: "以菜品为先的规划",
     planBuilderTitle: "挑选你的菜品，我们替你采购。",
     planBuilderSubtitle: "浏览菜品库，填好每一天，获取精确的购物清单来烹饪。",
@@ -316,7 +316,7 @@ export const planBuilderTranslations = {
     regenerate: "重新生成",
   },
   vi: {
-    planBuilderNav: "Trình tạo kế hoạch",
+    planBuilderNav: "Kế hoạch",
     planBuilderBadge: "Lập kế hoạch theo món",
     planBuilderTitle: "Chọn món ăn. Chúng tôi đi chợ giúp bạn.",
     planBuilderSubtitle: "Duyệt thư viện món ăn, điền các ngày và nhận danh sách mua sắm chính xác để nấu.",
@@ -343,7 +343,7 @@ export const planBuilderTranslations = {
     regenerate: "Tạo lại",
   },
   tr: {
-    planBuilderNav: "Plan Oluşturucu",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Öğün odaklı planlama",
     planBuilderTitle: "Yemeklerini seç. Alışverişi biz yapalım.",
     planBuilderSubtitle: "Yemek kitaplığına göz at, günlerini doldur ve pişirmek için tam alışveriş listesini al.",
@@ -370,7 +370,7 @@ export const planBuilderTranslations = {
     regenerate: "Yeniden oluştur",
   },
   it: {
-    planBuilderNav: "Costruttore di piano",
+    planBuilderNav: "Piano",
     planBuilderBadge: "Pianificazione dai pasti",
     planBuilderTitle: "Scegli i pasti. Noi facciamo la spesa.",
     planBuilderSubtitle: "Sfoglia la libreria dei pasti, riempi i giorni e ottieni la lista della spesa esatta per cucinarli.",
@@ -400,7 +400,7 @@ export const planBuilderTranslations = {
     regenerate: "Rigenera",
   },
   pt: {
-    planBuilderNav: "Construtor de plano",
+    planBuilderNav: "Plano",
     planBuilderBadge: "Planeamento por pratos",
     planBuilderTitle: "Escolhe os pratos. Nós fazemos as compras.",
     planBuilderSubtitle: "Explora a biblioteca de pratos, preenche os dias e obtém a lista de compras exata para cozinhar.",
@@ -430,7 +430,7 @@ export const planBuilderTranslations = {
     regenerate: "Regenerar",
   },
   pl: {
-    planBuilderNav: "Kreator planu",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Planowanie od dań",
     planBuilderTitle: "Wybierz dania. Zrobimy zakupy.",
     planBuilderSubtitle: "Przeglądaj bibliotekę dań, wypełnij dni i otrzymaj dokładną listę zakupów do ugotowania.",
@@ -460,7 +460,7 @@ export const planBuilderTranslations = {
     regenerate: "Wygeneruj ponownie",
   },
   nl: {
-    planBuilderNav: "Plan-maker",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Maaltijdgebaseerd plannen",
     planBuilderTitle: "Kies je maaltijden. Wij doen de boodschappen.",
     planBuilderSubtitle: "Doorblader de maaltijdbibliotheek, vul je dagen en krijg de exacte boodschappenlijst om ze te koken.",
@@ -490,7 +490,7 @@ export const planBuilderTranslations = {
     regenerate: "Opnieuw maken",
   },
   sv: {
-    planBuilderNav: "Planbyggare",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Måltidsbaserad planering",
     planBuilderTitle: "Välj dina måltider. Vi handlar.",
     planBuilderSubtitle: "Bläddra i måltidsbiblioteket, fyll i dina dagar och få en exakt inköpslista för att laga dem.",
@@ -550,7 +550,7 @@ export const planBuilderTranslations = {
     regenerate: "Lag på nytt",
   },
   da: {
-    planBuilderNav: "Planbygger",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Måltidsbaseret planlægning",
     planBuilderTitle: "Vælg dine måltider. Vi shopper.",
     planBuilderSubtitle: "Gennemse måltidsbiblioteket, udfyld dine dage og få den præcise indkøbsliste til at lave dem.",
@@ -580,7 +580,7 @@ export const planBuilderTranslations = {
     regenerate: "Opret igen",
   },
   fi: {
-    planBuilderNav: "Suunnittelija",
+    planBuilderNav: "Suunnitelma",
     planBuilderBadge: "Ateriapohjainen suunnittelu",
     planBuilderTitle: "Valitse ateriat. Me käymme kaupassa.",
     planBuilderSubtitle: "Selaa ateriakirjastoa, täytä päivät ja saat tarkan ostoslistan niiden valmistamiseen.",
@@ -610,7 +610,7 @@ export const planBuilderTranslations = {
     regenerate: "Luo uudelleen",
   },
   cs: {
-    planBuilderNav: "Tvorba plánu",
+    planBuilderNav: "Plán",
     planBuilderBadge: "Plánování podle jídel",
     planBuilderTitle: "Vyber si jídla. My nakoupíme.",
     planBuilderSubtitle: "Procházej knihovnu jídel, vyplň dny a dostaň přesný nákupní seznam pro jejich přípravu.",
@@ -640,7 +640,7 @@ export const planBuilderTranslations = {
     regenerate: "Vygenerovat znovu",
   },
   hu: {
-    planBuilderNav: "Tervező",
+    planBuilderNav: "Terv",
     planBuilderBadge: "Ételszerinti tervezés",
     planBuilderTitle: "Válaszd ki az ételeket. Mi bevásárlunk.",
     planBuilderSubtitle: "Böngészd az ételkönyvtárat, töltsd ki a napokat, és kapd meg a pontos bevásárlólistát az elkészítéshez.",
@@ -670,7 +670,7 @@ export const planBuilderTranslations = {
     regenerate: "Újragenerálás",
   },
   ro: {
-    planBuilderNav: "Constructor de plan",
+    planBuilderNav: "Plan",
     planBuilderBadge: "Planificare pe feluri",
     planBuilderTitle: "Alege felurile. Noi facem cumpărăturile.",
     planBuilderSubtitle: "Răsfoiește biblioteca de feluri, completează zilele și obține lista exactă de cumpărături pentru a le găti.",
@@ -700,7 +700,7 @@ export const planBuilderTranslations = {
     regenerate: "Regenerează",
   },
   el: {
-    planBuilderNav: "Δημιουργός σχεδίου",
+    planBuilderNav: "Σχέδιο",
     planBuilderBadge: "Σχεδιασμός ανά γεύμα",
     planBuilderTitle: "Επίλεξε τα γεύματα. Εμείς ψωνίζουμε.",
     planBuilderSubtitle: "Περιήγηση στη βιβλιοθήκη γευμάτων, γέμισε τις μέρες και πάρε την ακριβή λίστα αγορών για να τα μαγειρέψεις.",
