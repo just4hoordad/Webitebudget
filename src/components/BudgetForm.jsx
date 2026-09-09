@@ -160,7 +160,7 @@ export default function BudgetForm() {
     if (enabled.pantry) {
       params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
     }
-    navigate(`/meal-plan?${params.toString()}`);
+    navigate(`/plan-review?${params.toString()}`);
   };
 
   const dietLabel = t(DIET_KEYS.find(d => d.id === selectedDiet)?.nameKey);
