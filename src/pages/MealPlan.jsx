@@ -4,7 +4,7 @@ import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -836,12 +836,32 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                 </div>
               );
             })()}
-            {totalSaved > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                <p className="text-xs text-yellow-700 font-medium">{t("savedVsRegular")}</p>
-                <p className="font-heading text-lg font-bold text-yellow-600">€{totalSaved.toFixed(2)}</p>
-              </div>
-            )}
+            {totalSaved > 0 && (() => {
+              const normalTotal = activeTotal + totalSaved;
+              const pct = normalTotal > 0 ? Math.round((totalSaved / normalTotal) * 100) : 0;
+              return (
+                <div className="relative overflow-hidden rounded-2xl p-5 text-primary-foreground bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
+                  <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
+                  <div className="absolute -right-2 top-10 h-16 w-16 rounded-full bg-white/10" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+                      <PiggyBank className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">{t("savedVsRegular")}</p>
+                      <p className="font-heading text-4xl font-extrabold leading-none mt-1">€{totalSaved.toFixed(2)}</p>
+                      <p className="text-sm opacity-90 mt-2 leading-relaxed">
+                        {t("savedCelebration", { amount: `€${totalSaved.toFixed(2)}`, pct })}
+                      </p>
+                    </div>
+                    <div className="hidden sm:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-3 py-2 backdrop-blur-sm shrink-0">
+                      <TrendingDown className="h-5 w-5" />
+                      <span className="font-heading text-2xl font-bold leading-none mt-0.5">{pct}%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Export Buttons */}
