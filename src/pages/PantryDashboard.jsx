@@ -28,8 +28,24 @@ function categorize(name) {
   return "Other";
 }
 
+// Map the internal English category names used by CATEGORY_RULES to their
+// translation keys, so the chart axis and cards render in the active language.
+const CATEGORY_KEY = {
+  "Oils & Vinegars": "cat_oils",
+  "Spices & Seasonings": "cat_spices",
+  "Grains & Pasta": "cat_grains",
+  "Canned & Jarred": "cat_canned",
+  "Dairy & Eggs": "cat_dairy",
+  "Sauces & Condiments": "cat_sauces",
+  "Produce": "cat_produce",
+  "Beverages": "cat_beverages",
+  "Other": "cat_other",
+};
+
 export default function PantryDashboard() {
   const { t } = useLanguage();
+  const translateCategory = (name) => t(CATEGORY_KEY[name] || "cat_other");
+  const itemCount = (n) => (n === 1 ? t("itemSingular") : t("itemPlural"));
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState([]);
@@ -154,7 +170,7 @@ export default function PantryDashboard() {
             </div>
             <div className="bg-card border border-border rounded-xl p-4 col-span-2 sm:col-span-1">
               <p className="text-xs uppercase text-muted-foreground">{t("topCategory") || "Top category"}</p>
-              <p className="font-heading text-lg font-bold truncate">{topCat?.name}</p>
+              <p className="font-heading text-lg font-bold truncate">{topCat ? translateCategory(topCat.name) : ""}</p>
             </div>
           </div>
 
@@ -172,7 +188,8 @@ export default function PantryDashboard() {
                   type="category"
                   dataKey="name"
                   width={110}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tickFormatter={(name) => translateCategory(name)}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, fontFamily: "var(--font-body)" }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -188,9 +205,9 @@ export default function PantryDashboard() {
                     const p = payload[0].payload;
                     return (
                       <div className="bg-popover border border-border rounded-lg px-3 py-2 text-xs">
-                        <p className="font-semibold text-foreground">{p.name}</p>
+                        <p className="font-semibold text-foreground">{translateCategory(p.name)}</p>
                         <p className="text-muted-foreground">
-                          {p.count} {p.count === 1 ? "item" : "items"}
+                          {p.count} {itemCount(p.count)}
                         </p>
                       </div>
                     );
@@ -206,7 +223,7 @@ export default function PantryDashboard() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="h-3 w-3 rounded-sm shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span className="font-heading font-semibold text-sm text-foreground truncate">{cat.name}</span>
+                    <span className="font-heading font-semibold text-sm text-foreground truncate">{translateCategory(cat.name)}</span>
                     {i === 0 && (
                       <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
                         {t("top") || "Top"}
@@ -214,7 +231,7 @@ export default function PantryDashboard() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground font-medium shrink-0 ml-2">
-                    {cat.count} {cat.count === 1 ? "item" : "items"} · {Math.round((cat.count / total) * 100)}%
+                    {cat.count} {itemCount(cat.count)} · {Math.round((cat.count / total) * 100)}%
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
