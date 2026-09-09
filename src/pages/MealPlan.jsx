@@ -3,8 +3,22 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
+
+const SHARE_L = {
+  en: { share: "Share list", copied: "List copied! Paste it anywhere to share." },
+  de: { share: "Liste teilen", copied: "Liste kopiert! Überall einfügen und teilen." },
+  fr: { share: "Partager la liste", copied: "Liste copiée ! Collez-la partout." },
+  es: { share: "Compartir lista", copied: "¡Lista copiada! Pégala donde quieras." },
+  ar: { share: "مشاركة القائمة", copied: "تم نسخ القائمة! الصقها في أي مكان." },
+  ru: { share: "Поделиться списком", copied: "Список скопирован! Вставьте куда угодно." },
+  uk: { share: "Поділитися списком", copied: "Список скопійовано! Вставте куди завгодно." },
+  fa: { share: "اشتراک‌گذاری لیست", copied: "لیست کپی شد! هرجا جای‌گذاری کنید." },
+  zh: { share: "分享清单", copied: "清单已复制！可粘贴到任意位置分享。" },
+  vi: { share: "Chia sẻ danh sách", copied: "Đã sao chép! Dán vào bất cứ đâu." },
+  tr: { share: "Listeyi paylaş", copied: "Liste kopyalandı! İstediğiniz yere yapıştırın." },
+};
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -184,6 +198,37 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
     }
     return sum;
   }, 0);
+
+  const shareGroceryList = async () => {
+    const items = getActiveItems();
+    const byCategory = {};
+    items.forEach(it => { (byCategory[it.category] = byCategory[it.category] || []).push(it); });
+    const lines = [];
+    lines.push(`🛒 BudgetBite — ${t("yourGroceryList")}`);
+    lines.push(`${diet} · €${budget}/${days} ${t("days")} · ${calories} kcal · ${people} ${t("personS")}`);
+    lines.push("");
+    Object.entries(byCategory).forEach(([cat, catItems]) => {
+      lines.push(`▶ ${translateCategory(cat)}`);
+      catItems.forEach(it => {
+        const storeStr = it.store ? ` [${it.store}]` : "";
+        lines.push(`  • ${it.name} — ${it.quantity} — €${(it.price || 0).toFixed(2)}${storeStr}`);
+      });
+      lines.push("");
+    });
+    lines.push(`💰 ${t("estimatedTotalForDays", { days })}: €${activeTotal.toFixed(2)}`);
+    const text = lines.join("\n");
+    const s = SHARE_L[currentLanguage.code] || SHARE_L.en;
+    if (navigator.share) {
+      try { await navigator.share({ title: t("yourGroceryList"), text }); return; }
+      catch { /* cancelled → fall back to clipboard */ }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(s.copied);
+    } catch {
+      toast.error("Could not share or copy. Try the CSV/PDF export.");
+    }
+  };
 
   const exportCSV = () => {
     const items = getActiveItems();
@@ -904,7 +949,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           </div>
 
           {/* Export Buttons */}
-          <div className="flex gap-2 justify-end">
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button onClick={shareGroceryList} size="sm" className="gap-2">
+              <Share2 className="h-4 w-4" />
+              {(SHARE_L[currentLanguage.code] || SHARE_L.en).share}
+            </Button>
             <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
               <FileText className="h-4 w-4" />
               {t("exportCSV")}
