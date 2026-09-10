@@ -10,11 +10,14 @@ function sanitizeId(s) {
 function normalizeDays(plan) {
   const p = plan?.plan;
   if (Array.isArray(p)) {
+    const join = (v) => Array.isArray(v)
+      ? v.map((x) => (x && typeof x === "object" ? x.name : x)).filter((n) => n && String(n).trim()).join(", ")
+      : (v && String(v).trim()) || "";
     return p.map((day, i) => ({
       label: `Day ${i + 1}`,
-      breakfast: day.breakfast,
-      lunch: day.lunch,
-      dinner: day.dinner,
+      breakfast: join(day.breakfast),
+      lunch: join(day.lunch),
+      dinner: join(day.dinner),
     }));
   }
   if (p && Array.isArray(p.weeks)) {

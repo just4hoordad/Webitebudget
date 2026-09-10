@@ -1,4 +1,5 @@
 import MealThumb from "@/components/planbuilder/MealThumb";
+import { filledDishes } from "@/lib/planDishes";
 import { Plus, GripVertical } from "lucide-react";
 
 export default function WeekView({ plan, slots, selectCell, activeDay, slotType, dateForIndex, WD, weekOffset, setWeekOffset }) {
@@ -40,7 +41,10 @@ export default function WeekView({ plan, slots, selectCell, activeDay, slotType,
               </div>
               <div className="space-y-1.5">
                 {slots.map((s) => {
-                  const filled = (day[s.key] || "").trim();
+                  const dishes = filledDishes(day, s.key);
+                  const filled = dishes.length > 0;
+                  const firstName = dishes[0]?.name || "";
+                  const extra = dishes.length - 1;
                   const selected = d === activeDay && s.key === slotType;
                   return (
                     <button
@@ -56,8 +60,8 @@ export default function WeekView({ plan, slots, selectCell, activeDay, slotType,
                       <div className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{s.label}</div>
                       {filled ? (
                         <div className="flex items-center gap-1.5">
-                          <MealThumb name={filled} size="h-8 w-8" />
-                          <span className="text-[11px] font-medium leading-tight line-clamp-2 flex-1 min-w-0">{filled}</span>
+                          <MealThumb name={firstName} size="h-8 w-8" />
+                          <span className="text-[11px] font-medium leading-tight line-clamp-2 flex-1 min-w-0">{firstName}{extra > 0 && <span className="text-muted-foreground"> +{extra}</span>}</span>
                           <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                         </div>
                       ) : (

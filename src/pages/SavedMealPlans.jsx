@@ -256,15 +256,20 @@ export default function SavedMealPlans() {
                     <div className="divide-y divide-border">
                       {plan.plan.map((day, idx) => {
                         const dayPrep = plan.prep?.days?.[idx];
-                        const cell = (type, val) => (
-                          <div>
-                            <span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t(type)}</span>
-                            <span className="text-foreground">{val || "—"}</span>
-                            {dayPrep?.[type]?.portion && (
-                              <span className="block text-[10px] text-primary mt-0.5">🍽 {dayPrep[type].portion}</span>
-                            )}
-                          </div>
-                        );
+                        const cell = (type, val) => {
+                          const name = Array.isArray(val)
+                            ? val.map((x) => (x && typeof x === "object" ? x.name : x)).filter((n) => n && String(n).trim()).join(", ")
+                            : (val && String(val).trim()) || "";
+                          return (
+                            <div>
+                              <span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t(type)}</span>
+                              <span className="text-foreground">{name || "—"}</span>
+                              {dayPrep?.[type]?.portion && (
+                                <span className="block text-[10px] text-primary mt-0.5">🍽 {dayPrep[type].portion}</span>
+                              )}
+                            </div>
+                          );
+                        };
                         return (
                           <div key={idx} className="px-5 py-3 text-sm">
                             <div className="font-semibold text-foreground text-xs mb-1.5">{t("day") || "Day"} {idx + 1}</div>

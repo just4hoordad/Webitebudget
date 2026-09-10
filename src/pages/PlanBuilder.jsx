@@ -9,6 +9,7 @@ import GeneratingLoader from "@/components/GeneratingLoader";
 import CreditBar from "@/components/monetization/CreditBar";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
+import { toDishes, filledDishes } from "@/lib/planDishes";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -70,13 +71,27 @@ export default function PlanBuilder() {
 
   const startPlan = () => {
     try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores })); } catch { /* ignore */ }
-    setPlan(Array.from({ length: days }, () => ({ breakfast: "", lunch: "", dinner: "" })));
+    setPlan(Array.from({ length: days }, () => ({ breakfast: [], lunch: [], dinner: [] })));
     setGrocery(null);
     setPhase("grid");
   };
 
   const setSlot = (d, type, value) =>
     setPlan((prev) => prev.map((day, i) => (i === d ? { ...day, [type]: value } : day)));
+
+  const addDish = (d, type, name = "", side = false) =>
+    setPlan((prev) => prev.map((day, i) => (i === d ? { ...day, [type]: [...toDishes(day[type]), { name, side }] } : day)));
+  const updateDish = (d, type, idx, name) =>
+    setPlan((prev) => prev.map((day, i) => {
+      if (i !== d) return day;
+      return { ...day, [type]: toDishes(day[type]).map((dish, j) => (j === idx ? { ...dish, name } : dish)) };
+    }));
+  const removeDish = (d, type, idx) =>
+    setPlan((prev) => prev.map((day, i) => {
+      if (i !== d) return day;
+      return { ...day, [type]: toDishes(day[type]).filter((_, j) => j !== idx) };
+    }));
+  const addSideDish = (d, type) => addDish(d, type, "", true);
 
   const addRecentMeal = (name) => {
     const n = (name || "").trim();
@@ -93,7 +108,7 @@ export default function PlanBuilder() {
     const opts = lib.filter((m) => m.type === slotKey);
     if (!opts.length) { toast.error(t("suggestFailed")); return; }
     const name = opts[Math.floor(Math.random() * opts.length)].name;
-    setSlot(dayIndex, slotKey, name);
+    addDish(dayIndex, slotKey, name);
     addRecentMeal(name);
   };
 
@@ -106,12 +121,12 @@ export default function PlanBuilder() {
         return opts.length ? opts[Math.floor(Math.random() * opts.length)].name : "";
       };
       const next = Array.from({ length: plan.length }, () => ({
-        breakfast: pick("breakfast"),
-        lunch: pick("lunch"),
-        dinner: pick("dinner"),
+        breakfast: [{ name: pick("breakfast"), side: false }],
+        lunch: [{ name: pick("lunch"), side: false }],
+        dinner: [{ name: pick("dinner"), side: false }],
       }));
       setPlan(next);
-      next.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => { if (day[k]) addRecentMeal(day[k]); }));
+      next.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => filledDishes(day, k).forEach((dd) => addRecentMeal(dd.name))));
     } catch {
       toast.error("Autofill failed. Please try again.");
     } finally {
@@ -137,8 +152,7 @@ export default function PlanBuilder() {
     } catch { /* ignore cache read errors */ }
 
     plan.forEach((day) => ["breakfast", "lunch", "dinner"].forEach((k) => {
-      const v = (day[k] || "").trim();
-      if (v) addRecentMeal(v);
+      filledDishes(day, k).forEach((dd) => addRecentMeal(dd.name));
     }));
     setLoadingGrocery(true);
     savedPlanId.current = null;
@@ -147,8 +161,12 @@ export default function PlanBuilder() {
         .map((day, d) => {
           const parts = [];
           ["breakfast", "lunch", "dinner"].forEach((type) => {
-            const name = day[type]?.trim();
-            if (name) parts.push(`${type}: ${name}`);
+            const dishes = filledDishes(day, type);
+            if (!dishes.length) return;
+            const mains = dishes.filter((x) => !x.side).map((x) => x.name).join(", ");
+            const sides = dishes.filter((x) => x.side).map((x) => x.name).join(", ");
+            const label = mains ? `${type}: ${mains}` : `${type}: (sides only)`;
+            parts.push(sides ? `${label} + sides: ${sides}` : label);
           });
           return `Day ${d + 1}: ${parts.join(" | ")}`;
         })
@@ -316,7 +334,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
       </div>
     );

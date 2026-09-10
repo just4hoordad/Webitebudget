@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { filledDishes, mealFilled } from "@/lib/planDishes";
 
 const WD_MON = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -47,7 +48,7 @@ export default function MonthView({ plan, slots, selectCell, activeDay, monthAnc
           const { date, idx } = cell;
           const inRange = idx >= 0 && idx < days;
           const day = inRange ? plan[idx] : null;
-          const filledCount = day ? slots.filter((s) => (day[s.key] || "").trim()).length : 0;
+          const filledCount = day ? slots.filter((s) => mealFilled(day, s.key)).length : 0;
           const selected = idx === activeDay && inRange;
           return (
             <button
@@ -64,7 +65,7 @@ export default function MonthView({ plan, slots, selectCell, activeDay, monthAnc
               <span className={`text-xs font-semibold ${inRange ? "text-foreground" : ""}`}>{date.getDate()}</span>
               {inRange && filledCount > 0 && (
                 <span className="mt-auto text-[8px] font-medium text-muted-foreground leading-none">
-                  {slots.map((s) => initials(day[s.key])).filter(Boolean).slice(0, 3).join(" ")}
+                  {slots.map((s) => initials(filledDishes(day, s.key)[0]?.name || "")).filter(Boolean).slice(0, 3).join(" ")}
                 </span>
               )}
             </button>

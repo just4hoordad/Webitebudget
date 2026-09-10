@@ -1,9 +1,8 @@
-import MealThumb from "@/components/planbuilder/MealThumb";
-import { Copy, Eraser, Shuffle } from "lucide-react";
+import DishPill from "@/components/planbuilder/DishPill";
+import { dishList } from "@/lib/planDishes";
+import { Copy, Eraser, Plus } from "lucide-react";
 
-export default function ListView({ plan, slots, setSlot, onSuggest, dayFilled, copyToNextDay, clearDay, dateForIndex, WD, t, setActiveSlot }) {
-  const inputCls = "w-full min-h-[40px] border border-border rounded-lg px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground/60";
-
+export default function ListView({ plan, slots, addDish, updateDish, removeDish, addSideDish, dayFilled, copyToNextDay, clearDay, dateForIndex, WD, t }) {
   return (
     <div className="space-y-2.5">
       {plan.map((day, d) => {
@@ -41,34 +40,35 @@ export default function ListView({ plan, slots, setSlot, onSuggest, dayFilled, c
             <div className="grid sm:grid-cols-3 gap-2.5">
               {slots.map((s) => {
                 const Icon = s.icon;
-                const filled = (day[s.key] || "").trim();
+                const dishes = dishList(day, s.key);
                 return (
                   <div key={s.key} className="space-y-1.5">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                       <Icon className="h-3.5 w-3.5" /> {s.label}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {filled ? <MealThumb name={filled} /> : <div className="h-9 w-9 rounded-full border border-dashed border-border shrink-0" />}
-                      <input
-                        type="text"
-                        value={day[s.key] || ""}
-                        onChange={(e) => setSlot(d, s.key, e.target.value)}
-                        onFocus={() => setActiveSlot(d, s.key)}
-                        placeholder={t("mealNamePlaceholder")}
-                        className={inputCls}
+                    {dishes.map((dish, idx) => (
+                      <DishPill
+                        key={idx}
+                        dish={dish}
+                        t={t}
+                        onType={(v) => updateDish(d, s.key, idx, v)}
+                        onRemove={() => removeDish(d, s.key, idx)}
                       />
-                      {onSuggest && (
-                        <button
-                          type="button"
-                          onClick={() => onSuggest(d, s.key)}
-                          title={t("suggestMeal")}
-                          aria-label={t("suggestMeal")}
-                          className="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                          <Shuffle className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addDish(d, s.key, "")}
+                      className="w-full flex items-center gap-1.5 rounded-xl border border-dashed border-border px-3 py-2 text-xs font-medium text-primary/80 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> {t("addDish")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addSideDish(d, s.key)}
+                      className="w-full flex items-center gap-1.5 rounded-xl border border-dashed border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" /> {t("addSideDish")}
+                    </button>
                   </div>
                 );
               })}

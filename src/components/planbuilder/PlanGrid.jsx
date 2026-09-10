@@ -11,8 +11,9 @@ import ListView from "@/components/planbuilder/ListView";
 import WeekView from "@/components/planbuilder/WeekView";
 import MonthView from "@/components/planbuilder/MonthView";
 import { planStartDate, dateForIndex, WD } from "@/lib/planDates";
+import { dishList, mealFilled } from "@/lib/planDishes";
 
-export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
+export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, removeDish, addSideDish, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
   const { t, currentLanguage } = useLanguage();
   const [view, setView] = useState("list");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -29,8 +30,8 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
   ];
 
   const totalSlots = plan.length * 3;
-  const filledSlots = plan.reduce((acc, day) => acc + slots.filter((s) => (day[s.key] || "").trim()).length, 0);
-  const dayFilled = (d) => slots.filter((s) => (plan[d][s.key] || "").trim()).length;
+  const filledSlots = plan.reduce((acc, day) => acc + slots.filter((s) => mealFilled(day, s.key)).length, 0);
+  const dayFilled = (d) => slots.filter((s) => mealFilled(plan[d], s.key)).length;
 
   const slotLabel = slots.find((s) => s.key === slotType)?.label || "";
   const targetLabel = scope === "all"
@@ -41,19 +42,19 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
   const selectCell = (d, key) => setActiveSlot(d, key);
 
   const handleAddMeal = (meal) => {
-    const prev = scope === "all" ? plan.map((d) => d[slotType] || "") : [plan[activeDay]?.[slotType] || ""];
+    const preCounts = scope === "all" ? plan.map((d) => dishList(d, slotType).length) : [dishList(plan[activeDay], slotType).length];
     if (scope === "all") {
-      plan.forEach((_, d) => setSlot(d, slotType, meal));
+      plan.forEach((_, d) => addDish(d, slotType, meal));
     } else {
-      setSlot(activeDay, slotType, meal);
+      addDish(activeDay, slotType, meal);
       if (activeDay < plan.length - 1) setActiveDay(activeDay + 1);
     }
     toast.success(`${meal} → ${targetLabel}`, {
       action: {
         label: t("undo") || "Undo",
         onClick: () => {
-          if (scope === "all") prev.forEach((v, d) => setSlot(d, slotType, v));
-          else setSlot(activeDay, slotType, prev[0]);
+          if (scope === "all") plan.forEach((_, d) => removeDish(d, slotType, preCounts[d]));
+          else removeDish(activeDay, slotType, preCounts[0]);
         },
       },
     });
@@ -62,9 +63,9 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
   const copyToNextDay = (d) => {
     if (d + 1 >= plan.length) return;
     const src = plan[d];
-    slots.forEach((s) => setSlot(d + 1, s.key, src[s.key] || ""));
+    slots.forEach((s) => setSlot(d + 1, s.key, Array.isArray(src[s.key]) ? src[s.key].map((x) => ({ ...x })) : src[s.key] || ""));
   };
-  const clearDay = (d) => slots.forEach((s) => setSlot(d, s.key, ""));
+  const clearDay = (d) => slots.forEach((s) => setSlot(d, s.key, []));
 
   const VIEWS = [
     { id: "list", label: t("pbViewList"), icon: List },
@@ -171,9 +172,9 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
       <div className="pt-3 border-t border-border space-y-3">
         {view === "list" && (
           <ListView
-            plan={plan} slots={slots} setSlot={setSlot} onSuggest={onSuggest}
+            plan={plan} slots={slots} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish}
             dayFilled={dayFilled} copyToNextDay={copyToNextDay} clearDay={clearDay}
-            dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} t={t} setActiveSlot={setActiveSlot}
+            dateForIndex={(i) => dateForIndex(startDate, i)} WD={WD} t={t}
           />
         )}
         {view === "week" && (
