@@ -79,6 +79,10 @@ export default function PlanGrid({ days, plan, setSlot, onAutoFill, autofilling,
           <Utensils className="h-4 w-4" /> {t("planGridTitle", { days: plan.length })}
         </div>
         <p className="text-muted-foreground text-sm">{t("planGridSubtitle")}</p>
+        <p className="text-muted-foreground/80 text-xs flex items-start gap-1.5 mt-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+          <span>{t("planGridAIBlurb")}</span>
+        </p>
       </div>
 
       {/* View toggle */}
