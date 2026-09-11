@@ -46,6 +46,11 @@ const CHAIN_ALIASES = {
   tegut: ["tegut", "tegut…", "tegut lebensmittel"],
 };
 
+// The map searches ALL known chains nearby (not just the user's preferred ones)
+// so there's always something to pin. Pinned stores override the chain list for
+// the grocery list, so showing all chains here is safe.
+const ALL_CHAINS = Object.keys(CHAIN_ALIASES);
+
 function detectChain(name = "") {
   const lower = name.toLowerCase();
   for (const [chain, aliases] of Object.entries(CHAIN_ALIASES)) {
@@ -67,7 +72,7 @@ function createStoreIcon(chain, isSelected) {
 }
 
 async function fetchNearbyStores(lat, lng, chains) {
-  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng, radius: 1500, chains });
+  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng, radius: 3000, chains });
   return (res.data?.elements || [])
     .map((el) => {
       const name = el.tags?.name || el.tags?.brand || "";
@@ -96,7 +101,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
     const [lat, lng] = pendingFlyTo;
     map.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
     onLoading(true);
-    fetchNearbyStores(lat, lng, chains).then(nearby => {
+    fetchNearbyStores(lat, lng, ALL_CHAINS).then(nearby => {
       onStoresLoaded(nearby, [lat, lng]);
       onLoading(false);
     }).catch(() => {
@@ -118,7 +123,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
         map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
         onLoading(true);
         try {
-          const nearby = await fetchNearbyStores(latitude, longitude, chains);
+          const nearby = await fetchNearbyStores(latitude, longitude, ALL_CHAINS);
           onStoresLoaded(nearby, [latitude, longitude]);
         } catch (e) {
           onStoresLoaded([], [latitude, longitude]);

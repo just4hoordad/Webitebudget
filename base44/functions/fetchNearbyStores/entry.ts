@@ -30,7 +30,7 @@ const CHAIN_QUERY: Record<string, string> = {
 
 const SHOP_FILTER = `["shop"~"supermarket|chemist|drugstore|convenience"]`;
 const PHOTON_SHOP_VALUES = new Set(["supermarket", "chemist", "drugstore", "convenience", "perfumery"]);
-const OVERPASS_TIMEOUT_MS = 6000;
+const OVERPASS_TIMEOUT_MS = 4000;
 const PHOTON_TIMEOUT_MS = 6000;
 
 function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -42,18 +42,14 @@ function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function buildOverpassQuery(lat: number, lng: number, radius: number, chains: string[] | null) {
+// Query ALL supermarkets/chemists/convenience in the radius (simple, fast,
+// complete) — no brand regex, which was the slow part with many chains. The
+// frontend's detectChain() filters the results down to known chains, so
+// non-chain shops are simply dropped. This keeps Overpass fast enough to win
+// the 6s race even in dense areas.
+function buildOverpassQuery(lat: number, lng: number, radius: number, _chains: string[] | null) {
   const around = `(around:${radius},${lat},${lng})`;
-  if (!chains || !chains.length) {
-    return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
-  }
-  const parts = chains.map((c) => CHAIN_BRANDS[c]).filter(Boolean).join("|");
-  if (!parts) {
-    return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
-  }
-  const brandF = `["brand"~"${parts}",i]`;
-  const nameF = `["name"~"${parts}",i]`;
-  return `[out:json][timeout:25];(node${SHOP_FILTER}${brandF}${around};node${SHOP_FILTER}${nameF}${around};way${SHOP_FILTER}${brandF}${around};way${SHOP_FILTER}${nameF}${around};);out center;`;
+  return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
 }
 
 function dedupe(elements: any[]) {
@@ -172,30 +168,26 @@ Deno.serve(async (req) => {
       return Response.json({ elements: hit.elements });
     }
 
-    // Start both sources in parallel.
-    const overpassQuery = buildOverpassQuery(latNum, lngNum, safeRadius, chainsArr);
+    // Run both sources in parallel and MERGE:
+    //  - Overpass (shop-type-only, radius capped at 1.5km): fast + COMPLETE for
+    //    nearby stores (catches brand-only stores Photon misses).
+    //  - Photon (all requested chains, full radius): fast + wider coverage.
+    // Dedupe by OSM type+id (same store from both sources collapses to one).
+    const overpassRadius = Math.min(safeRadius, 1500);
+    const overpassQuery = buildOverpassQuery(latNum, lngNum, overpassRadius, chainsArr);
     const overpassPromise = queryOverpass(overpassQuery);
     const photonPromise = validChains.length ? queryPhoton(validChains, latNum, lngNum, safeRadius) : Promise.resolve([]);
 
-    // Wait for Overpass up to OVERPASS_TIMEOUT_MS; if it resolves with data,
-    // prefer it (complete). Otherwise fall back to Photon (partial).
-    const overpassTimeout = new Promise<"__timeout__">((r) => setTimeout(() => r("__timeout__"), OVERPASS_TIMEOUT_MS));
-    const overpassResult = await Promise.race([
-      overpassPromise.then((e) => (e === null ? null : dedupe(e))),
+    const overpassTimeout = new Promise<any[]>((r) => setTimeout(() => r([]), OVERPASS_TIMEOUT_MS));
+    const overpassElements = await Promise.race([
+      overpassPromise.then((e) => (e === null ? [] : e)),
       overpassTimeout,
     ]);
+    const photonElements = await photonPromise;
+    const elements = dedupe([...overpassElements, ...photonElements]);
+    const source = overpassElements.length ? `overpass+photon (${overpassElements.length}+${photonElements.length})` : `photon (${photonElements.length})`;
 
-    let elements: any[];
-    let source: string;
-    if (Array.isArray(overpassResult) && overpassResult.length >= 0 && overpassResult !== null) {
-      elements = overpassResult;
-      source = "overpass";
-    } else {
-      elements = await photonPromise;
-      source = "photon";
-    }
-
-    console.log(`[fetchNearbyStores] ${source} found ${elements.length} stores (chains: ${chainsArr?.join(",") || "all"})`);
+    console.log(`[fetchNearbyStores] ${source} → ${elements.length} stores (chains: ${chainsArr?.join(",") || "all"})`);
     cache.set(key, { ts: Date.now(), elements });
     return Response.json({ elements });
   } catch (error) {
