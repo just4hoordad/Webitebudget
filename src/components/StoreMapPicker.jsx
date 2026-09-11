@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { MapPin, X, Check, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -65,33 +66,28 @@ function createStoreIcon(chain, isSelected) {
   });
 }
 
-const CHAIN_DISPLAY = {
-  aldi: "Aldi", lidl: "Lidl", rewe: "REWE", edeka: "Edeka", penny: "Penny",
-  netto: "Netto", kaufland: "Kaufland", norma: "Norma", globus: "Globus", tegut: "Tegut",
-  dm: "dm", rossmann: "Rossmann", müller: "Müller",
-};
-
-const DEFAULT_CHAINS = ["aldi", "lidl", "rewe", "edeka", "penny"];
-
-// Static store dataset: one representative marker per selected chain near the given point.
-// No external API call, so it always works. Positions are representative, not real branch addresses.
-function getStaticStores(lat, lng, chains) {
-  const list = chains && chains.length ? chains : DEFAULT_CHAINS;
-  return list.map((chain, i) => {
-    const bearing = (i * (360 / list.length) + 25) * (Math.PI / 180);
-    const radiusDeg = 0.0035 + (i % 3) * 0.0012; // ~350–580m, scattered naturally
-    return {
-      id: `static-${chain}`,
-      name: CHAIN_DISPLAY[chain] || chain,
-      chain,
-      lat: lat + Math.cos(bearing) * radiusDeg,
-      lng: lng + Math.sin(bearing) * radiusDeg,
-      address: null,
-    };
-  });
+async function fetchNearbyStores(lat, lng) {
+  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng, radius: 1500 });
+  return (res.data?.elements || [])
+    .map((el) => {
+      const name = el.tags?.name || el.tags?.brand || "";
+      const brand = el.tags?.brand || "";
+      const chain = detectChain(brand) || detectChain(name);
+      if (!chain) return null;
+      const elLat = el.lat ?? el.center?.lat;
+      const elLng = el.lon ?? el.center?.lon;
+      if (!elLat || !elLng) return null;
+      const address = [
+        el.tags?.["addr:street"],
+        el.tags?.["addr:housenumber"],
+        el.tags?.["addr:city"],
+      ].filter(Boolean).join(" ") || null;
+      return { id: el.id, name: name || chain, chain, lat: elLat, lng: elLng, address };
+    })
+    .filter(Boolean);
 }
 
-function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, t, pendingFlyTo, onFlyToDone, chains }) {
+function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStoresLoaded, onLoading, t, pendingFlyTo, onFlyToDone, chains }) {
   const map = useMap();
   const [locating, setLocating] = useState(false);
 
@@ -99,7 +95,14 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
     if (!pendingFlyTo) return;
     const [lat, lng] = pendingFlyTo;
     map.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
-    onStoresLoaded(getStaticStores(lat, lng, chains), [lat, lng]);
+    onLoading(true);
+    fetchNearbyStores(lat, lng).then(nearby => {
+      onStoresLoaded(nearby, [lat, lng]);
+      onLoading(false);
+    }).catch(() => {
+      onStoresLoaded([], [lat, lng]);
+      onLoading(false);
+    });
     if (onFlyToDone) onFlyToDone();
   }, [pendingFlyTo]);
 
@@ -110,11 +113,19 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
         map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
-        onStoresLoaded(getStaticStores(latitude, longitude, chains), [latitude, longitude]);
-        setLocating(false);
+        onLoading(true);
+        try {
+          const nearby = await fetchNearbyStores(latitude, longitude);
+          onStoresLoaded(nearby, [latitude, longitude]);
+        } catch (e) {
+          onStoresLoaded([], [latitude, longitude]);
+        } finally {
+          onLoading(false);
+          setLocating(false);
+        }
       },
       (err) => {
         setLocating(false);
@@ -124,7 +135,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
       },
       { timeout: 15000, maximumAge: 60000 }
     );
-  }, [map, onStoresLoaded, chains]);
+  }, [map, onStoresLoaded, chains, onLoading]);
 
   // Don't auto-locate — user must click the button
 
@@ -272,7 +283,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
               <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} whenReady={(map) => { setTimeout(() => map.target.invalidateSize(), 100); }}>
                 <TileLayer
                   attribution='Tiles &copy; Esri'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                 />
                 <MapController
                   stores={stores}
