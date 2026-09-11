@@ -7,7 +7,7 @@ const translations = {
 
     // Home
     aiPowered: "AI-Powered Meal Planning",
-    heroTitle1: "Eat well on a",
+    heroTitle1: "With your personal",
     heroTitle2: "budget",
     heroSubtitle: "Smart meal plans based on real German grocery store prices. Save money, eat healthy, stress less.",
     feature1Title: "Real German Prices",
@@ -194,7 +194,7 @@ const translations = {
     savedPlans: "Gespeicherte Pläne",
     footerText: "BudgetBite — Clevere Mahlzeitenplanung für Studenten in Deutschland",
     aiPowered: "KI-gestützte Mahlzeitenplanung",
-    heroTitle1: "Gut essen mit einem",
+    heroTitle1: "Mit Ihrem persönlichen",
     heroTitle2: "Budget",
     heroSubtitle: "Intelligente Mahlzeitenpläne basierend auf echten deutschen Supermarktpreisen. Geld sparen, gesund essen, weniger Stress.",
     feature1Title: "Echte deutsche Preise",
