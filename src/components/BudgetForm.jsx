@@ -447,6 +447,7 @@ export default function BudgetForm() {
                   onCityCoordsUsed={() => setCityCoords(null)}
                 />
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
               <StoreSpeedHint />
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">

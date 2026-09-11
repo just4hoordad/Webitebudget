@@ -91,6 +91,7 @@ export const planBuilderTranslations = {
     plzHelper: "Supermarket prices vary by region in Germany — adding your postal code helps us find more accurate local prices.",
     estimatedTag: "Estimated",
     priceEstimateNote: "Prices are AI estimates from web data and can be fragile or vary by region and store. Use them as a guide, not a guarantee. Prices you generate are saved to our community database to improve future estimates.",
+    mapPickerHelper: "Tip: pick your preferred supermarket on the map — we'll pull prices from that exact store, which is more accurate and makes the search faster and easier.",
   },
   de: {
     planBuilderNav: "Plan",
@@ -169,6 +170,7 @@ export const planBuilderTranslations = {
     plzHelper: "Supermarktpreise variieren regional in Deutschland — mit deiner Postleitzahl finden wir passendere lokale Preise.",
     estimatedTag: "Geschätzt",
     priceEstimateNote: "Preise sind KI-Schätzungen aus Webdaten und können ungenau oder regional unterschiedlich sein. Nutze sie als Orientierung, nicht als Garantie. Generierte Preise werden in unsere Community-Datenbank gespeichert, um künftige Schätzungen zu verbessern.",
+    mapPickerHelper: "Tipp: Wähle deinen bevorzugten Supermarkt auf der Karte — wir holen die Preise genau von diesem Markt, das ist genauer und macht die Suche schneller und einfacher.",
   },
   fr: {
     planBuilderNav: "Plan",
