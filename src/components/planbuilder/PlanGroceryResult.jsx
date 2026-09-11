@@ -35,6 +35,8 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
         </div>
       </div>
 
+      <p className="text-xs text-muted-foreground px-1 -mt-2">{t("priceEstimateNote")}</p>
+
       <div className="grid lg:grid-cols-2 gap-5 items-start">
         {/* Grocery list */}
         <div className="space-y-4">

@@ -86,6 +86,11 @@ export const planBuilderTranslations = {
     openInLibrary: "Open in my library",
     sharedPlanNotFound: "This shared plan is no longer available",
     goHome: "Go home",
+    plzLabel: "Postal code (PLZ)",
+    plzPlaceholder: "e.g. 10115",
+    plzHelper: "Supermarket prices vary by region in Germany — adding your postal code helps us find more accurate local prices.",
+    estimatedTag: "Estimated",
+    priceEstimateNote: "Prices are AI estimates from web data and can be fragile or vary by region and store. Use them as a guide, not a guarantee. Prices you generate are saved to our community database to improve future estimates.",
   },
   de: {
     planBuilderNav: "Plan",
@@ -159,6 +164,11 @@ export const planBuilderTranslations = {
     openInLibrary: "In Bibliothek öffnen",
     sharedPlanNotFound: "Dieser geteilte Plan ist nicht mehr verfügbar",
     goHome: "Zur Startseite",
+    plzLabel: "Postleitzahl (PLZ)",
+    plzPlaceholder: "z. B. 10115",
+    plzHelper: "Supermarktpreise variieren regional in Deutschland — mit deiner Postleitzahl finden wir passendere lokale Preise.",
+    estimatedTag: "Geschätzt",
+    priceEstimateNote: "Preise sind KI-Schätzungen aus Webdaten und können ungenau oder regional unterschiedlich sein. Nutze sie als Orientierung, nicht als Garantie. Generierte Preise werden in unsere Community-Datenbank gespeichert, um künftige Schätzungen zu verbessern.",
   },
   fr: {
     planBuilderNav: "Plan",

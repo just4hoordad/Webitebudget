@@ -18,7 +18,7 @@ const SHARE_L = {
   tr: { share: "Listeyi paylaş", copied: "Liste kopyalandı! İstediğiniz yere yapıştırın." },
 };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2 } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -822,6 +822,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
               {t("groceryListIntro", { diet: dietLabel, days, goal: goalLabel })}
             </p>
           </div>
+
+          <p className="text-xs text-muted-foreground px-1 -mt-2 flex items-start gap-1.5">
+            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <span>{t("priceEstimateNote")}</span>
+          </p>
 
           {/* Budget Summary */}
           <div className="space-y-3">

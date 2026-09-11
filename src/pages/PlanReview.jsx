@@ -28,6 +28,7 @@ export default function PlanReview() {
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
   const macrosParam = params.get("macros");
   const macros = macrosParam ? (() => { const [p, c, f] = macrosParam.split(",").map(Number); return { protein: p || 30, carbs: c || 40, fats: f || 30 }; })() : null;
+  const postalCode = params.get("plz") || "";
 
   const recap = REASSURANCE_STR[currentLanguage.code] || REASSURANCE_STR.en;
   const dietLabel = t(DIET_LABEL_KEYS[diet] || "balanced");
@@ -57,6 +58,7 @@ export default function PlanReview() {
   if (allergies.length > 0) details.push({ label: L("allergies", "Allergies"), value: allergies.join(", ") });
   if (ownedItems.length > 0) details.push({ label: L("owned", "Already owned"), value: ownedItems.join(", ") });
   if (macros) details.push({ label: L("macros", "Macros"), value: `${macros.protein}/${macros.carbs}/${macros.fats}` });
+  if (postalCode) details.push({ label: L("plzLabel", "Postal code"), value: postalCode });
 
   const confirm = () => {
     const u = new URLSearchParams(window.location.search);

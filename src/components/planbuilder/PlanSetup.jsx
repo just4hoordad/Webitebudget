@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
-  Store, ArrowRight, Sparkles, ShoppingCart,
+  Store, ArrowRight, Sparkles, ShoppingCart, MapPin,
 } from "lucide-react";
 
 const DIET_KEYS = [
@@ -31,7 +31,7 @@ function SectionHeader({ icon: Icon, label, active, onToggle }) {
   );
 }
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading }) {
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode }) {
   const { t } = useLanguage();
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
@@ -107,6 +107,24 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Postal code — regional pricing */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ)"}
+        </label>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]{5}"
+          maxLength={5}
+          value={postalCode || ""}
+          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+          placeholder={t("plzPlaceholder") || "e.g. 10115"}
+          className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+        <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
       </div>
 
       {/* Macros */}

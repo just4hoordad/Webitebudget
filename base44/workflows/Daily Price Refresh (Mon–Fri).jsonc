@@ -1,15 +1,38 @@
 {
-  "name": "Daily Price Refresh (Mon\u2013Fri)",
-  "description": "",
+  "description": "Daily price checker \u2014 refreshes the community PriceEstimate database with fresh web prices for stale products/regions.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_price_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_prices": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshPriceEstimates",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh community prices",
+            "description": "Re-search stale prices via web"
+          }
+        }
+      }
+    ]
+  },
   "trigger": {
     "condition": null,
     "config": {
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "0 5 * * 1-5",
+      "cron_expression": "0 5 * * *",
       "one_time_date": null,
-      "timezone": "UTC",
+      "timezone": "Europe/Berlin",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
@@ -18,26 +41,7 @@
       "ends_after_count": null
     }
   },
-  "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "daily_price_refresh_mon_fri",
-      "version": "1.0",
-      "namespace": "base44"
-    },
-    "do": [
-      {
-        "run_function": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "refreshPriceCatalog",
-            "args": {}
-          },
-          "then": "end"
-        }
-      }
-    ]
-  },
+  "name": "Daily Price Refresh",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "refreshPriceCatalog"
   }

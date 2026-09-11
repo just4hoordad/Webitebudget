@@ -1,7 +1,9 @@
 import { Loader2, ArrowLeftRight, X, CheckCircle2, Circle } from "lucide-react";
 import StoreBadge from "@/components/StoreBadge";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function GroceryItemRow({ item, categoryName, stores, onSwap, onRemove, bought = false, onToggleBought, readOnly = false }) {
+  const { t } = useLanguage();
   const kcalMatch = item.calories_info?.match(/(\d[\d.]*)\s*kcal/i);
   const kcalShort = kcalMatch ? `${kcalMatch[1]} kcal` : null;
 
@@ -40,6 +42,7 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
             {item.store && <StoreBadge store={item.store} />}
             {item.quantity && <span className={`text-xs ${subCls}`}>· {item.quantity}</span>}
             {kcalShort && <span className={`text-xs ${subCls} ${bought ? "line-through" : ""}`}>· {kcalShort}</span>}
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">{t("estimatedTag") || "Estimated"}</span>
           </div>
         )}
       </div>

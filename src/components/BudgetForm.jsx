@@ -96,6 +96,7 @@ export default function BudgetForm() {
   const [pantryItems, setPantryItems] = useState([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityCoords, setCityCoords] = useState(null);
+  const [postalCode, setPostalCode] = useState("");
 
   const [enabled, setEnabled] = useState({ basics: true, diet: true, stores: true, lifestyle: true, pantry: true });
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -151,6 +152,7 @@ export default function BudgetForm() {
         ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
         : selectedStores.join(",");
       params.set("stores", storesParam);
+      params.set("plz", postalCode);
     }
     if (enabled.lifestyle) {
       params.set("saleHunt", saleHunt);
@@ -446,6 +448,22 @@ export default function BudgetForm() {
                 />
               </div>
               <StoreSpeedHint />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ)"}
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{5}"
+                  maxLength={5}
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  placeholder={t("plzPlaceholder") || "e.g. 10115"}
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="text"

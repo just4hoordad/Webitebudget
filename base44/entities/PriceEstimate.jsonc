@@ -1,0 +1,68 @@
+{
+  "name": "PriceEstimate",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Branded product name as sold in the store"
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "5-digit German PLZ for region-local pricing; empty string means national/general"
+    },
+    "store": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "description": "Total price for the listed quantity in EUR"
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Per-unit price in EUR"
+    },
+    "quantity": {
+      "type": "string"
+    },
+    "normal_price": {
+      "type": "number",
+      "description": "Typical regular/mid-range price for the same quantity"
+    },
+    "currency": {
+      "type": "string",
+      "default": "eur"
+    },
+    "diet": {
+      "type": "string",
+      "description": "Diet context in which the price was observed"
+    },
+    "source": {
+      "type": "string",
+      "default": "ai-web-search"
+    },
+    "fetched_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the price was observed (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "product_name",
+    "price",
+    "fetched_date"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

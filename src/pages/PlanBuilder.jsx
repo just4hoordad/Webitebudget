@@ -10,6 +10,7 @@ import CreditBar from "@/components/monetization/CreditBar";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
+import { savePriceObservations, getKnownPricesText } from "@/lib/generateGroceries";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -31,6 +32,7 @@ export default function PlanBuilder() {
   const [days, setDays] = useState(7);
   const [people, setPeople] = useState(() => loadPrefs().people || 1);
   const [stores, setStores] = useState(() => loadPrefs().stores || ["Aldi", "Lidl"]);
+  const [postalCode, setPostalCode] = useState(() => loadPrefs().postalCode || "");
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
   const [prepEnabled, setPrepEnabled] = useState(true);
@@ -70,7 +72,7 @@ export default function PlanBuilder() {
   };
 
   const startPlan = () => {
-    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores })); } catch { /* ignore */ }
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores, postalCode })); } catch { /* ignore */ }
     setPlan(Array.from({ length: days }, () => ({ breakfast: [], lunch: [], dinner: [] })));
     setGrocery(null);
     setPhase("grid");
@@ -157,6 +159,7 @@ export default function PlanBuilder() {
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
+      const knownPricesText = await getKnownPricesText(postalCode);
       const lines = plan
         .map((day, d) => {
           const parts = [];
@@ -182,6 +185,8 @@ For each meal, determine the realistic ingredients and quantities needed for 1 p
 ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
 - Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? stores.join(", ") : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.
+- Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
+${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
 - quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
 - All item names in ${currentLanguage.label}, category names in English.
 ${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
@@ -262,6 +267,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
       setGrocery(grocery);
       setPrep(prep);
       setPhase("result");
+      savePriceObservations(grocery, postalCode, diet);
 
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery, prep }));
@@ -343,7 +349,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   return (
     <div className="space-y-4">
       <CreditBar variant="onLight" />
-      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} />
+      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} />
     </div>
   );
 }
