@@ -5,34 +5,36 @@ import {
   ClipboardList, CheckCircle2, CalendarDays, Sun, Salad, Utensils,
   Flame, RefreshCw, ShoppingCart, Loader2,
 } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const GROCERY_STEPS = [
-  { icon: Database, text: "Connecting to live store price databases" },
-  { icon: Search, text: "Searching Aldi, Lidl, REWE for current prices" },
-  { icon: Package, text: "Scanning protein & dairy sections" },
-  { icon: Leaf, text: "Checking fresh produce & vegetables" },
-  { icon: Tag, text: "Comparing unit prices across stores" },
-  { icon: Calculator, text: "Calculating quantities for your budget" },
-  { icon: Scale, text: "Balancing calories & nutrition targets" },
-  { icon: Wallet, text: "Optimising total cost to match your budget" },
-  { icon: ClipboardList, text: "Building your personalised grocery list" },
-  { icon: CheckCircle2, text: "Finalising prices & totals" },
+  { icon: Database, key: "gen_step_g1" },
+  { icon: Search, key: "gen_step_g2" },
+  { icon: Package, key: "gen_step_g3" },
+  { icon: Leaf, key: "gen_step_g4" },
+  { icon: Tag, key: "gen_step_g5" },
+  { icon: Calculator, key: "gen_step_g6" },
+  { icon: Scale, key: "gen_step_g7" },
+  { icon: Wallet, key: "gen_step_g8" },
+  { icon: ClipboardList, key: "gen_step_g9" },
+  { icon: CheckCircle2, key: "gen_step_g10" },
 ];
 
 const PLAN_STEPS = [
-  { icon: ClipboardList, text: "Reading your grocery list ingredients" },
-  { icon: CalendarDays, text: "Designing a 7-day rotating schedule" },
-  { icon: Sun, text: "Crafting breakfast recipes from your items" },
-  { icon: Salad, text: "Building balanced lunch combinations" },
-  { icon: Utensils, text: "Planning satisfying dinner meals" },
-  { icon: Flame, text: "Distributing calories across all 7 days" },
-  { icon: Scale, text: "Calculating exact ingredient quantities" },
-  { icon: RefreshCw, text: "Ensuring ingredients are used across 4 weeks" },
-  { icon: CheckCircle2, text: "Wrapping up your personalised meal plan" },
+  { icon: ClipboardList, key: "gen_step_p1" },
+  { icon: CalendarDays, key: "gen_step_p2" },
+  { icon: Sun, key: "gen_step_p3" },
+  { icon: Salad, key: "gen_step_p4" },
+  { icon: Utensils, key: "gen_step_p5" },
+  { icon: Flame, key: "gen_step_p6" },
+  { icon: Scale, key: "gen_step_p7" },
+  { icon: RefreshCw, key: "gen_step_p8" },
+  { icon: CheckCircle2, key: "gen_step_p9" },
 ];
 
 export default function GeneratingLoader({ type = "grocery" }) {
-  const steps = type === "plan" ? PLAN_STEPS : GROCERY_STEPS;
+  const { t } = useLanguage();
+  const steps = (type === "plan" ? PLAN_STEPS : GROCERY_STEPS).map((s) => ({ ...s, text: t(s.key) }));
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [creep, setCreep] = useState(0);
@@ -73,8 +75,8 @@ export default function GeneratingLoader({ type = "grocery" }) {
   }, [visibleSteps]);
 
   const isPlan = type === "plan";
-  const title = isPlan ? "Building your meal plan" : "Generating your grocery list";
-  const subtitle = isPlan ? "Preparing your weekly schedule" : "Browsing real store prices";
+  const title = isPlan ? t("gen_title_plan") : t("gen_title_grocery");
+  const subtitle = isPlan ? t("gen_sub_plan") : t("gen_sub_grocery");
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -126,7 +128,7 @@ export default function GeneratingLoader({ type = "grocery" }) {
       {/* Progress bar */}
       <div className="px-5 pb-5 pt-3 border-t border-border">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground">{isPlan ? "Plan progress" : "Grocery progress"}</p>
+          <p className="text-xs font-medium text-muted-foreground">{isPlan ? t("gen_progress_plan") : t("gen_progress_grocery")}</p>
           <p className="text-xs font-heading font-bold text-primary">{Math.round(progress)}%</p>
         </div>
         <div className="relative w-full h-2 bg-muted rounded-full overflow-hidden">

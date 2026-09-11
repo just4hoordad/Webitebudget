@@ -6,6 +6,7 @@ import navTranslations from "./translations_nav";
 import macroLabelTranslations from "./translations_macros";
 import sectionLabelTranslations from "./translations_sections";
 import { pantryTranslations } from "./translations_pantry";
+import { loaderTranslations } from "./translations_loader";
 
 // Deep-merge per language so Plan Builder keys don't overwrite full language objects.
 const _merged = { ...translations };
@@ -28,6 +29,10 @@ Object.keys(sectionLabelTranslations).forEach((lang) => {
 // Merge Pantry Dashboard labels + category names for every language.
 Object.keys(pantryTranslations).forEach((lang) => {
   allTranslations[lang] = { ...(allTranslations[lang] || {}), ...pantryTranslations[lang] };
+});
+// Merge GeneratingLoader strings for every language.
+Object.keys(loaderTranslations).forEach((lang) => {
+  allTranslations[lang] = { ...(allTranslations[lang] || {}), ...loaderTranslations[lang] };
 });
 
 const LANGUAGES = [
