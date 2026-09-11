@@ -182,7 +182,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={Wallet}
                 label={t("basicsSection") || "Basics"}
-                summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${people} ${people === 1 ? t("person") : t("people")}`}
+                summary={`${t("budgetLabel") || "Budget"} €${budget[0]} · ${t("durationLabel") || "Duration"} ${days} ${t("days") || "days"} · ${t("headcountLabel") || "People"} ${people}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.basics} onToggle={() => toggleSection("basics")} label={t("basicsSection") || "Basics"} />
