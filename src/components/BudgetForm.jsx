@@ -472,11 +472,11 @@ export default function BudgetForm() {
                   value={citySearch}
                   onChange={e => setCitySearch(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleCitySearch()}
-                  className="flex-1 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <button
                   onClick={handleCitySearch}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
+                  className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
                 >
                   <Search className="h-4 w-4" />
                   Search
