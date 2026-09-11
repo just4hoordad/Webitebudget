@@ -86,24 +86,6 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
         </p>
       </div>
 
-      {/* View toggle */}
-      <div className="inline-flex p-1 rounded-full bg-muted">
-        {VIEWS.map((v) => {
-          const Icon = v.icon;
-          return (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setView(v.id)}
-              aria-label={v.label}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${view === v.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{v.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Meal picker — meals on top */}
       <div className="space-y-2.5">
         <div className="grid grid-cols-3 gap-2">
@@ -170,6 +152,23 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
 
       {/* Day plan list — below the meals */}
       <div className="pt-3 border-t border-border space-y-3">
+        {/* View toggle */}
+        <div className="inline-flex p-1 rounded-full bg-muted">
+          {VIEWS.map((v) => {
+            const Icon = v.icon;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setView(v.id)}
+                aria-label={v.label}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${view === v.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{v.label}</span>
+              </button>
+            );
+          })}
+        </div>
         {view === "list" && (
           <ListView
             plan={plan} slots={slots} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish}
