@@ -542,7 +542,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={Sparkles}
                 label={t("lifestyleSection") || "Lifestyle"}
-                summary={`${junkPercent[0]}% junk${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}`}
+                summary={`${junkPercent[0]}% ${t("treatsWord")}${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.lifestyle} onToggle={() => toggleSection("lifestyle")} label={t("lifestyleSection") || "Lifestyle"} />
