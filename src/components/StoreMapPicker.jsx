@@ -283,7 +283,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
               <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} whenReady={(map) => { setTimeout(() => map.target.invalidateSize(), 100); }}>
                 <TileLayer
                   attribution='Tiles &copy; Esri'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
                 />
                 <MapController
                   stores={stores}
