@@ -1,65 +1,68 @@
-const OVERPASS_MIRRORS = [
-  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.private.coffee/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-];
+// Nearby-store lookup via Photon (Komoot's OSM-backed ElasticSearch geocoder).
+// One parallel text search per selected chain, biased to the user's location,
+// then distance-filtered. Same OpenStreetMap data as Overpass but ~10x faster
+// and far more reliable than the flaky Overpass mirrors.
 
-// Map frontend chain ids to the brand/name fragments used in OSM tags.
-const CHAIN_BRANDS: Record<string, string> = {
-  aldi: "aldi",
-  lidl: "lidl",
-  rewe: "rewe",
-  edeka: "edeka",
-  penny: "penny",
-  netto: "netto",
-  kaufland: "kaufland",
-  norma: "norma",
-  globus: "globus",
+const PHOTON_URL = "https://photon.komoot.io/api";
+
+const CHAIN_QUERY: Record<string, string> = {
+  aldi: "Aldi",
+  lidl: "Lidl",
+  rewe: "REWE",
+  edeka: "Edeka",
+  penny: "Penny",
+  netto: "Netto",
+  kaufland: "Kaufland",
+  norma: "Norma",
+  globus: "Globus",
   tegut: "tegut",
   dm: "dm",
-  rossmann: "rossmann",
-  müller: "müller|mueller",
+  rossmann: "Rossmann",
+  müller: "Müller Drogerie",
 };
 
-const SHOP_FILTER = `["shop"~"supermarket|chemist|drugstore|convenience"]`;
+const SHOP_VALUES = new Set(["supermarket", "chemist", "drugstore", "convenience", "perfumery"]);
 
-function buildQuery(lat: number, lng: number, radius: number, chains: string[] | null) {
-  const around = `(around:${radius},${lat},${lng})`;
-  if (!chains || !chains.length) {
-    return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
-  }
-  const parts = chains.map((c) => CHAIN_BRANDS[c]).filter(Boolean).join("|");
-  if (!parts) {
-    return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
-  }
-  const brandF = `["brand"~"${parts}",i]`;
-  const nameF = `["name"~"${parts}",i]`;
-  // Match stores that carry the chain in either their brand or name tag — many
-  // OSM supermarkets have only a `name` (e.g. "Aldi") with no `brand`.
-  return `[out:json][timeout:25];(node${SHOP_FILTER}${brandF}${around};node${SHOP_FILTER}${nameF}${around};way${SHOP_FILTER}${brandF}${around};way${SHOP_FILTER}${nameF}${around};);out center;`;
+function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Simple in-memory cache for warm instances — repeated lookups in the same
-// area become instant instead of hitting Overpass again.
+async function queryChain(chainId: string, lat: number, lng: number, limit: number) {
+  const q = CHAIN_QUERY[chainId];
+  if (!q) return [];
+  const url = `${PHOTON_URL}?q=${encodeURIComponent(q)}&lat=${lat}&lon=${lng}&location_bias_scale=0.8&limit=${limit}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "BudgetBite/1.0 (meal planning app)" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) {
+      console.log(`[fetchNearbyStores] photon ${chainId} returned ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    return (data.features || []) as any[];
+  } catch (e) {
+    console.log(`[fetchNearbyStores] photon ${chainId} failed: ${e.message}`);
+    return [];
+  }
+}
+
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const cache = new Map<string, { ts: number; elements: any[] }>();
 
-function cacheKey(lat: number, lng: number, radius: number, chains: string[] | null) {
-  const c = (chains || ["all"]).slice().sort().join("|");
-  return `${lat.toFixed(3)},${lng.toFixed(3)},${radius},${c}`;
-}
-
-function dedupe(elements: any[]) {
-  const seen = new Set<string>();
-  const out: any[] = [];
-  for (const el of elements) {
-    const k = `${el.type}:${el.id}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(el);
-  }
-  return out;
+function cacheKey(lat: number, lng: number, radius: number, chains: string[]) {
+  return `${lat.toFixed(3)},${lng.toFixed(3)},${radius},${chains.slice().sort().join("|")}`;
 }
 
 Deno.serve(async (req) => {
@@ -75,8 +78,10 @@ Deno.serve(async (req) => {
     if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
       return Response.json({ error: "Coordinates out of range" }, { status: 400 });
     }
-    const safeRadius = Math.min(Math.max(Math.round(radiusNum), 100), 50000);
-    const chainsArr = Array.isArray(chains) ? chains.filter((c): c is string => typeof c === "string") : null;
+    const safeRadius = Math.min(Math.max(Math.round(radiusNum), 100), 10000);
+    const chainsArr = Array.isArray(chains)
+      ? chains.filter((c): c is string => typeof c === "string" && CHAIN_QUERY[c])
+      : [];
 
     const key = cacheKey(latNum, lngNum, safeRadius, chainsArr);
     const hit = cache.get(key);
@@ -85,40 +90,50 @@ Deno.serve(async (req) => {
       return Response.json({ elements: hit.elements });
     }
 
-    const query = buildQuery(latNum, lngNum, safeRadius, chainsArr);
+    if (chainsArr.length === 0) {
+      return Response.json({ elements: [] });
+    }
 
-    let lastError: string | null = null;
-    for (const mirror of OVERPASS_MIRRORS) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 9000);
-        const res = await fetch(mirror, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "BudgetBite/1.0 (meal planning app)",
+    // Fire one Photon search per chain in parallel.
+    const results = await Promise.all(chainsArr.map((c) => queryChain(c, latNum, lngNum, 50)));
+
+    const seen = new Set<string>();
+    const elements: any[] = [];
+    for (let i = 0; i < chainsArr.length; i++) {
+      const chainId = chainsArr[i];
+      for (const f of results[i]) {
+        const p = f.properties || {};
+        const coords = f.geometry?.coordinates;
+        if (!coords || coords.length < 2) continue;
+        // Only actual shops.
+        if (p.osm_key !== "shop" || !SHOP_VALUES.has(p.osm_value)) continue;
+        const sLat = coords[1];
+        const sLng = coords[0];
+        // Distance filter — Photon is location-biased, not radius-bounded.
+        if (distanceMeters(latNum, lngNum, sLat, sLng) > safeRadius) continue;
+        const idKey = `${p.osm_type}:${p.osm_id}`;
+        if (seen.has(idKey)) continue;
+        seen.add(idKey);
+        elements.push({
+          type: p.osm_type === "N" ? "node" : "way",
+          id: p.osm_id,
+          lat: sLat,
+          lon: sLng,
+          tags: {
+            name: p.name || CHAIN_QUERY[chainId],
+            brand: p.name || CHAIN_QUERY[chainId],
+            shop: p.osm_value,
+            "addr:street": p.street || "",
+            "addr:housenumber": p.housenumber || "",
+            "addr:city": p.city || "",
           },
-          body: `data=${encodeURIComponent(query)}`,
-          signal: controller.signal,
         });
-        clearTimeout(timeout);
-        if (!res.ok) {
-          lastError = `mirror ${mirror} returned ${res.status}`;
-          console.log(`[fetchNearbyStores] ${lastError}, trying next`);
-          continue;
-        }
-        const data = await res.json();
-        const elements = dedupe(data.elements || []);
-        console.log(`[fetchNearbyStores] ${mirror} found ${elements.length} stores (chains: ${chainsArr?.join(",") || "all"})`);
-        cache.set(key, { ts: Date.now(), elements });
-        return Response.json({ elements });
-      } catch (e) {
-        lastError = `mirror ${mirror} failed: ${e.message}`;
-        console.log(`[fetchNearbyStores] ${lastError}, trying next`);
       }
     }
 
-    return Response.json({ error: lastError || "All Overpass mirrors failed", elements: [] }, { status: 502 });
+    console.log(`[fetchNearbyStores] photon found ${elements.length} stores (chains: ${chainsArr.join(",")})`);
+    cache.set(key, { ts: Date.now(), elements });
+    return Response.json({ elements });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
