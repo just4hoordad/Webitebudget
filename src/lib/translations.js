@@ -7,7 +7,7 @@ const translations = {
 
     // Home
     aiPowered: "AI-Powered Meal Planning",
-    heroTitle1: "With your personal",
+    heroTitle1: "Eat well with your personal",
     heroTitle2: "budget",
     heroSubtitle: "Smart meal plans based on real German grocery store prices. Save money, eat healthy, stress less.",
     feature1Title: "Real German Prices",
