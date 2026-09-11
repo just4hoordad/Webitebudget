@@ -278,17 +278,16 @@ export default function BudgetForm() {
             <AccordionTrigger className="flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Leaf}
-                label={t("dietSection") || "Diet & Nutrition"}
+                label={t("dietPreference") || "Diet"}
                 summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
-            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet & Nutrition"} />
+            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietPreference") || "Diet"} />
           </div>
           <AccordionContent>
             <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
               {/* Diet Type */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("dietPreference")}</label>
                 <div className="grid grid-cols-2 gap-3">
                   {DIET_KEYS.map((diet) => {
                     const Icon = diet.icon;
