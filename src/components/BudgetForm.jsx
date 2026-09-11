@@ -97,6 +97,7 @@ export default function BudgetForm() {
   const [citySearch, setCitySearch] = useState("");
   const [cityCoords, setCityCoords] = useState(null);
   const [postalCode, setPostalCode] = useState("");
+  const [locationInput, setLocationInput] = useState("");
 
   const [enabled, setEnabled] = useState({ basics: true, diet: true, stores: true, lifestyle: true, pantry: true });
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -110,16 +111,28 @@ export default function BudgetForm() {
 
   const removeTag = (item, list, setList) => setList(list.filter(i => i !== item));
 
-  const handleCitySearch = async () => {
-    if (!citySearch.trim()) return;
+  const handleCitySearch = async (val) => {
+    const query = (val ?? citySearch).trim();
+    if (!query) return;
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(citySearch)}&format=json&limit=1`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
       const data = await res.json();
       if (data.length > 0) {
-        setCityCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        setCityCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lng) });
       }
     } catch (e) {
       // silently fail
+    }
+  };
+
+  const handleLocationSubmit = () => {
+    const val = locationInput.trim();
+    if (!val) return;
+    if (/^\d{5}$/.test(val)) {
+      setPostalCode(val);
+    } else {
+      setPostalCode("");
+      handleCitySearch(val);
     }
   };
 
@@ -450,36 +463,30 @@ export default function BudgetForm() {
               <StoreSpeedHint />
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ)"}
+                  <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ) or city"}
                 </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]{5}"
-                  maxLength={5}
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                  placeholder={t("plzPlaceholder") || "e.g. 10115"}
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setLocationInput(val);
+                      if (/^\d{5}$/.test(val)) setPostalCode(val);
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleLocationSubmit()}
+                    placeholder={t("plzPlaceholder") || "e.g. 10115 or Berlin"}
+                    className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                  <button
+                    onClick={handleLocationSubmit}
+                    className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
+                  >
+                    <Search className="h-4 w-4" />
+                    {t("search")}
+                  </button>
+                </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter city or zip code"
-                  value={citySearch}
-                  onChange={e => setCitySearch(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleCitySearch()}
-                  className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                />
-                <button
-                  onClick={handleCitySearch}
-                  className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
-                >
-                  <Search className="h-4 w-4" />
-                  Search
-                </button>
               </div>
               {selectedStoreLocations.length > 0 ? (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
