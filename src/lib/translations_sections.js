@@ -25,7 +25,7 @@ export const sectionLabelTranslations = {
     durationLabel: "Zeitraum",
     headcountLabel: "Personenzahl",
     dietSection: "Ernährung",
-    storesSection: "Geschäfte",
+    storesSection: "Bitte wähle deinen Supermarkt",
     lifestyleSection: "Lebensstil",
     pantrySection: "Vorratskammer",
     pantryEmptySummary: "Füge Grundnahrungsmittel hinzu, die du schon hast",
