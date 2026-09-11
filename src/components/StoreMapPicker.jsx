@@ -66,8 +66,8 @@ function createStoreIcon(chain, isSelected) {
   });
 }
 
-async function fetchNearbyStores(lat, lng) {
-  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng, radius: 1500 });
+async function fetchNearbyStores(lat, lng, chains) {
+  const res = await base44.functions.invoke("fetchNearbyStores", { lat, lng, radius: 1500, chains });
   return (res.data?.elements || [])
     .map((el) => {
       const name = el.tags?.name || el.tags?.brand || "";
@@ -96,7 +96,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
     const [lat, lng] = pendingFlyTo;
     map.flyTo([lat, lng], 14, { animate: true, duration: 1.2 });
     onLoading(true);
-    fetchNearbyStores(lat, lng).then(nearby => {
+    fetchNearbyStores(lat, lng, chains).then(nearby => {
       onStoresLoaded(nearby, [lat, lng]);
       onLoading(false);
     }).catch(() => {
@@ -118,7 +118,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
         map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
         onLoading(true);
         try {
-          const nearby = await fetchNearbyStores(latitude, longitude);
+          const nearby = await fetchNearbyStores(latitude, longitude, chains);
           onStoresLoaded(nearby, [latitude, longitude]);
         } catch (e) {
           onStoresLoaded([], [latitude, longitude]);
