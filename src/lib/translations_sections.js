@@ -26,7 +26,7 @@ export const sectionLabelTranslations = {
     headcountLabel: "Personenzahl",
     dietSection: "Ernährung",
     storesSection: "Bitte wähle deinen Supermarkt",
-    lifestyleSection: "Lebensstil",
+    lifestyleSection: "Essgewohnheiten",
     pantrySection: "Vorratskammer",
     pantryEmptySummary: "Füge Grundnahrungsmittel hinzu, die du schon hast",
   },

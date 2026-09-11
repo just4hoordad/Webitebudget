@@ -248,7 +248,7 @@ const translations = {
     freeBannerDesc: "Gib einfach dein Budget ein und erhalte sofort einen vollständigen Mahlzeitenplan + Einkaufsliste — ohne Registrierung, ohne Kreditkarte, für immer.",
     freeBannerBadge1: "Für immer gratis",
     freeBannerBadge2: "Kein Login",
-    junkFoodTitle: "🍕 Junk-Food-Anteil",
+    junkFoodTitle: "🍕 Genuss-Anteil",
     junkFoodDesc: "% deiner täglichen Gesamtkalorien aus Junk Food",
     junkClean: "0% — Sauber",
     junkBalanced: "25% — Ausgewogen",
