@@ -195,7 +195,7 @@ const translations = {
     savedPlans: "Gespeicherte Pläne",
     footerText: "BudgetBite — Clevere Mahlzeitenplanung für Studenten in Deutschland",
     aiPowered: "KI-gestützte Mahlzeitenplanung",
-    heroTitle1: "Mit Ihrem persönlichen",
+    heroTitle1: "Gut essen mit Ihrem persönlichen",
     heroTitle2: "Budget",
     heroSubtitle: "Intelligente Mahlzeitenpläne basierend auf echten deutschen Supermarktpreisen. Geld sparen, gesund essen, weniger Stress.",
     feature1Title: "Echte deutsche Preise",
