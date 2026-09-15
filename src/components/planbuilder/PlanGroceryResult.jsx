@@ -23,7 +23,7 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
     .map((i) => i.fetched_date)
     .filter(Boolean)
     .sort();
-  const lastUpdated = grocery.lastUpdated || allDates[allDates.length - 1] || null;
+  const lastUpdated = grocery.lastUpdated || allDates[allDates.length - 1] || new Date().toISOString().slice(0, 10);
   const lastUpdatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleDateString(currentLanguage.code || "en", { day: "numeric", month: "short", year: "numeric" })
     : null;
