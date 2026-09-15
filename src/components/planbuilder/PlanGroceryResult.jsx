@@ -1,7 +1,7 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
-import { ArrowLeft, RefreshCw, ShoppingBasket, Store, ChefHat, Loader2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, ShoppingBasket, Store, ChefHat, Loader2, Clock } from "lucide-react";
 
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
@@ -16,6 +16,17 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
   const total = grocery.total_estimated_cost || 0;
   const catMap = allCategoryTranslations[currentLanguage.code] || {};
   const trCat = (name) => catMap[name] || name;
+
+  // Latest price observation across all grocery items (ISO YYYY-MM-DD).
+  const allDates = (grocery.categories || [])
+    .flatMap((c) => c.items || [])
+    .map((i) => i.fetched_date)
+    .filter(Boolean)
+    .sort();
+  const lastUpdated = grocery.lastUpdated || allDates[allDates.length - 1] || null;
+  const lastUpdatedLabel = lastUpdated
+    ? new Date(lastUpdated).toLocaleDateString(currentLanguage.code || "en", { day: "numeric", month: "short", year: "numeric" })
+    : null;
 
   return (
     <div className="space-y-5">
@@ -33,6 +44,12 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
           <span className="font-heading font-bold text-3xl text-primary">€{total.toFixed(2)}</span>
           <span className="text-sm text-dark-muted">/ {days} {t("days")} · {people} {people === 1 ? t("person") : t("people")}</span>
         </div>
+        {lastUpdatedLabel && (
+          <div className="flex items-center gap-1.5 mt-3 text-xs text-dark-muted">
+            <Clock className="h-3 w-3" />
+            <span>{t("pricesLastUpdated") || "Prices last updated"} {lastUpdatedLabel}</span>
+          </div>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground px-1 -mt-2">{t("priceEstimateNote")}</p>
