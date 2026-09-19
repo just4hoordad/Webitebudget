@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, TrendingDown, Minus, TrendingUp, Dumbbell, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 import StoreSpeedHint from "@/components/StoreSpeedHint";
 import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
+import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -28,13 +29,6 @@ const DRUGSTORES = [
   { id: "dm", name: "dm", color: "bg-pink-100 text-pink-700 border-pink-200" },
   { id: "rossmann", name: "Rossmann", color: "bg-rose-100 text-rose-700 border-rose-200" },
   { id: "müller", name: "Müller", color: "bg-violet-100 text-violet-700 border-violet-200" },
-];
-
-const CALORIE_GOAL_KEYS = [
-  { id: "lose", nameKey: "loseWeight", kcal: 1600, icon: TrendingDown, desc: "~1600 kcal/day" },
-  { id: "maintain", nameKey: "maintain", kcal: 2000, icon: Minus, desc: "~2000 kcal/day" },
-  { id: "gain", nameKey: "gainWeight", kcal: 2500, icon: TrendingUp, desc: "~2500 kcal/day" },
-  { id: "muscle", nameKey: "buildMuscle", kcal: 2800, icon: Dumbbell, desc: "~2800 kcal/day" },
 ];
 
 const DIET_KEYS = [
@@ -82,7 +76,14 @@ export default function BudgetForm() {
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
-  const [calorieGoal, setCalorieGoal] = useState("maintain");
+  const [calorieMetrics, setCalorieMetrics] = useState({
+    height: "",
+    weight: "",
+    age: "",
+    sex: "male",
+    activity: "moderate",
+    goal: "maintain",
+  });
   const [people, setPeople] = useState(1);
   const [days, setDays] = useState(0);
   const [saleHunt, setSaleHunt] = useState(false);
@@ -150,9 +151,9 @@ export default function BudgetForm() {
       params.set("budget", budget[0]);
       params.set("days", days);
       params.set("people", people);
-      const goalKcal = CALORIE_GOAL_KEYS.find(g => g.id === calorieGoal)?.kcal || 2000;
-      params.set("calories", goalKcal * people);
-      params.set("goal", calorieGoal);
+      const dailyKcal = computeDailyCalories(calorieMetrics) || 2000;
+      params.set("calories", dailyKcal * people);
+      params.set("goal", calorieMetrics.goal);
     }
     if (enabled.diet) {
       params.set("diet", selectedDiet);
@@ -334,29 +335,10 @@ export default function BudgetForm() {
                 </div>
               </div>
 
-              {/* Calorie Goal */}
+              {/* Calorie Goal — computed from body metrics */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">{t("calorieGoal")}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {CALORIE_GOAL_KEYS.map((goal) => {
-                    const Icon = goal.icon;
-                    return (
-                      <button
-                        key={goal.id}
-                        onClick={() => setCalorieGoal(goal.id)}
-                        className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl text-sm font-medium border transition-all duration-200 overflow-hidden ${
-                          calorieGoal === goal.id
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card text-foreground border-border hover:border-primary/40"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="text-center leading-tight">{t(goal.nameKey)}</span>
-                        <span className={`text-xs ${calorieGoal === goal.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{goal.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <CalorieCalculator value={calorieMetrics} onChange={setCalorieMetrics} />
               </div>
 
               {/* Macronutrient Ratios */}
