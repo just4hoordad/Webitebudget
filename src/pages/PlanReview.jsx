@@ -13,8 +13,8 @@ export default function PlanReview() {
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
 
-  const budget = parseFloat(params.get("budget") || "150");
-  const days = parseInt(params.get("days") || "30", 10);
+  const budget = parseFloat(params.get("budget") || "0");
+  const days = parseInt(params.get("days") || "0", 10);
   const people = parseInt(params.get("people") || "1", 10);
   const calories = parseInt(params.get("calories") || "2000", 10);
   const goal = params.get("goal") || "maintain";

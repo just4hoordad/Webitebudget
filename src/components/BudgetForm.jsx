@@ -78,13 +78,13 @@ function SectionToggle({ active, onToggle, label }) {
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [budget, setBudget] = useState([150]);
+  const [budget, setBudget] = useState([0]);
   const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieGoal, setCalorieGoal] = useState("maintain");
   const [people, setPeople] = useState(1);
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(0);
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
@@ -210,7 +210,7 @@ export default function BudgetForm() {
                     <Euro className="h-5 w-5 shrink-0" />
                     <input
                       type="number"
-                      min={1}
+                      min={0}
                       value={budget[0]}
                       onChange={e => {
                         const val = parseInt(e.target.value, 10);
@@ -224,7 +224,7 @@ export default function BudgetForm() {
                   value={[Math.min(budget[0], 600)]}
                   onValueChange={setBudget}
                   max={600}
-                  min={10}
+                  min={0}
                   step={5}
                   className="w-full"
                 />
@@ -241,13 +241,13 @@ export default function BudgetForm() {
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
-                    min={1}
+                    min={0}
                     max={30}
                     value={days}
                     onChange={e => setDays(e.target.value)}
                     onBlur={e => {
                       const val = parseInt(e.target.value, 10);
-                      setDays(!isNaN(val) ? Math.min(30, Math.max(1, val)) : 30);
+                      setDays(!isNaN(val) ? Math.min(30, Math.max(0, val)) : 0);
                     }}
                     className="flex-1 border border-border rounded-xl px-4 py-3 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
                     placeholder="1-30"
