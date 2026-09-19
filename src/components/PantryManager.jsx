@@ -214,7 +214,7 @@ export default function PantryManager({ onPantryChange }) {
             <button
               onClick={addItem}
               disabled={!nameInput.trim() || loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
             >
               <Plus className="h-4 w-4" />
               {s.addBtn}
