@@ -181,6 +181,10 @@ export default function BudgetForm() {
 
   const dietLabel = t(DIET_KEYS.find(d => d.id === selectedDiet)?.nameKey);
   const storeCount = selectedStoreLocations.length > 0 ? selectedStoreLocations.length : selectedStores.length;
+  const ALL_STORES = [...GROCERY_STORES, ...DRUGSTORES];
+  const storeNamesSummary = selectedStoreLocations.length > 0
+    ? selectedStoreLocations.map(s => s.name).join(", ")
+    : selectedStores.map(id => ALL_STORES.find(s => s.id === id)?.name || id).join(", ");
 
   return (
     <div className="space-y-5">
@@ -382,7 +386,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={MapPin}
                 label={t("storesSection") || "Stores"}
-                summary={`${storeCount} ${storeCount === 1 ? (t("store") || "store") : (t("stores") || "stores")}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
+                summary={`${storeNamesSummary || (t("storesSection") || "Stores")}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.stores} onToggle={() => toggleSection("stores")} label={t("storesSection") || "Stores"} />
