@@ -169,10 +169,6 @@ export default function BudgetForm() {
       params.set("bio", bio);
       params.set("saleHunt", saleHunt);
     }
-    if (enabled.lifestyle) {
-      params.set("junkPercent", junkPercent[0]);
-      params.set("proteinSnackBudget", proteinSnackBudget);
-    }
     if (enabled.pantry) {
       params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
     }
@@ -507,95 +503,6 @@ export default function BudgetForm() {
                   <Switch checked={saleHunt} onCheckedChange={setSaleHunt} aria-label={t("saleHunt")} />
                 </div>
               </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ── Lifestyle ── */}
-        <AccordionItem value="lifestyle" className="border border-border rounded-2xl px-5 bg-card">
-          <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
-              <SectionHeader
-                icon={Sparkles}
-                label={t("lifestyleSection") || "Lifestyle"}
-                summary={`${junkPercent[0]}% ${t("treatsWord")}${proteinSnackBudget > 0 ? ` · €${proteinSnackBudget} protein` : ""}`}
-              />
-            </AccordionTrigger>
-            <SectionToggle active={enabled.lifestyle} onToggle={() => toggleSection("lifestyle")} label={t("lifestyleSection") || "Lifestyle"} />
-          </div>
-          <AccordionContent>
-            <div className={`space-y-7 pt-1 ${dimCls("lifestyle")}`}>
-              {/* Junk Food Allowance */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-foreground">{t("junkFoodTitle")}</label>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("junkFoodDesc")}</p>
-                  </div>
-                  <span className={`font-heading font-bold text-lg px-3 py-1 rounded-xl ${
-                    junkPercent[0] === 0 ? "bg-green-100 text-green-700" :
-                    junkPercent[0] <= 15 ? "bg-yellow-100 text-yellow-700" :
-                    junkPercent[0] <= 30 ? "bg-orange-100 text-orange-700" :
-                    "bg-red-100 text-red-700"
-                  }`}>
-                    {junkPercent[0]}%
-                  </span>
-                </div>
-                <Slider
-                  value={junkPercent}
-                  onValueChange={setJunkPercent}
-                  max={50}
-                  min={0}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{t("junkClean")}</span>
-                  <span>{t("junkBalanced")}</span>
-                  <span>{t("junkYolo")}</span>
-                </div>
-              </div>
-
-              {/* Protein Snack Budget */}
-              <div className={`space-y-3 px-5 py-4 rounded-xl border-2 transition-all duration-200 ${proteinSnackBudget > 0 ? "bg-primary/10 border-primary" : "bg-card border-border"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">💪</span>
-                    <div>
-                      <p className={`text-sm font-semibold ${proteinSnackBudget > 0 ? "text-primary" : "text-foreground"}`}>{t("proteinSnackBudgetTitle")}</p>
-                      <p className={`text-xs ${proteinSnackBudget > 0 ? "text-primary/70" : "text-muted-foreground"}`}>{t("proteinSnackBudgetDesc")}</p>
-                    </div>
-                  </div>
-                  <div className={`flex items-center gap-1 font-heading font-bold text-lg px-3 py-1 rounded-xl ${proteinSnackBudget > 0 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <Euro className="h-4 w-4 shrink-0" />
-                    <input
-                      type="number"
-                      min={0}
-                      max={200}
-                      value={proteinSnackBudget}
-                      onChange={e => {
-                        const val = parseInt(e.target.value, 10);
-                        setProteinSnackBudget(!isNaN(val) && val >= 0 ? val : 0);
-                      }}
-                      className="w-16 bg-transparent font-heading font-bold text-lg focus:outline-none text-right"
-                    />
-                  </div>
-                </div>
-                <Slider
-                  value={[proteinSnackBudget]}
-                  onValueChange={([v]) => setProteinSnackBudget(v)}
-                  max={200}
-                  min={0}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>€0 (off)</span>
-                  <span>€100</span>
-                  <span>€200</span>
-                </div>
-              </div>
-
             </div>
           </AccordionContent>
         </AccordionItem>
