@@ -291,11 +291,11 @@ export default function BudgetForm() {
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Leaf}
-                label={t("dietPreference") || "Diet"}
+                label={t("dietSection") || "Diet"}
                 summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
-            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietPreference") || "Diet"} />
+            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet"} />
           </div>
           <AccordionContent>
             <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
