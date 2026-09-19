@@ -158,7 +158,6 @@ export default function BudgetForm() {
     if (enabled.diet) {
       params.set("diet", selectedDiet);
       params.set("macros", `${macros.protein},${macros.carbs},${macros.fats}`);
-      params.set("bio", bio);
       params.set("allergies", allergies.join(","));
     }
     if (enabled.stores) {
@@ -167,9 +166,10 @@ export default function BudgetForm() {
         : selectedStores.join(",");
       params.set("stores", storesParam);
       params.set("plz", postalCode);
+      params.set("bio", bio);
+      params.set("saleHunt", saleHunt);
     }
     if (enabled.lifestyle) {
-      params.set("saleHunt", saleHunt);
       params.set("junkPercent", junkPercent[0]);
       params.set("proteinSnackBudget", proteinSnackBudget);
     }
@@ -293,7 +293,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={Leaf}
                 label={t("dietSection") || "Diet"}
-                summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
+                summary={`${dietLabel} · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet"} />
@@ -371,47 +371,6 @@ export default function BudgetForm() {
                 </div>
               </div>
 
-              {/* Bio */}
-              <button
-                onClick={() => setBio((v) => !v)}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
-                  bio
-                    ? "bg-green-50 border-green-500 text-green-800"
-                    : "bg-card border-border hover:border-green-400/40"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🌿</span>
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${bio ? "text-green-800" : "text-foreground"}`}>{t("bioTitle")}</p>
-                    <p className={`text-xs ${bio ? "text-green-700/70" : "text-muted-foreground"}`}>{t("bioDesc")}</p>
-                  </div>
-                </div>
-                <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${bio ? "bg-green-500" : "bg-muted"}`}>
-                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${bio ? "translate-x-4" : "translate-x-0"}`} />
-                </div>
-              </button>
-
-              {/* Sale Hunt */}
-              <button
-                onClick={() => setSaleHunt((v) => !v)}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${
-                  saleHunt
-                    ? "bg-accent/10 border-accent text-accent-foreground"
-                    : "bg-card border-border hover:border-accent/40"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Tag className={`h-5 w-5 ${saleHunt ? "text-accent-foreground" : "text-muted-foreground"}`} />
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${saleHunt ? "text-accent-foreground" : "text-foreground"}`}>{t("saleHunt")}</p>
-                    <p className={`text-xs ${saleHunt ? "text-accent-foreground/70" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
-                  </div>
-                </div>
-                <div className={`w-10 h-6 rounded-full transition-all duration-200 flex items-center px-0.5 ${saleHunt ? "bg-accent" : "bg-muted"}`}>
-                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${saleHunt ? "translate-x-4" : "translate-x-0"}`} />
-                </div>
-              </button>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -423,7 +382,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={MapPin}
                 label={t("storesSection") || "Stores"}
-                summary={`${storeCount} ${storeCount === 1 ? (t("store") || "store") : (t("stores") || "stores")}`}
+                summary={`${storeCount} ${storeCount === 1 ? (t("store") || "store") : (t("stores") || "stores")}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.stores} onToggle={() => toggleSection("stores")} label={t("storesSection") || "Stores"} />
@@ -520,6 +479,30 @@ export default function BudgetForm() {
                    </div>
                 </div>
               )}
+
+              {/* Shopping options — Bio & Sale Hunt */}
+              <div className="space-y-2 pt-4 mt-1 border-t border-border">
+                <div className={`flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${bio ? "bg-primary/10 border-primary" : "bg-card border-border hover:border-primary/40"}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">🌿</span>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-foreground">{t("bioTitle")}</p>
+                      <p className="text-xs text-muted-foreground">{t("bioDesc")}</p>
+                    </div>
+                  </div>
+                  <Switch checked={bio} onCheckedChange={setBio} aria-label={t("bioTitle")} />
+                </div>
+                <div className={`flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all duration-200 ${saleHunt ? "bg-primary/10 border-primary" : "bg-card border-border hover:border-primary/40"}`}>
+                  <div className="flex items-center gap-3">
+                    <Tag className="h-5 w-5 text-muted-foreground" />
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-foreground">{t("saleHunt")}</p>
+                      <p className="text-xs text-muted-foreground">{t("saleHuntDesc")}</p>
+                    </div>
+                  </div>
+                  <Switch checked={saleHunt} onCheckedChange={setSaleHunt} aria-label={t("saleHunt")} />
+                </div>
+              </div>
             </div>
           </AccordionContent>
         </AccordionItem>
