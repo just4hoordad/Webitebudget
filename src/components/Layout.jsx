@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, Package, MoreHorizontal } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -52,7 +52,6 @@ export default function Layout() {
     { path: "/", label: t("home"), icon: Home },
     { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
-    { path: "/pantry-dashboard", label: t("pantryNav") || "Pantry", icon: Package },
   ];
 
   const secondaryNavItems = [
