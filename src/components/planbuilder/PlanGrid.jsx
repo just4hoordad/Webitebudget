@@ -15,7 +15,7 @@ import { dishList, mealFilled } from "@/lib/planDishes";
 
 export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, removeDish, addSideDish, onAutoFill, autofilling, onGenerate, generating, prepEnabled, setPrepEnabled, onSuggest, suggesting, recentMeals, diet }) {
   const { t, currentLanguage } = useLanguage();
-  const [view, setView] = useState("list");
+  const [view, setView] = useState("week");
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthAnchor, setMonthAnchor] = useState(planStartDate);
   const [slotType, setSlotType] = useState("breakfast");
