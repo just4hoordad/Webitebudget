@@ -73,7 +73,7 @@ export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [budget, setBudget] = useState([0]);
-  const [selectedStores, setSelectedStores] = useState(["aldi", "lidl"]);
+  const [selectedStores, setSelectedStores] = useState([]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieMetrics, setCalorieMetrics] = useState({
