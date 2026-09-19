@@ -134,19 +134,19 @@ export default function PantryManager({ onPantryChange }) {
   };
 
   return (
-    <div className={`rounded-xl border-2 transition-all duration-200 ${items.length > 0 ? "bg-green-50 border-green-400" : "bg-card border-border"}`}>
+    <div className={`rounded-xl border-2 transition-all duration-200 ${items.length > 0 ? "bg-primary/10 border-primary" : "bg-card border-border"}`}>
       {/* Header toggle */}
       <button
         onClick={() => setExpanded(v => !v)}
         className="w-full flex items-center justify-between px-5 py-4"
       >
         <div className="flex items-center gap-3">
-          <Package className={`h-5 w-5 ${items.length > 0 ? "text-green-700" : "text-muted-foreground"}`} />
+          <Package className={`h-5 w-5 ${items.length > 0 ? "text-primary" : "text-muted-foreground"}`} />
           <div className="text-left">
-            <p className={`text-sm font-semibold ${items.length > 0 ? "text-green-800" : "text-foreground"}`}>
+            <p className={`text-sm font-semibold ${items.length > 0 ? "text-primary" : "text-foreground"}`}>
               {s.title}
             </p>
-            <p className={`text-xs ${items.length > 0 ? "text-green-700/70" : "text-muted-foreground"}`}>
+            <p className={`text-xs ${items.length > 0 ? "text-primary/70" : "text-muted-foreground"}`}>
               {items.length > 0
                 ? `${items.length} ${s.descItems}`
                 : s.desc}
@@ -155,7 +155,7 @@ export default function PantryManager({ onPantryChange }) {
         </div>
         <div className="flex items-center gap-2">
           {items.length > 0 && (
-            <span className="bg-green-200 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-primary/20 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
               -{items.length} items
             </span>
           )}
@@ -169,7 +169,7 @@ export default function PantryManager({ onPantryChange }) {
           {items.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {items.map(item => (
-                <span key={item.id} className="flex items-center gap-1 bg-green-100 text-green-800 border border-green-300 text-xs font-medium px-2.5 py-1 rounded-full">
+                <span key={item.id} className="flex items-center gap-1 bg-primary/15 text-primary border border-primary/30 text-xs font-medium px-2.5 py-1 rounded-full">
                   {item.name}{item.amount && item.amount !== "some" ? ` (${item.amount})` : ""}
                   <button onClick={() => removeItem(item)}><X className="h-3 w-3" /></button>
                 </span>
