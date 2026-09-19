@@ -25,7 +25,8 @@ function matchesPreset(value, preset) {
 export default function MacroRatioControl({ value, onChange, active, onToggle }) {
   const { t } = useLanguage();
 
-  const activePreset = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p)) || "custom";
+  const matchedPreset = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p));
+  const activePresetId = matchedPreset ? matchedPreset.id : "custom";
 
   const selectPreset = (preset) => {
     onChange({ protein: preset.protein, carbs: preset.carbs, fats: preset.fats });
@@ -61,7 +62,7 @@ export default function MacroRatioControl({ value, onChange, active, onToggle })
       {/* Presets */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {PRESETS.map((preset) => {
-          const isActive = activePreset === preset.id;
+          const isActive = activePresetId === preset.id;
           return (
             <button
               key={preset.id}
