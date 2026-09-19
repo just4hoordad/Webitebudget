@@ -557,16 +557,16 @@ export default function BudgetForm() {
               </div>
 
               {/* Protein Snack Budget */}
-              <div className={`space-y-3 px-5 py-4 rounded-xl border-2 transition-all duration-200 ${proteinSnackBudget > 0 ? "bg-blue-50 border-blue-400" : "bg-card border-border"}`}>
+              <div className={`space-y-3 px-5 py-4 rounded-xl border-2 transition-all duration-200 ${proteinSnackBudget > 0 ? "bg-primary/10 border-primary" : "bg-card border-border"}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">💪</span>
                     <div>
-                      <p className={`text-sm font-semibold ${proteinSnackBudget > 0 ? "text-blue-800" : "text-foreground"}`}>{t("proteinSnackBudgetTitle")}</p>
-                      <p className={`text-xs ${proteinSnackBudget > 0 ? "text-blue-700/70" : "text-muted-foreground"}`}>{t("proteinSnackBudgetDesc")}</p>
+                      <p className={`text-sm font-semibold ${proteinSnackBudget > 0 ? "text-primary" : "text-foreground"}`}>{t("proteinSnackBudgetTitle")}</p>
+                      <p className={`text-xs ${proteinSnackBudget > 0 ? "text-primary/70" : "text-muted-foreground"}`}>{t("proteinSnackBudgetDesc")}</p>
                     </div>
                   </div>
-                  <div className={`flex items-center gap-1 font-heading font-bold text-lg px-3 py-1 rounded-xl ${proteinSnackBudget > 0 ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"}`}>
+                  <div className={`flex items-center gap-1 font-heading font-bold text-lg px-3 py-1 rounded-xl ${proteinSnackBudget > 0 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
                     <Euro className="h-4 w-4 shrink-0" />
                     <input
                       type="number"
