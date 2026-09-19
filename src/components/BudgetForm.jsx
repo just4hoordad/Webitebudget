@@ -56,7 +56,7 @@ function SectionHeader({ icon: Icon, label, summary }) {
       </div>
       <div className="flex-1 min-w-0 text-left">
         <p className="font-heading font-semibold text-sm text-foreground leading-tight">{label}</p>
-        {summary && <p className="text-xs text-muted-foreground truncate mt-0.5">{summary}</p>}
+        {summary && <p className="text-xs text-muted-foreground truncate mt-0.5 group-data-[state=open]:hidden">{summary}</p>}
       </div>
     </div>
   );
@@ -191,7 +191,7 @@ export default function BudgetForm() {
         {/* ── Basics ── */}
         <AccordionItem value="basics" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Wallet}
                 label={t("basicsSection") || "Basics"}
@@ -288,7 +288,7 @@ export default function BudgetForm() {
         {/* ── Diet & Nutrition ── */}
         <AccordionItem value="diet" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Leaf}
                 label={t("dietPreference") || "Diet"}
@@ -437,7 +437,7 @@ export default function BudgetForm() {
         {/* ── Stores ── */}
         <AccordionItem value="stores" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={MapPin}
                 label={t("storesSection") || "Stores"}
@@ -545,7 +545,7 @@ export default function BudgetForm() {
         {/* ── Lifestyle ── */}
         <AccordionItem value="lifestyle" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Sparkles}
                 label={t("lifestyleSection") || "Lifestyle"}
@@ -634,7 +634,7 @@ export default function BudgetForm() {
         {/* ── Pantry ── */}
         <AccordionItem value="pantry" className="border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="flex-1 hover:no-underline py-0">
+            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Package}
                 label={t("pantrySection") || "Pantry"}
