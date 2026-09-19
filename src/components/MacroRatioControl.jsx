@@ -1,3 +1,4 @@
+import { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -25,10 +26,13 @@ function matchesPreset(value, preset) {
 export default function MacroRatioControl({ value, onChange, active, onToggle }) {
   const { t } = useLanguage();
 
-  const matchedPreset = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p));
-  const activePresetId = matchedPreset ? matchedPreset.id : "custom";
+  const [selectedPresetId, setSelectedPresetId] = useState(() => {
+    const m = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p));
+    return m ? m.id : "custom";
+  });
 
   const selectPreset = (preset) => {
+    setSelectedPresetId(preset.id);
     onChange({ protein: preset.protein, carbs: preset.carbs, fats: preset.fats });
   };
 
@@ -40,6 +44,7 @@ export default function MacroRatioControl({ value, onChange, active, onToggle })
   const handleChange = (vals) => {
     const p = vals[0];
     const c = vals[1];
+    setSelectedPresetId("custom");
     onChange({
       protein: p,
       carbs: c - p,
@@ -62,7 +67,7 @@ export default function MacroRatioControl({ value, onChange, active, onToggle })
       {/* Presets */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {PRESETS.map((preset) => {
-          const isActive = activePresetId === preset.id;
+          const isActive = selectedPresetId === preset.id;
           return (
             <button
               key={preset.id}
