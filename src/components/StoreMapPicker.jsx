@@ -60,11 +60,11 @@ function detectChain(name = "") {
 }
 
 function createStoreIcon(chain, isSelected) {
-  const color = isSelected ? "#0f4c35" : (CHAIN_COLORS[chain] || "#6b7280");
+  const color = isSelected ? "#85c026" : (CHAIN_COLORS[chain] || "#6b7280");
   const border = isSelected ? "3px solid #fff" : "2px solid white";
   return L.divIcon({
     className: "",
-    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 2px 10px rgba(0,0,0,0.4);font-size:9px;font-weight:800;${isSelected ? "outline:2px solid #0f4c35;outline-offset:2px;" : ""}"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
+    html: `<div style="background:${color};color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:${border};box-shadow:0 2px 10px rgba(0,0,0,0.4);font-size:9px;font-weight:800;${isSelected ? "outline:2px solid #85c026;outline-offset:2px;" : ""}"><span style="transform:rotate(45deg)">${chain.slice(0, 2).toUpperCase()}</span></div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 36],
     popupAnchor: [0, -38],
@@ -155,12 +155,12 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
             width: 42, height: 42,
-            background: stores.length === 0 && !locating ? "#0f4c35" : "white",
+            background: stores.length === 0 && !locating ? "#85c026" : "white",
             border: "2px solid rgba(0,0,0,0.15)",
             borderRadius: 12, padding: 0, fontSize: 13,
             cursor: locating ? "wait" : "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-            color: stores.length === 0 && !locating ? "#fff" : locating ? "#9ca3af" : "#0f4c35",
+            color: stores.length === 0 && !locating ? "#fff" : locating ? "#9ca3af" : "#85c026",
           }}
         >
           {locating ? (
@@ -193,7 +193,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
                 <button
                   onClick={() => onToggleStoreLocation(store)}
                   style={{
-                    background: isSelected ? "#0f4c35" : "#e5e7eb",
+                    background: isSelected ? "#85c026" : "#e5e7eb",
                     color: isSelected ? "#fff" : "#374151",
                     border: "none", borderRadius: 7, padding: "5px 12px",
                     fontSize: 11, fontWeight: 700, cursor: "pointer", width: "100%",
@@ -281,7 +281,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
             {/* Map */}
             <div style={{ height: 340, position: "relative", flexShrink: 0 }}>
               {loadingStores && (
-              <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#0f4c35" }}>
+              <div style={{ position: "absolute", inset: 0, zIndex: 999, background: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "#85c026" }}>
               {t("mapFindingStores")}
               </div>
               )}
