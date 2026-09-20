@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import ScrollToTop from '@/components/ScrollToTop';
 import PageNotFound from './lib/PageNotFound';
 import SharedPlan from './pages/SharedPlan';
 import PlanReview from '@/pages/PlanReview';
@@ -29,6 +30,7 @@ function App() {
         <QueryClientProvider client={queryClientInstance}>
           <MonetizationProvider>
           <Router>
+            <ScrollToTop />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
