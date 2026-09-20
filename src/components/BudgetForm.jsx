@@ -245,6 +245,7 @@ export default function BudgetForm() {
                     min={0}
                     max={30}
                     value={days}
+                    onFocus={e => e.target.select()}
                     onChange={e => setDays(e.target.value)}
                     onBlur={e => {
                       const val = parseInt(e.target.value, 10);
