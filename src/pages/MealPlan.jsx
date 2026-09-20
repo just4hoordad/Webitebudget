@@ -72,6 +72,7 @@ export default function MealPlan() {
   const [saving, setSaving] = useState(false);
   const isFirstRender = useRef(true);
   const location = useLocation();
+  const isActive = location.pathname === "/meal-plan";
   const searchKey = window.location.search;
   const lastGenKey = useRef(null);
   const genCache = useRef({});
@@ -809,10 +810,12 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       </div>
 
       {loading ? (
-        <div className="space-y-5">
-          <ReassuranceRecap planStyle={planStyle} setPlanStyle={setPlanStyle} />
-          <GeneratingLoader type="grocery" />
-        </div>
+        isActive ? (
+          <div className="space-y-5">
+            <ReassuranceRecap planStyle={planStyle} setPlanStyle={setPlanStyle} />
+            <GeneratingLoader type="grocery" />
+          </div>
+        ) : null
       ) : (
         <>
           {/* List intro */}
