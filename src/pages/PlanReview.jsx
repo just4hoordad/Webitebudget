@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,10 @@ export default function PlanReview() {
   const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
 
   const [planStyle, setPlanStyle] = useState(params.get("planStyle") === "unique" ? "unique" : "repeat");
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   const L = (k, fb) => { const v = t(k); return v === k ? fb : v; };
 
