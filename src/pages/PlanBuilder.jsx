@@ -76,6 +76,7 @@ export default function PlanBuilder() {
     setPlan(Array.from({ length: days }, () => ({ breakfast: [], lunch: [], dinner: [] })));
     setGrocery(null);
     setPhase("grid");
+    window.scrollTo(0, 0);
   };
 
   const setSlot = (d, type, value) =>
@@ -147,6 +148,7 @@ export default function PlanBuilder() {
           setGrocery(cached.grocery);
           setPrep(cached.prep || null);
           setPhase("result");
+          window.scrollTo(0, 0);
           toast.success(t("usingCachedList"));
           return;
         }
@@ -267,6 +269,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
       setGrocery(grocery);
       setPrep(prep);
       setPhase("result");
+      window.scrollTo(0, 0);
       savePriceObservations(grocery, postalCode, diet);
 
       try {
@@ -301,7 +304,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     }
   };
 
-  const reset = () => { setPhase("setup"); setGrocery(null); };
+  const reset = () => { setPhase("setup"); setGrocery(null); window.scrollTo(0, 0); };
 
   if (phase === "result" && grocery) {
     const shareFooter = savedPlanId.current ? (
