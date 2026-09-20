@@ -382,7 +382,7 @@ export default function BudgetForm() {
               <SectionHeader
                 icon={MapPin}
                 label={t("storesSection") || "Stores"}
-                summary={`${storeNamesSummary || (t("storesSection") || "Stores")}${bio ? " · Bio" : ""}${saleHunt ? " · sale hunt" : ""}`}
+                summary={`${storeNamesSummary || t("noStoresSelected")}${storeNamesSummary && bio ? " · Bio" : ""}${storeNamesSummary && saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
             <SectionToggle active={enabled.stores} onToggle={() => toggleSection("stores")} label={t("storesSection") || "Stores"} />
