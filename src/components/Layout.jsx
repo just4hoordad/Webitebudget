@@ -176,7 +176,7 @@ export default function Layout() {
         </header>
 
         {/* Main content */}
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-28 md:px-8 md:pb-8">
+        <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-36 md:px-8 md:pb-8">
           {/* Always-mounted tab pages — hidden via CSS to preserve state */}
           <div style={{ display: location.pathname === "/" ? "block" : "none" }}>
             <HomePage />
