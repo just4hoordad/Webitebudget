@@ -99,6 +99,15 @@ export default function Layout() {
               </Link>
             );
           })}
+          {!isAuthenticated && (
+            <button
+              onClick={navigateToLogin}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors select-none w-full"
+            >
+              <LogIn className="h-5 w-5 shrink-0" />
+              <span className="truncate">{t("signInNav")}</span>
+            </button>
+          )}
           <div className="pt-4 mt-4 border-t border-border space-y-1">
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
@@ -123,7 +132,7 @@ export default function Layout() {
 
         {/* Footer */}
         <div className="p-4 border-t border-border shrink-0 space-y-3">
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary">
               <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                 <User className="h-4 w-4 text-primary" />
@@ -136,14 +145,6 @@ export default function Layout() {
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
-          ) : (
-            <button
-              onClick={navigateToLogin}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              <LogIn className="h-4 w-4" />
-              {t("signInNav")}
-            </button>
           )}
           {showUpgrade && <UpgradeBanner onClick={openPricing} />}
           <SupportUsButton onClick={openDonation} />
@@ -257,6 +258,15 @@ export default function Layout() {
                 </Link>
               );
             })}
+            {!isAuthenticated && (
+              <button
+                onClick={navigateToLogin}
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full text-[9px] font-heading font-semibold uppercase tracking-wide text-primary/90 hover:text-primary transition-colors select-none shrink-0"
+              >
+                <LogIn className="h-[18px] w-[18px] shrink-0" />
+                <span className="truncate max-w-[56px] text-center leading-none">{t("signInNav")}</span>
+              </button>
+            )}
             <button
               onClick={() => setMoreOpen(true)}
               className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
@@ -287,7 +297,7 @@ export default function Layout() {
                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
               >
                 <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted" />
-                {isAuthenticated ? (
+                {isAuthenticated && (
                   <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
                     <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                       <User className="h-5 w-5 text-primary" />
@@ -301,14 +311,6 @@ export default function Layout() {
                       {t("logoutNav")}
                     </button>
                   </div>
-                ) : (
-                  <button
-                    onClick={navigateToLogin}
-                    className="w-full flex items-center justify-center gap-2 mb-3 px-4 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm"
-                  >
-                    <LogIn className="h-5 w-5" />
-                    {t("signInNav")}
-                  </button>
                 )}
                 <div className="grid grid-cols-3 gap-3">
                   {secondaryNavItems.map((item) => {
