@@ -1103,7 +1103,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
              </Link>
 
              {/* Footer actions */}
-             <div className="bg-muted rounded-xl px-5 py-3 flex items-center justify-between gap-2 flex-wrap">
+             <div className="bg-muted rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                <p className="text-xs text-muted-foreground">
                  {weeklyPlan.type === "repeat"
                    ? t("repeatNote")
@@ -1111,7 +1111,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    ? `📅 ${t("exactDaysPlanNote", { days })}`
                    : t("unique4WeeksGenerated")}
                </p>
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2 flex-wrap">
                  <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
                    <FileDown className="h-4 w-4" />
                    {t("downloadPlan")}
