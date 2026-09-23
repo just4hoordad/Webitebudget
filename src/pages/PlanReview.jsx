@@ -67,6 +67,7 @@ export default function PlanReview() {
   const confirm = () => {
     const u = new URLSearchParams(window.location.search);
     u.set("planStyle", planStyle);
+    window.scrollTo(0, 0);
     navigate(`/meal-plan?${u.toString()}`);
   };
 
