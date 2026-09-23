@@ -1,25 +1,15 @@
-// Nearby-store lookup. Strategy: race Overpass (the only COMPLETE source — all
-// chain stores within a radius) against a 6s clock; if it wins, return its full
-// results. If it's slow or all mirrors are down, fall back to Photon (Komoot's
-// OSM-backed geocoder — fast and reliable but a text search, so partial).
-// Stores therefore always show up: complete when Overpass cooperates, partial
-// but instant when it doesn't. Results are cached 6h for instant repeats.
-
-const OVERPASS_MIRRORS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass.private.coffee/api/interpreter",
-];
+// Nearby-store lookup via Photon (Komoot's OSM-backed geocoder).
+//
+// Previously this raced Overpass against Photon, but every Overpass mirror
+// became chronically slow/unreachable (hangs >90s, returns 0 elements on
+// every recorded run), and firing 4 dead Overpass requests alongside the 13
+// Photon chain-queries contended for connections — so Photon came back
+// partial and chains like tegut simply never surfaced. Photon alone,
+// queried per chain in parallel, reliably returns all nearby stores
+// (verified: 23 stores incl. 6 tegut within 3km of Fulda). Results are
+// cached 6h for instant repeats.
 
 const PHOTON_URL = "https://photon.komoot.io/api";
-
-// frontend chain id -> OSM brand/name fragment (Overpass)
-const CHAIN_BRANDS: Record<string, string> = {
-  aldi: "aldi", lidl: "lidl", rewe: "rewe", edeka: "edeka", penny: "penny",
-  netto: "netto", kaufland: "kaufland", norma: "norma", globus: "globus",
-  tegut: "tegut", dm: "dm", rossmann: "rossmann", müller: "müller|mueller",
-};
 
 // frontend chain id -> Photon text query
 const CHAIN_QUERY: Record<string, string> = {
@@ -28,10 +18,14 @@ const CHAIN_QUERY: Record<string, string> = {
   tegut: "tegut", dm: "dm", rossmann: "Rossmann", müller: "Müller Drogerie",
 };
 
-const SHOP_FILTER = `["shop"~"supermarket|chemist|drugstore|convenience"]`;
-const PHOTON_SHOP_VALUES = new Set(["supermarket", "chemist", "drugstore", "convenience", "perfumery"]);
-const OVERPASS_TIMEOUT_MS = 4000;
-const PHOTON_TIMEOUT_MS = 6000;
+// OSM shop values that count as grocery/drugstore chains. "beverages" catches
+// sub-formats like tegut Getränkemarkt; "frozen_food" catches frozen-only
+// discounters; "perfumery"/"chemist"/"drugstore" cover dm/Rossmann/Müller.
+const PHOTON_SHOP_VALUES = new Set([
+  "supermarket", "chemist", "drugstore", "convenience", "perfumery",
+  "beverages", "frozen_food",
+]);
+const PHOTON_TIMEOUT_MS = 8000;
 
 function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371000;
@@ -40,16 +34,6 @@ function distanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) 
   const dLon = toRad(lon2 - lon1);
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// Query ALL supermarkets/chemists/convenience in the radius (simple, fast,
-// complete) — no brand regex, which was the slow part with many chains. The
-// frontend's detectChain() filters the results down to known chains, so
-// non-chain shops are simply dropped. This keeps Overpass fast enough to win
-// the 6s race even in dense areas.
-function buildOverpassQuery(lat: number, lng: number, radius: number, _chains: string[] | null) {
-  const around = `(around:${radius},${lat},${lng})`;
-  return `[out:json][timeout:25];(node${SHOP_FILTER}${around};way${SHOP_FILTER}${around};);out center;`;
 }
 
 function dedupe(elements: any[]) {
@@ -62,32 +46,6 @@ function dedupe(elements: any[]) {
     out.push(el);
   }
   return out;
-}
-
-// Race every Overpass mirror; return first 200's elements, cancelling the rest.
-async function queryOverpass(query: string): Promise<any[] | null> {
-  const controllers = OVERPASS_MIRRORS.map(() => new AbortController());
-  const timeouts: any[] = [];
-  const tasks = OVERPASS_MIRRORS.map(async (mirror, i) => {
-    timeouts.push(setTimeout(() => controllers[i].abort(), 9000));
-    const res = await fetch(mirror, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "BudgetBite/1.0 (meal planning app)" },
-      body: `data=${encodeURIComponent(query)}`,
-      signal: controllers[i].signal,
-    });
-    if (!res.ok) throw new Error(`${mirror} ${res.status}`);
-    const data = await res.json();
-    return data.elements || [];
-  });
-  try {
-    return await Promise.any(tasks);
-  } catch {
-    return null;
-  } finally {
-    timeouts.forEach(clearTimeout);
-    controllers.forEach((c) => c.abort());
-  }
 }
 
 async function queryChainPhoton(chainId: string, lat: number, lng: number, radius: number) {
@@ -115,8 +73,8 @@ async function queryChainPhoton(chainId: string, lat: number, lng: number, radiu
         lat: sLat,
         lon: sLng,
         tags: {
-          name: p.name || CHAIN_QUERY[chainId],
-          brand: p.name || CHAIN_QUERY[chainId],
+          name: p.name || q,
+          brand: p.name || q,
           shop: p.osm_value,
           "addr:street": p.street || "",
           "addr:housenumber": p.housenumber || "",
@@ -159,7 +117,9 @@ Deno.serve(async (req) => {
     }
     const safeRadius = Math.min(Math.max(Math.round(radiusNum), 100), 50000);
     const chainsArr = Array.isArray(chains) ? chains.filter((c): c is string => typeof c === "string") : null;
-    const validChains = (chainsArr || []).filter((c) => CHAIN_BRANDS[c]);
+    const validChains = (chainsArr || []).filter((c) => CHAIN_QUERY[c]);
+    // If no specific chains requested, query every known chain.
+    const chainsToQuery = validChains.length ? validChains : Object.keys(CHAIN_QUERY);
 
     const key = cacheKey(latNum, lngNum, safeRadius, chainsArr);
     const hit = cache.get(key);
@@ -168,26 +128,9 @@ Deno.serve(async (req) => {
       return Response.json({ elements: hit.elements });
     }
 
-    // Run both sources in parallel and MERGE:
-    //  - Overpass (shop-type-only, radius capped at 1.5km): fast + COMPLETE for
-    //    nearby stores (catches brand-only stores Photon misses).
-    //  - Photon (all requested chains, full radius): fast + wider coverage.
-    // Dedupe by OSM type+id (same store from both sources collapses to one).
-    const overpassRadius = Math.min(safeRadius, 1500);
-    const overpassQuery = buildOverpassQuery(latNum, lngNum, overpassRadius, chainsArr);
-    const overpassPromise = queryOverpass(overpassQuery);
-    const photonPromise = validChains.length ? queryPhoton(validChains, latNum, lngNum, safeRadius) : Promise.resolve([]);
+    const elements = await queryPhoton(chainsToQuery, latNum, lngNum, safeRadius);
 
-    const overpassTimeout = new Promise<any[]>((r) => setTimeout(() => r([]), OVERPASS_TIMEOUT_MS));
-    const overpassElements = await Promise.race([
-      overpassPromise.then((e) => (e === null ? [] : e)),
-      overpassTimeout,
-    ]);
-    const photonElements = await photonPromise;
-    const elements = dedupe([...overpassElements, ...photonElements]);
-    const source = overpassElements.length ? `overpass+photon (${overpassElements.length}+${photonElements.length})` : `photon (${photonElements.length})`;
-
-    console.log(`[fetchNearbyStores] ${source} → ${elements.length} stores (chains: ${chainsArr?.join(",") || "all"})`);
+    console.log(`[fetchNearbyStores] photon (${elements.length} stores, chains: ${chainsToQuery.join(",") || "all"})`);
     cache.set(key, { ts: Date.now(), elements });
     return Response.json({ elements });
   } catch (error) {
