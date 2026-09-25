@@ -32,6 +32,7 @@ import { Link, useLocation } from "react-router-dom";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import ReassuranceRecap from "@/components/ReassuranceRecap";
 import WeekMealGrid from "@/components/WeekMealGrid";
+import RecipeModal from "@/components/RecipeModal";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -45,7 +46,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
-  const { guarded, credits, isPro } = useMonetization();
+  const { guarded, credits, isPro, openPricing } = useMonetization();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
@@ -539,7 +540,23 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
   const [grocerySwapTarget, setGrocerySwapTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [recipes, setRecipes] = useState({});
+  const [recipeTarget, setRecipeTarget] = useState(null);
   const [sortByStore, setSortByStore] = useState(false);
+
+  const recipeKey = (weekIndex, dayIndex, mealType) => `${weekIndex}:${dayIndex}:${mealType}`;
+
+  const handleRecipe = (weekIndex, dayIndex, mealType, meal) => {
+    if (!isPro) {
+      openPricing?.();
+      return;
+    }
+    setRecipeTarget({ weekIndex, dayIndex, mealType, meal });
+  };
+
+  const cacheRecipe = (weekIndex, dayIndex, mealType, entry) => {
+    setRecipes(prev => ({ ...prev, [recipeKey(weekIndex, dayIndex, mealType)]: entry }));
+  };
   const planKey = `${diet}-${budget}-${days}-${people}-${calories}`;
   const [boughtItems, setBoughtItems] = useState(() => {
     try {
@@ -780,7 +797,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         stores,
         macros: macros || undefined,
         plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type },
-        groceryList: groceries
+        groceryList: groceries,
+        recipes: Object.keys(recipes).length > 0 ? recipes : undefined
       });
       setSaved(true);
       toast.success(t("planSaved"));
@@ -1048,8 +1066,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    week={week}
                    weekIndex={weekIndex}
                    t={t}
+                   isPro={isPro}
                    onEdit={(wi, di, mt, meal) => setEditTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
                    onSwap={(wi, di, mt, meal) => setSwapTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
+                   onRecipe={handleRecipe}
                  />
                </div>
              ))}
@@ -1195,6 +1215,19 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             diet={diet}
             onSwap={(dayIndex, mealType, alt) => handleSwap(dayIndex, mealType, alt, swapTarget.weekIndex || 0)}
             onClose={() => setSwapTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {recipeTarget && (
+          <RecipeModal
+            meal={recipeTarget.meal}
+            diet={diet}
+            people={parseFloat(people)}
+            initialRecipe={recipes[recipeKey(recipeTarget.weekIndex, recipeTarget.dayIndex, recipeTarget.mealType)]}
+            onCache={(entry) => cacheRecipe(recipeTarget.weekIndex, recipeTarget.dayIndex, recipeTarget.mealType, entry)}
+            onClose={() => setRecipeTarget(null)}
           />
         )}
       </AnimatePresence>

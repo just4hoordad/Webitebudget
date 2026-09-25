@@ -46,6 +46,10 @@
     "prep": {
       "type": "object"
     },
+    "recipes": {
+      "type": "object",
+      "description": "Cached on-demand cooking recipes keyed by meal signature (weekIndex:dayIndex:mealType). Each value holds the mealName and the generated recipe so re-opening a meal shows the cached recipe without a new LLM call."
+    },
     "shareToken": {
       "type": "string",
       "description": "Unique public share token. When set, the plan is readable via the public share route (getSharedPlan). Empty/absent means not shared."

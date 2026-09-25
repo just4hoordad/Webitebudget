@@ -1,4 +1,4 @@
-import { Shuffle, Edit2, Plus, Sun, Utensils, Moon } from "lucide-react";
+import { Shuffle, Edit2, Plus, Sun, Utensils, Moon, ChefHat, Lock } from "lucide-react";
 
 // Per-day card layout: each day is a vertical card with breakfast/lunch/dinner rows.
 // Clearer on mobile than a horizontal day×meal grid.
@@ -8,7 +8,7 @@ const MEAL_TYPES = [
   { type: "dinner", labelKey: "dinner", Icon: Moon },
 ];
 
-export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap }) {
+export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRecipe, isPro }) {
   const days = (week.days || []).filter(Boolean);
 
   if (days.length === 0) return null;
@@ -57,6 +57,8 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap }) {
                   ? ings.map((i) => i.name).join(", ")
                   : "";
 
+                const mealObj = { name, calories: cal, ingredients: ings, mealType: type };
+
                 return (
                   <div key={type} className="flex items-start gap-3 px-4 py-3">
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -80,18 +82,28 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap }) {
                     </div>
                     <div className="flex flex-col gap-1 shrink-0">
                       <button
-                        onClick={() => onEdit(weekIndex, dayIdx, type, { name, calories: cal, ingredients: ings })}
+                        onClick={() => onEdit(weekIndex, dayIdx, type, mealObj)}
                         className="text-muted-foreground hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10"
                         title={t("editMeal") || "Edit meal"}
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => onSwap(weekIndex, dayIdx, type, { name, calories: cal, ingredients: ings })}
+                        onClick={() => onSwap(weekIndex, dayIdx, type, mealObj)}
                         className="text-muted-foreground hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10"
                         title={t("aiSwap") || "AI Swap"}
                       >
                         <Shuffle className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onRecipe(weekIndex, dayIdx, type, mealObj)}
+                        className="relative text-muted-foreground hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10"
+                        title={isPro ? (t("recipe") || "Recipe") : (t("recipePro") || "Recipe — Pro")}
+                      >
+                        <ChefHat className="h-3.5 w-3.5" />
+                        {!isPro && (
+                          <Lock className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-foreground bg-card rounded-full p-0.5" />
+                        )}
                       </button>
                     </div>
                   </div>
