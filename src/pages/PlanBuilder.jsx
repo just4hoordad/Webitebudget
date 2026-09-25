@@ -319,6 +319,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           prep={prep}
           days={plan.length}
           people={people}
+          diet={diet}
           onReset={reset}
           footer={shareFooter}
         />

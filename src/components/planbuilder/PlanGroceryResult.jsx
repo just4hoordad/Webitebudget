@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import { categoryTranslations } from "@/lib/translations";
 import { euCategoryTranslations } from "@/lib/translations_eu";
-import { ArrowLeft, RefreshCw, ShoppingBasket, Store, ChefHat, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, RefreshCw, ShoppingBasket, Store, ChefHat, Loader2, Clock, Lock } from "lucide-react";
+import RecipeModal from "@/components/RecipeModal";
+import { AnimatePresence } from "framer-motion";
 
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
@@ -11,9 +15,20 @@ const MEAL_SLOTS = [
   { key: "dinner", labelKey: "dinner" },
 ];
 
-export default function PlanGroceryResult({ grocery, prep, days, people, onReset, readOnly, footer }) {
+export default function PlanGroceryResult({ grocery, prep, days, people, diet, onReset, readOnly, footer }) {
   const { t, currentLanguage } = useLanguage();
+  const { isPro, openPricing } = useMonetization();
+  const [recipes, setRecipes] = useState({});
+  const [recipeTarget, setRecipeTarget] = useState(null);
   const total = grocery.total_estimated_cost || 0;
+
+  const recipeKey = (dayIdx, mealType) => `${dayIdx}:${mealType}`;
+  const handleRecipe = (dayIdx, mealType, mealName) => {
+    if (!isPro) { openPricing?.(); return; }
+    setRecipeTarget({ dayIdx, mealType, meal: { name: mealName, mealType, ingredients: [] } });
+  };
+  const cacheRecipe = (dayIdx, mealType, entry) =>
+    setRecipes((prev) => ({ ...prev, [recipeKey(dayIdx, mealType)]: entry }));
   const catMap = allCategoryTranslations[currentLanguage.code] || {};
   const trCat = (name) => catMap[name] || name;
 
@@ -109,10 +124,20 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
                       {meals.map((s) => (
                         <div key={s.key} className="border-t border-border pt-2 first:border-0 first:pt-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-foreground">{s.data.meal}</p>
-                            <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded px-1.5 py-0.5">
+                            <p className="text-sm font-medium text-foreground flex-1 min-w-0">{s.data.meal}</p>
+                            <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded px-1.5 py-0.5 shrink-0">
                               {t(s.labelKey)}
                             </span>
+                            <button
+                              onClick={() => handleRecipe(i, s.key, s.data.meal)}
+                              className="relative text-muted-foreground hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10 shrink-0"
+                              title={isPro ? (t("recipe") || "Recipe") : (t("recipePro") || "Recipe — Pro")}
+                            >
+                              <ChefHat className="h-3.5 w-3.5" />
+                              {!isPro && (
+                                <Lock className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-foreground bg-card rounded-full p-0.5" />
+                              )}
+                            </button>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             <span className="font-medium text-foreground">{t("portionLabel")}:</span> {s.data.portion}
@@ -135,6 +160,19 @@ export default function PlanGroceryResult({ grocery, prep, days, people, onReset
         </button>
       )}
       {footer}
+
+      <AnimatePresence>
+        {recipeTarget && (
+          <RecipeModal
+            meal={recipeTarget.meal}
+            diet={diet || ""}
+            people={people}
+            initialRecipe={recipes[recipeKey(recipeTarget.dayIdx, recipeTarget.mealType)]}
+            onCache={(entry) => cacheRecipe(recipeTarget.dayIdx, recipeTarget.mealType, entry)}
+            onClose={() => setRecipeTarget(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
