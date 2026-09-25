@@ -10,6 +10,22 @@ import { toast } from "sonner";
 // Generated recipes are reported back via onCache so the parent persists
 // them with the meal plan (no re-generation on re-open).
 
+// Self-contained strings (these keys aren't in the shared translations file,
+// so a local dictionary keeps every supported language covered).
+const RECIPE_L = {
+  en: { recipe: "Recipe", recipeGenerating: "Generating your recipe…", readyToHeat: "Ready-to-heat product", reheatNote: "This is a frozen ready-to-heat meal — just follow the heating instructions on the packaging.", prepTime: "Prep", cookTime: "Cook", servings: "Serves", ingredients: "Ingredients", steps: "Steps", recipeIncomplete: "The recipe came back incomplete — try regenerating.", close: "Close", recipeError: "Couldn't generate the recipe. Try again." },
+  de: { recipe: "Rezept", recipeGenerating: "Rezept wird erstellt…", readyToHeat: "Fertigprodukt zum Erwärmen", reheatNote: "Dies ist eine gefrostete fertige Mahlzeit — einfach die Erwärmanleitung auf der Verpackung befolgen.", prepTime: "Vorbereitung", cookTime: "Kochen", servings: "Portionen", ingredients: "Zutaten", steps: "Schritte", recipeIncomplete: "Das Rezept wurde unvollständig zurückgegeben — bitte neu generieren.", close: "Schließen", recipeError: "Rezept konnte nicht erstellt werden. Bitte erneut versuchen." },
+  fr: { recipe: "Recette", recipeGenerating: "Génération de la recette…", readyToHeat: "Produit à réchauffer", reheatNote: "C'est un plat surgelé prêt à réchauffer — suivez les instructions sur l'emballage.", prepTime: "Préparation", cookTime: "Cuisson", servings: "Portions", ingredients: "Ingrédients", steps: "Étapes", recipeIncomplete: "La recette est incomplète — essayez de régénérer.", close: "Fermer", recipeError: "Impossible de générer la recette. Réessayez." },
+  es: { recipe: "Receta", recipeGenerating: "Generando tu receta…", readyToHeat: "Producto listo para calentar", reheatNote: "Es una comida congelada lista para calentar — sigue las instrucciones del envase.", prepTime: "Preparación", cookTime: "Cocción", servings: "Porciones", ingredients: "Ingredientes", steps: "Pasos", recipeIncomplete: "La receta quedó incompleta — intenta regenerar.", close: "Cerrar", recipeError: "No se pudo generar la receta. Intenta de nuevo." },
+  ar: { recipe: "وصفة", recipeGenerating: "جارٍ إنشاء الوصفة…", readyToHeat: "منتج جاهز للتسخين", reheatNote: "هذه وجبة مجمدة جاهزة للتسخين — اتبع تعليمات التسخين على العبوة.", prepTime: "تحضير", cookTime: "طبخ", servings: "حصص", ingredients: "مكونات", steps: "خطوات", recipeIncomplete: "عادت الوصفة غير مكتملة — حاول إعادة الإنشاء.", close: "إغلاق", recipeError: "تعذر إنشاء الوصفة. حاول مرة أخرى." },
+  ru: { recipe: "Рецепт", recipeGenerating: "Генерация рецепта…", readyToHeat: "Продукт для разогрева", reheatNote: "Это замороженное готовое блюдо — следуйте инструкции на упаковке.", prepTime: "Подготовка", cookTime: "Готовка", servings: "Порции", ingredients: "Ингредиенты", steps: "Шаги", recipeIncomplete: "Рецепт вернулся неполным — попробуйте снова.", close: "Закрыть", recipeError: "Не удалось создать рецепт. Попробуйте снова." },
+  uk: { recipe: "Рецепт", recipeGenerating: "Генерація рецепта…", readyToHeat: "Продукт для розігріву", reheatNote: "Це заморожена готова страва — дотримуйтесь інструкції на упаковці.", prepTime: "Підготовка", cookTime: "Готування", servings: "Порції", ingredients: "Інгредієнти", steps: "Кроки", recipeIncomplete: "Рецепт повернувся неповним — спробуйте знову.", close: "Закрити", recipeError: "Не вдалося створити рецепт. Спробуйте ще раз." },
+  fa: { recipe: "دستور پخت", recipeGenerating: "در حال تولید دستور پخت…", readyToHeat: "محصول آماده گرم کردن", reheatNote: "این یک غذای منجرد آماده گرم کردن است — دستورالعمل روی بسته‌بندی را دنبال کنید.", prepTime: "آماده‌سازی", cookTime: "پخت", servings: "وعده‌ها", ingredients: "مواد اولیه", steps: "مراحل", recipeIncomplete: "دستور پخت ناقص برگشت — دوباره تولید کنید.", close: "بستن", recipeError: "تولید دستور پخت ناموفق بود. دوباره امتحان کنید." },
+  zh: { recipe: "食谱", recipeGenerating: "正在生成食谱…", readyToHeat: "即热产品", reheatNote: "这是一份冷冻即热餐 — 按照包装上的加热说明操作即可。", prepTime: "准备", cookTime: "烹饪", servings: "份数", ingredients: "食材", steps: "步骤", recipeIncomplete: "食谱不完整 — 请重新生成。", close: "关闭", recipeError: "无法生成食谱，请重试。" },
+  vi: { recipe: "Công thức", recipeGenerating: "Đang tạo công thức…", readyToHeat: "Sản phẩm hâm nóng", reheatNote: "Đây là bữa ăn đông lạnh sẵn sàng hâm nóng — làm theo hướng dẫn trên bao bì.", prepTime: "Chuẩn bị", cookTime: "Nấu", servings: "Phần ăn", ingredients: "Nguyên liệu", steps: "Bước", recipeIncomplete: "Công thức không đầy đủ — hãy tạo lại.", close: "Đóng", recipeError: "Không thể tạo công thức. Thử lại." },
+  tr: { recipe: "Tarif", recipeGenerating: "Tarif oluşturuluyor…", readyToHeat: "Isıtmaya hazır ürün", reheatNote: "Bu hazır ısıtılacak dondurulmuş bir öğündür — ambalajdaki talimatları izleyin.", prepTime: "Hazırlık", cookTime: "Pişirme", servings: "Porsiyon", ingredients: "Malzemeler", steps: "Adımlar", recipeIncomplete: "Tarif eksik geldi — yeniden oluşturmayı deneyin.", close: "Kapat", recipeError: "Tarif oluşturulamadı. Tekrar deneyin." },
+};
+
 const RECIPE_SCHEMA = {
   type: "object",
   properties: {
@@ -29,7 +45,8 @@ const RECIPE_SCHEMA = {
 };
 
 export default function RecipeModal({ meal, diet, people, initialRecipe, onCache, onClose }) {
-  const { t, currentLanguage } = useLanguage();
+  const { currentLanguage } = useLanguage();
+  const tr = (key) => (RECIPE_L[currentLanguage.code] || RECIPE_L.en)[key] || RECIPE_L.en[key];
   const [recipe, setRecipe] = useState(
     initialRecipe && initialRecipe.mealName === meal.name ? initialRecipe.recipe : null
   );
@@ -67,12 +84,14 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
         response_json_schema: RECIPE_SCHEMA,
       });
       setRecipe(result);
+      setLoading(false);
       if (!reported.current) {
         reported.current = true;
         onCache({ mealName: meal.name, recipe: result });
       }
     } catch (e) {
-      toast.error(t("recipeError") || "Couldn't generate the recipe. Try again.");
+      setLoading(false);
+      toast.error(tr("recipeError"));
       onClose();
     }
   };
@@ -100,7 +119,7 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
         <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-medium text-primary uppercase tracking-wide flex items-center gap-1">
-              <ChefHat className="h-3.5 w-3.5" /> {mealTypeLabel} {t("recipe") || "Recipe"}
+              <ChefHat className="h-3.5 w-3.5" /> {mealTypeLabel} {tr("recipe")}
             </p>
             <h2 className="font-heading font-bold text-foreground mt-0.5 line-clamp-2">{meal.name}</h2>
           </div>
@@ -115,9 +134,9 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
               <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center">
                 <Snowflake className="h-7 w-7 text-blue-500" />
               </div>
-              <p className="font-heading font-semibold text-foreground">{t("readyToHeat") || "Ready-to-heat product"}</p>
+              <p className="font-heading font-semibold text-foreground">{tr("readyToHeat")}</p>
               <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-                {t("reheatNote") || "This is a frozen ready-to-heat meal — just follow the heating instructions on the packaging."}
+                {tr("reheatNote")}
               </p>
               {meal.name && (
                 <p className="text-sm text-primary bg-primary/10 rounded-lg px-3 py-2">{meal.name}</p>
@@ -126,22 +145,22 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
           ) : loading ? (
             <div className="flex flex-col items-center text-center py-10 gap-3">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">{t("recipeGenerating") || "Generating your recipe…"}</p>
+              <p className="text-sm text-muted-foreground">{tr("recipeGenerating")}</p>
             </div>
           ) : recipe ? (
             <>
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-2">
-                <Stat icon={Clock} label={t("prepTime") || "Prep"} value={recipe.prep_time != null ? `${recipe.prep_time} min` : "—"} />
-                <Stat icon={Clock} label={t("cookTime") || "Cook"} value={recipe.cook_time != null ? `${recipe.cook_time} min` : "—"} />
-                <Stat icon={Users} label={t("servings") || "Serves"} value={recipe.servings || people || 1} />
+                <Stat icon={Clock} label={tr("prepTime")} value={recipe.prep_time != null ? `${recipe.prep_time} min` : "—"} />
+                <Stat icon={Clock} label={tr("cookTime")} value={recipe.cook_time != null ? `${recipe.cook_time} min` : "—"} />
+                <Stat icon={Users} label={tr("servings")} value={recipe.servings || people || 1} />
               </div>
 
               {/* Ingredients */}
               {Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 && (
                 <div>
                   <h3 className="font-heading font-semibold text-sm text-foreground mb-2 flex items-center gap-1.5">
-                    <ListOrdered className="h-4 w-4 text-primary" /> {t("ingredients") || "Ingredients"}
+                    <ListOrdered className="h-4 w-4 text-primary" /> {tr("ingredients")}
                   </h3>
                   <ul className="space-y-1.5">
                     {recipe.ingredients.map((ing, i) => (
@@ -157,7 +176,7 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
               {/* Steps */}
               {Array.isArray(recipe.steps) && recipe.steps.length > 0 && (
                 <div>
-                  <h3 className="font-heading font-semibold text-sm text-foreground mb-2">{t("steps") || "Steps"}</h3>
+                  <h3 className="font-heading font-semibold text-sm text-foreground mb-2">{tr("steps")}</h3>
                   <ol className="space-y-2.5">
                     {recipe.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 text-sm leading-relaxed">
@@ -174,7 +193,7 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
               {(!Array.isArray(recipe.steps) || recipe.steps.length === 0) && (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/40 rounded-lg p-3">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>{t("recipeIncomplete") || "The recipe came back incomplete — try regenerating."}</span>
+                  <span>{tr("recipeIncomplete")}</span>
                 </div>
               )}
             </>
@@ -186,7 +205,7 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
             onClick={onClose}
             className="w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
           >
-            {t("close") || "Close"}
+            {tr("close")}
           </button>
         </div>
       </motion.div>
