@@ -6,8 +6,9 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 const benefits = [
+  "Unlock all Pro-only options & settings",
   "30 generations per month",
-  "No ads, ever",
+  "100% ad-free — no banners, no wait ads",
   "Pro badge next to your name",
   "Support independent development",
 ];
@@ -63,11 +64,14 @@ export default function ProPricingModal({ open, onClose }) {
                 <Crown className="h-7 w-7 text-primary" />
               </div>
               <h2 className="font-heading text-2xl font-bold text-foreground">BudgetBite Pro</h2>
-              <p className="text-sm text-muted-foreground">Unlock more & support the project.</p>
+              <p className="text-sm text-muted-foreground">
+                Unlock extra options <span className="font-semibold text-foreground">and go completely ad-free</span> — for very little money.
+              </p>
             </div>
             <div className="text-center">
               <span className="font-heading text-4xl font-bold text-foreground">€2.99</span>
               <span className="text-muted-foreground">/month</span>
+              <p className="mt-1 text-xs text-primary font-medium">Less than a coffee a month ☕</p>
             </div>
             <ul className="space-y-2.5">
               {benefits.map((b) => (
