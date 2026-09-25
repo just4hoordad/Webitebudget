@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditBar from "@/components/monetization/CreditBar";
+import AdSlot from "@/components/ads/AdSlot";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -82,6 +83,9 @@ export default function Home() {
             </Button>
           </div>
         </div>
+
+        {/* Display ad — above the planner */}
+        <AdSlot layout="fixed-height" style={{ minHeight: 90 }} />
 
         {/* Budget Form */}
         <div id="plan-form">

@@ -40,6 +40,7 @@ import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCache
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditPill from "@/components/monetization/CreditPill";
+import AdSlot from "@/components/ads/AdSlot";
 import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function MealPlan() {
@@ -934,6 +935,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
               {t("exportPDF")}
             </Button>
           </div>
+
+          {/* Display ad — between summary and the grocery list */}
+          <AdSlot layout="fixed-height" style={{ minHeight: 90 }} />
 
           {/* Categories */}
           <div>
