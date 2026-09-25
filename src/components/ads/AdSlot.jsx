@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useMonetization } from "@/lib/MonetizationContext";
 
 // Your AdSense publisher client ID.
 export const ADSENSE_CLIENT_ID = "ca-pub-2924224061309943";
@@ -28,19 +29,23 @@ export default function AdSlot({
   className = "",
   style,
 }) {
+  const { isPro, credits } = useMonetization();
+  // Ads only surface once a free user has exhausted their 3 free generations.
+  // Pro users never see ads, and free users with credits remaining don't either.
+  const showAd = !isPro && credits <= 0;
   const insRef = useRef(null);
 
   useEffect(() => {
-    if (!slot) return;
+    if (!slot || !showAd) return;
     try {
       // AdSense pushes ad creatives into the <ins> tag via this queue.
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
       /* adsbygoogle not loaded yet (e.g. inside builder preview) — safe to ignore */
     }
-  }, [slot]);
+  }, [slot, showAd]);
 
-  if (!slot) return null;
+  if (!slot || !showAd) return null;
 
   return (
     <div className={`w-full flex justify-center my-4 ${className}`}>
