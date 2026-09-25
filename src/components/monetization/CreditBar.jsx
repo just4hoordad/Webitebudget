@@ -15,9 +15,9 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
   const labelColor = onGlass ? "text-white/70" : "text-muted-foreground";
   const wrapClass = onGlass
     ? "flex items-center justify-between gap-2 flex-wrap"
-    : "flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3";
+    : "flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-xl px-4 py-3";
 
-  const btnBase = "px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors";
+  const btnBase = "h-7 inline-flex items-center px-2.5 rounded-full text-[11px] font-medium leading-none transition-colors";
   const adBtn = onGlass
     ? `${btnBase} border border-white/40 text-white hover:bg-white/15`
     : `${btnBase} border border-amber-500/50 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10`;
@@ -37,14 +37,14 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
         <span className={`font-heading ${onGlass ? "text-xl" : "text-2xl"} font-bold leading-none ${numColor}`}>
           {credits}
         </span>
-        <span className={`text-[10px] font-heading font-bold uppercase tracking-wide ${labelColor}`}>
+        <span className={`text-[10px] font-heading font-bold uppercase tracking-wide ${labelColor} truncate`}>
           {isPro ? "PRO LEFT" : "FREE GEN"}
         </span>
       </div>
       {isPro ? (
         <span className={`text-[11px] font-medium ${proLabel}`}>Ad-free 👑</span>
       ) : (
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <button type="button" onClick={openWatchAd} className={adBtn}>
             +1
           </button>
