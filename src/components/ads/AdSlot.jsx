@@ -7,7 +7,7 @@ export const ADSENSE_CLIENT_ID = "ca-pub-2924224061309943";
 // Paste a manual ad-unit slot ID here (from your AdSense dashboard → Ads →
 // By ad unit → Display ads). Leave empty to hide manual banners — Auto Ads
 // (enabled in your AdSense dashboard) will still place ads automatically.
-const MANUAL_SLOT_ID = "";
+const MANUAL_SLOT_ID = "2878139228";
 
 /**
  * Reusable AdSense display ad slot.
