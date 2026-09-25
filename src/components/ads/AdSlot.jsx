@@ -20,19 +20,23 @@ const MANUAL_SLOT_ID = "2878139228";
  *  - slot:    ad unit slot ID (overrides MANUAL_SLOT_ID)
  *  - format:  ad format string, default "auto"
  *  - layout:  optional layout key (e.g. "fixed-height")
+ *  - duringGeneration: show for free users mid-credits while a generation is in flight
  *  - className, style: passthrough
  */
 export default function AdSlot({
   slot = MANUAL_SLOT_ID,
   format = "auto",
   layout,
+  duringGeneration = false,
   className = "",
   style,
 }) {
   const { isPro, credits } = useMonetization();
-  // Ads only surface once a free user has exhausted their 3 free generations.
-  // Pro users never see ads, and free users with credits remaining don't either.
-  const showAd = !isPro && credits <= 0;
+  // Free users see ads in two cases:
+  //  - they've run out of credits (ads show anywhere), OR
+  //  - they're actively waiting on a generation (banner shown while loading).
+  // Pro users never see ads.
+  const showAd = !isPro && (credits <= 0 || duringGeneration);
   const insRef = useRef(null);
 
   useEffect(() => {

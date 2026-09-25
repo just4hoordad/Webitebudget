@@ -815,6 +815,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           <div className="space-y-5">
             <ReassuranceRecap planStyle={planStyle} setPlanStyle={setPlanStyle} />
             <GeneratingLoader type="grocery" />
+            <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
           </div>
         ) : null
       ) : (
@@ -1013,7 +1014,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
           {/* Meal plan generates automatically once groceries are ready */}
           {!weeklyPlan && loadingPlan && (
-            <GeneratingLoader type="plan" />
+            <>
+              <GeneratingLoader type="plan" />
+              <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
+            </>
           )}
 
           {/* Weekly Plan Display */}
