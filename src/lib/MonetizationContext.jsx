@@ -70,7 +70,18 @@ export function MonetizationProvider({ children }) {
         setProStatus(null);
       }
     } catch {
-      /* public app / not authenticated — rely on localStorage */
+      // getProStatus throws when the user is not authenticated (public app).
+      // A stale cached Pro status must not survive logout — clear it.
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed && proRef.current) {
+          proRef.current = null;
+          writePro(null);
+          setProStatus(null);
+        }
+      } catch {
+        /* keep cache */
+      }
     }
   }, []);
 
