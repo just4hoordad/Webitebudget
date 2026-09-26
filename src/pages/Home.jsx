@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditBar from "@/components/monetization/CreditBar";
 import AdSlot from "@/components/ads/AdSlot";
+import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function Home() {
   const { t } = useLanguage();
+  const { clearProStatus } = useMonetization();
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -29,6 +31,7 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
+    clearProStatus();
     try { await base44.auth.logout(); } catch { /* ignore */ }
     setUser(null);
     window.location.reload();

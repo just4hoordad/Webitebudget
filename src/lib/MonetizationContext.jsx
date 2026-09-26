@@ -163,6 +163,11 @@ export function MonetizationProvider({ children }) {
   const openPricing = useCallback(() => setShowPricing(true), []);
   const openDonation = useCallback(() => setShowDonation(true), []);
   const openWatchAd = useCallback(() => setShowAd(true), []);
+  const clearProStatus = useCallback(() => {
+    proRef.current = null;
+    writePro(null);
+    setProStatus(null);
+  }, []);
 
   const value = {
     credits,
@@ -173,6 +178,7 @@ export function MonetizationProvider({ children }) {
     openPricing,
     openDonation,
     openWatchAd,
+    clearProStatus,
     proStatus,
   };
 
