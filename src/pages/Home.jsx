@@ -3,7 +3,7 @@ import BudgetForm from "../components/BudgetForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingCart } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingCart, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -27,6 +27,12 @@ export default function Home() {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setAuthChecked(true));
   }, []);
+
+  const handleLogout = async () => {
+    try { await base44.auth.logout(); } catch { /* ignore */ }
+    setUser(null);
+    window.location.reload();
+  };
 
   const handleDeleteAccount = async () => {
     if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
@@ -94,21 +100,30 @@ export default function Home() {
 
         {/* Account */}
         {user && (
-          <div className="border border-destructive/20 rounded-2xl p-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="font-medium text-sm text-foreground">{user.full_name || user.email}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+          <div className="border border-border rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-medium text-sm text-foreground">{user.full_name || user.email}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 shrink-0"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                {t("logout") || "Log out"}
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-destructive/40 text-destructive hover:bg-destructive/10 select-none gap-2"
+            <button
               onClick={handleDeleteAccount}
               disabled={deleting}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-destructive transition-colors disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4" />
-              {deleting ? "Deleting..." : "Delete Account"}
-            </Button>
+              <Trash2 className="h-3.5 w-3.5" />
+              {deleting ? (t("deleting") || "Deleting...") : (t("deleteAccount") || "Delete account")}
+            </button>
           </div>
         )}
 
