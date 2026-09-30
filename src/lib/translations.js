@@ -187,6 +187,7 @@ const translations = {
     durationDays: "Duration",
     days: "days",
     privacyNav: "Privacy",
+    storeDiscountExplanation: "Estimated discount % calculated from current shelf prices for your diet & macro split",
   },
 
   de: {
@@ -361,6 +362,7 @@ const translations = {
     durationDays: "Zeitraum",
     days: "Tage",
     privacyNav: "Datenschutz",
+    storeDiscountExplanation: "Geschätzter Rabatt % basierend auf aktuellen Regalpreisen für deine Ernährungsform & Makros",
   },
 
   fr: {

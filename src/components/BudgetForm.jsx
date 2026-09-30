@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package } from "lucide-react";
+import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package, TrendingDown } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
+import { getStoreDiscount } from "@/lib/storeDiscounts";
 import StoreSpeedHint from "@/components/StoreSpeedHint";
 import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
@@ -485,36 +486,74 @@ export default function BudgetForm() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
-                     {GROCERY_STORES.map((store) => (
-                       <button
-                         key={store.id}
-                         onClick={() => toggleStore(store.id)}
-                         className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                           selectedStores.includes(store.id)
-                             ? store.color + " border-current"
-                             : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                         }`}
-                       >
-                         {store.name}
-                       </button>
-                     ))}
+                     {GROCERY_STORES.map((store) => {
+                       const discount = getStoreDiscount(store.id, selectedDiet, macros);
+                       const isSelected = selectedStores.includes(store.id);
+                       return (
+                         <button
+                           key={store.id}
+                           onClick={() => toggleStore(store.id)}
+                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
+                             isSelected
+                               ? store.color + " border-current shadow-sm"
+                               : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                           }`}
+                         >
+                           <span>{store.name}</span>
+                           {discount > 0 && (
+                             <span
+                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                                 isSelected
+                                   ? "bg-current/15 text-current"
+                                   : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                               }`}
+                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
+                             >
+                               <Tag className="h-2.5 w-2.5" /> -{discount}%
+                             </span>
+                           )}
+                         </button>
+                       );
+                     })}
                    </div>
                    <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
                    <div className="flex flex-wrap gap-2">
-                     {DRUGSTORES.map((store) => (
-                       <button
-                         key={store.id}
-                         onClick={() => toggleStore(store.id)}
-                         className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                           selectedStores.includes(store.id)
-                             ? store.color + " border-current"
-                             : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                         }`}
-                       >
-                         {store.name}
-                       </button>
-                     ))}
+                     {DRUGSTORES.map((store) => {
+                       const discount = getStoreDiscount(store.id, selectedDiet, macros);
+                       const isSelected = selectedStores.includes(store.id);
+                       return (
+                         <button
+                           key={store.id}
+                           onClick={() => toggleStore(store.id)}
+                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
+                             isSelected
+                               ? store.color + " border-current shadow-sm"
+                               : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                           }`}
+                         >
+                           <span>{store.name}</span>
+                           {discount > 0 && (
+                             <span
+                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                                 isSelected
+                                   ? "bg-current/15 text-current"
+                                   : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                               }`}
+                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
+                             >
+                               <Tag className="h-2.5 w-2.5" /> -{discount}%
+                             </span>
+                           )}
+                         </button>
+                       );
+                     })}
                    </div>
+                   <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
+                     <TrendingDown className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                     <span>
+                       {t("storeDiscountExplanation") || "Estimated discount % calculated from current shelf prices for your diet & macro split"}
+                     </span>
+                   </p>
                 </div>
               )}
 

@@ -8,9 +8,10 @@ import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
-  Store, ArrowRight, Sparkles, ShoppingCart, MapPin, X,
+  Store, ArrowRight, Sparkles, ShoppingCart, MapPin, X, Tag, TrendingDown,
 } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
+import { getStoreDiscount } from "@/lib/storeDiscounts";
 
 const DIET_KEYS = [
   { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc" },
@@ -23,7 +24,7 @@ const DIET_KEYS = [
   { id: "frozen", nameKey: "frozenFoods", icon: Microwave, descKey: "frozenFoodsDesc" },
 ];
 
-const STORES = ["Aldi", "Lidl", "REWE", "Edeka", "Penny", "Netto"];
+const STORES = ["Aldi", "Lidl", "Kaufland", "Penny", "Netto", "REWE", "Edeka"];
 
 function SectionHeader({ icon: Icon, label, active, onToggle, id }) {
   return (
@@ -142,12 +143,42 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       <div className="space-y-3">
         <SectionHeader id="pb-stores" icon={Store} label={t("preferredStores")} />
         <div className={`flex flex-wrap gap-2 ${disabledCls("stores")}`}>
-          {STORES.map((s) => (
-            <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
-              {s}
-            </button>
-          ))}
+          {STORES.map((s) => {
+            const discount = getStoreDiscount(s, diet, macros);
+            const isSelected = stores.includes(s);
+            return (
+              <button
+                key={s}
+                onClick={() => toggleStore(s)}
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all inline-flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                <span>{s}</span>
+                {discount > 0 && (
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 transition-colors ${
+                      isSelected
+                        ? "bg-white/20 text-primary-foreground"
+                        : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                    }`}
+                    title={`Estimated ~${discount}% savings on ${diet || "staple"} essentials`}
+                  >
+                    <Tag className="h-2.5 w-2.5" /> -{discount}%
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+        <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
+          <TrendingDown className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>
+            {t("storeDiscountExplanation") || "Estimated discount % calculated from current shelf prices for your diet & macro split"}
+          </span>
+        </p>
       </div>
 
       {/* Postal code — regional pricing + map picker */}
