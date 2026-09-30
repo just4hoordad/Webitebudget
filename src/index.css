@@ -9,40 +9,40 @@
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
 
-    /* Alpine Crisp — light */
-    --background: 210 20% 98%;
-    --foreground: 220 39% 11%;
+    /* Sage Mist — default light theme */
+    --background: 83 21% 92%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 39% 11%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 39% 11%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 83 67% 45%;
-    --primary-foreground: 220 39% 11%;
+    --primary: 72 77% 56%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 39% 11%;
+    --secondary: 83 15% 88%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 83 15% 88%;
+    --muted-foreground: 83 8% 40%;
 
-    --accent: 83 67% 45%;
-    --accent-foreground: 220 39% 11%;
+    --accent: 72 77% 56%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 14% 84%;
-    --input: 220 14% 84%;
-    --ring: 83 67% 45%;
+    --border: 216 12% 84%;
+    --input: 216 12% 84%;
+    --ring: 72 77% 56%;
 
     /* retained dark surface for auth / legacy chrome */
     --dark: 220 24% 11%;
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
 
-    --chart-1: 83 67% 45%;
+    --chart-1: 72 77% 56%;
     --chart-2: 200 80% 50%;
     --chart-3: 280 60% 58%;
     --chart-4: 340 70% 55%;
@@ -50,14 +50,14 @@
 
     --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 39% 11%;
-    --sidebar-primary: 83 67% 45%;
-    --sidebar-primary-foreground: 220 39% 11%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 220 39% 11%;
-    --sidebar-border: 220 14% 84%;
-    --sidebar-ring: 83 67% 45%;
+    --sidebar-background: 83 18% 93%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 72 77% 56%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 83 15% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 216 12% 84%;
+    --sidebar-ring: 72 77% 56%;
   }
 
   .soft {

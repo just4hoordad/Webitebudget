@@ -2,14 +2,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext();
 
-const THEMES = ["light", "soft", "dark"];
+const THEMES = ["soft", "dark"];
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     if (typeof document !== "undefined") {
       if (document.documentElement.classList.contains("dark")) return "dark";
-      if (document.documentElement.classList.contains("soft")) return "soft";
-      return "light";
+      return "soft";
     }
     return "light";
   });

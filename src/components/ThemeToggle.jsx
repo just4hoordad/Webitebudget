@@ -1,18 +1,17 @@
-import { Moon, Sun, Cloud } from "lucide-react";
+import { Moon, Cloud } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
 
 const META = {
-  light: { icon: Sun, label: "Light", title: "Light mode" },
   soft: { icon: Cloud, label: "Soft", title: "Soft gray mode" },
   dark: { icon: Moon, label: "Dark", title: "Dark mode" },
 };
 
-const THEMES_NEXT = { light: "soft", soft: "dark", dark: "light" };
+const THEMES_NEXT = { soft: "dark", dark: "soft" };
 
 export default function ThemeToggle({ className = "" }) {
   const { theme, toggle } = useTheme();
-  const { icon: Icon, title } = META[theme] || META.light;
-  const next = META[THEMES_NEXT[theme]]?.title || "Light mode";
+  const { icon: Icon, title } = META[theme] || META.soft;
+  const next = META[THEMES_NEXT[theme]]?.title || "Soft gray mode";
   return (
     <button
       type="button"
