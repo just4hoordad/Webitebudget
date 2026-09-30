@@ -109,6 +109,18 @@ export default function BudgetForm() {
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
+  const [leftOpen, setLeftOpen] = useState("basics");
+  const [rightOpen, setRightOpen] = useState("");
+  const [visited, setVisited] = useState({ diet: false, pantry: false });
+  const openRight = (v) => {
+    setRightOpen(v);
+    if (v === "diet" || v === "pantry") setVisited((p) => ({ ...p, [v]: true }));
+  };
+  const goToStep = (key) => {
+    if (key === "basics") setLeftOpen("basics"); else openRight(key);
+    setTimeout(() => document.getElementById(`step-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
   const formRef = useRef(null);
   const generateRef = useRef(null);
   const [formInView, setFormInView] = useState(false);
@@ -209,19 +221,20 @@ export default function BudgetForm() {
     <div ref={formRef} className="space-y-5">
       <StepProgress
         steps={[
-          { key: "basics", label: t("basicsSection") || "Basics" },
-          { key: "diet", label: t("dietSection") || "Diet" },
-          { key: "stores", label: t("storesSection") || "Stores" },
-          { key: "pantry", label: t("pantrySection") || "Pantry" },
+          { key: "basics", label: t("basicsSection") || "Basics", required: true, done: budget[0] > 0 },
+          { key: "diet", label: t("dietSection") || "Diet", done: visited.diet },
+          { key: "stores", label: t("storesSection") || "Stores", required: enabled.stores, done: !enabled.stores || storeCount > 0 },
+          { key: "pantry", label: t("pantrySection") || "Pantry", done: visited.pantry },
         ]}
+        onStepClick={goToStep}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Left column - Plan Your Meals */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
-          <Accordion type="single" collapsible defaultValue="basics" className="space-y-3">
+          <Accordion type="single" collapsible value={leftOpen} onValueChange={setLeftOpen} className="space-y-3">
         {/* ── Basics ── */}
-        <AccordionItem value="basics" className="border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -282,9 +295,9 @@ export default function BudgetForm() {
         {/* Right column - Configure Preferences */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
-          <Accordion type="single" collapsible className="space-y-3">
+          <Accordion type="single" collapsible value={rightOpen} onValueChange={openRight} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
-        <AccordionItem value="diet" className="border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -372,7 +385,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Stores ── */}
-        <AccordionItem value="stores" className="border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -503,7 +516,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Pantry ── */}
-        <AccordionItem value="pantry" className="border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
