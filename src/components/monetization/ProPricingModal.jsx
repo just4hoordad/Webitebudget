@@ -65,13 +65,13 @@ export default function ProPricingModal({ open, onClose }) {
               </div>
               <h2 className="font-heading text-2xl font-bold text-foreground">BudgetBite Pro</h2>
               <p className="text-sm text-muted-foreground">
-                Unlock extra options <span className="font-semibold text-foreground">and go completely ad-free</span> — for very little money.
+                I've helped you plan a lot of meals — now you have the chance to <span className="font-semibold text-foreground">buy me a coffee</span> and keep me refreshed. ☕
               </p>
             </div>
             <div className="text-center">
-              <span className="font-heading text-4xl font-bold text-foreground">€2.99</span>
+              <span className="font-heading text-4xl font-bold text-foreground">€3.99</span>
               <span className="text-muted-foreground">/month</span>
-              <p className="mt-1 text-xs text-primary font-medium">Less than a coffee a month ☕</p>
+              <p className="mt-1 text-xs text-primary font-medium">Buy me a coffee to keep me refreshed ☕</p>
             </div>
             <ul className="space-y-2.5">
               {benefits.map((b) => (
@@ -85,7 +85,7 @@ export default function ProPricingModal({ open, onClose }) {
             </ul>
             <Button onClick={handleSubscribe} disabled={loading} className="w-full gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />}
-              {loading ? "Redirecting…" : "Subscribe"}
+              {loading ? "Redirecting…" : "Buy me a coffee ☕"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               Cancel anytime. Secured by Stripe.

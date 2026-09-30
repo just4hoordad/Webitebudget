@@ -68,7 +68,7 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
                   variant="outline"
                   className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10"
                 >
-                  <Crown className="h-4 w-4" /> Go Pro — €2.99/month
+                  <Crown className="h-4 w-4" /> Go Pro — €3.99/month
                 </Button>
               </div>
             )}

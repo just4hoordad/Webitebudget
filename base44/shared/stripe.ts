@@ -1,6 +1,6 @@
 import { secrets } from "base44:runtime";
 
-export const PRO_PRODUCT_ID = "prod_UhEZVocIQ3jb9A";
+export const PRO_PRODUCT_ID = "prod_V55hlAm96ZnHNa";
 export const PRO_MONTHLY_CREDITS = 30;
 export const FREE_STARTER_CREDITS = 3;
 const STRIPE_API_VERSION = "2025-10-29.clover";
