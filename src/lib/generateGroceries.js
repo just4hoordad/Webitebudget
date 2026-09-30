@@ -147,7 +147,7 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
 // Fetch previously-saved community prices for this region. Returns both the
 // reference text block (fed to the LLM) and the deduped count (used to decide
 // whether live web search is still needed — see #2).
-async function fetchKnownPrices(postalCode) {
+async function fetchKnownPrices(postalCode, allowedStores) {
   try {
     // Combine the national price pool (postal_code "") with region-specific
     // prices for this PLZ. A sparse region borrows the national baseline so
@@ -163,6 +163,10 @@ async function fetchKnownPrices(postalCode) {
     const seen = new Map();
     ordered.forEach((r) => {
       if (!r.product_name) return;
+      if (allowedStores?.length) {
+        const s = (r.store || "").toLowerCase();
+        if (!allowedStores.some((a) => s.includes(a.toLowerCase().split(" ")[0]))) return;
+      }
       const key = r.product_name.toLowerCase();
       if (!seen.has(key)) seen.set(key, r);
     });
@@ -178,8 +182,8 @@ async function fetchKnownPrices(postalCode) {
 
 // Public wrapper — keeps the old string-only return type so existing callers
 // (e.g. PlanBuilder) are unaffected.
-export async function getKnownPricesText(postalCode) {
-  return (await fetchKnownPrices(postalCode)).text;
+export async function getKnownPricesText(postalCode, allowedStores) {
+  return (await fetchKnownPrices(postalCode, allowedStores)).text;
 }
 
 // Save every price found in a generated grocery list to the community database.

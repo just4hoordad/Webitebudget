@@ -185,7 +185,11 @@ export default function PlanBuilder() {
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
-      const knownPricesText = await getKnownPricesText(postalCode);
+      const allowedStores = enabled.stores
+        ? (selectedStoreLocations.length > 0 ? [...new Set(selectedStoreLocations.map((s) => s.name))] : stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)))
+        : [];
+      const knownPricesText = await getKnownPricesText(postalCode, allowedStores);
+      const storeField = allowedStores.length ? { type: "string", enum: allowedStores } : { type: "string" };
       const lines = plan
         .map((day, d) => {
           const parts = [];
@@ -210,7 +214,7 @@ ${enabled.macros ? `\nThe user's target macronutrient split is protein ${macros.
 For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) over the whole plan.
 ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
-- Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.
+- Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
 - quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
@@ -236,7 +240,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
                       properties: {
                         name: { type: "string" }, quantity: { type: "string" },
                         unit_price: { type: "number" }, price: { type: "number" },
-                        normal_price: { type: "number" }, store: { type: "string" }, calories_info: { type: "string" },
+                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" },
                       },
                     },
                   },
@@ -277,7 +281,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
                       properties: {
                         name: { type: "string" }, quantity: { type: "string" },
                         unit_price: { type: "number" }, price: { type: "number" },
-                        normal_price: { type: "number" }, store: { type: "string" }, calories_info: { type: "string" },
+                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" },
                       },
                     },
                   },
