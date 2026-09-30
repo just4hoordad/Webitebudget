@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditBar from "@/components/monetization/CreditBar";
 import AdSlot from "@/components/ads/AdSlot";
+import PlanModeChooser from "@/components/PlanModeChooser";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -52,6 +53,8 @@ export default function Home() {
             </Button>
           </div>
         </div>
+
+        <PlanModeChooser onBudget={scrollToForm} />
 
         {/* Budget Form */}
         <div id="plan-form">
