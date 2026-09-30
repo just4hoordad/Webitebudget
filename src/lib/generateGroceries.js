@@ -59,7 +59,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 4;
+const PROMPT_VERSION = 5;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -121,7 +121,7 @@ Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores}.
 Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by region in Germany; use local prices for this postal code when available.
 Language: ${langLabel}.
-${knownPricesText ? `COMMUNITY PRICE DATABASE (prices previously found by other users for this region; prefer these where a product matches, and only override with fresher web data):\n${knownPricesText}\n` : ""}
+${knownPricesText ? `PRICE REFERENCE (prices observed earlier — use them ONLY to price products you choose; this is NOT a shopping list, do not copy it or limit your selection to it):\n${knownPricesText}\n` : ""}
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
 ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats).` : ""}
 Rules:
@@ -259,7 +259,9 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   // One targeted retry: feed back only the concrete problems found, instead of
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
-    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT HAD THESE PROBLEMS — return a corrected list that fixes them while respecting all rules above:\n- ${issues.join("\n- ")}`);
+    const prevList = (result?.categories || []).flatMap((c) => c.items || [])
+      .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
+    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`);
     const retryIssues = validateGroceries(retry, p);
     if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
   }
