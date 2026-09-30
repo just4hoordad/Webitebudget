@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import BudgetInput from "@/components/BudgetInput";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -233,22 +234,7 @@ export default function BudgetForm() {
             <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
               {/* Budget Slider */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">{t("monthlyBudget")}</label>
-                  <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-3 py-1 rounded-xl">
-                    <Euro className="h-5 w-5 shrink-0" />
-                    <input
-                      type="number"
-                      min={0}
-                      value={budget[0]}
-                      onChange={e => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!isNaN(val) && val > 0) setBudget([val]);
-                      }}
-                      className="w-20 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"
-                    />
-                  </div>
-                </div>
+                <BudgetInput value={budget[0]} onChange={v => setBudget([v])} label={t("monthlyBudget")} />
                 <Slider
                   value={[Math.min(budget[0], 600)]}
                   onValueChange={setBudget}
