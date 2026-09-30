@@ -57,13 +57,15 @@ export async function callOpenRouter({
     throw new Error("Missing 'openrouter' secret in Settings -> Secrets.");
   }
 
-  let selectedModel = model || "openai/gpt-4o-mini";
-  if (
-    selectedModel === "gemini_3_1_pro" ||
-    selectedModel === "gemini_3_flash" ||
-    selectedModel === "automatic"
-  ) {
-    selectedModel = "openai/gpt-4o-mini";
+  // Enforce strict allowlist of low-cost models to prevent cost abuse
+  const ALLOWED_OPENROUTER_MODELS = new Set([
+    "openai/gpt-4o-mini",
+    "google/gemini-2.0-flash-001"
+  ]);
+
+  let selectedModel = "openai/gpt-4o-mini";
+  if (model && ALLOWED_OPENROUTER_MODELS.has(model)) {
+    selectedModel = model;
   }
 
   if (add_context_from_internet && !selectedModel.endsWith(":online")) {
@@ -90,6 +92,7 @@ export async function callOpenRouter({
   const payload: Record<string, unknown> = {
     model: selectedModel,
     messages,
+    max_tokens: 4000,
   };
 
   if (response_json_schema) {

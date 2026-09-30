@@ -77,30 +77,15 @@ export async function invokeAI({ prompt, response_json_schema, model, add_contex
     response_json_schema,
     model,
     add_context_from_internet: Boolean(add_context_from_internet),
-  }).catch((err) => ({ data: { openrouter_unavailable: true, error: err?.message } }));
+  }).catch((err) => ({ data: { error: err?.message || "Network error" } }));
 
   const data = res?.data;
-  if (data && !data.openrouter_unavailable && !data.error) {
+  if (data && !data.error && !data.openrouter_unavailable) {
     if (response_json_schema) return data;
     return typeof data.text === "string" ? data.text : data;
   }
 
-  console.warn("OpenRouter unavailable, falling back to Base44 credits:", data?.error);
-  if (!warnedFallback) {
-    warnedFallback = true;
-    toast({ title: FALLBACK[lang()] || FALLBACK.en });
-  }
-
-  try {
-    return await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema,
-      model: model || "automatic",
-      add_context_from_internet: Boolean(add_context_from_internet),
-    });
-  } catch (err) {
-    const msg = busyMessage();
-    toast({ title: msg, variant: "destructive" });
-    throw new Error(msg);
-  }
+  const msg = busyMessage();
+  toast({ title: msg, variant: "destructive" });
+  throw new Error(data?.error || msg);
 }

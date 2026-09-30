@@ -23,11 +23,14 @@ export default function Contact() {
     if (!form.name || !form.email || !form.message) return;
     setSending(true);
     try {
-      await base44.integrations.Core.SendEmail({
-        to: "Hoordad.sedaghat@gmail.com",
-        subject: `Contact from ${esc(form.name)} <${esc(form.email)}>`,
-        body: `Name: ${esc(form.name)}<br>Email: ${esc(form.email)}<br><br>${esc(form.message).replace(/\n/g, "<br>")}`,
+      const res = await base44.functions.invoke("sendContactEmail", {
+        name: form.name,
+        email: form.email,
+        message: form.message,
       });
+      if (res.data?.error) {
+        throw new Error(res.data.error);
+      }
       setSent(true);
       toast.success(p.contactToast);
       setForm({ name: "", email: "", message: "" });
