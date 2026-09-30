@@ -12,6 +12,7 @@ import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
 import StepProgress from "@/components/StepProgress";
+import StickyGenerateBar from "@/components/StickyGenerateBar";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -571,22 +572,12 @@ export default function BudgetForm() {
       </div>
 
       {/* Sticky generate bar — mobile only, shown while the inline button is off-screen */}
-      {showStickyGenerate && (
-        <div
-          className="md:hidden fixed left-3 right-3 z-40"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
-        >
-          <Button
-            onClick={handleGenerate}
-            disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
-            className="w-full h-12 text-sm font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30"
-            size="lg"
-          >
-            {t("generateBtn")}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <StickyGenerateBar
+        visible={showStickyGenerate}
+        onClick={handleGenerate}
+        disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
+        label={t("generateBtn")}
+      />
     </div>
   );
 }

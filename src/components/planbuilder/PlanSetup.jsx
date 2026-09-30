@@ -1,7 +1,9 @@
+import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
+import StickyGenerateBar from "@/components/StickyGenerateBar";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
   Store, ArrowRight, Sparkles, ShoppingCart, MapPin, X,
@@ -42,8 +44,27 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
     ? (enabled.stores && !hasStores ? t("buildDisabledStore") : t("buildDisabledMacros"))
     : null;
 
+  const formRef = useRef(null);
+  const buildRef = useRef(null);
+  const [formInView, setFormInView] = useState(true);
+  const [buildInView, setBuildInView] = useState(true);
+
+  useEffect(() => {
+    const f = formRef.current;
+    const b = buildRef.current;
+    if (!f || !b) return;
+    const fObs = new IntersectionObserver(([entry]) => setFormInView(entry.isIntersecting), { threshold: 0.05 });
+    const bObs = new IntersectionObserver(([entry]) => setBuildInView(entry.isIntersecting), { threshold: 0.05 });
+    fObs.observe(f);
+    bObs.observe(b);
+    return () => { fObs.disconnect(); bObs.disconnect(); };
+  }, []);
+
+  const showStickyBuild = formInView && !buildInView;
+  const buildBtnDisabled = loading || (enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100);
+
   return (
-    <div className="space-y-6">
+    <div ref={formRef} className="space-y-6">
       <div>
         <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
           <ShoppingCart className="h-4 w-4" /> {t("planBuilderBadge")}
@@ -174,14 +195,23 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         <p className="text-xs text-destructive text-center font-medium">{disabledReason}</p>
       )}
       <button
+        ref={buildRef}
         onClick={onBuild}
-        disabled={loading || (enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100)}
+        disabled={buildBtnDisabled}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
       >
         <Sparkles className="h-5 w-5 mr-2" />
         {t("buildMyPlan")}
         <ArrowRight className="ml-2 h-5 w-5" />
       </button>
+
+      <StickyGenerateBar
+        visible={showStickyBuild}
+        onClick={onBuild}
+        disabled={buildBtnDisabled}
+        label={t("buildMyPlan")}
+        icon={Sparkles}
+      />
     </div>
   );
 }
