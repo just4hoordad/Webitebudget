@@ -4,6 +4,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, Check } from "lucide-react";
 import { REASSURANCE_STR } from "@/components/ReassuranceRecap";
+import MacroBreakdown from "@/components/MacroBreakdown";
 
 const DIET_LABEL_KEYS = { balanced: "balanced", vegetarian: "vegetarian", vegan: "vegan", "high-protein": "highProtein", pescatarian: "pescatarian", "gluten-free": "glutenFree", halal: "halal", frozen: "frozenFoods", "half-cooked": "halfCooked" };
 const GOAL_LABEL_KEYS = { lose: "loseWeight", maintain: "maintain", gain: "gainWeight", muscle: "buildMuscle" };
@@ -61,7 +62,11 @@ export default function PlanReview() {
   if (junkPercent > 0) details.push({ label: L("junkFood", "Junk allowance"), value: `${junkPercent}%` });
   if (allergies.length > 0) details.push({ label: L("allergies", "Allergies"), value: allergies.join(", ") });
   if (ownedItems.length > 0) details.push({ label: L("owned", "Already owned"), value: ownedItems.join(", ") });
-  if (macros) details.push({ label: L("macros", "Macros"), value: `${macros.protein}/${macros.carbs}/${macros.fats}` });
+  if (params.get("height")) details.push({ label: L("height", "Height"), value: `${params.get("height")} cm` });
+  if (params.get("weight")) details.push({ label: L("weight", "Weight"), value: `${params.get("weight")} kg` });
+  if (params.get("age")) details.push({ label: L("age", "Age"), value: params.get("age") });
+  if (params.get("sex")) details.push({ label: L("sex", "Sex"), value: L(params.get("sex"), params.get("sex")) });
+  if (params.get("activity")) details.push({ label: L("activityLevel", "Activity level"), value: L(params.get("activity"), params.get("activity")) });
   if (postalCode) details.push({ label: L("plzLabel", "Postal code"), value: postalCode });
 
   const confirm = () => {
@@ -119,6 +124,8 @@ export default function PlanReview() {
           ))}
         </div>
       </div>
+
+      {macros && <MacroBreakdown macros={macros} dailyKcal={calories / Math.max(people, 1)} L={L} />}
 
       <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
 

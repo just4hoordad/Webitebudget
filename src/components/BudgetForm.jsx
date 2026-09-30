@@ -215,6 +215,7 @@ export default function BudgetForm() {
       const dailyKcal = computeDailyCalories(calorieMetrics) || 2000;
       params.set("calories", dailyKcal * people);
       params.set("goal", calorieMetrics.goal);
+      ["height", "weight", "age", "sex", "activity"].forEach((k) => calorieMetrics[k] && params.set(k, calorieMetrics[k]));
     }
     if (enabled.diet) {
       params.set("diet", selectedDiet);
