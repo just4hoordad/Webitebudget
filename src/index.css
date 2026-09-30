@@ -18,7 +18,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 72 77% 56%;
+    --primary: 80 72% 38%;
     --primary-foreground: 0 0% 10%;
 
     --secondary: 83 15% 88%;
@@ -27,7 +27,7 @@
     --muted: 83 15% 88%;
     --muted-foreground: 83 8% 40%;
 
-    --accent: 72 77% 56%;
+    --accent: 80 72% 38%;
     --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
@@ -35,14 +35,14 @@
 
     --border: 216 12% 84%;
     --input: 216 12% 84%;
-    --ring: 72 77% 56%;
+    --ring: 80 72% 38%;
 
     /* retained dark surface for auth / legacy chrome */
     --dark: 220 24% 11%;
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
 
-    --chart-1: 72 77% 56%;
+    --chart-1: 80 72% 38%;
     --chart-2: 200 80% 50%;
     --chart-3: 280 60% 58%;
     --chart-4: 340 70% 55%;
@@ -52,12 +52,12 @@
 
     --sidebar-background: 83 18% 93%;
     --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 72 77% 56%;
+    --sidebar-primary: 80 72% 38%;
     --sidebar-primary-foreground: 0 0% 10%;
     --sidebar-accent: 83 15% 88%;
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 216 12% 84%;
-    --sidebar-ring: 72 77% 56%;
+    --sidebar-ring: 80 72% 38%;
   }
 
   .soft {
@@ -68,23 +68,23 @@
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
-    --primary: 72 77% 56%;
+    --primary: 80 72% 38%;
     --primary-foreground: 0 0% 10%;
     --secondary: 83 15% 88%;
     --secondary-foreground: 0 0% 10%;
     --muted: 83 15% 88%;
     --muted-foreground: 83 8% 40%;
-    --accent: 72 77% 56%;
+    --accent: 80 72% 38%;
     --accent-foreground: 0 0% 10%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 216 12% 84%;
     --input: 216 12% 84%;
-    --ring: 72 77% 56%;
+    --ring: 80 72% 38%;
     --dark: 220 24% 11%;
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
-    --chart-1: 72 77% 56%;
+    --chart-1: 80 72% 38%;
     --chart-2: 200 80% 50%;
     --chart-3: 280 60% 58%;
     --chart-4: 340 70% 55%;
@@ -92,12 +92,12 @@
     --radius: 0.875rem;
     --sidebar-background: 83 18% 93%;
     --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 72 77% 56%;
+    --sidebar-primary: 80 72% 38%;
     --sidebar-primary-foreground: 0 0% 10%;
     --sidebar-accent: 83 15% 88%;
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 216 12% 84%;
-    --sidebar-ring: 72 77% 56%;
+    --sidebar-ring: 80 72% 38%;
   }
 
   .dark {
