@@ -1,0 +1,49 @@
+{
+  "name": "GroceryCache",
+  "type": "object",
+  "properties": {
+    "signature": {
+      "type": "string",
+      "description": "Deterministic grocerySignature(config, langCode) \u2014 identical configs share one cache entry"
+    },
+    "payload": {
+      "type": "object",
+      "description": "The full grocery list result (GROCERY_SCHEMA output) returned to every user with a matching config"
+    },
+    "postalCode": {
+      "type": "string",
+      "description": "Postal code used for the generation (for analytics/debugging)"
+    },
+    "diet": {
+      "type": "string"
+    },
+    "lang": {
+      "type": "string",
+      "description": "Language code used for the generation"
+    },
+    "budget": {
+      "type": "number"
+    },
+    "days": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "signature",
+    "payload"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

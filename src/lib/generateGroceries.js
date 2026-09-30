@@ -71,6 +71,39 @@ export function setCachedGroceries(sig, data) {
   try { sessionStorage.setItem(PREFIX + sig, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
+// --- Server-side shared grocery cache (#1) ---
+// Identical configs (budget/stores/diet/calories/days/people/macros/allergies/owned/plz/lang)
+// produce identical grocery lists, so the 2nd..Nth user with the same config gets a
+// cache hit for ~0 credits instead of ~5. TTL keeps prices from going stale.
+const SERVER_CACHE_TTL_DAYS = 14;
+async function getCachedGroceryServer(sig) {
+  try {
+    const records = await base44.entities.GroceryCache.filter({ signature: sig }, "-created_date", 1);
+    if (!records || !records.length) return null;
+    const rec = records[0];
+    const ageMs = Date.now() - new Date(rec.created_date).getTime();
+    if (ageMs > SERVER_CACHE_TTL_DAYS * 86400000) return null; // stale — miss
+    return rec.payload;
+  } catch {
+    return null; // any cache error → fall through to a fresh generation
+  }
+}
+function saveCachedGroceryServer(sig, payload, p, langCode) {
+  try {
+    return base44.entities.GroceryCache.create({
+      signature: sig,
+      payload,
+      postalCode: p.postalCode || "",
+      diet: p.diet || "",
+      lang: langCode || "",
+      budget: Number(p.budget) || 0,
+      days: Number(p.days) || 0,
+    });
+  } catch {
+    return Promise.resolve(); // fire-and-forget — never block the user
+  }
+}
+
 export function buildGroceryPrompt(p, langLabel, knownPricesText = "") {
   const { people, diet, days, budget, calories, stores, saleHunt, bio, junkPercent, proteinSnackBudget, allergies, ownedItems, macros } = p;
   return `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
@@ -99,9 +132,10 @@ ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home
 ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`;
 }
 
-// Fetch previously-saved community prices for this region and return them as a
-// reference text block. The LLM is told to prefer these where a product matches.
-export async function getKnownPricesText(postalCode) {
+// Fetch previously-saved community prices for this region. Returns both the
+// reference text block (fed to the LLM) and the deduped count (used to decide
+// whether live web search is still needed — see #2).
+async function fetchKnownPrices(postalCode) {
   try {
     const records = await base44.entities.PriceEstimate.filter(
       { postal_code: postalCode || "" },
@@ -114,13 +148,20 @@ export async function getKnownPricesText(postalCode) {
       const key = r.product_name.toLowerCase();
       if (!seen.has(key)) seen.set(key, r);
     });
-    if (!seen.size) return "";
-    return [...seen.values()].slice(0, 60)
+    if (!seen.size) return { text: "", count: 0 };
+    const text = [...seen.values()].slice(0, 60)
       .map((r) => `- ${r.product_name} — €${Number(r.price || 0).toFixed(2)} @ ${r.store || "?"} (qty: ${r.quantity || "?"}, ${r.fetched_date || "?"})`)
       .join("\n");
+    return { text, count: seen.size };
   } catch {
-    return "";
+    return { text: "", count: 0 };
   }
+}
+
+// Public wrapper — keeps the old string-only return type so existing callers
+// (e.g. PlanBuilder) are unaffected.
+export async function getKnownPricesText(postalCode) {
+  return (await fetchKnownPrices(postalCode)).text;
 }
 
 // Save every price found in a generated grocery list to the community database.
@@ -153,14 +194,27 @@ export function savePriceObservations(groceries, postalCode, diet) {
   } catch { /* ignore — community DB is best-effort */ }
 }
 
-export async function runGroceryGeneration(p, langLabel) {
-  const knownPricesText = await getKnownPricesText(p.postalCode);
+// #2: once a region has enough community prices on file, skip live web search
+// (the prompt already receives them via knownPricesText). Drops a mature
+// grocery generation from ~5 credits to ~1.
+const WEB_SEARCH_MIN_PRICES = 20;
+
+export async function runGroceryGeneration(p, langLabel, langCode) {
+  // #1: shared server-side cache — identical config returns instantly, ~0 credits.
+  const sig = grocerySignature(p, langCode);
+  const cached = await getCachedGroceryServer(sig);
+  if (cached) return cached;
+
+  const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
+  const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const result = await base44.integrations.Core.InvokeLLM({
     prompt: buildGroceryPrompt(p, langLabel, knownPricesText),
-    add_context_from_internet: true,
+    add_context_from_internet: useWebSearch,
     model: "gemini_3_flash",
     response_json_schema: GROCERY_SCHEMA,
   });
   savePriceObservations(result, p.postalCode, p.diet);
+  // #1: populate the shared cache for the next user with this config.
+  saveCachedGroceryServer(sig, result, p, langCode).catch(() => { /* best-effort */ });
   return result;
 }

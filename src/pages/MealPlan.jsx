@@ -126,7 +126,7 @@ export default function MealPlan() {
     setLoading(true);
     try {
       const gparams = groceryParamsFromSearch(searchKey);
-      const result = await runGroceryGeneration(gparams, currentLanguage.label);
+      const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code);
       setGroceries(result);
       genCache.current[langKey] = result;
       setCachedGroceries(grocerySignature(gparams, currentLanguage.code), result);
