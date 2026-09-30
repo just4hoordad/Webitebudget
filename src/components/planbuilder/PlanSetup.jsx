@@ -4,6 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import DurationInput from "@/components/DurationInput";
 import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
+import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
@@ -24,9 +25,9 @@ const DIET_KEYS = [
 
 const STORES = ["Aldi", "Lidl", "REWE", "Edeka", "Penny", "Netto"];
 
-function SectionHeader({ icon: Icon, label, active, onToggle }) {
+function SectionHeader({ icon: Icon, label, active, onToggle, id }) {
   return (
-    <div className="flex items-center justify-between mb-3">
+    <div id={id} className="flex items-center justify-between mb-3 scroll-mt-24">
       <label className="text-sm font-medium text-foreground flex items-center gap-2">
         {Icon && <Icon className="h-4 w-4 text-primary" />} {label}
       </label>
@@ -74,9 +75,20 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         <p className="text-muted-foreground text-sm mt-1.5 text-balance">{t("planBuilderSubtitle")}</p>
       </div>
 
+      <StepProgress
+        steps={[
+          { key: "diet", label: t("dietPreference"), done: !!diet },
+          { key: "people", label: t("numberOfPeople"), done: people > 0 },
+          { key: "days", label: t("durationDays") || "Duration", done: days >= 1 },
+          { key: "stores", label: t("preferredStores"), required: enabled.stores, done: !enabled.stores || hasStores },
+          { key: "macros", label: t("macroTitle"), required: enabled.macros, done: !enabled.macros || macroTotal === 100 },
+        ]}
+        onStepClick={(key) => document.getElementById(`pb-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+      />
+
       {/* Diet */}
       <div>
-        <SectionHeader icon={Leaf} label={t("dietPreference")} />
+        <SectionHeader id="pb-diet" icon={Leaf} label={t("dietPreference")} />
         <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${disabledCls("diet")}`}>
           {DIET_KEYS.map((d) => {
             const Icon = d.icon;
@@ -102,7 +114,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* People */}
       <div className="space-y-3">
-        <SectionHeader icon={Users} label={t("numberOfPeople")} />
+        <SectionHeader id="pb-people" icon={Users} label={t("numberOfPeople")} />
         <div className={`flex gap-2 ${disabledCls("people")}`}>
           {[1, 2, 3, 4].map((n) => (
             <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
@@ -114,7 +126,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Days */}
       <div className="space-y-3">
-        <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} />
+        <SectionHeader id="pb-days" icon={CalendarDays} label={t("durationDays") || "Duration"} />
         <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("days")}`}>
           <DurationInput value={days} onChange={setDays} />
         </div>
@@ -122,7 +134,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Stores */}
       <div className="space-y-3">
-        <SectionHeader icon={Store} label={t("preferredStores")} />
+        <SectionHeader id="pb-stores" icon={Store} label={t("preferredStores")} />
         <div className={`flex flex-wrap gap-2 ${disabledCls("stores")}`}>
           {STORES.map((s) => (
             <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
@@ -185,7 +197,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Macros */}
       <div className="space-y-3">
-        <SectionHeader icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
+        <SectionHeader id="pb-macros" icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
         <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
           <MacroRatioControl value={macros} onChange={setMacros} />
         </div>
