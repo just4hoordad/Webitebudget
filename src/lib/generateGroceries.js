@@ -59,7 +59,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 5;
+const PROMPT_VERSION = 6;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -131,7 +131,7 @@ Rules:
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g") and total_kcal to the total kilocalories of the full purchased quantity.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g") and total_kcal to the total kilocalories of the full purchased quantity. The sum of all total_kcal should be close to ${Math.round(calories * days)} kcal — enough food for ${days} days, not more.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
@@ -213,6 +213,45 @@ export function savePriceObservations(groceries, postalCode, diet) {
 // grocery generation from ~5 credits to ~1.
 const WEB_SEARCH_MIN_PRICES = 20;
 
+// Store-own ("house") brands, used to correct items the model assigns to the
+// wrong chain (e.g. Lidl's Milbona listed as Aldi).
+const HOUSE_BRANDS = [
+  [["aldi"], ["gut bio", "milsani", "meine metzgerei", "bellasan", "bon-ri", "golden seafood", "lyttos", "moser roth", "choceur", "tandil", "cucina nobile", "rio d'oro", "sweet valley", "gut drei eichen", "nur nur natur", "knusperone", "golden bridge", "ursi", "le gusto", "asia green garden"]],
+  [["lidl"], ["milbona", "freshona", "combino", "alesto", "solevita", "pilos", "chef select", "vitasia", "crownfield", "fin carré", "snack day", "kania", "belbake", "deluxe", "dulano", "vemondo", "italiamo", "eridanous", "culinea", "cien", "w5", "formil", "sondey", "bio organic"]],
+  [["rewe"], ["rewe", "ja!"]],
+  [["edeka", "netto"], ["gut & günstig", "gut&günstig"]],
+  [["edeka"], ["edeka"]],
+  [["penny"], ["penny", "naturgut"]],
+  [["netto"], ["netto", "biobio"]],
+  [["kaufland"], ["k-classic", "k-bio", "k-purland"]],
+  [["tegut"], ["tegut"]],
+  [["dm"], ["dmbio", "dm bio", "balea", "sportness"]],
+  [["rossmann"], ["isana", "enerbio", "rossmann"]],
+];
+const CHAIN_LABEL = { aldi: "Aldi", lidl: "Lidl", rewe: "REWE", edeka: "Edeka", penny: "Penny", netto: "Netto", kaufland: "Kaufland", tegut: "tegut", dm: "dm", rossmann: "Rossmann" };
+
+function houseBrandChains(name) {
+  const n = String(name || "").toLowerCase().trim();
+  for (const [chains, brands] of HOUSE_BRANDS) {
+    if (brands.some((b) => n === b || n.startsWith(b + " "))) return chains;
+  }
+  return null;
+}
+
+// Reassign house-brand items to their real chain when that chain is selected.
+function fixHouseBrandStores(result, p) {
+  const selected = String(p.stores || "").toLowerCase();
+  (result?.categories || []).forEach((c) => (c.items || []).forEach((i) => {
+    const chains = houseBrandChains(i.name);
+    if (!chains) return;
+    const current = String(i.store || "").toLowerCase();
+    if (chains.some((ch) => current.includes(ch))) return;
+    const target = chains.find((ch) => selected.includes(ch));
+    if (target) i.store = CHAIN_LABEL[target];
+  }));
+  return result;
+}
+
 // Deterministic quality checks on a generated list. Returns human-readable
 // problems (empty array = list is good).
 function validateGroceries(result, p) {
@@ -228,7 +267,17 @@ function validateGroceries(result, p) {
     const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
     if (kcal < target * 0.8) {
       issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Swap low-calorie filler for cheap calorie-dense staples (oats, rice, pasta, bread, legumes, oil) while staying within budget.`);
+    } else if (kcal > target * 1.3) {
+      issues.push(`The list contains ~${Math.round(kcal)} kcal, ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed — far too much food. Reduce quantities so the total is close to ${target} kcal, keeping the variety of products.`);
     }
+  }
+  const selected = String(p.stores || "").toLowerCase();
+  const wrongChain = items.filter((i) => {
+    const chains = houseBrandChains(i.name);
+    return chains && !chains.some((ch) => selected.includes(ch));
+  });
+  if (wrongChain.length) {
+    issues.push(`These are store-own brands of chains the user didn't select: ${wrongChain.map((i) => i.name).join(", ")}. Replace them with products actually sold at ${p.stores}.`);
   }
   const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const cap = Number(p.budget) + (p.proteinSnackBudget || 0);
@@ -254,14 +303,14 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
     response_json_schema: GROCERY_SCHEMA,
   });
 
-  let result = await call(basePrompt);
+  let result = fixHouseBrandStores(await call(basePrompt), p);
   let issues = validateGroceries(result, p);
   // One targeted retry: feed back only the concrete problems found, instead of
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
     const prevList = (result?.categories || []).flatMap((c) => c.items || [])
       .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
-    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "gemini_3_1_pro");
+    const retry = fixHouseBrandStores(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "gemini_3_1_pro"), p);
     const retryIssues = validateGroceries(retry, p);
     if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
   }
