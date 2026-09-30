@@ -1,16 +1,20 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { callOpenRouter } from "../../shared/openrouter.ts";
 
-// Daily price checker. Runs as a service role (no end user — invoked by the
-// scheduled workflow). It finds the stalest (product, postal_code, store)
-// groups in the PriceEstimate community database, asks the LLM (with web
-// search) for current German prices, and stores fresh observations.
-// Self-throttling: anything already refreshed today is skipped, so repeated
-// calls do almost no work and cost stays bounded.
+// Daily price checker. Runs as a service role — maintenance / scheduled workflow task.
+// Requires admin role to prevent unauthorized public execution of LLM web searches.
+// It finds the stalest (product, postal_code, store) groups in the PriceEstimate
+// community database, asks the LLM (with web search) for current German prices,
+// and stores fresh observations.
 
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
     const svc = base44.asServiceRole;
     const today = new Date().toISOString().slice(0, 10);
 
