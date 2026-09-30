@@ -8,6 +8,7 @@ import PlanGroceryResult from "@/components/planbuilder/PlanGroceryResult";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import CreditBar from "@/components/monetization/CreditBar";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
+import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
 import { savePriceObservations, getKnownPricesText } from "@/lib/generateGroceries";
@@ -355,7 +356,21 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     );
   }
 
-  if (phase === "grid") {
+  if (phase === "confirm" && !loadingGrocery) {
+    return (
+      <PlanConfirm
+        plan={plan}
+        people={people}
+        diet={diet}
+        stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores}
+        prepEnabled={prepEnabled}
+        onBack={() => setPhase("grid")}
+        onConfirm={handleGenerate}
+      />
+    );
+  }
+
+  if (phase === "grid" || phase === "confirm") {
     return (
       <div className="space-y-5">
         <div className="flex items-center justify-between">
@@ -367,7 +382,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         {loadingGrocery ? (
           <GeneratingLoader type="grocery" />
         ) : (
-          <PlanGrid days={days} plan={plan} setSlot={setSlot} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={handleGenerate} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
+          <PlanGrid days={days} plan={plan} setSlot={setSlot} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={() => { setPhase("confirm"); window.scrollTo(0, 0); }} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
       </div>
     );
