@@ -32,9 +32,16 @@ const PLAN_STEPS = [
   { icon: CheckCircle2, key: "gen_step_p9" },
 ];
 
-export default function GeneratingLoader({ type = "grocery" }) {
+export default function GeneratingLoader({ type = "grocery", stores }) {
   const { t } = useLanguage();
-  const steps = (type === "plan" ? PLAN_STEPS : GROCERY_STEPS).map((s) => ({ ...s, text: t(s.key) }));
+  const storeText = (Array.isArray(stores) ? stores : String(stores || "").split(","))
+    .map((s) => s.trim()).filter(Boolean)
+    .map((s) => (s === s.toLowerCase() && s.length > 2 ? s[0].toUpperCase() + s.slice(1) : s))
+    .join(", ");
+  const steps = (type === "plan" ? PLAN_STEPS : GROCERY_STEPS).map((s) => ({
+    ...s,
+    text: storeText ? t(s.key).replace("Aldi, Lidl, REWE", storeText) : t(s.key),
+  }));
   const [visibleSteps, setVisibleSteps] = useState([steps[0]]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [creep, setCreep] = useState(0);

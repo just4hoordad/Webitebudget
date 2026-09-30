@@ -380,7 +380,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           <CreditBar variant="onLight" />
         </div>
         {loadingGrocery ? (
-          <GeneratingLoader type="grocery" />
+          <GeneratingLoader type="grocery" stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores} />
         ) : (
           <PlanGrid days={days} plan={plan} setSlot={setSlot} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={() => { setPhase("confirm"); window.scrollTo(0, 0); }} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
