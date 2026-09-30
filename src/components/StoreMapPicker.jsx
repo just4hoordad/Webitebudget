@@ -222,6 +222,12 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
   const [loadingStores, setLoadingStores] = useState(false);
   const [center, setCenter] = useState([51.1657, 10.4515]);
   const [pendingFlyTo, setPendingFlyTo] = useState(null);
+  const [tileUrl, setTileUrl] = useState(() => {
+    const customKey = typeof import.meta !== "undefined" && import.meta.env?.VITE_CARTO_KEY;
+    return customKey
+      ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${customKey}`
+      : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+  });
 
   useEffect(() => {
     if (cityCoords) {
@@ -288,9 +294,16 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
               <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} whenReady={(map) => { setTimeout(() => map.target.invalidateSize(), 100); }}>
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-                  subdomains="abcd"
-                  maxZoom={20}
+                  url={tileUrl}
+                  subdomains={tileUrl.includes("cartocdn") ? "abcd" : "abc"}
+                  maxZoom={19}
+                  eventHandlers={{
+                    tileerror: () => {
+                      if (tileUrl.includes("cartocdn")) {
+                        setTileUrl("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+                      }
+                    },
+                  }}
                 />
                 <MapController
                   stores={stores}
