@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import BudgetInput from "@/components/BudgetInput";
 import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
@@ -180,6 +181,31 @@ export default function BudgetForm() {
     );
   };
 
+  const metricsFilled = ["height", "weight", "age"].every((k) => Number(calorieMetrics[k]) > 0);
+  const hasAnyStore = selectedStoreLocations.length > 0 || selectedStores.length > 0;
+  const canGenerate = budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore);
+
+  // Restore the logged-in user's previous inputs
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(async (ok) => {
+      if (!ok) return;
+      const p = (await base44.auth.me())?.budgetFormPrefs;
+      if (!p) return;
+      if (p.budget) setBudget([p.budget]);
+      if (p.days) setDays(p.days);
+      if (p.people) setPeople(p.people);
+      if (p.selectedDiet) setSelectedDiet(p.selectedDiet);
+      if (p.calorieMetrics) setCalorieMetrics(p.calorieMetrics);
+      if (p.macros) setMacros(p.macros);
+      if (p.allergies) setAllergies(p.allergies);
+      if (p.selectedStores) setSelectedStores(p.selectedStores);
+      if (p.selectedStoreLocations) setSelectedStoreLocations(p.selectedStoreLocations);
+      if (p.postalCode) { setPostalCode(p.postalCode); setLocationInput(p.postalCode); }
+      setBio(!!p.bio);
+      setSaleHunt(!!p.saleHunt);
+    });
+  }, []);
+
   const handleGenerate = () => {
     const params = new URLSearchParams();
     if (enabled.basics) {
@@ -207,6 +233,9 @@ export default function BudgetForm() {
     if (enabled.pantry) {
       params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
     }
+    base44.auth.isAuthenticated().then((ok) => ok && base44.auth.updateMe({
+      budgetFormPrefs: { budget: budget[0], days, people, selectedDiet, calorieMetrics, macros, allergies, selectedStores, selectedStoreLocations, postalCode, bio, saleHunt },
+    }));
     navigate(`/plan-review?${params.toString()}`);
   };
 
@@ -222,7 +251,7 @@ export default function BudgetForm() {
       <StepProgress
         steps={[
           { key: "basics", label: t("basicsSection") || "Basics", required: true, done: budget[0] > 0 },
-          { key: "diet", label: t("dietSection") || "Diet", done: visited.diet },
+          { key: "diet", label: t("dietSection") || "Diet", required: enabled.diet, done: !enabled.diet || metricsFilled },
           { key: "stores", label: t("storesSection") || "Stores", required: enabled.stores, done: !enabled.stores || storeCount > 0 },
           { key: "pantry", label: t("pantrySection") || "Pantry", done: visited.pantry },
         ]}
@@ -541,7 +570,7 @@ export default function BudgetForm() {
       <div ref={generateRef}>
         <Button
           onClick={handleGenerate}
-          disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
+          disabled={!canGenerate}
           className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
           size="lg"
         >
@@ -554,7 +583,7 @@ export default function BudgetForm() {
       <StickyGenerateBar
         visible={showStickyGenerate}
         onClick={handleGenerate}
-        disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
+        disabled={!canGenerate}
         label={t("generateBtn")}
       />
     </div>
