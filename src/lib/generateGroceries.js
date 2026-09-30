@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiClient";
 
 const GROCERY_SCHEMA = {
   type: "object",
@@ -335,7 +336,7 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
-  const call = (prompt, model = "gemini_3_1_pro") => base44.integrations.Core.InvokeLLM({
+  const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
     add_context_from_internet: useWebSearch,
     model,
@@ -349,7 +350,7 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   if (issues.length) {
     const prevList = (result?.categories || []).flatMap((c) => c.items || [])
       .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
-    const retry = fixHouseBrandStores(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "gemini_3_1_pro"), p);
+    const retry = fixHouseBrandStores(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "openai/gpt-4o-mini"), p);
     const retryIssues = validateGroceries(retry, p);
     if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
   }

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
+import { callOpenRouter } from "../../shared/openrouter.ts";
 
 // Daily price checker. Runs as a service role (no end user — invoked by the
 // scheduled workflow). It finds the stalest (product, postal_code, store)
@@ -46,30 +47,59 @@ ${lines.join("\n")}
 
 Return only the JSON object.`;
 
-    const res = await svc.integrations.Core.InvokeLLM({
-      prompt,
-      add_context_from_internet: true,
-      model: "gemini_3_flash",
-      response_json_schema: {
-        type: "object",
-        properties: {
-          items: {
-            type: "array",
+    let res;
+    try {
+      res = await callOpenRouter({
+        prompt,
+        add_context_from_internet: true,
+        model: "openai/gpt-4o-mini",
+        response_json_schema: {
+          type: "object",
+          properties: {
             items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                store: { type: "string" },
-                postal_code: { type: "string" },
-                price: { type: "number" },
-                quantity: { type: "string" },
-                normal_price: { type: "number" },
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  store: { type: "string" },
+                  postal_code: { type: "string" },
+                  price: { type: "number" },
+                  quantity: { type: "string" },
+                  normal_price: { type: "number" },
+                },
               },
             },
           },
         },
-      },
-    });
+      });
+    } catch (llmErr) {
+      console.warn("OpenRouter call failed in refreshPriceEstimates, falling back:", llmErr);
+      res = await svc.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        model: "gemini_3_flash",
+        response_json_schema: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  store: { type: "string" },
+                  postal_code: { type: "string" },
+                  price: { type: "number" },
+                  quantity: { type: "string" },
+                  normal_price: { type: "number" },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
 
     const items = Array.isArray(res.items) ? res.items : [];
     const records = items
