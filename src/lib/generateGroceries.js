@@ -75,7 +75,7 @@ export function grocerySignature(p, langCode) {
   });
 }
 
-const PREFIX = "bb_grocery_";
+const PREFIX = "bb_grocery_v2_"; // v2: drops lists cached before the budget cap was enforced
 export function getCachedGroceries(sig) {
   try { const raw = sessionStorage.getItem(PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
@@ -331,6 +331,27 @@ function validateGroceries(result, p) {
   return issues;
 }
 
+const budgetCap = (p) => Number(p.budget) + (p.proteinSnackBudget || 0);
+const listCost = (r) => (r?.categories || []).flatMap((c) => c.items || []).reduce((s, i) => s + (Number(i.price) || 0), 0);
+
+// Drop the items giving the fewest calories per euro until the list fits the budget.
+function trimToBudget(result, cap) {
+  const all = (result?.categories || []).flatMap((c) => c.items || []);
+  const ranked = [...all].sort((a, b) =>
+    (Number(a.total_kcal) || 0) / (Number(a.price) || 1) - (Number(b.total_kcal) || 0) / (Number(b.price) || 1));
+  const removed = new Set();
+  let cost = listCost(result);
+  for (const item of ranked) {
+    if (cost <= cap) break;
+    removed.add(item);
+    cost -= Number(item.price) || 0;
+  }
+  const categories = result.categories
+    .map((c) => ({ ...c, items: (c.items || []).filter((i) => !removed.has(i)) }))
+    .filter((c) => c.items.length);
+  return { ...result, categories, total_estimated_cost: Math.round(cost * 100) / 100 };
+}
+
 export async function runGroceryGeneration(p, langLabel, langCode) {
   // #1: shared server-side cache — identical config returns instantly, ~0 credits.
   const sig = grocerySignature(p, langCode);
@@ -356,7 +377,18 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
       .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
     const retry = fixHouseBrandStores(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "openai/gpt-4o-mini"), p);
     const retryIssues = validateGroceries(retry, p);
-    if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
+    // Staying within budget matters most — prefer whichever attempt is cheaper when one is over.
+    const over = (r) => listCost(r) > budgetCap(p);
+    const retryBetter = over(result) && !over(retry) ? true
+      : !over(result) && over(retry) ? false
+      : retryIssues.length <= issues.length;
+    if (retryBetter) { result = retry; issues = retryIssues; }
+  }
+
+  // Hard guarantee: never return a list above the user's budget.
+  if (listCost(result) > budgetCap(p)) {
+    result = trimToBudget(result, budgetCap(p));
+    issues = validateGroceries(result, p);
   }
 
   // Only persist lists that pass validation, so bad output never gets
