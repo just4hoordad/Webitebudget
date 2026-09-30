@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiClient";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -31,7 +32,7 @@ export default function GrocerySwapModal({ item, category, diet, budget, onSwap,
     setLoading(true);
     setAlternatives(null);
     setSelected(null);
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await invokeAI({
       prompt: `You are a budget grocery assistant for German supermarkets. Suggest exactly 3 alternative products to replace: "${item.name}" (${item.quantity}, €${item.price?.toFixed(2)}, from ${item.store || "unknown store"}).
 
 CONSTRAINTS:

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Search, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiClient";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function AddItemModal({ stores, diet, onAdd, onClose }) {
@@ -30,7 +31,7 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
     setLoading(true);
     setAlternatives([]);
     setSelected(null);
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await invokeAI({
       prompt: `The user wants to add "${trimmed}" to their German grocery list.
 Search these stores: ${stores}.
 Find 3-4 real branded product alternatives available at those stores with real 2024-2025 German prices.

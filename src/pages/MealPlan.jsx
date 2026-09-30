@@ -38,6 +38,7 @@ import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration } from "@/lib/generateGroceries";
+import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditPill from "@/components/monetization/CreditPill";
@@ -468,7 +469,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       // Single multi-week call instead of one call per week — a 30-day plan
       // drops from ~5 credits to ~1. The prompt already instructs the model
       // to vary meals across weeks.
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await invokeAI({
         prompt: buildMultiWeekPrompt(availableItems),
         response_json_schema: multiWeekPlanSchema,
       });
@@ -498,7 +499,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       return;
     }
     setLoadingPlan(true);
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await invokeAI({
       prompt: buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek),
       response_json_schema: weeklyPlanSchema
     });

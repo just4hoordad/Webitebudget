@@ -11,6 +11,7 @@ import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
 import { savePriceObservations, getKnownPricesText } from "@/lib/generateGroceries";
+import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -180,7 +181,7 @@ export default function PlanBuilder() {
         .join("\n");
 
       // Single merged call: grocery list + (optional) prep guide in one response — halves credit use vs two parallel calls.
-      const res = await base44.integrations.Core.InvokeLLM({
+      const res = await invokeAI({
         prompt: `Here is a user's meal plan for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s)${enabled.diet ? ` on a ${diet} diet` : ""}:
 ${lines}
 ${enabled.macros ? `\nThe user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.` : ""}

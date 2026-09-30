@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, ChefHat, Clock, Users, ListOrdered, Loader2, Snowflake, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiClient";
 import { useLanguage } from "@/lib/LanguageContext";
 import { toast } from "sonner";
 
@@ -79,7 +80,7 @@ Provide:
 
 Keep the steps concise and actionable. Do not include the meal's calorie count.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await invokeAI({
         prompt,
         response_json_schema: RECIPE_SCHEMA,
       });

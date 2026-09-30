@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { invokeAI } from "@/lib/aiClient";
 import GeneratingLoader from "@/components/GeneratingLoader";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -208,7 +209,7 @@ export default function Nutrition() {
       }
     } catch { /* ignore */ }
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await invokeAI({
       prompt: `You are a nutritionist. Estimate the total monthly macronutrient breakdown for a person following a ${diet} diet in Germany with these parameters:
 - Budget: €${budget}/month
 - Calories target: ${calories} kcal/day for ${people} person(s)
