@@ -137,13 +137,19 @@ ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO 
 // whether live web search is still needed — see #2).
 async function fetchKnownPrices(postalCode) {
   try {
-    const records = await base44.entities.PriceEstimate.filter(
-      { postal_code: postalCode || "" },
-      "-fetched_date",
-      200
-    );
+    // Combine the national price pool (postal_code "") with region-specific
+    // prices for this PLZ. A sparse region borrows the national baseline so
+    // it can cross the no-search threshold sooner — broadening the cheap
+    // tier without waiting for dozens of local observations to accumulate.
+    const queries = [base44.entities.PriceEstimate.filter({ postal_code: "" }, "-fetched_date", 200)];
+    if (postalCode) {
+      queries.push(base44.entities.PriceEstimate.filter({ postal_code: postalCode }, "-fetched_date", 200));
+    }
+    const [nationalRecs, regionalRecs] = await Promise.all(queries);
+    // Regional first → it wins dedup (more locally relevant).
+    const ordered = postalCode ? [...(regionalRecs || []), ...(nationalRecs || [])] : (nationalRecs || []);
     const seen = new Map();
-    (records || []).forEach((r) => {
+    ordered.forEach((r) => {
       if (!r.product_name) return;
       const key = r.product_name.toLowerCase();
       if (!seen.has(key)) seen.set(key, r);
