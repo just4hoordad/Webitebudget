@@ -24,6 +24,7 @@ export default function PlanModeChooser({ onBudget }) {
           <div className="h-11 w-11 rounded-2xl bg-primary/20 flex items-center justify-center"><Dumbbell className="h-5 w-5" /></div>
           <h3 className="font-heading text-lg font-bold">{m.freeTitle}</h3>
           <p className="text-sm text-muted-foreground">{m.freeDesc}</p>
+          <p className="text-xs flex items-center gap-1.5 text-muted-foreground"><ChefHat className="h-3.5 w-3.5" />{m.proNote}</p>
           <span className={cta}>{m.freeCta} <ArrowRight className="h-4 w-4" /></span>
         </Link>
       </div>
