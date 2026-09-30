@@ -309,6 +309,8 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         diet,
         people,
         stores: selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name).join(", ") : stores.join(", "),
+        days: plan.length,
+        postalCode,
         macros,
         plan,
         groceryList: grocery,

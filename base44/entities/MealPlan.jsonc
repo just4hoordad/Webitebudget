@@ -20,6 +20,14 @@
     "stores": {
       "type": "string"
     },
+    "days": {
+      "type": "number",
+      "description": "Plan duration in days"
+    },
+    "postalCode": {
+      "type": "string",
+      "description": "Postal code used for regional prices"
+    },
     "macros": {
       "type": "object",
       "properties": {

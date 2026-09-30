@@ -60,7 +60,7 @@ export default function MealPlan() {
   const { guarded, credits, isPro, openPricing } = useMonetization();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
-  const stores = params.get("stores") || "aldi,lidl";
+  const stores = params.get("stores") || "";
   const diet = params.get("diet") || "balanced";
   const goal = params.get("goal") || "maintain";
   const people = params.get("people") || 1;
@@ -817,6 +817,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         calories: parseFloat(calories),
         people: parseFloat(people),
         stores,
+        days,
+        postalCode: params.get("plz") || "",
         macros: macros || undefined,
         plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type },
         groceryList: groceries,

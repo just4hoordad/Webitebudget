@@ -134,6 +134,7 @@ export default function SavedMealPlans() {
                       </span>
                       {plan.budget != null && <span>€{plan.budget?.toFixed(2)}{t("budgetPerMonth")}</span>}
                       {plan.calories != null && <span>{plan.calories} kcal/day</span>}
+                      {plan.days != null && <span>{plan.days} {t("days")}</span>}
                       {plan.people != null && <span>{plan.people} {t("personS")}</span>}
                       {plan.macros && (
                         <span className="flex items-center gap-1.5">

@@ -36,12 +36,20 @@ const GROCERY_SCHEMA = {
   },
 };
 
+// "aldi,tegut" or "Aldi (Street 1, City), Tegut" → ["Aldi", "Tegut"]
+export function allowedStoreNames(stores) {
+  const names = String(stores || "").replace(/\([^)]*\)/g, "").split(",")
+    .map((s) => s.trim()).filter(Boolean)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+  return [...new Set(names)];
+}
+
 export function groceryParamsFromSearch(search) {
   const params = new URLSearchParams(search);
   const macrosParam = params.get("macros");
   return {
     budget: params.get("budget") || 150,
-    stores: params.get("stores") || "aldi,lidl",
+    stores: params.get("stores") || "",
     diet: params.get("diet") || "balanced",
     calories: params.get("calories") || 2000,
     days: parseInt(params.get("days") || "30", 10),
@@ -63,7 +71,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 7;
+const PROMPT_VERSION = 8;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -122,7 +130,7 @@ export function buildGroceryPrompt(p, langLabel, knownPricesText = "") {
 
 Budget: €${budget} for ${days} days.
 Calories: ~${calories} kcal/day for all ${people} person(s).
-Stores: ${stores}.
+Stores: ${stores || "any German supermarket"}.${allowedStoreNames(stores).length ? `\nSTRICT STORE RULE: every item's "store" MUST be exactly one of: ${allowedStoreNames(stores).join(", ")}. Never use any other store, even if it is cheaper, and only pick products actually sold at these stores. Store names in the examples below are illustrations only.` : ""}
 Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by region in Germany; use local prices for this postal code when available.
 Language: ${langLabel}.
 ${knownPricesText ? `PRICE REFERENCE (prices observed earlier — use them ONLY to price products you choose; this is NOT a shopping list, do not copy it or limit your selection to it):\n${knownPricesText}\n` : ""}
@@ -323,12 +331,23 @@ function validateGroceries(result, p) {
   if (wrongChain.length) {
     issues.push(`These are store-own brands of chains the user didn't select: ${wrongChain.map((i) => i.name).join(", ")}. Replace them with products actually sold at ${p.stores}.`);
   }
+  const allowed = allowedStoreNames(p.stores).map((s) => s.toLowerCase().split(" ")[0]);
+  const offStore = allowed.length ? items.filter((i) => !allowed.some((a) => String(i.store || "").toLowerCase().includes(a))) : [];
+  if (offStore.length) {
+    issues.push(`These items are from stores the user didn't select: ${offStore.map((i) => `${i.name} (${i.store})`).join(", ")}. Replace them with products from ${allowedStoreNames(p.stores).join(", ")} only.`);
+  }
   const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const cap = Number(p.budget) + (p.proteinSnackBudget || 0);
   if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
   const badPrice = items.filter((i) => !(Number(i.unit_price) >= 0.15));
   if (badPrice.length) issues.push(`Unrealistic unit prices for: ${badPrice.map((i) => i.name).join(", ")}.`);
   return issues;
+}
+
+function restrictStoreSchema(allowed) {
+  const s = JSON.parse(JSON.stringify(GROCERY_SCHEMA));
+  s.properties.categories.items.properties.items.items.properties.store = { type: "string", enum: allowed };
+  return s;
 }
 
 const budgetCap = (p) => Number(p.budget) + (p.proteinSnackBudget || 0);
@@ -358,14 +377,16 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   const cached = await getCachedGroceryServer(sig);
   if (cached) return cached;
 
-  const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
+  const allowed = allowedStoreNames(p.stores);
+  const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode, allowed);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
+  const schema = allowed.length ? restrictStoreSchema(allowed) : GROCERY_SCHEMA;
   const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
     add_context_from_internet: useWebSearch,
     model,
-    response_json_schema: GROCERY_SCHEMA,
+    response_json_schema: schema,
   });
 
   let result = fixHouseBrandStores(await call(basePrompt), p);
