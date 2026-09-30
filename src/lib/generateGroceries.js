@@ -21,7 +21,8 @@ const GROCERY_SCHEMA = {
                 price: { type: "number" },
                 normal_price: { type: "number" },
                 store: { type: "string" },
-                calories_info: { type: "string" },
+                calories_info: { type: "string", description: "Energy density, e.g. '370 kcal/100g'" },
+                total_kcal: { type: "number", description: "Total kilocalories in the full purchased quantity (all packs combined)" },
               },
             },
           },
@@ -58,7 +59,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 3;
+const PROMPT_VERSION = 4;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -130,7 +131,7 @@ Rules:
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g") and total_kcal to the total kilocalories of the full purchased quantity.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
@@ -212,6 +213,31 @@ export function savePriceObservations(groceries, postalCode, diet) {
 // grocery generation from ~5 credits to ~1.
 const WEB_SEARCH_MIN_PRICES = 20;
 
+// Deterministic quality checks on a generated list. Returns human-readable
+// problems (empty array = list is good).
+function validateGroceries(result, p) {
+  const items = (result?.categories || []).flatMap((c) => c.items || []);
+  const issues = [];
+  const minItems = p.days >= 14 ? 15 : 10;
+  if (items.length < minItems) {
+    issues.push(`Only ${items.length} products — include at least ${minItems} distinct products (vary proteins, grains, vegetables, fruit, dairy).`);
+  }
+  const withKcal = items.filter((i) => Number(i.total_kcal) > 0);
+  const target = Number(p.calories) * p.days;
+  if (target && withKcal.length >= items.length / 2) {
+    const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
+    if (kcal < target * 0.8) {
+      issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Swap low-calorie filler for cheap calorie-dense staples (oats, rice, pasta, bread, legumes, oil) while staying within budget.`);
+    }
+  }
+  const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+  const cap = Number(p.budget) + (p.proteinSnackBudget || 0);
+  if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
+  const badPrice = items.filter((i) => !(Number(i.unit_price) >= 0.15));
+  if (badPrice.length) issues.push(`Unrealistic unit prices for: ${badPrice.map((i) => i.name).join(", ")}.`);
+  return issues;
+}
+
 export async function runGroceryGeneration(p, langLabel, langCode) {
   // #1: shared server-side cache — identical config returns instantly, ~0 credits.
   const sig = grocerySignature(p, langCode);
@@ -220,14 +246,29 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
 
   const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt: buildGroceryPrompt(p, langLabel, knownPricesText),
+  const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
+  const call = (prompt) => base44.integrations.Core.InvokeLLM({
+    prompt,
     add_context_from_internet: useWebSearch,
     model: "gemini_3_flash",
     response_json_schema: GROCERY_SCHEMA,
   });
-  savePriceObservations(result, p.postalCode, p.diet);
-  // #1: populate the shared cache for the next user with this config.
-  saveCachedGroceryServer(sig, result, p, langCode).catch(() => { /* best-effort */ });
+
+  let result = await call(basePrompt);
+  let issues = validateGroceries(result, p);
+  // One targeted retry: feed back only the concrete problems found, instead of
+  // stuffing every constraint into the prompt up front.
+  if (issues.length) {
+    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT HAD THESE PROBLEMS — return a corrected list that fixes them while respecting all rules above:\n- ${issues.join("\n- ")}`);
+    const retryIssues = validateGroceries(retry, p);
+    if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
+  }
+
+  // Only persist lists that pass validation, so bad output never gets
+  // served to other users or pollutes the community price database.
+  if (!issues.length) {
+    savePriceObservations(result, p.postalCode, p.diet);
+    saveCachedGroceryServer(sig, result, p, langCode).catch(() => { /* best-effort */ });
+  }
   return result;
 }
