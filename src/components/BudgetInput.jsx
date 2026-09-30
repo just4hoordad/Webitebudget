@@ -43,12 +43,13 @@ export default function BudgetInput({ value, onChange, label }) {
             type="number"
             inputMode="numeric"
             min={0}
+            max={2400}
             value={draft}
             onFocus={e => e.target.select()}
             onChange={e => {
               setDraft(e.target.value);
               const val = parseInt(e.target.value, 10);
-              if (!isNaN(val) && val > 0) onChange(val);
+              if (!isNaN(val) && val > 0) onChange(Math.min(2400, val));
             }}
             onBlur={() => setDraft(String(value))}
             className="w-20 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"

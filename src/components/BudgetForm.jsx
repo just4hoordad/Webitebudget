@@ -237,9 +237,9 @@ export default function BudgetForm() {
               <div className="space-y-4">
                 <BudgetInput value={budget[0]} onChange={v => setBudget([v])} label={t("monthlyBudget")} />
                 <Slider
-                  value={[Math.min(budget[0], 600)]}
+                  value={[budget[0]]}
                   onValueChange={setBudget}
-                  max={600}
+                  max={2400}
                   min={0}
                   step={5}
                   className="w-full"
@@ -247,7 +247,7 @@ export default function BudgetForm() {
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>€10</span>
                   <span>{t("avgStudent")}</span>
-                  <span>€600</span>
+                  <span>€2400</span>
                 </div>
               </div>
 
