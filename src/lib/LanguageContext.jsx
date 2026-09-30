@@ -9,6 +9,7 @@ import { pantryTranslations } from "./translations_pantry";
 import { loaderTranslations } from "./translations_loader";
 import calorieTranslations from "./translations_calorie";
 import sharedTranslations from "./translations_shared";
+import storeHintTranslations from "./translations_storeHints";
 
 // Deep-merge per language so Plan Builder keys don't overwrite full language objects.
 const _merged = { ...translations };
@@ -44,8 +45,10 @@ Object.keys(calorieTranslations).forEach((lang) => {
   allTranslations[lang] = { ...(allTranslations[lang] || {}), ...calorieTranslations[lang] };
 });
 
-Object.entries(sharedTranslations).forEach(([lang, labels]) => {
-  allTranslations[lang] = { ...(allTranslations[lang] || {}), ...labels };
+[sharedTranslations, storeHintTranslations].forEach((dictionary) => {
+  Object.entries(dictionary).forEach(([lang, labels]) => {
+    allTranslations[lang] = { ...(allTranslations[lang] || {}), ...labels };
+  });
 });
 
 const LANGUAGES = [
