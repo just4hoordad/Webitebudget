@@ -8,7 +8,7 @@ const TYPES = ["breakfast", "lunch", "dinner"];
 export default function PlanConfirm({ plan, people, diet, stores, prepEnabled, onBack, onConfirm }) {
   const { t } = useLanguage();
   const L = (k, fb) => { const v = t(k); return v === k || !v ? fb : v; };
-  const total = plan.reduce((n, day) => n + TYPES.reduce((m, ty) => m + filledDishes(day[ty]).length, 0), 0);
+  const total = plan.reduce((n, day) => n + TYPES.reduce((m, ty) => m + filledDishes(day, ty).length, 0), 0);
   const facts = [
     [L("days", "Days"), plan.length],
     [L("people", "People"), people],
@@ -42,7 +42,7 @@ export default function PlanConfirm({ plan, people, diet, stores, prepEnabled, o
           <div key={i} className="px-4 py-3">
             <p className="font-heading font-semibold text-sm text-foreground mb-1.5">{L("day", "Day")} {i + 1}</p>
             {TYPES.map((ty) => {
-              const dishes = filledDishes(day[ty]);
+              const dishes = filledDishes(day, ty);
               return (
                 <div key={ty} className="flex gap-3 text-sm py-0.5">
                   <span className="w-24 shrink-0 text-muted-foreground">{L(ty, ty)}</span>

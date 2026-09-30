@@ -44,11 +44,12 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
   const macrosDone = macrosSet && macroTotal === 100;
   const basicsMissing = (enabled.diet && !diet) || (enabled.people && !(people > 0)) || (enabled.days && !(days >= 1));
   const buildDisabled = !loading && (basicsMissing || (enabled.stores && !hasStores) || (enabled.macros && !macrosDone));
+  const tf = (k, fb) => { const v = t(k); return !v || v === k ? fb : v; };
   const disabledReason = buildDisabled
-    ? (basicsMissing ? (t("fillAllSections") || "Please fill in every section to continue")
+    ? (basicsMissing ? tf("fillAllSections", "Please fill in every section to continue")
       : enabled.stores && !hasStores ? t("buildDisabledStore")
       : macroTotal !== 100 ? t("buildDisabledMacros")
-      : (t("pickMacros") || "Please choose your macros"))
+      : tf("pickMacros", "Please choose your macros"))
     : null;
 
   const formRef = useRef(null);
