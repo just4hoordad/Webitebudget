@@ -54,12 +54,19 @@ export function groceryParamsFromSearch(search) {
   };
 }
 
+// Bump PROMPT_VERSION whenever the generation prompt changes meaningfully —
+// it invalidates both the server-side GroceryCache and the per-user
+// sessionStorage cache so users get the improved output on their next visit
+// instead of waiting up to 14 days for stale entries to expire.
+const PROMPT_VERSION = 2;
+
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
     budget: p.budget, stores: p.stores, diet: p.diet, calories: p.calories,
     days: p.days, people: p.people, saleHunt: p.saleHunt, bio: p.bio,
     junkPercent: p.junkPercent, proteinSnackBudget: p.proteinSnackBudget,
     allergies: p.allergies, ownedItems: p.ownedItems, macros: p.macros, postalCode: p.postalCode, lang: langCode,
+    v: PROMPT_VERSION,
   });
 }
 
@@ -115,10 +122,14 @@ Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by 
 Language: ${langLabel}.
 ${knownPricesText ? `COMMUNITY PRICE DATABASE (prices previously found by other users for this region; prefer these where a product matches, and only override with fresher web data):\n${knownPricesText}\n` : ""}
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
-${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats).` : ""}
+${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats). Before returning, estimate the protein/carbs/fats contribution of the full list and adjust quantities so the split lands within ±5 points of the target. If protein is low, ADD protein-rich items (eggs, Magerquark, skyr, chicken, lentils, tuna) — do not let protein fall below ${macros.protein - 5}% of total calories.` : ""}
+CALORIE COVERAGE (CRITICAL): The plan must cover ${calories} kcal/day × ${days} days = ${calories * days} kcal TOTAL. Before returning, estimate the total calories by summing each item's quantity × its calories_info density, and ensure the total is AT LEAST ${calories * days} kcal (target: within +10% of ${calories * days}, never below it). If you are short, INCREASE quantities of calorie-dense staples (oats, rice, pasta, oil, bread, nuts, milk, eggs) until coverage is met — do NOT just add more low-calorie produce like apples or carrots.
+VARIETY FLOOR: Include at least ${Math.max(18, Math.min(40, Math.round(days * 0.8)))} distinct items spread across the categories. A ${days}-day plan needs real dietary variety — do not repeat the same few staples 10×. Vary proteins, grains, vegetables, and fruits so the downstream meal plan can build diverse meals.
+STORE DISTRIBUTION: The user selected ${String(stores).split(',').map(s => s.trim()).filter(Boolean).length} store(s): ${stores}. When more than one store is selected, use at least 2 of them — spread items across the selected stores by which genuinely offers the better price for that product. Do NOT dump everything into a single store unless only one was selected.
+
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
-2. Pick the cheapest store for each item.
+2. Pick the cheapest store for each item, distributing across the selected stores (see STORE DISTRIBUTION above) rather than defaulting to a single store.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
