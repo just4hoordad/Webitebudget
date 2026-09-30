@@ -23,10 +23,11 @@ function matchesPreset(value, preset) {
   return value.protein === preset.protein && value.carbs === preset.carbs && value.fats === preset.fats;
 }
 
-export default function MacroRatioControl({ value, onChange, active, onToggle }) {
+export default function MacroRatioControl({ value, onChange, active, onToggle, unset }) {
   const { t } = useLanguage();
 
   const [selectedPresetId, setSelectedPresetId] = useState(() => {
+    if (unset) return null;
     const m = PRESETS.slice(0, 4).find((p) => matchesPreset(value, p));
     return m ? m.id : "custom";
   });

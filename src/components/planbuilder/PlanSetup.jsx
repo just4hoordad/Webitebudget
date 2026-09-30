@@ -45,7 +45,10 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
   const basicsMissing = (enabled.diet && !diet) || (enabled.people && !(people > 0)) || (enabled.days && !(days >= 1));
   const buildDisabled = !loading && (basicsMissing || (enabled.stores && !hasStores) || (enabled.macros && !macrosDone));
   const disabledReason = buildDisabled
-    ? (enabled.stores && !hasStores ? t("buildDisabledStore") : t("buildDisabledMacros"))
+    ? (basicsMissing ? (t("fillAllSections") || "Please fill in every section to continue")
+      : enabled.stores && !hasStores ? t("buildDisabledStore")
+      : macroTotal !== 100 ? t("buildDisabledMacros")
+      : (t("pickMacros") || "Please choose your macros"))
     : null;
 
   const formRef = useRef(null);
@@ -201,7 +204,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       <div className="space-y-3">
         <SectionHeader id="pb-macros" icon={Scale} label={t("macroTitle")} active={enabled.macros} onToggle={() => toggleSetting("macros")} />
         <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
-          <MacroRatioControl value={macros} onChange={setMacros} />
+          <MacroRatioControl value={macros} onChange={setMacros} unset={!macrosSet} />
         </div>
       </div>
 
