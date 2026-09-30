@@ -221,7 +221,17 @@ export default function Layout() {
                 {t("back")}
               </button>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {!isAuthenticated && (
+                <button
+                  onClick={navigateToLogin}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-foreground bg-secondary hover:bg-secondary/80 transition-colors shrink-0"
+                  aria-label={t("signInNav")}
+                >
+                  <LogIn className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[11px] font-semibold">{t("signInNav")}</span>
+                </button>
+              )}
               <ThemeToggle />
               <LanguageSwitcher />
             </div>
@@ -267,10 +277,10 @@ export default function Layout() {
 
         {/* Floating Pill Dock — mobile only */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-2xl shadow-black/40 px-2 py-1.5">
+          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 p-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -279,30 +289,22 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full text-[9px] font-heading font-semibold uppercase tracking-wide transition-colors select-none ${
+                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-semibold uppercase tracking-tight transition-colors select-none ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
                       : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="truncate max-w-[56px] text-center leading-none">{item.label}</span>
+                  <span className="truncate max-w-full text-center leading-none">{item.label}</span>
                 </Link>
               );
             })}
-            {!isAuthenticated && (
-              <button
-                onClick={navigateToLogin}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-full text-[9px] font-heading font-semibold uppercase tracking-wide text-primary/90 hover:text-primary transition-colors select-none shrink-0"
-              >
-                <LogIn className="h-[18px] w-[18px] shrink-0" />
-                <span className="truncate max-w-[56px] text-center leading-none">{t("signInNav")}</span>
-              </button>
-            )}
             <button
               onClick={() => setMoreOpen(true)}
-              className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-0.5"
               title={t("more") || "More"}
+              aria-label={t("more") || "More"}
             >
               <MoreHorizontal className="h-5 w-5" />
             </button>
@@ -329,7 +331,18 @@ export default function Layout() {
                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
               >
                 <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted" />
-                {isAuthenticated && (
+                {!isAuthenticated ? (
+                  <button
+                    onClick={() => { setMoreOpen(false); navigateToLogin(); }}
+                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md shadow-primary/20 w-full"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <LogIn className="h-5 w-5" />
+                      {t("signInNav")}
+                    </span>
+                    <span className="text-xs opacity-90">&rarr;</span>
+                  </button>
+                ) : (
                   <>
                     <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
                       <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
