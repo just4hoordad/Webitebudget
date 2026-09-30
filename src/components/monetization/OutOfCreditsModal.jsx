@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, isPro, periodEnd }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const periodLabel = periodEnd
-    ? new Date(periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    ? new Date(periodEnd).toLocaleDateString(language, { month: "short", day: "numeric" })
     : "";
   return (
     <AnimatePresence>

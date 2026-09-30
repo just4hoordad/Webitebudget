@@ -1,6 +1,8 @@
 import { forwardRef } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, budget, diet, people, calories }, ref) => {
+  const { t, language } = useLanguage();
   const remaining = parseFloat(budget) - activeTotal;
   const totalSaved = activeItems.reduce((sum, item) => {
     if (item.normal_price != null && item.normal_price > item.price) {
@@ -27,36 +29,36 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
           <div>
             <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "800", color: "#0f4c35", letterSpacing: "-0.5px" }}>
-              🛒 BudgetBite Grocery List
+              🛒 {t("tx_exportTitle")}
             </h1>
             <p style={{ margin: "6px 0 0", color: "#6b7280", fontSize: "14px" }}>
-              {diet} diet · {people} person(s) · {calories} kcal/day
+              {t("tx_dietLabel", { diet })} · {people} {t("personS")} · {calories} kcal{t("tx_perDay")}
             </p>
           </div>
           <div style={{ textAlign: "right", fontSize: "13px", color: "#6b7280" }}>
-            Generated {new Date().toLocaleDateString()}
+            {t("tx_generatedOn", { date: new Date().toLocaleDateString(language) })}
           </div>
         </div>
 
         {/* Budget Summary */}
         <div style={{ display: "flex", gap: "16px" }}>
           <div style={{ flex: 1, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "14px 18px" }}>
-            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Estimated Total</div>
+            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{t("tx_estimatedTotal")}</div>
             <div style={{ fontSize: "22px", fontWeight: "800", color: "#16a34a" }}>€{activeTotal.toFixed(2)}</div>
           </div>
           <div style={{ flex: 1, background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px 18px" }}>
-            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Your Budget</div>
+            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{t("tx_yourBudget")}</div>
             <div style={{ fontSize: "22px", fontWeight: "800", color: "#111827" }}>€{parseFloat(budget).toFixed(2)}</div>
           </div>
           <div style={{ flex: 1, background: remaining >= 0 ? "#f0fdf4" : "#fef2f2", border: `1px solid ${remaining >= 0 ? "#bbf7d0" : "#fecaca"}`, borderRadius: "12px", padding: "14px 18px" }}>
-            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Remaining</div>
+            <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{t("tx_remaining")}</div>
             <div style={{ fontSize: "22px", fontWeight: "800", color: remaining >= 0 ? "#16a34a" : "#dc2626" }}>€{remaining.toFixed(2)}</div>
           </div>
           {totalSaved > 0 && (
             <div style={{ flex: 1, background: "#fefce8", border: "1px solid #fde68a", borderRadius: "12px", padding: "14px 18px" }}>
-              <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>💰 Total Saved</div>
+              <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>💰 {t("tx_totalSaved")}</div>
               <div style={{ fontSize: "22px", fontWeight: "800", color: "#d97706" }}>€{totalSaved.toFixed(2)}</div>
-              <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "2px" }}>vs. regular prices</div>
+              <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "2px" }}>{t("tx_vsRegular")}</div>
             </div>
           )}
         </div>
@@ -80,12 +82,12 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
             <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #e5e7eb", borderTop: "none" }}>
               <thead>
                 <tr style={{ background: "#f9fafb" }}>
-                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Item</th>
-                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Quantity</th>
-                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Store</th>
-                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Unit Price</th>
-                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Total</th>
-                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>Saved</th>
+                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colItem")}</th>
+                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colQuantity")}</th>
+                  <th style={{ textAlign: "left", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colStore")}</th>
+                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colUnitPrice")}</th>
+                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colTotal")}</th>
+                  <th style={{ textAlign: "right", padding: "8px 14px", fontSize: "11px", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e5e7eb" }}>{t("tx_colSaved")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,9 +119,9 @@ const GroceryListExport = forwardRef(({ groceries, activeItems, activeTotal, bud
       {/* Footer */}
       <div data-pdf-section style={{ padding: "16px 48px 32px", background: "#ffffff" }}>
         <div style={{ borderTop: "2px solid #e5e7eb", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "12px", color: "#9ca3af" }}>BudgetBite — Smart meal planning for students in Germany</span>
+          <span style={{ fontSize: "12px", color: "#9ca3af" }}>{t("tx_exportFooter")}</span>
           <div style={{ background: "#0f4c35", color: "#ffffff", borderRadius: "8px", padding: "8px 20px", fontSize: "15px", fontWeight: "700" }}>
-            TOTAL: €{activeTotal.toFixed(2)}
+            {t("tx_totalCaps")}: €{activeTotal.toFixed(2)}
           </div>
         </div>
       </div>

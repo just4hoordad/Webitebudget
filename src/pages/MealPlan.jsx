@@ -843,7 +843,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         <div>
           <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
           <p className="text-sm text-muted-foreground">
-            {diet} diet · €{budget}/{days} {t("days")} · {calories} kcal/day · {people} {t("personS")}
+            {t("tx_dietLabel", { diet })} · €{budget}/{days} {t("days")} · {calories} kcal{t("tx_perDay")} · {people} {t("personS")}
           </p>
         </div>
         <CreditPill credits={credits} isPro={isPro} />
@@ -1107,7 +1107,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                return (
                  <div className="bg-card border border-border rounded-xl overflow-hidden">
                    <div className="bg-secondary px-5 py-3">
-                     <h3 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">📊 Plan Summary</h3>
+                     <h3 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">📊 {t("tx_planSummary")}</h3>
                    </div>
                    <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border">
                      <div className="px-4 py-4 text-center">
@@ -1117,17 +1117,17 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                      <div className="px-4 py-4 text-center">
                        <p className="text-xs text-muted-foreground mb-1">{t("totalCalories")}</p>
                        <p className="font-heading text-2xl font-bold text-primary">{totalCal.toLocaleString()}</p>
-                       <p className="text-xs text-muted-foreground">~{avgCal} kcal/day</p>
+                       <p className="text-xs text-muted-foreground">~{avgCal} kcal{t("tx_perDay")}</p>
                      </div>
                      <div className="px-4 py-4 text-center">
-                       <p className="text-xs text-muted-foreground mb-1">Est. Cost</p>
+                       <p className="text-xs text-muted-foreground mb-1">{t("tx_estCost")}</p>
                        <p className="font-heading text-2xl font-bold text-foreground">€{planCost.toFixed(2)}</p>
-                       <p className="text-xs text-muted-foreground">~€{costPerDay.toFixed(2)}/day</p>
+                       <p className="text-xs text-muted-foreground">~€{costPerDay.toFixed(2)}{t("tx_perDay")}</p>
                      </div>
                      <div className="px-4 py-4 text-center">
                        <p className="text-xs text-muted-foreground mb-1">{t("mealsTotal")}</p>
                        <p className="font-heading text-2xl font-bold text-foreground">{planDays * 3}</p>
-                       <p className="text-xs text-muted-foreground">3 meals/day</p>
+                       <p className="text-xs text-muted-foreground">{t("tx_mealsPerDay")}</p>
                      </div>
                    </div>
                  </div>
