@@ -172,7 +172,7 @@ export default function SavedMealPlans() {
                     </button>
                     {plan.budget != null && (
                       <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
-                        <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title="View nutrition">
+                        <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title={t("viewNutrition")}>
                           <BarChart2 className="h-3.5 w-3.5" />
                           {t("nutrition")}
                         </button>
@@ -196,7 +196,7 @@ export default function SavedMealPlans() {
                     <button
                       onClick={() => deletePlan(plan.id)}
                       className="text-muted-foreground hover:text-destructive transition-colors p-2"
-                      title="Delete plan"
+                      title={t("deletePlan")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -229,7 +229,7 @@ export default function SavedMealPlans() {
                               return (
                                 <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
                                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <button onClick={() => toggleBought(bKey)} className="shrink-0" title="Mark as bought" aria-label="Mark as bought">
+                                    <button onClick={() => toggleBought(bKey)} className="shrink-0" title={t("markBought")} aria-label={t("markBought")}>
                                       {bought ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />}
                                     </button>
                                     <div className="min-w-0">

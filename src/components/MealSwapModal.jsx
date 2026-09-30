@@ -3,8 +3,10 @@ import { X, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function MealSwapModal({ meal, mealType, dayIndex, availableIngredients, targetCalories, diet, onSwap, onClose }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -42,7 +44,7 @@ export default function MealSwapModal({ meal, mealType, dayIndex, availableIngre
     onClose();
   };
 
-  const mealTypeLabel = mealType === "breakfast" ? "🌅 Breakfast" : mealType === "lunch" ? "☀️ Lunch" : "🌙 Dinner";
+  const mealTypeLabel = `${mealType === "breakfast" ? "🌅" : mealType === "lunch" ? "☀️" : "🌙"} ${t(mealType)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
@@ -113,7 +115,7 @@ export default function MealSwapModal({ meal, mealType, dayIndex, availableIngre
               ))}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No alternatives found.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("noAlternatives")}</p>
           )}
         </div>
 

@@ -126,7 +126,7 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
             </div>
           )}
           {!loading && alternatives.length === 0 && query && (
-            <p className="text-sm text-muted-foreground text-center py-8">Search above to find products at your stores.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("searchProductsHint")}</p>
           )}
           {alternatives.map((item, idx) => (
             <button

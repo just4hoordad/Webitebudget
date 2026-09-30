@@ -3,8 +3,10 @@ import { X, RefreshCw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function GrocerySwapModal({ item, category, diet, budget, onSwap, onClose }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -154,7 +156,7 @@ For each alternative, provide:
               ))}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No alternatives found.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("noAlternatives")}</p>
           )}
         </div>
 

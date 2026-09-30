@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, PlayCircle, Crown, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, isPro, periodEnd }) {
+  const { t } = useLanguage();
   const periodLabel = periodEnd
     ? new Date(periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" })
     : "";
@@ -37,13 +39,13 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
                 <div className="mx-auto h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center">
                   <CalendarClock className="h-6 w-6 text-primary" />
                 </div>
-                <h2 className="font-heading text-xl font-bold text-foreground">Monthly limit reached</h2>
+                <h2 className="font-heading text-xl font-bold text-foreground">{t("monthlyLimitTitle")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  You've used all 30 Pro generations this month. Your credits reset on{" "}
+                  {t("monthlyLimitBody")}{" "}
                   <span className="font-semibold text-foreground">{periodLabel}</span>.
                 </p>
                 <Button onClick={onClose} className="w-full">
-                  Got it
+                  {t("gotIt")}
                 </Button>
               </div>
             ) : (
@@ -52,23 +54,23 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
                   <PlayCircle className="h-6 w-6 text-amber-600" />
                 </div>
                 <div className="text-center space-y-1.5">
-                  <h2 className="font-heading text-xl font-bold text-foreground">Out of free credits</h2>
+                  <h2 className="font-heading text-xl font-bold text-foreground">{t("outOfCreditsTitle")}</h2>
                   <p className="text-sm text-muted-foreground">
-                    Watch a short ad to generate for free, or go Pro for 30 generations a month.
+                    {t("outOfCreditsBody")}
                   </p>
                 </div>
                 <Button
                   onClick={onWatchAd}
                   className="w-full bg-amber-500 hover:bg-amber-600 text-white border-0 gap-2"
                 >
-                  <PlayCircle className="h-4 w-4" /> Watch Ad & Generate
+                  <PlayCircle className="h-4 w-4" /> {t("watchAdGenerate")}
                 </Button>
                 <Button
                   onClick={onGoPro}
                   variant="outline"
                   className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10"
                 >
-                  <Crown className="h-4 w-4" /> Go Pro — €3.99/month
+                  <Crown className="h-4 w-4" /> {t("goProMonthly")}
                 </Button>
               </div>
             )}

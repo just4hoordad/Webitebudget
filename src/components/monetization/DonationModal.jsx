@@ -4,10 +4,12 @@ import { X, Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const presets = [1, 3, 5];
 
 export default function DonationModal({ open, onClose }) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState(3);
   const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,9 +67,9 @@ export default function DonationModal({ open, onClose }) {
               <div className="mx-auto h-14 w-14 rounded-2xl bg-rose-100 flex items-center justify-center">
                 <Heart className="h-7 w-7 text-rose-500" />
               </div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">Support BudgetBite</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground">{t("supportTitle")}</h2>
               <p className="text-sm text-muted-foreground">
-                A one-time tip to keep the app running. No extra features — just gratitude. ❤️
+                {t("supportBody")}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2.5">
@@ -89,7 +91,7 @@ export default function DonationModal({ open, onClose }) {
               ))}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">Or custom amount (€1–€500)</label>
+              <label className="text-xs text-muted-foreground">{t("customAmount")}</label>
               <input
                 type="number"
                 min="1"

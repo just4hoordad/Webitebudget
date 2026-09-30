@@ -1111,11 +1111,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    </div>
                    <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border">
                      <div className="px-4 py-4 text-center">
-                       <p className="text-xs text-muted-foreground mb-1">Total Days</p>
+                       <p className="text-xs text-muted-foreground mb-1">{t("totalDays")}</p>
                        <p className="font-heading text-2xl font-bold text-foreground">{planDays}</p>
                      </div>
                      <div className="px-4 py-4 text-center">
-                       <p className="text-xs text-muted-foreground mb-1">Total Calories</p>
+                       <p className="text-xs text-muted-foreground mb-1">{t("totalCalories")}</p>
                        <p className="font-heading text-2xl font-bold text-primary">{totalCal.toLocaleString()}</p>
                        <p className="text-xs text-muted-foreground">~{avgCal} kcal/day</p>
                      </div>
@@ -1125,7 +1125,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                        <p className="text-xs text-muted-foreground">~€{costPerDay.toFixed(2)}/day</p>
                      </div>
                      <div className="px-4 py-4 text-center">
-                       <p className="text-xs text-muted-foreground mb-1">Meals Total</p>
+                       <p className="text-xs text-muted-foreground mb-1">{t("mealsTotal")}</p>
                        <p className="font-heading text-2xl font-bold text-foreground">{planDays * 3}</p>
                        <p className="text-xs text-muted-foreground">3 meals/day</p>
                      </div>

@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Beef, Droplets, Wheat, Flame, FileDown } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const MACRO_COLORS = {
   protein: "#22c55e",
@@ -19,6 +20,7 @@ const MACRO_COLORS = {
 const PIE_COLORS = ["#22c55e", "#f59e0b", "#3b82f6"];
 
 export default function Nutrition() {
+  const { t } = useLanguage();
   const params = new URLSearchParams(window.location.search);
   const budget = params.get("budget") || 150;
   const stores = params.get("stores") || "aldi,lidl";
@@ -298,7 +300,7 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
 
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold">Nutritional Breakdown</h1>
+          <h1 className="font-heading text-2xl font-bold">{t("nutritionBreakdown")}</h1>
           <p className="text-sm text-muted-foreground">
             {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
           </p>
@@ -357,7 +359,7 @@ Use real nutritional data for typical ${diet} diet foods bought from German disc
 
           {/* Macro Split Pie Chart */}
           <div className="bg-card border border-border rounded-xl p-5">
-            <h2 className="font-heading font-semibold mb-4">Calorie Split by Macronutrient</h2>
+            <h2 className="font-heading font-semibold mb-4">{t("calorieSplitTitle")}</h2>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <ResponsiveContainer width={220} height={220}>
                 <PieChart>
