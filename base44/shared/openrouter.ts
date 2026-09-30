@@ -15,6 +15,37 @@ export interface OpenRouterOptions {
   add_context_from_internet?: boolean;
 }
 
+export class OpenRouterUnavailableError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// POST to OpenRouter; on 429 wait (Retry-After, max 10s) and retry once.
+async function post(apiKey: string, payload: Record<string, unknown>): Promise<Response> {
+  const send = () => fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey.trim()}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://webitebudget.base44.app",
+      "X-Title": "BudgetBite",
+    },
+    body: JSON.stringify(payload),
+  });
+  const res = await send();
+  if (res.status !== 429) return res;
+  const retryAfter = Number(res.headers.get("retry-after"));
+  const waitMs = Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter * 1000, 10000) : 10000;
+  console.warn(`OpenRouter 429 — retrying in ${waitMs}ms`);
+  await sleep(waitMs);
+  return await send();
+}
+
 export async function callOpenRouter({
   prompt,
   response_json_schema,
@@ -65,49 +96,24 @@ export async function callOpenRouter({
     payload.response_format = { type: "json_object" };
   }
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey.trim()}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://webitebudget.base44.app",
-      "X-Title": "BudgetBite",
-    },
-    body: JSON.stringify(payload),
-  });
+  const parse = async (r: Response) => {
+    const d = await r.json();
+    const content = d.choices?.[0]?.message?.content || "";
+    return response_json_schema ? JSON.parse(sanitizeJson(content)) : content;
+  };
+
+  let res = await post(apiKey, payload);
+
+  // If online search model suffix failed (non-rate-limit), retry without it
+  if (!res.ok && res.status !== 429 && selectedModel.endsWith(":online")) {
+    payload.model = selectedModel.replace(/:online$/, "");
+    res = await post(apiKey, payload);
+  }
 
   if (!res.ok) {
     const errText = await res.text();
-    // If online search model suffix failed, retry without it
-    if (selectedModel.endsWith(":online")) {
-      payload.model = selectedModel.replace(/:online$/, "");
-      const retry = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey.trim()}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://webitebudget.base44.app",
-          "X-Title": "BudgetBite",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (retry.ok) {
-        const d = await retry.json();
-        const content = d.choices?.[0]?.message?.content || "";
-        if (response_json_schema) {
-          return JSON.parse(sanitizeJson(content));
-        }
-        return content;
-      }
-    }
-    throw new Error(`OpenRouter returned HTTP ${res.status}: ${errText}`);
+    throw new OpenRouterUnavailableError(res.status, `OpenRouter returned HTTP ${res.status}: ${errText}`);
   }
 
-  const data = await res.json();
-  const rawContent = data.choices?.[0]?.message?.content || "";
-
-  if (response_json_schema) {
-    return JSON.parse(sanitizeJson(rawContent));
-  }
-  return rawContent;
+  return await parse(res);
 }
