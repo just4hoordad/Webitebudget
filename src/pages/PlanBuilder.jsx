@@ -218,6 +218,9 @@ ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers 
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
 - quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
+- For each item, also provide normal_price: the typical regular/mid-range supermarket price (e.g. REWE, Edeka) for the same quantity, to demonstrate savings compared to discount prices.
+- Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").
+- Set calories_info to the energy density (e.g. "370 kcal/100g") or item total calories.
 - All item names in ${currentLanguage.label}, category names in English.
 ${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
 
@@ -350,8 +353,10 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           days={plan.length}
           people={people}
           diet={diet}
+          stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores}
           onReset={reset}
           footer={shareFooter}
+          onGroceryChange={setGrocery}
         />
         <SharePlanModal
           plan={{ id: savedPlanId.current, name: savedPlanName.current || "", shareToken: "" }}
