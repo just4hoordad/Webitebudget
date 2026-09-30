@@ -10,16 +10,36 @@ const ALLOWED_MODELS: Record<string, string> = {
   "automatic": "openai/gpt-4o-mini",
 };
 
-// In-memory sliding-window rate limiter per client IP: max 25 requests per minute
+// In-memory sliding-window rate limiter with per-client and global ceilings
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60000;
 const MAX_REQUESTS_PER_WINDOW = 25;
+const GLOBAL_MAX_REQUESTS_PER_WINDOW = 120;
+let globalWindow = { count: 0, resetAt: 0 };
 
-function checkRateLimit(ip: string): boolean {
+function checkRateLimit(key: string): boolean {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
+
+  // Periodic pruning of expired keys to prevent memory leaks
+  if (rateLimitMap.size > 1000) {
+    for (const [k, v] of rateLimitMap.entries()) {
+      if (now > v.resetAt) rateLimitMap.delete(k);
+    }
+  }
+
+  // Global ceiling to mitigate distributed abuse / wallet exhaustion
+  if (now > globalWindow.resetAt) {
+    globalWindow = { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  } else {
+    if (globalWindow.count >= GLOBAL_MAX_REQUESTS_PER_WINDOW) {
+      return false;
+    }
+    globalWindow.count++;
+  }
+
+  const entry = rateLimitMap.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return true;
   }
   if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
@@ -55,8 +75,23 @@ function release() {
 }
 
 export default async function (req: Request): Promise<Response> {
-  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
-  if (!checkRateLimit(clientIp)) {
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me().catch(() => null);
+
+  // Extract trusted client IP:
+  // Edge proxies (Cloudflare, AWS, etc.) append the connecting client IP to the end of X-Forwarded-For,
+  // or set trusted headers like cf-connecting-ip or x-real-ip.
+  // The first element of XFF is client-supplied and spoofable; taking the last element ensures we read
+  // the hop appended by the reverse proxy.
+  const xff = req.headers.get("x-forwarded-for");
+  const xffHops = xff ? xff.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const trustedEdgeIp = req.headers.get("cf-connecting-ip")?.trim()
+    || req.headers.get("x-real-ip")?.trim()
+    || (xffHops.length > 0 ? xffHops[xffHops.length - 1] : null)
+    || "anonymous";
+
+  const rateLimitKey = user?.id ? `user:${user.id}` : `ip:${trustedEdgeIp}`;
+  if (!checkRateLimit(rateLimitKey)) {
     return Response.json({ error: "Rate limit exceeded. Please wait a moment before trying again." }, { status: 429 });
   }
 
@@ -98,7 +133,6 @@ export default async function (req: Request): Promise<Response> {
       console.warn("invokeAI: OpenRouter unavailable, falling back to Base44 Core.InvokeLLM:", openRouterError?.message || openRouterError);
       
       // Secondary: Fallback to Base44 Core.InvokeLLM via service role
-      const base44 = createClientFromRequest(req);
       const fallbackResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: safeSchema,
