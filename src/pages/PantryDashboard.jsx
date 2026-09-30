@@ -4,6 +4,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Package, BarChart3, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from "recharts";
 import PantryUsageAlerts from "@/components/PantryUsageAlerts";
+import PantryManager from "@/components/PantryManager";
 
 // Keyword-based categorizer (en + de + a little fr/es) since pantry items
 // are stored without a category. Falls back to "Other".
@@ -140,6 +141,10 @@ export default function PantryDashboard() {
         <p className="text-sm text-muted-foreground">
           {t("pantryDashboardDesc") || "What you rely on most, grouped by category"}
         </p>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl p-4">
+        <PantryManager onPantryChange={(list) => { setItems(list); setLoading(false); }} />
       </div>
 
       {loading ? (

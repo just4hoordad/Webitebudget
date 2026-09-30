@@ -10,6 +10,7 @@ import Layout from './components/Layout';
 import SavedMealPlans from './pages/SavedMealPlans';
 import Nutrition from './pages/Nutrition';
 import About from './pages/About';
+import PantryDashboard from './pages/PantryDashboard';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
 import RepoStats from './pages/RepoStats';
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/plan-builder" element={null} />
                 <Route path="/saved-plans" element={null} />
                 <Route path="/nutrition" element={<Nutrition />} />
+                <Route path="/pantry" element={<PantryDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/datenschutz" element={<Datenschutz />} />
