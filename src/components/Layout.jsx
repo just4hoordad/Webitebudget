@@ -50,13 +50,13 @@ export default function Layout() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+    if (!confirm(t("deleteAccountConfirm") || "Are you sure you want to delete your account? This cannot be undone.")) return;
     clearProStatus();
     try {
       if (typeof base44.auth.deleteAccount === "function") {
         await base44.auth.deleteAccount();
       } else {
-        alert("Account deletion is not available yet. Please contact support.");
+        alert(t("deleteAccountUnavailable") || "Account deletion is not available yet. Please contact support.");
       }
     } catch { /* ignore */ }
   };
