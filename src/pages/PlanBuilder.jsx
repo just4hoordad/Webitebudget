@@ -33,6 +33,8 @@ export default function PlanBuilder() {
   const [people, setPeople] = useState(() => loadPrefs().people || 1);
   const [stores, setStores] = useState(() => loadPrefs().stores || ["Aldi", "Lidl"]);
   const [postalCode, setPostalCode] = useState(() => loadPrefs().postalCode || "");
+  const [selectedStoreLocations, setSelectedStoreLocations] = useState(() => loadPrefs().selectedStoreLocations || []);
+  const [cityCoords, setCityCoords] = useState(null);
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
   const [prepEnabled, setPrepEnabled] = useState(true);
@@ -55,7 +57,7 @@ export default function PlanBuilder() {
   const toggleSetting = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const hasValidCache = () => {
-    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, macros, prepEnabled, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -72,7 +74,7 @@ export default function PlanBuilder() {
   };
 
   const startPlan = () => {
-    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores, postalCode })); } catch { /* ignore */ }
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores, postalCode, selectedStoreLocations })); } catch { /* ignore */ }
     setPlan(Array.from({ length: days }, () => ({ breakfast: [], lunch: [], dinner: [] })));
     setGrocery(null);
     setPhase("grid");
@@ -139,7 +141,7 @@ export default function PlanBuilder() {
 
   const generateGrocery = async () => {
     // Reuse today's generated list if the plan hasn't changed (saves credits).
-    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, macros, prepEnabled, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -186,7 +188,7 @@ ${enabled.macros ? `\nThe user's target macronutrient split is protein ${macros.
 For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) over the whole plan.
 ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
-- Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? stores.join(", ") : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.
+- Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
 - quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
@@ -280,7 +282,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
         diet,
         people,
-        stores: stores.join(", "),
+        stores: selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name).join(", ") : stores.join(", "),
         macros,
         plan,
         groceryList: grocery,
@@ -353,7 +355,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   return (
     <div className="space-y-4">
       <CreditBar variant="onLight" />
-      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} />
+      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} />
     </div>
   );
 }

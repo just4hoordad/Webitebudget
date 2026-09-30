@@ -4,8 +4,9 @@ import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
-  Store, ArrowRight, Sparkles, ShoppingCart, MapPin,
+  Store, ArrowRight, Sparkles, ShoppingCart, MapPin, X,
 } from "lucide-react";
+import StoreMapPicker from "@/components/StoreMapPicker";
 
 const DIET_KEYS = [
   { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc" },
@@ -31,13 +32,14 @@ function SectionHeader({ icon: Icon, label, active, onToggle }) {
   );
 }
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode }) {
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed }) {
   const { t } = useLanguage();
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
-  const buildDisabled = !loading && ((enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100));
+  const hasStores = stores.length > 0 || (selectedStoreLocations && selectedStoreLocations.length > 0);
+  const buildDisabled = !loading && ((enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100));
   const disabledReason = buildDisabled
-    ? (enabled.stores && stores.length === 0 ? t("buildDisabledStore") : t("buildDisabledMacros"))
+    ? (enabled.stores && !hasStores ? t("buildDisabledStore") : t("buildDisabledMacros"))
     : null;
 
   return (
@@ -109,22 +111,55 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         </div>
       </div>
 
-      {/* Postal code — regional pricing */}
+      {/* Postal code — regional pricing + map picker */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground flex items-center gap-2">
           <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ)"}
         </label>
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]{5}"
-          maxLength={5}
-          value={postalCode || ""}
-          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
-          placeholder={t("plzPlaceholder") || "e.g. 10115"}
-          className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]{5}"
+            maxLength={5}
+            value={postalCode || ""}
+            onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+            placeholder={t("plzPlaceholder") || "e.g. 10115"}
+            className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <div className="shrink-0 py-1">
+            <StoreMapPicker
+              selectedStoreLocations={selectedStoreLocations || []}
+              onChangeStoreLocations={onChangeStoreLocations}
+              selectedChains={stores}
+              onToggleChain={toggleStore}
+              cityCoords={cityCoords}
+              onCityCoordsUsed={onCityCoordsUsed}
+            />
+          </div>
+        </div>
         <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
+        {selectedStoreLocations && selectedStoreLocations.length > 0 && (
+          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-primary mb-2 flex items-center gap-1">
+              <Store className="h-3.5 w-3.5" /> {selectedStoreLocations.length} {t("mapSpecificStoresSelected")}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {selectedStoreLocations.map((s) => (
+                <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-2.5 py-1 rounded-lg font-medium">
+                  {s.name}
+                  {s.address && <span className="opacity-70">· {s.address.split(",")[0]}</span>}
+                  <button onClick={() => onChangeStoreLocations(selectedStoreLocations.filter((x) => x.id !== s.id))} className="ml-0.5 opacity-70 hover:opacity-100">
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <button onClick={() => onChangeStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
+              {t("clearPinnedStores")}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Macros */}
@@ -140,7 +175,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       )}
       <button
         onClick={onBuild}
-        disabled={loading || (enabled.stores && stores.length === 0) || (enabled.macros && macroTotal !== 100)}
+        disabled={loading || (enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100)}
         className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
       >
         <Sparkles className="h-5 w-5 mr-2" />
