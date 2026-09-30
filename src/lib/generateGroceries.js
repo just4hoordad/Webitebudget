@@ -296,7 +296,7 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
-  const call = (prompt, model = "gemini_3_flash") => base44.integrations.Core.InvokeLLM({
+  const call = (prompt, model = "gemini_3_1_pro") => base44.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: useWebSearch,
     model,
