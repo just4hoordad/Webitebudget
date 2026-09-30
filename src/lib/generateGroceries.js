@@ -23,6 +23,9 @@ const GROCERY_SCHEMA = {
                 store: { type: "string" },
                 calories_info: { type: "string", description: "Energy density, e.g. '370 kcal/100g'" },
                 total_kcal: { type: "number", description: "Total kilocalories in the full purchased quantity (all packs combined)" },
+                protein_g: { type: "number", description: "Total grams of protein in the full purchased quantity" },
+                carb_g: { type: "number", description: "Total grams of carbohydrates in the full purchased quantity" },
+                fat_g: { type: "number", description: "Total grams of fat in the full purchased quantity" },
               },
             },
           },
@@ -59,7 +62,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 6;
+const PROMPT_VERSION = 7;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -123,7 +126,7 @@ Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by 
 Language: ${langLabel}.
 ${knownPricesText ? `PRICE REFERENCE (prices observed earlier — use them ONLY to price products you choose; this is NOT a shopping list, do not copy it or limit your selection to it):\n${knownPricesText}\n` : ""}
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
-${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats).` : ""}
+${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the OVERALL grocery list hits this split as closely as possible (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats). For EVERY item you MUST fill protein_g, carb_g and fat_g with the total grams of each macronutrient in the full purchased quantity (all packs combined), using realistic German food-composition values. The sum of (protein_g*4 + carb_g*4 + fat_g*9) across all items must roughly equal the sum of total_kcal, and the resulting percentage split (by kcal) must be within ±8 percentage points of the target (${macros.protein}/${macros.carbs}/${macros.fats}).` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item. Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
@@ -131,7 +134,7 @@ Rules:
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the typical price for the same quantity at a regular/mid-range supermarket (e.g. Rewe, Edeka). This shows how much cheaper the budget store option is.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g") and total_kcal to the total kilocalories of the full purchased quantity. The sum of all total_kcal should be close to ${Math.round(calories * days)} kcal — enough food for ${days} days, not more.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g"), total_kcal to the total kilocalories of the full purchased quantity, and protein_g/carb_g/fat_g to the total grams of each macronutrient in that same full quantity. The sum of all total_kcal should be close to ${Math.round(calories * days)} kcal — enough food for ${days} days, not more.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
@@ -269,6 +272,42 @@ function validateGroceries(result, p) {
       issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Swap low-calorie filler for cheap calorie-dense staples (oats, rice, pasta, bread, legumes, oil) while staying within budget.`);
     } else if (kcal > target * 1.3) {
       issues.push(`The list contains ~${Math.round(kcal)} kcal, ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed — far too much food. Reduce quantities so the total is close to ${target} kcal, keeping the variety of products.`);
+    }
+  }
+  // Macro-split check — only when the user set a target split AND the model
+  // returned per-item macro grams. Compares the actual kcal-derived split to
+  // the requested one and flags deviations beyond ±8 percentage points.
+  if (p.macros) {
+    const macroItems = items.filter((i) =>
+      Number(i.protein_g) > 0 || Number(i.carb_g) > 0 || Number(i.fat_g) > 0);
+    if (macroItems.length >= items.length / 2) {
+      const pKcal = macroItems.reduce((s, i) => s + Number(i.protein_g) * 4, 0);
+      const cKcal = macroItems.reduce((s, i) => s + Number(i.carb_g) * 4, 0);
+      const fKcal = macroItems.reduce((s, i) => s + Number(i.fat_g) * 9, 0);
+      const total = pKcal + cKcal + fKcal;
+      if (total > 0) {
+        const actual = {
+          protein: Math.round((pKcal / total) * 100),
+          carbs: Math.round((cKcal / total) * 100),
+          fats: Math.round((fKcal / total) * 100),
+        };
+        const dev = {
+          protein: actual.protein - p.macros.protein,
+          carbs: actual.carbs - p.macros.carbs,
+          fats: actual.fats - p.macros.fats,
+        };
+        const worst = Math.max(Math.abs(dev.protein), Math.abs(dev.carbs), Math.abs(dev.fats));
+        if (worst > 8) {
+          issues.push(
+            `Macro split is ${actual.protein}%P/${actual.carbs}%C/${actual.fats}%F but the target is ${p.macros.protein}%P/${p.macros.carbs}%C/${p.macros.fats}%F. ` +
+            `Shift the mix toward the target: ${dev.protein < 0 ? "add more protein-rich foods (eggs, skyr, chicken, quark, lentils)" : "reduce protein-heavy items"}; ${dev.carbs < 0 ? "add more grains/rice/pasta/fruit" : "reduce carb-heavy items"}; ${dev.fats < 0 ? "add more oils/nuts/butter/avocado" : "reduce fat-heavy items"}. Keep total calories and budget unchanged.`
+          );
+        }
+      } else {
+        issues.push("All items have 0 macro grams — fill protein_g, carb_g and fat_g for every item.");
+      }
+    } else if (macroItems.length === 0) {
+      issues.push("No per-item macro grams were returned — fill protein_g, carb_g and fat_g for every item so the macro split can be checked.");
     }
   }
   const selected = String(p.stores || "").toLowerCase();
