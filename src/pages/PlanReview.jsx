@@ -74,7 +74,7 @@ export default function PlanReview() {
   return (
     <div className="max-w-xl mx-auto space-y-5">
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/budget")}
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors -ml-1"
       >
         <ArrowLeft className="h-4 w-4" /> {t("reviewBack") || "Back to edit"}

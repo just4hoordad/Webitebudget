@@ -38,6 +38,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route element={<Layout />}>
                 <Route path="/" element={null} />
+                <Route path="/budget" element={null} />
                 <Route path="/meal-plan" element={null} />
                 <Route path="/plan-review" element={<PlanReview />} />
                 <Route path="/plan-builder" element={null} />

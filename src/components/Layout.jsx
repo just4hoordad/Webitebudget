@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2 } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -13,6 +13,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import Footer from "@/components/Footer";
 import HomePage from "../pages/Home";
+import BudgetPlannerPage from "@/pages/BudgetPlanner";
+import { modeText } from "@/lib/translations_modes";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
 import MealPlanPage from "../pages/MealPlan";
 import PlanBuilderPage from "../pages/PlanBuilder";
@@ -21,7 +23,7 @@ import { useState, useEffect } from "react";
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -61,11 +63,13 @@ export default function Layout() {
     } catch { /* ignore */ }
   };
 
-  const PERSIST_PATHS = ["/", "/saved-plans", "/meal-plan", "/plan-builder"];
+  const PERSIST_PATHS = ["/", "/budget", "/saved-plans", "/meal-plan", "/plan-builder"];
+  const budgetLabel = modeText(currentLanguage?.code).budgetTitle;
   const isPersistRoute = PERSIST_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
     { path: "/", label: t("home"), icon: Home },
+    { path: "/budget", label: budgetLabel, icon: Wallet },
     { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
   ];
@@ -228,6 +232,9 @@ export default function Layout() {
           {/* Always-mounted tab pages — hidden via CSS to preserve state */}
           <div style={{ display: location.pathname === "/" ? "block" : "none" }}>
             <HomePage />
+          </div>
+          <div style={{ display: location.pathname === "/budget" ? "block" : "none" }}>
+            <BudgetPlannerPage />
           </div>
           <div style={{ display: location.pathname === "/saved-plans" ? "block" : "none" }}>
             <SavedMealPlansPage />
