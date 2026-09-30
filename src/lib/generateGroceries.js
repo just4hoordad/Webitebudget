@@ -126,7 +126,7 @@ ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. O
 ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the overall grocery list supports this macro split (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats).` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
-2. Pick the cheapest store for each item.
+2. Pick the cheapest store for each item. Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
@@ -218,7 +218,7 @@ const WEB_SEARCH_MIN_PRICES = 20;
 function validateGroceries(result, p) {
   const items = (result?.categories || []).flatMap((c) => c.items || []);
   const issues = [];
-  const minItems = p.days >= 14 ? 15 : 10;
+  const minItems = p.days >= 14 ? 12 : 8;
   if (items.length < minItems) {
     issues.push(`Only ${items.length} products — include at least ${minItems} distinct products (vary proteins, grains, vegetables, fruit, dairy).`);
   }
@@ -247,10 +247,10 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
-  const call = (prompt) => base44.integrations.Core.InvokeLLM({
+  const call = (prompt, model = "gemini_3_flash") => base44.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: useWebSearch,
-    model: "gemini_3_flash",
+    model,
     response_json_schema: GROCERY_SCHEMA,
   });
 
@@ -261,7 +261,7 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
   if (issues.length) {
     const prevList = (result?.categories || []).flatMap((c) => c.items || [])
       .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
-    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`);
+    const retry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "gemini_3_1_pro");
     const retryIssues = validateGroceries(retry, p);
     if (retryIssues.length <= issues.length) { result = retry; issues = retryIssues; }
   }
