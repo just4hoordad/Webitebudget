@@ -36,12 +36,14 @@ function SectionHeader({ icon: Icon, label, active, onToggle, id }) {
   );
 }
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed }) {
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed }) {
   const { t } = useLanguage();
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
   const hasStores = stores.length > 0 || (selectedStoreLocations && selectedStoreLocations.length > 0);
-  const buildDisabled = !loading && ((enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100));
+  const macrosDone = macrosSet && macroTotal === 100;
+  const basicsMissing = (enabled.diet && !diet) || (enabled.people && !(people > 0)) || (enabled.days && !(days >= 1));
+  const buildDisabled = !loading && (basicsMissing || (enabled.stores && !hasStores) || (enabled.macros && !macrosDone));
   const disabledReason = buildDisabled
     ? (enabled.stores && !hasStores ? t("buildDisabledStore") : t("buildDisabledMacros"))
     : null;
@@ -63,7 +65,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
   }, []);
 
   const showStickyBuild = formInView && !buildInView;
-  const buildBtnDisabled = loading || (enabled.stores && !hasStores) || (enabled.macros && macroTotal !== 100);
+  const buildBtnDisabled = loading || buildDisabled;
 
   return (
     <div ref={formRef} className="space-y-6">
@@ -77,11 +79,11 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       <StepProgress
         steps={[
-          { key: "diet", label: t("dietPreference"), done: !!diet },
-          { key: "people", label: t("numberOfPeople"), done: people > 0 },
-          { key: "days", label: t("durationDays") || "Duration", done: days >= 1 },
+          { key: "diet", label: t("dietPreference"), required: enabled.diet, done: !enabled.diet || !!diet },
+          { key: "people", label: t("numberOfPeople"), required: enabled.people, done: !enabled.people || people > 0 },
+          { key: "days", label: t("durationDays") || "Duration", required: enabled.days, done: !enabled.days || days >= 1 },
           { key: "stores", label: t("preferredStores"), required: enabled.stores, done: !enabled.stores || hasStores },
-          { key: "macros", label: t("macroTitle"), required: enabled.macros, done: !enabled.macros || macroTotal === 100 },
+          { key: "macros", label: t("macroTitle"), required: enabled.macros, done: !enabled.macros || macrosDone },
         ]}
         onStepClick={(key) => document.getElementById(`pb-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
       />

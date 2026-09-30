@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -29,14 +29,32 @@ export default function PlanBuilder() {
   const { t, currentLanguage } = useLanguage();
   const { guarded } = useMonetization();
   const [phase, setPhase] = useState("setup");
-  const [diet, setDiet] = useState(() => loadPrefs().diet || "balanced");
-  const [days, setDays] = useState(7);
-  const [people, setPeople] = useState(() => loadPrefs().people || 1);
-  const [stores, setStores] = useState(() => loadPrefs().stores || ["Aldi", "Lidl"]);
+  const [diet, setDiet] = useState(() => loadPrefs().diet || "");
+  const [days, setDays] = useState(() => loadPrefs().days || 0);
+  const [people, setPeople] = useState(() => loadPrefs().people || 0);
+  const [stores, setStores] = useState(() => loadPrefs().stores || []);
   const [postalCode, setPostalCode] = useState(() => loadPrefs().postalCode || "");
   const [selectedStoreLocations, setSelectedStoreLocations] = useState(() => loadPrefs().selectedStoreLocations || []);
   const [cityCoords, setCityCoords] = useState(null);
-  const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
+  const [macros, setMacrosRaw] = useState(() => loadPrefs().macros || { protein: 30, carbs: 40, fats: 30 });
+  const [macrosSet, setMacrosSet] = useState(() => !!loadPrefs().macros);
+  const setMacros = (m) => { setMacrosRaw(m); setMacrosSet(true); };
+
+  // Restore saved inputs from the logged-in user's account
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(async (ok) => {
+      if (!ok) return;
+      const p = (await base44.auth.me())?.planBuilderPrefs;
+      if (!p) return;
+      if (p.diet) setDiet(p.diet);
+      if (p.days) setDays(p.days);
+      if (p.people) setPeople(p.people);
+      if (p.stores) setStores(p.stores);
+      if (p.postalCode) setPostalCode(p.postalCode);
+      if (p.selectedStoreLocations) setSelectedStoreLocations(p.selectedStoreLocations);
+      if (p.macros) { setMacrosRaw(p.macros); setMacrosSet(true); }
+    });
+  }, []);
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
   const [prepEnabled, setPrepEnabled] = useState(true);
   const [plan, setPlan] = useState(null);
@@ -75,7 +93,9 @@ export default function PlanBuilder() {
   };
 
   const startPlan = () => {
-    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ diet, people, stores, postalCode, selectedStoreLocations })); } catch { /* ignore */ }
+    const prefs = { diet, people, days, stores, postalCode, selectedStoreLocations, macros };
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* ignore */ }
+    base44.auth.isAuthenticated().then((ok) => ok && base44.auth.updateMe({ planBuilderPrefs: prefs }));
     setPlan(Array.from({ length: days }, () => ({ breakfast: [], lunch: [], dinner: [] })));
     setGrocery(null);
     setPhase("grid");
@@ -356,7 +376,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   return (
     <div className="space-y-4">
       <CreditBar variant="onLight" />
-      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} />
+      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} />
     </div>
   );
 }
