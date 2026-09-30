@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import BudgetInput from "@/components/BudgetInput";
+import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -89,7 +90,7 @@ export default function BudgetForm() {
     goal: "maintain",
   });
   const [people, setPeople] = useState(1);
-  const [days, setDays] = useState(0);
+  const [days, setDays] = useState(1);
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
   const [junkPercent, setJunkPercent] = useState([0]);
@@ -251,26 +252,7 @@ export default function BudgetForm() {
               </div>
 
               {/* Duration */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min={0}
-                    max={30}
-                    value={days}
-                    onFocus={e => e.target.select()}
-                    onChange={e => setDays(e.target.value)}
-                    onBlur={e => {
-                      const val = parseInt(e.target.value, 10);
-                      setDays(!isNaN(val) ? Math.min(30, Math.max(0, val)) : 0);
-                    }}
-                    className="flex-1 border border-border rounded-xl px-4 py-3 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="1-30"
-                  />
-                  <span className="font-heading font-bold text-sm text-muted-foreground">{t("days") || "days"}</span>
-                </div>
-              </div>
+              <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} />
 
               {/* People */}
               <div className="space-y-3">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Slider } from "@/components/ui/slider";
+import DurationInput from "@/components/DurationInput";
 import { Switch } from "@/components/ui/switch";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
@@ -114,9 +115,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       {/* Days */}
       <div className="space-y-3">
         <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} />
-        <div className={`flex items-center gap-4 ${disabledCls("days")}`}>
-          <Slider value={[days]} onValueChange={([v]) => setDays(v)} min={1} max={30} step={1} className="flex-1" />
-          <span className="font-heading font-bold text-lg w-20 text-right">{days} {t("days")}</span>
+        <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("days")}`}>
+          <DurationInput value={days} onChange={setDays} />
         </div>
       </div>
 
