@@ -61,43 +61,43 @@
   }
 
   .soft {
-    /* Alpine Crisp — soft gray light variant */
-    --background: 220 14% 94%;
-    --foreground: 220 24% 14%;
-    --card: 220 14% 96%;
-    --card-foreground: 220 24% 14%;
-    --popover: 220 14% 96%;
-    --popover-foreground: 220 24% 14%;
-    --primary: 83 67% 45%;
-    --primary-foreground: 220 24% 14%;
-    --secondary: 220 12% 90%;
-    --secondary-foreground: 220 24% 14%;
-    --muted: 220 12% 90%;
-    --muted-foreground: 220 8% 42%;
-    --accent: 83 67% 45%;
-    --accent-foreground: 220 24% 14%;
+    /* Sage Mist — gray light variant with a faint sage-green undertone */
+    --background: 83 21% 92%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 72 77% 56%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 83 15% 88%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 83 15% 88%;
+    --muted-foreground: 83 8% 40%;
+    --accent: 72 77% 56%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 12% 80%;
-    --input: 220 12% 80%;
-    --ring: 83 67% 45%;
+    --border: 216 12% 84%;
+    --input: 216 12% 84%;
+    --ring: 72 77% 56%;
     --dark: 220 24% 11%;
     --dark-foreground: 0 0% 100%;
     --dark-muted: 214 20% 60%;
-    --chart-1: 83 67% 45%;
+    --chart-1: 72 77% 56%;
     --chart-2: 200 80% 50%;
     --chart-3: 280 60% 58%;
     --chart-4: 340 70% 55%;
     --chart-5: 45 96% 51%;
     --radius: 0.875rem;
-    --sidebar-background: 220 14% 95%;
-    --sidebar-foreground: 220 24% 14%;
-    --sidebar-primary: 83 67% 45%;
-    --sidebar-primary-foreground: 220 24% 14%;
-    --sidebar-accent: 220 12% 90%;
-    --sidebar-accent-foreground: 220 24% 14%;
-    --sidebar-border: 220 12% 80%;
-    --sidebar-ring: 83 67% 45%;
+    --sidebar-background: 83 18% 93%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 72 77% 56%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 83 15% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 216 12% 84%;
+    --sidebar-ring: 72 77% 56%;
   }
 
   .dark {
