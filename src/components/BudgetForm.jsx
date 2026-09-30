@@ -13,7 +13,7 @@ import MacroRatioControl from "@/components/MacroRatioControl";
 import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
 import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
-import BudgetPresets from "@/components/BudgetPresets";
+
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -231,17 +231,6 @@ export default function BudgetForm() {
           </div>
           <AccordionContent>
             <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
-              {/* Quick presets — common configs increase cache collisions */}
-              <BudgetPresets
-                budget={budget[0]}
-                days={days}
-                people={people}
-                onApply={(p) => {
-                  setBudget([p.budget]);
-                  setDays(p.days);
-                  setPeople(p.people);
-                }}
-              />
               {/* Budget Slider */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
