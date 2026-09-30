@@ -30,7 +30,7 @@ export const sectionLabelTranslations = {
     storesSection: "Bitte wähle deinen Supermarkt aus",
     noStoresSelected: "Kein Supermarkt ausgewählt",
     lifestyleSection: "Bitte wähle deine Essgewohnheiten aus",
-    pantrySection: "Bitte wähle deine Vorratskammer aus",
+    pantrySection: "Bitte wähle deine vorhandenen Vorräte aus",
     pantryEmptySummary: "Füge Grundnahrungsmittel hinzu, die du schon hast",
   },
   fr: {
@@ -92,7 +92,7 @@ export const sectionLabelTranslations = {
   uk: {
     configurePreferences: "Налаштувати параметри",
     macroTitle: "Співвідношення макронутрієнтів",
-    macroDesc: "Налаштуйте частку білків, вуглеводнів та жирів у вашому раціоні",
+    macroDesc: "Налаштуйте частку білків, вуглеводів та жирів у вашому раціоні",
     basicsSection: "Оберіть свій бюджет",
     budgetLabel: "Бюджет",
     durationLabel: "Тривалість",
@@ -230,7 +230,7 @@ export const sectionLabelTranslations = {
     pantryEmptySummary: "Lägg till basvaror du redan har",
   },
   no: {
-    configurePreferences: "Still inn preferenser",
+    configurePreferences: "Still inn preferanser",
     macroTitle: "Makronæringsfordeling",
     macroDesc: "Still inn andelen protein, karbohydrater og fett i kostholdet ditt",
     basicsSection: "Velg budsjettet ditt",
@@ -282,7 +282,7 @@ export const sectionLabelTranslations = {
     dietSection: "Vyberte si stravu",
     storesSection: "Vyberte si supermarket",
     lifestyleSection: "Vyberte si stravovací návyky",
-    pantrySection: "Vyberte si spižírně",
+    pantrySection: "Vyberte si zásoby ve spíži",
     pantryEmptySummary: "Přidejte základní potraviny, které už máte",
   },
   hu: {

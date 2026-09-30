@@ -458,7 +458,7 @@ export default function BudgetForm() {
               </div>
               {selectedStoreLocations.length > 0 ? (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-primary mb-2">📍 Specific stores pinned from map:</p>
+                  <p className="text-xs font-semibold text-primary mb-2">📍 {t("pinnedStores")}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedStoreLocations.map((s) => (
                       <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">

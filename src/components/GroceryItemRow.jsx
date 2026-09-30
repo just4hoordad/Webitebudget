@@ -21,8 +21,8 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
         <button
           onClick={onToggleBought}
           className="shrink-0 mt-0.5"
-          title="Mark as bought"
-          aria-label="Mark as bought"
+          title={t(bought ? "markUnbought" : "markBought")}
+          aria-label={t(bought ? "markUnbought" : "markBought")}
         >
           {bought
             ? <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -36,7 +36,7 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
           {item._loading && <Loader2 className="h-3 w-3 animate-spin text-primary inline ml-2 align-middle" />}
         </p>
         {item._loading ? (
-          <p className="text-xs text-primary animate-pulse mt-1">Searching {stores} for best price…</p>
+          <p className="text-xs text-primary animate-pulse mt-1">{t("searchingPrices", { stores })}</p>
         ) : (
           <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
             {item.store && <StoreBadge store={item.store} />}
@@ -64,7 +64,7 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
           )}
           {savings > 0 && (
             <span className="inline-flex items-center border border-primary/50 text-primary text-[11px] font-medium px-2 py-0.5 rounded-full">
-              saves €{savings.toFixed(2)}
+              {t("savingsAmount", { amount: savings.toFixed(2) })}
             </span>
           )}
           {!readOnly && (
@@ -72,14 +72,14 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
               <button
                 onClick={() => onSwap(item, categoryName)}
                 className="text-muted-foreground/60 hover:text-primary transition-colors p-1"
-                title="Find alternative"
+                title={t("findAlternative")}
               >
                 <ArrowLeftRight className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => onRemove(categoryName, item.name)}
                 className="text-muted-foreground/60 hover:text-destructive transition-colors p-1"
-                title="Remove item"
+                title={t("removeItem")}
               >
                 <X className="h-3.5 w-3.5" />
               </button>

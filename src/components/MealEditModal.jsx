@@ -3,8 +3,10 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, onSave, onClose }) {
+  const { t } = useLanguage();
   const [mealName, setMealName] = useState(meal.name || "");
   const [ingredients, setIngredients] = useState(meal.ingredients || []);
 
@@ -31,7 +33,7 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
     onClose();
   };
 
-  const mealTypeLabel = mealType === "breakfast" ? "🌅 Breakfast" : mealType === "lunch" ? "☀️ Lunch" : "🌙 Dinner";
+  const mealTypeLabel = t(mealType);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
@@ -46,8 +48,8 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
         {/* Header */}
         <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium text-primary uppercase tracking-wide">{mealTypeLabel} · Edit</p>
-            <h2 className="font-heading font-bold text-foreground mt-0.5">Edit Meal</h2>
+            <p className="text-xs font-medium text-primary uppercase tracking-wide">{mealTypeLabel} · {t("editMeal")}</p>
+            <h2 className="font-heading font-bold text-foreground mt-0.5">{t("editMeal")}</h2>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors mt-1">
             <X className="h-5 w-5" />
@@ -57,23 +59,23 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
         <div className="p-5 space-y-4 overflow-y-auto flex-1">
           {/* Meal name */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Meal Name</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("mealName")}</label>
             <Input
               value={mealName}
               onChange={(e) => setMealName(e.target.value)}
-              placeholder="e.g., Pasta Carbonara"
+              placeholder={t("mealName")}
               className="w-full"
             />
           </div>
 
           {/* Calories */}
           <div className="text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded-lg">
-            Calories: {meal.calories} kcal
+            {t("calories")}: {meal.calories} kcal
           </div>
 
           {/* Ingredients */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Ingredients</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("ingredients")}</label>
             <div className="space-y-2">
               <AnimatePresence>
                 {ingredients.map((ing, i) => (
@@ -82,7 +84,7 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
                       <Input
                         value={ing.name}
                         onChange={(e) => handleIngredientChange(i, "name", e.target.value)}
-                        placeholder="Ingredient name"
+                        placeholder={t("ingredientName")}
                         className="text-sm"
                       />
                     </div>
@@ -90,7 +92,7 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
                       <Input
                         value={ing.quantity}
                         onChange={(e) => handleIngredientChange(i, "quantity", e.target.value)}
-                        placeholder="e.g., 200g"
+                        placeholder="200 g"
                         className="text-sm"
                       />
                     </div>
@@ -105,7 +107,7 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
               </AnimatePresence>
               <Button onClick={handleAddIngredient} variant="outline" size="sm" className="w-full gap-2">
                 <Plus className="h-4 w-4" />
-                Add Ingredient
+                {t("addIngredient")}
               </Button>
             </div>
           </div>
@@ -114,10 +116,10 @@ export default function MealEditModal({ meal, mealType, dayIndex, groceryItems, 
         {/* Footer */}
         <div className="bg-card border-t border-border px-5 py-4 pb-6 flex gap-3 shrink-0">
           <Button variant="outline" size="sm" onClick={onClose} className="flex-1">
-            Cancel
+            {t("cancel")}
           </Button>
           <Button className="flex-1" onClick={handleSave}>
-            Save Changes
+            {t("saveChanges")}
           </Button>
         </div>
       </motion.div>

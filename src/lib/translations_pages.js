@@ -34,7 +34,7 @@ const pageTranslations = {
     aboutCta: "Bereit, gut und günstig zu essen?",
     aboutCtaBtn: "Meinen Mahlzeitenplan erstellen →",
     contactTitle: "Kontakt",
-    contactSubtitle: "Hast du eine Frage, einen Vorschlag oder möchtest einfach Hallo sagen? Wir freuen uns von dir zu hören.",
+    contactSubtitle: "Hast du eine Frage, einen Vorschlag oder möchtest einfach Hallo sagen? Wir freuen uns, von dir zu hören.",
     contactOwnerLabel: "Inhaber — Hourdad Alisedaghat",
     contactSendMessage: "Nachricht senden",
     contactNamePH: "Dein Name", contactEmailPH: "Deine E-Mail", contactMsgPH: "Deine Nachricht…",

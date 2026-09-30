@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import translations from "./translations";
 import { euTranslations } from "./translations_eu";
 import { planBuilderTranslations } from "./translations_planbuilder";
@@ -8,13 +8,17 @@ import sectionLabelTranslations from "./translations_sections";
 import { pantryTranslations } from "./translations_pantry";
 import { loaderTranslations } from "./translations_loader";
 import calorieTranslations from "./translations_calorie";
+import sharedTranslations from "./translations_shared";
 
 // Deep-merge per language so Plan Builder keys don't overwrite full language objects.
 const _merged = { ...translations };
 Object.keys(planBuilderTranslations).forEach((lang) => {
   _merged[lang] = { ...(_merged[lang] || {}), ...planBuilderTranslations[lang] };
 });
-const allTranslations = { ..._merged, ...euTranslations };
+const allTranslations = { ..._merged };
+Object.keys(euTranslations).forEach((lang) => {
+  allTranslations[lang] = { ...euTranslations[lang], ...(allTranslations[lang] || {}) };
+});
 // Merge nav labels last so they apply to every language (main + EU).
 Object.keys(navTranslations).forEach((lang) => {
   allTranslations[lang] = { ...(allTranslations[lang] || {}), ...navTranslations[lang] };
@@ -38,6 +42,10 @@ Object.keys(loaderTranslations).forEach((lang) => {
 // Merge Calorie calculator labels for every language.
 Object.keys(calorieTranslations).forEach((lang) => {
   allTranslations[lang] = { ...(allTranslations[lang] || {}), ...calorieTranslations[lang] };
+});
+
+Object.entries(sharedTranslations).forEach(([lang, labels]) => {
+  allTranslations[lang] = { ...(allTranslations[lang] || {}), ...labels };
 });
 
 const LANGUAGES = [
@@ -79,7 +87,13 @@ export function LanguageProvider({ children }) {
     () => localStorage.getItem("app_language") || "en"
   );
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = ["ar", "fa"].includes(language) ? "rtl" : "ltr";
+  }, [language]);
+
   const changeLanguage = (code) => {
+    if (!LANGUAGES.some((lang) => lang.code === code)) return;
     setLanguage(code);
     localStorage.setItem("app_language", code);
   };
