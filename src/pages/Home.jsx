@@ -1,22 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import BudgetForm from "../components/BudgetForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingCart, LogOut } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PullToRefresh from "@/components/PullToRefresh";
 import CreditBar from "@/components/monetization/CreditBar";
 import AdSlot from "@/components/ads/AdSlot";
-import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function Home() {
   const { t } = useLanguage();
-  const { clearProStatus } = useMonetization();
-  const [user, setUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding_completed")
   );
@@ -26,32 +19,7 @@ export default function Home() {
     setShowOnboarding(false);
   };
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {}).finally(() => setAuthChecked(true));
-  }, []);
-
-  const handleLogout = async () => {
-    clearProStatus();
-    try { await base44.auth.logout(); } catch { /* ignore */ }
-    setUser(null);
-    window.location.reload();
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
-    setDeleting(true);
-    if (typeof base44.auth.deleteAccount === "function") {
-      await base44.auth.deleteAccount();
-    } else {
-      alert("Account deletion is not available yet. Please contact support.");
-    }
-    setDeleting(false);
-  };
-
-  const handleRefresh = async () => {
-    const me = await base44.auth.me().catch(() => null);
-    setUser(me);
-  };
+  const handleRefresh = async () => {};
 
   const scrollToForm = () => {
     document.getElementById("plan-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -60,8 +28,8 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="space-y-6">
-        {/* Hero Banner */}
-        <div className="relative rounded-3xl overflow-hidden h-96 border border-border">
+        {/* Hero Banner — shorter on mobile so the planner peeks into view */}
+        <div className="relative rounded-3xl overflow-hidden h-72 sm:h-96 border border-border">
           <img
             src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80"
             alt="Fresh groceries"
@@ -72,14 +40,6 @@ export default function Home() {
             {/* Credit header — inline on the glass card */}
             <CreditBar variant="onGlass" className="mb-3" />
             <div className="border-t border-white/15 mb-4" />
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-                <ShoppingCart className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="font-heading font-bold text-lg tracking-tight text-white">
-                Budget<span className="text-primary">Bite</span>
-              </span>
-            </div>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white leading-tight">
               {t("heroTitle1")} <span className="text-primary">{t("heroTitle2")}</span>
             </h1>
@@ -93,66 +53,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Display ad — above the planner */}
-        <AdSlot layout="fixed-height" style={{ minHeight: 90 }} />
-
         {/* Budget Form */}
         <div id="plan-form">
           <BudgetForm />
         </div>
 
-        {/* Account */}
-        {user && (
-          <div className="border border-border rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="font-medium text-sm text-foreground">{user.full_name || user.email}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 shrink-0"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                {t("logout") || "Log out"}
-              </Button>
-            </div>
-            <button
-              onClick={handleDeleteAccount}
-              disabled={deleting}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-destructive transition-colors disabled:opacity-50"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {deleting ? (t("deleting") || "Deleting...") : (t("deleteAccount") || "Delete account")}
-            </button>
-          </div>
-        )}
-
-        {!user && authChecked && (
-          <div className="border border-border rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
-            <div className="min-w-0">
-              <p className="font-medium text-sm text-foreground">{t("loginToSave") || "Log in to save plans and sync your pantry"}</p>
-              <p className="text-xs text-muted-foreground">{t("loginSubtitle") || "Optional — you can still plan without an account."}</p>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Link to="/login">
-                <Button variant="outline" size="sm">{t("login") || "Log in"}</Button>
-              </Link>
-              <Link to="/register">
-                <Button size="sm">{t("signUp") || "Sign up"}</Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center pb-4">
-          <Link to="/datenschutz" className="text-xs text-muted-foreground hover:text-primary underline transition-colors">
-            {t("privacyNav")}
-          </Link>
-        </div>
+        {/* Display ad — below the planner so it doesn't interrupt the plan flow */}
+        <AdSlot layout="fixed-height" style={{ minHeight: 90 }} />
 
         <OnboardingModal open={showOnboarding} onClose={closeOnboarding} />
       </div>

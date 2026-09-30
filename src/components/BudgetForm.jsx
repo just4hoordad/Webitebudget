@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import StoreSpeedHint from "@/components/StoreSpeedHint";
 import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
+import StepProgress from "@/components/StepProgress";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi", color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -104,6 +105,24 @@ export default function BudgetForm() {
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
+  const formRef = useRef(null);
+  const generateRef = useRef(null);
+  const [formInView, setFormInView] = useState(false);
+  const [genInView, setGenInView] = useState(false);
+
+  useEffect(() => {
+    const f = formRef.current;
+    const g = generateRef.current;
+    if (!f || !g) return;
+    const fObs = new IntersectionObserver(([entry]) => setFormInView(entry.isIntersecting), { threshold: 0.05 });
+    const gObs = new IntersectionObserver(([entry]) => setGenInView(entry.isIntersecting), { threshold: 0.05 });
+    fObs.observe(f);
+    gObs.observe(g);
+    return () => { fObs.disconnect(); gObs.disconnect(); };
+  }, []);
+
+  const showStickyGenerate = formInView && !genInView;
+
   const addTag = (value, list, setList, setInput) => {
     const trimmed = value.trim();
     if (trimmed && !list.includes(trimmed)) setList([...list, trimmed]);
@@ -183,7 +202,15 @@ export default function BudgetForm() {
     : selectedStores.map(id => ALL_STORES.find(s => s.id === id)?.name || id).join(", ");
 
   return (
-    <div className="space-y-5">
+    <div ref={formRef} className="space-y-5">
+      <StepProgress
+        steps={[
+          { key: "basics", label: t("basicsSection") || "Basics" },
+          { key: "diet", label: t("dietSection") || "Diet" },
+          { key: "stores", label: t("storesSection") || "Stores" },
+          { key: "pantry", label: t("pantrySection") || "Pantry" },
+        ]}
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Left column - Plan Your Meals */}
         <div className="space-y-3">
@@ -531,15 +558,35 @@ export default function BudgetForm() {
       </div>
 
       {/* Generate Button */}
-      <Button
-        onClick={handleGenerate}
-        disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-        size="lg"
-      >
-        {t("generateBtn")}
-        <ArrowRight className="ml-2 h-5 w-5" />
-      </Button>
+      <div ref={generateRef}>
+        <Button
+          onClick={handleGenerate}
+          disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
+          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+          size="lg"
+        >
+          {t("generateBtn")}
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Sticky generate bar — mobile only, shown while the inline button is off-screen */}
+      {showStickyGenerate && (
+        <div
+          className="md:hidden fixed left-3 right-3 z-40"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
+        >
+          <Button
+            onClick={handleGenerate}
+            disabled={enabled.stores && selectedStoreLocations.length === 0 && selectedStores.length === 0}
+            className="w-full h-12 text-sm font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30"
+            size="lg"
+          >
+            {t("generateBtn")}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

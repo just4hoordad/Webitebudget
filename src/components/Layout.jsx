@@ -3,13 +3,15 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
 import UpgradeBanner from "@/components/monetization/UpgradeBanner";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { useAuth } from "@/lib/AuthContext";
+import { base44 } from "@/api/base44Client";
+import Footer from "@/components/Footer";
 import HomePage from "../pages/Home";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
 import MealPlanPage from "../pages/MealPlan";
@@ -23,7 +25,7 @@ export default function Layout() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const { isPro, credits, openPricing, openDonation } = useMonetization();
+  const { isPro, credits, openPricing, openDonation, clearProStatus } = useMonetization();
   const { isAuthenticated, user, logout, navigateToLogin } = useAuth();
   const showUpgrade = !isPro;
 
@@ -45,6 +47,18 @@ export default function Layout() {
       setInstallPrompt(null);
       setIsInstalled(true);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+    clearProStatus();
+    try {
+      if (typeof base44.auth.deleteAccount === "function") {
+        await base44.auth.deleteAccount();
+      } else {
+        alert("Account deletion is not available yet. Please contact support.");
+      }
+    } catch { /* ignore */ }
   };
 
   const PERSIST_PATHS = ["/", "/saved-plans", "/meal-plan", "/plan-builder"];
@@ -133,18 +147,27 @@ export default function Layout() {
         {/* Footer */}
         <div className="p-4 border-t border-border shrink-0 space-y-3">
           {isAuthenticated && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary">
-              <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                <User className="h-4 w-4 text-primary" />
+            <>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary">
+                <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                </div>
+                <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
-              </div>
-              <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
-                <LogOut className="h-4 w-4" />
+              <button
+                onClick={handleDeleteAccount}
+                className="flex items-center gap-1.5 px-3 py-1 text-[11px] text-muted-foreground/70 hover:text-destructive transition-colors w-full"
+              >
+                <Trash2 className="h-3 w-3" />
+                {t("deleteAccount") || "Delete account"}
               </button>
-            </div>
+            </>
           )}
           {showUpgrade && <UpgradeBanner onClick={openPricing} />}
           <SupportUsButton onClick={openDonation} />
@@ -229,6 +252,7 @@ export default function Layout() {
               </motion.div>
             </AnimatePresence>
           )}
+          <Footer />
         </main>
 
         <CookieBanner />
@@ -298,19 +322,28 @@ export default function Layout() {
               >
                 <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted" />
                 {isAuthenticated && (
-                  <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
-                    <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                      <User className="h-5 w-5 text-primary" />
+                  <>
+                    <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
+                      <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      </div>
+                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors text-xs font-medium">
+                        <LogOut className="h-4 w-4" />
+                        {t("logoutNav")}
+                      </button>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                    </div>
-                    <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors text-xs font-medium">
-                      <LogOut className="h-4 w-4" />
-                      {t("logoutNav")}
+                    <button
+                      onClick={handleDeleteAccount}
+                      className="flex items-center gap-1.5 mb-3 px-3 py-2 rounded-xl text-xs text-muted-foreground/70 hover:text-destructive transition-colors w-full"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t("deleteAccount") || "Delete account"}
                     </button>
-                  </div>
+                  </>
                 )}
                 <div className="grid grid-cols-3 gap-3">
                   {secondaryNavItems.map((item) => {
