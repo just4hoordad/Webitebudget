@@ -29,7 +29,7 @@ function SectionHeader({ icon: Icon, label, active, onToggle }) {
       <label className="text-sm font-medium text-foreground flex items-center gap-2">
         {Icon && <Icon className="h-4 w-4 text-primary" />} {label}
       </label>
-      <Switch checked={active} onCheckedChange={onToggle} aria-label={`Toggle ${label}`} />
+      {onToggle && <Switch checked={active} onCheckedChange={onToggle} aria-label={`Toggle ${label}`} />}
     </div>
   );
 }
@@ -75,7 +75,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Diet */}
       <div>
-        <SectionHeader icon={Leaf} label={t("dietPreference")} active={enabled.diet} onToggle={() => toggleSetting("diet")} />
+        <SectionHeader icon={Leaf} label={t("dietPreference")} />
         <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${disabledCls("diet")}`}>
           {DIET_KEYS.map((d) => {
             const Icon = d.icon;
@@ -101,7 +101,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* People */}
       <div className="space-y-3">
-        <SectionHeader icon={Users} label={t("numberOfPeople")} active={enabled.people} onToggle={() => toggleSetting("people")} />
+        <SectionHeader icon={Users} label={t("numberOfPeople")} />
         <div className={`flex gap-2 ${disabledCls("people")}`}>
           {[1, 2, 3, 4].map((n) => (
             <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
@@ -113,7 +113,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Days */}
       <div className="space-y-3">
-        <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} active={enabled.days} onToggle={() => toggleSetting("days")} />
+        <SectionHeader icon={CalendarDays} label={t("durationDays") || "Duration"} />
         <div className={`flex items-center gap-4 ${disabledCls("days")}`}>
           <Slider value={[days]} onValueChange={([v]) => setDays(v)} min={1} max={30} step={1} className="flex-1" />
           <span className="font-heading font-bold text-lg w-20 text-right">{days} {t("days")}</span>
@@ -122,7 +122,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       {/* Stores */}
       <div className="space-y-3">
-        <SectionHeader icon={Store} label={t("preferredStores")} active={enabled.stores} onToggle={() => toggleSetting("stores")} />
+        <SectionHeader icon={Store} label={t("preferredStores")} />
         <div className={`flex flex-wrap gap-2 ${disabledCls("stores")}`}>
           {STORES.map((s) => (
             <button key={s} onClick={() => toggleStore(s)} className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all ${stores.includes(s) ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>

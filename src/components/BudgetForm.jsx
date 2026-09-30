@@ -227,7 +227,6 @@ export default function BudgetForm() {
                 summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${t("headcountLabel") || "People"} ${people}`}
               />
             </AccordionTrigger>
-            <SectionToggle active={enabled.basics} onToggle={() => toggleSection("basics")} label={t("basicsSection") || "Basics"} />
           </div>
           <AccordionContent>
             <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
@@ -325,7 +324,6 @@ export default function BudgetForm() {
                 summary={`${dietLabel} · ${computeDailyCalories(calorieMetrics) || 0} kcal · P${macros.protein}/C${macros.carbs}/F${macros.fats}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}`}
               />
             </AccordionTrigger>
-            <SectionToggle active={enabled.diet} onToggle={() => toggleSection("diet")} label={t("dietSection") || "Diet"} />
           </div>
           <AccordionContent>
             <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
@@ -414,7 +412,6 @@ export default function BudgetForm() {
                 summary={`${storeNamesSummary || t("noStoresSelected")}${storeNamesSummary && bio ? " · Bio" : ""}${storeNamesSummary && saleHunt ? " · sale hunt" : ""}`}
               />
             </AccordionTrigger>
-            <SectionToggle active={enabled.stores} onToggle={() => toggleSection("stores")} label={t("storesSection") || "Stores"} />
           </div>
           <AccordionContent>
             <div className={`space-y-3 pt-1 ${dimCls("stores")}`}>
