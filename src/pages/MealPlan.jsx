@@ -44,6 +44,16 @@ import CreditPill from "@/components/monetization/CreditPill";
 import AdSlot from "@/components/ads/AdSlot";
 import { useMonetization } from "@/lib/MonetizationContext";
 
+// sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
+// revisiting a plan costs zero credits instead of regenerating from scratch.
+const PLAN_PREFIX = "bb_plan_";
+const getPlanCache = (sig) => {
+  try { const raw = sessionStorage.getItem(PLAN_PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
+};
+const setPlanCache = (sig, data) => {
+  try { sessionStorage.setItem(PLAN_PREFIX + sig, JSON.stringify(data)); } catch { /* ignore */ }
+};
+
 export default function MealPlan() {
   const { t, currentLanguage } = useLanguage();
   const { guarded, credits, isPro, openPricing } = useMonetization();
@@ -78,7 +88,6 @@ export default function MealPlan() {
   const searchKey = window.location.search;
   const lastGenKey = useRef(null);
   const genCache = useRef({});
-  const planCache = useRef({});
   const [planStyle, setPlanStyle] = useState(() => new URLSearchParams(window.location.search).get("planStyle") === "unique" ? "unique" : "repeat");
   const autoGenStarted = useRef(false);
 
@@ -451,38 +460,24 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     ).join(", ");
 
     const sig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, totalDays });
-    const cached = planCache.current[sig];
+    const cached = getPlanCache(sig);
     if (cached) return cached;
 
-    const allWeeks = [];
-    let usedMeals = [];
     setLoadingPlan(true);
     try {
-      for (let w = 0; w < totalWeeks; w++) {
-        const weekNum = w + 1;
-        const daysInThisWeek = w === totalWeeks - 1 ? totalDays - w * 7 : 7;
-        const prevSummary = usedMeals.slice(-42).join(", ");
-        let weekDays = null;
-        for (let attempt = 0; attempt < 3 && !weekDays; attempt++) {
-          try {
-            const result = await base44.integrations.Core.InvokeLLM({
-              prompt: buildWeekPrompt(availableItems, weekNum, totalWeeks, daysInThisWeek, prevSummary),
-              response_json_schema: { type: "object", properties: { days: { type: "array", items: daySchema } } },
-            });
-            if (Array.isArray(result.days) && result.days.length > 0) {
-              weekDays = result.days.slice(0, daysInThisWeek);
-            }
-          } catch (e) {
-            if (attempt === 2) throw e;
-          }
-        }
-        allWeeks.push({ week: weekNum, days: weekDays || [] });
-        usedMeals = allWeeks
-          .flatMap((wk) => wk.days.flatMap((d) => [d.breakfast, d.lunch, d.dinner]))
-          .filter(Boolean);
-      }
-      planCache.current[sig] = allWeeks;
-      return allWeeks;
+      // Single multi-week call instead of one call per week — a 30-day plan
+      // drops from ~5 credits to ~1. The prompt already instructs the model
+      // to vary meals across weeks.
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: buildMultiWeekPrompt(availableItems),
+        response_json_schema: multiWeekPlanSchema,
+      });
+      const weeks = (result.weeks || []).map((w, i) => ({
+        week: w.week || i + 1,
+        days: Array.isArray(w.days) ? w.days : [],
+      }));
+      setPlanCache(sig, weeks);
+      return weeks;
     } finally {
       setLoadingPlan(false);
     }
@@ -497,7 +492,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
     const daysInWeek = Math.min(totalDays, 7);
     const wkSig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, daysInWeek });
-    const wkCached = planCache.current[wkSig];
+    const wkCached = getPlanCache(wkSig);
     if (wkCached) {
       setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: wkCached }] });
       return;
@@ -508,7 +503,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       response_json_schema: weeklyPlanSchema
     });
     const days = result.days || [];
-    planCache.current[wkSig] = days;
+    setPlanCache(wkSig, days);
     setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days }] });
     setLoadingPlan(false);
   };
@@ -520,8 +515,34 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
   // Auto-generate the meal plan once the grocery list is ready, using the
   // style the user picked on the reassurance screen (repeat vs unique weeks).
+  // Before generating, hydrate from the sessionStorage plan cache so revisiting
+  // a plan (refresh / back / re-open) costs zero credits.
   useEffect(() => {
     if (loading || !groceries || weeklyPlan || autoGenStarted.current) return;
+
+    const availableItems = groceries?.categories?.flatMap(cat =>
+      cat.items
+        .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+        .map(item => `${item.name} (${item.quantity})`)
+    ).join(", ");
+
+    if (planStyle === "repeat") {
+      const daysInWeek = Math.min(totalDays, 7);
+      const wkSig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, daysInWeek });
+      const wkCached = getPlanCache(wkSig);
+      if (wkCached) {
+        setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: wkCached }] });
+        return;
+      }
+    } else {
+      const sig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, totalDays });
+      const cached = getPlanCache(sig);
+      if (cached) {
+        setWeeklyPlan({ type: "unique", weeks: cached });
+        return;
+      }
+    }
+
     autoGenStarted.current = true;
     (async () => {
       try {
