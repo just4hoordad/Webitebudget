@@ -222,12 +222,18 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
   const [loadingStores, setLoadingStores] = useState(false);
   const [center, setCenter] = useState([51.1657, 10.4515]);
   const [pendingFlyTo, setPendingFlyTo] = useState(null);
-  const [tileUrl, setTileUrl] = useState(() => {
-    const customKey = typeof import.meta !== "undefined" && import.meta.env?.VITE_CARTO_KEY;
-    return customKey
-      ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${customKey}`
-      : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
-  });
+  const [tileUrl, setTileUrl] = useState("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png");
+
+  useEffect(() => {
+    base44.functions
+      .invoke("getMapConfig", {})
+      .then((res) => {
+        if (res?.data?.tileUrl) {
+          setTileUrl(res.data.tileUrl);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (cityCoords) {
