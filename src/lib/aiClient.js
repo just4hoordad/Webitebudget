@@ -32,9 +32,35 @@ const BUSY = {
   vi: "AI đang bận — vui lòng thử lại sau giây lát.",
 };
 
+const FALLBACK = {
+  en: "AI is running in backup mode — results may take a little longer.",
+  de: "Die KI läuft im Ausweichmodus – Ergebnisse können etwas länger dauern.",
+  fa: "هوش مصنوعی در حالت پشتیبان اجرا می‌شود — نتایج ممکن است کمی بیشتر طول بکشد.",
+  ru: "ИИ работает в резервном режиме — результаты могут занять чуть больше времени.",
+  zh: "AI 正在备用模式下运行 — 结果可能稍慢。",
+  fr: "L'IA fonctionne en mode de secours — les résultats peuvent prendre un peu plus de temps.",
+  es: "La IA funciona en modo de respaldo — los resultados pueden tardar un poco más.",
+  it: "L'IA è in modalità di riserva — i risultati potrebbero richiedere un po' più di tempo.",
+  pt: "A IA está em modo de reserva — os resultados podem demorar um pouco mais.",
+  pl: "AI działa w trybie zapasowym — wyniki mogą pojawić się nieco później.",
+  nl: "De AI draait in back-upmodus — resultaten kunnen iets langer duren.",
+  sv: "AI:n körs i reservläge — resultaten kan ta lite längre tid.",
+  no: "AI-en kjører i reservemodus — resultatene kan ta litt lengre tid.",
+  da: "AI'en kører i reservetilstand — resultaterne kan tage lidt længere tid.",
+  fi: "Tekoäly toimii varatilassa — tulokset voivat viedä hieman kauemmin.",
+  cs: "AI běží v záložním režimu — výsledky mohou trvat o něco déle.",
+  hu: "Az MI tartalék módban fut — az eredmények kicsit tovább tarthatnak.",
+  ro: "AI-ul rulează în modul de rezervă — rezultatele pot dura puțin mai mult.",
+  el: "Η τεχνητή νοημοσύνη λειτουργεί σε εφεδρική λειτουργία — τα αποτελέσματα ίσως αργήσουν λίγο.",
+  uk: "ШІ працює в резервному режимі — результати можуть зайняти трохи більше часу.",
+  tr: "Yapay zeka yedek modda çalışıyor — sonuçlar biraz daha uzun sürebilir.",
+  ar: "يعمل الذكاء الاصطناعي في الوضع الاحتياطي — قد تستغرق النتائج وقتًا أطول قليلاً.",
+  vi: "AI đang chạy ở chế độ dự phòng — kết quả có thể mất thêm chút thời gian.",
+};
+
+const lang = () => (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
 function busyMessage() {
-  const lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
-  return BUSY[lang] || BUSY.en;
+  return BUSY[lang()] || BUSY.en;
 }
 
 let warnedFallback = false;
@@ -62,10 +88,7 @@ export async function invokeAI({ prompt, response_json_schema, model, add_contex
   console.warn("OpenRouter unavailable, falling back to Base44 credits:", data?.error);
   if (!warnedFallback) {
     warnedFallback = true;
-    toast({
-      title: "OpenRouter unavailable",
-      description: "AI requests are temporarily using Base44 credits. Check your OpenRouter balance.",
-    });
+    toast({ title: FALLBACK[lang()] || FALLBACK.en });
   }
 
   try {
