@@ -568,7 +568,16 @@ export default function BudgetForm() {
       </div>
 
       {/* Generate Button */}
-      <div ref={generateRef}>
+      <div ref={generateRef} className="space-y-2">
+        {!canGenerate && (
+          <p className="text-xs text-destructive text-center font-medium">
+            {!(budget[0] > 0)
+              ? "Please enter your monthly budget"
+              : enabled.diet && !metricsFilled
+              ? "Please enter your height, weight and age in the Diet section"
+              : "Please select at least one store"}
+          </p>
+        )}
         <Button
           onClick={handleGenerate}
           disabled={!canGenerate}
