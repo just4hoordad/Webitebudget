@@ -325,19 +325,19 @@ export default function BudgetForm() {
                   onClick={() => setSaleHunt(!saleHunt)}
                   className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
                     saleHunt
-                      ? "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700"
-                      : "bg-card border-border hover:border-amber-400/60"
+                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
+                      : "bg-card border-border hover:border-primary/40"
                   }`}
                 >
                   <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    saleHunt ? "bg-amber-400 text-amber-900" : "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
+                    saleHunt ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                   }`}>
                     <Tag className="h-5 w-5" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       {t("saleHunt")}
-                      {saleHunt && <TrendingDown className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />}
+                      {saleHunt && <TrendingDown className="h-3.5 w-3.5 text-primary" />}
                     </p>
                     <p className="text-xs text-muted-foreground leading-snug">{t("saleHuntDesc")}</p>
                   </div>
@@ -407,12 +407,12 @@ export default function BudgetForm() {
                   onClick={() => setBio(!bio)}
                   className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
                     bio
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700"
-                      : "bg-card border-border hover:border-emerald-400/60"
+                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
+                      : "bg-card border-border hover:border-primary/40"
                   }`}
                 >
                   <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    bio ? "bg-emerald-400 text-emerald-900" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
+                    bio ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                   }`}>
                     <Leaf className="h-5 w-5" />
                   </span>
@@ -554,7 +554,7 @@ export default function BudgetForm() {
                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
                                  isSelected
                                    ? "bg-current/15 text-current"
-                                   : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                                   : "bg-primary/10 text-primary border border-primary/30"
                                }`}
                                title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
                              >
@@ -586,7 +586,7 @@ export default function BudgetForm() {
                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
                                  isSelected
                                    ? "bg-current/15 text-current"
-                                   : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                                   : "bg-primary/10 text-primary border border-primary/30"
                                }`}
                                title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
                              >
@@ -598,7 +598,7 @@ export default function BudgetForm() {
                      })}
                    </div>
                    <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
-                     <TrendingDown className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                     <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
                      <span>
                        {t("storeDiscountExplanation") || "Estimated discount % calculated from current shelf prices for your diet & macro split"}
                      </span>
