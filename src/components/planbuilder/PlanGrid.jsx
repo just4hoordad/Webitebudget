@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import MealGallery from "@/components/planbuilder/MealGallery";
 import ListView from "@/components/planbuilder/ListView";
 import WeekView from "@/components/planbuilder/WeekView";
 import MonthView from "@/components/planbuilder/MonthView";
+import StickyGenerateBar from "@/components/StickyGenerateBar";
 import { planStartDate, dateForIndex, WD } from "@/lib/planDates";
 import { dishList, mealFilled } from "@/lib/planDishes";
 
@@ -21,6 +22,24 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
   const [slotType, setSlotType] = useState("breakfast");
   const [scope, setScope] = useState("day");
   const [activeDay, setActiveDay] = useState(0);
+
+  const formRef = useRef(null);
+  const generateRef = useRef(null);
+  const [formInView, setFormInView] = useState(true);
+  const [genInView, setGenInView] = useState(true);
+
+  useEffect(() => {
+    const f = formRef.current;
+    const g = generateRef.current;
+    if (!f || !g) return;
+    const fObs = new IntersectionObserver(([entry]) => setFormInView(entry.isIntersecting), { threshold: 0.05 });
+    const gObs = new IntersectionObserver(([entry]) => setGenInView(entry.isIntersecting), { threshold: 0.05 });
+    fObs.observe(f);
+    gObs.observe(g);
+    return () => { fObs.disconnect(); gObs.disconnect(); };
+  }, []);
+
+  const showStickyGenerate = formInView && !genInView;
 
   const startDate = useMemo(planStartDate, []);
   const slots = [
@@ -74,7 +93,7 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
   ];
 
   return (
-    <div className="space-y-4">
+    <div ref={formRef} className="space-y-4">
       <div>
         <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
           <Utensils className="h-4 w-4" /> {t("planGridTitle", { days: plan.length })}
@@ -199,7 +218,7 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
         <Switch checked={prepEnabled} onCheckedChange={setPrepEnabled} aria-label="Toggle prep guide" />
       </div>
 
-      <div className="space-y-2">
+      <div ref={generateRef} className="space-y-2">
         <div className="flex items-center gap-2 px-1">
           <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-primary transition-all duration-300" style={{ width: `${totalSlots ? (filledSlots / totalSlots) * 100 : 0}%` }} />
@@ -214,6 +233,13 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
           {t("generateGroceryFromPlan")} <ArrowRight className="ml-2 h-4 w-4" />
         </button>
       </div>
+
+      <StickyGenerateBar
+        visible={showStickyGenerate}
+        onClick={onGenerate}
+        disabled={generating}
+        label={t("generateGroceryFromPlan")}
+      />
     </div>
   );
 }
