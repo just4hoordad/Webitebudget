@@ -1,6 +1,4 @@
 {
-  "name": "Daily Price Catalog Refresh",
-  "description": "",
   "trigger": {
     "condition": null,
     "config": {
@@ -9,7 +7,7 @@
       "schedule_mode": "recurring",
       "cron_expression": "0 1 * * *",
       "one_time_date": null,
-      "timezone": "UTC",
+      "timezone": "Europe/Berlin",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
@@ -18,6 +16,8 @@
       "ends_after_count": null
     }
   },
+  "name": "Daily Price Catalog Refresh",
+  "description": "Daily price refresh for German supermarket staples in the PriceEstimate database.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -33,7 +33,11 @@
             "function_name": "refreshPriceCatalog",
             "args": {}
           },
-          "then": "end"
+          "then": "end",
+          "x-base44": {
+            "title": "T\u00e4glicher Preiskatalog Refresh",
+            "description": "T\u00e4gliche Aktualisierung der Supermarktpreise"
+          }
         }
       }
     ]

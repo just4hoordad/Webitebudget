@@ -1,6 +1,4 @@
 {
-  "name": "Weekly Price Catalog Refresh",
-  "description": "Refreshes German supermarket prices in the PriceCatalog database once a week. This keeps prices accurate without requiring AI calls for every user.",
   "trigger": {
     "condition": null,
     "config": {
@@ -9,7 +7,7 @@
       "schedule_mode": "recurring",
       "cron_expression": "0 1 * * 1",
       "one_time_date": null,
-      "timezone": "UTC",
+      "timezone": "Europe/Berlin",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
@@ -18,6 +16,8 @@
       "ends_after_count": null
     }
   },
+  "name": "Weekly Price Catalog Refresh",
+  "description": "Refreshes German supermarket prices in the PriceEstimate database once a week. This keeps prices accurate without requiring AI calls for every user.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -33,7 +33,11 @@
             "function_name": "refreshPriceCatalog",
             "args": {}
           },
-          "then": "end"
+          "then": "end",
+          "x-base44": {
+            "title": "Preiskatalog aktualisieren",
+            "description": "W\u00f6chentliche Aktualisierung der Supermarktpreise"
+          }
         }
       }
     ]
