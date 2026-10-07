@@ -6,6 +6,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import MacroRatioControl from "@/components/MacroRatioControl";
 import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
+import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 import {
   Leaf, Beef, Fish, Wheat, Scale, Microwave, Users, CalendarDays,
   Store, ArrowRight, Sparkles, ShoppingCart, MapPin, X, Tag, TrendingDown,
@@ -76,46 +77,18 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
   const showStickyBuild = formInView && !buildInView;
   const buildBtnDisabled = loading || buildDisabled;
 
-  // ── Guided accordion advancement ──
-  const STEP_ORDER = ["diet", "people", "days", "stores", "macros"];
-  const [openSection, setOpenSection] = useState("diet");
-  const [advancedFrom, setAdvancedFrom] = useState(null); // tracks which section auto-advanced (avoids loop)
-
-  // Section completion checks (only required fields gate advancement)
-  const sectionDone = (key) => {
-    if (key === "diet") return enabled.diet ? !!diet : true;
-    if (key === "people") return enabled.people ? people > 0 : true;
-    if (key === "days") return enabled.days ? days >= 1 : true;
-    if (key === "stores") return enabled.stores ? hasStores : true;
-    if (key === "macros") return enabled.macros ? macrosDone : true;
-    return true;
-  };
-
-  // Auto-advance: when the open section becomes complete, close it + open next
-  useEffect(() => {
-    if (!openSection) return;
-    if (!sectionDone(openSection)) return;
-    if (advancedFrom === openSection) return; // already advanced from here
-    const idx = STEP_ORDER.indexOf(openSection);
-    const next = STEP_ORDER.slice(idx + 1).find((k) => enabled[k] !== false && !sectionDone(k));
-    setAdvancedFrom(openSection);
-    setOpenSection(next || STEP_ORDER[idx + 1] || openSection);
-  }, [openSection, diet, people, days, hasStores, macrosDone]);
-
-  const goToSection = (key) => {
-    setOpenSection(key);
-    setAdvancedFrom(null);
-    setTimeout(() => document.getElementById(`pb-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
-  const handleAccordionChange = (val) => {
-    // Single-open: opening any section closes all others; closing = no open
-    setAdvancedFrom(null);
-    setOpenSection(val || "");
-    if (val) {
-      setTimeout(() => document.getElementById(`pb-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    }
-  };
+  const { openSection, selectSection, withStepInput } = useGuidedAccordion({
+    steps: ["diet", "people", "days", "stores", "macros"],
+    completed: {
+      diet: !enabled.diet || !!diet,
+      people: !enabled.people || people > 0,
+      days: !enabled.days || days >= 1,
+      stores: !enabled.stores || hasStores,
+      macros: !enabled.macros || macrosDone,
+    },
+    formRef,
+    prefix: "pb-",
+  });
 
   const dietLabel = diet ? t(DIET_KEYS.find(d => d.id === diet)?.nameKey) : (t("dietPreference") || "Diet");
   const storeNames = stores.length > 0 ? stores.join(", ") : (selectedStoreLocations && selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name).join(", ") : (t("noStoresSelected") || "No stores"));
@@ -138,10 +111,11 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
           { key: "stores", label: t("preferredStores"), required: enabled.stores, done: !enabled.stores || hasStores },
           { key: "macros", label: t("macroTitle"), required: enabled.macros, done: !enabled.macros || macrosDone },
         ]}
-        onStepClick={goToSection}
+        activeStep={openSection}
+        onStepClick={selectSection}
       />
 
-      <Accordion type="single" collapsible value={openSection} onValueChange={handleAccordionChange} className="space-y-3">
+      <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
 
         {/* ── Diet ── */}
         <AccordionItem id="pb-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
@@ -158,7 +132,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
                 return (
                   <button
                     key={d.id}
-                    onClick={() => setDiet(d.id)}
+                    onClick={withStepInput("diet", () => setDiet(d.id))}
                     className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border ${
                       sel ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20" : "bg-card text-foreground border-border hover:border-primary/40 hover:shadow-md"
                     }`}
@@ -185,7 +159,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
           <AccordionContent>
             <div className={`flex gap-2 pb-2 ${disabledCls("people")}`}>
               {[1, 2, 3, 4].map((n) => (
-                <button key={n} onClick={() => setPeople(n)} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
+                <button key={n} onClick={withStepInput("people", () => setPeople(n))} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
                   {n} {n === 1 ? t("person") : t("people")}
                 </button>
               ))}
@@ -202,7 +176,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
           </div>
           <AccordionContent>
             <div className={`pb-2 ${disabledCls("days")}`}>
-              <DurationInput value={days} onChange={setDays} />
+              <DurationInput value={days} onChange={withStepInput("days", setDays)} />
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -223,7 +197,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
                   return (
                     <button
                       key={s}
-                      onClick={() => toggleStore(s)}
+                      onClick={withStepInput("stores", () => toggleStore(s))}
                       className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all inline-flex items-center gap-1.5 ${
                         isSelected
                           ? "bg-primary text-primary-foreground border-primary shadow-sm"
@@ -273,9 +247,9 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
                   <div className="shrink-0 py-1">
                     <StoreMapPicker
                       selectedStoreLocations={selectedStoreLocations || []}
-                      onChangeStoreLocations={onChangeStoreLocations}
+                      onChangeStoreLocations={withStepInput("stores", onChangeStoreLocations)}
                       selectedChains={stores}
-                      onToggleChain={toggleStore}
+                      onToggleChain={withStepInput("stores", toggleStore)}
                       cityCoords={cityCoords}
                       onCityCoordsUsed={onCityCoordsUsed}
                     />
@@ -317,14 +291,14 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
                 label={t("macroTitle")}
                 summary={macrosDone ? `P${macros.protein}/C${macros.carbs}/F${macros.fats}` : (t("pickMacros") || "Set macros")}
                 extra={
-                  <Switch checked={enabled.macros} onCheckedChange={() => toggleSetting("macros")} aria-label={t("macroTitle")} onClick={(e) => e.stopPropagation()} />
+                  <Switch checked={enabled.macros} onCheckedChange={withStepInput("macros", () => toggleSetting("macros"))} aria-label={t("macroTitle")} onClick={(e) => e.stopPropagation()} />
                 }
               />
             </AccordionTrigger>
           </div>
           <AccordionContent>
             <div className={`pb-2 ${disabledCls("macros")}`}>
-              <MacroRatioControl value={macros} onChange={setMacros} unset={!macrosSet} />
+              <MacroRatioControl value={macros} onChange={withStepInput("macros", setMacros)} unset={!macrosSet} />
             </div>
           </AccordionContent>
         </AccordionItem>

@@ -1,12 +1,12 @@
 import { Check, AlertCircle } from "lucide-react";
 
 // steps: [{ key, label, done, required }]
-export default function StepProgress({ steps, onStepClick }) {
+export default function StepProgress({ steps, onStepClick, activeStep }) {
   const currentIdx = steps.findIndex((s) => !s.done);
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {steps.map((s, i) => {
-        const isCurrent = i === currentIdx;
+        const isCurrent = activeStep === undefined ? i === currentIdx : s.key === activeStep;
         const missing = s.required && !s.done && (currentIdx === -1 || i < currentIdx || steps.slice(i + 1).some((x) => x.done));
         const showLabel = isCurrent || missing;
         const cls = missing
@@ -22,6 +22,7 @@ export default function StepProgress({ steps, onStepClick }) {
               type="button"
               onClick={() => onStepClick?.(s.key)}
               title={s.label}
+              aria-current={isCurrent ? "step" : undefined}
               className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 min-w-0 transition-colors ${cls}`}
             >
               <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${missing ? "bg-destructive text-destructive-foreground" : s.done || isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ArrowRight, Euro, Users, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Sparkles, Package, TrendingDown } from "lucide-react";
+import { ArrowRight, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Package, TrendingDown } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 import { getStoreDiscount } from "@/lib/storeDiscounts";
 import StoreSpeedHint from "@/components/StoreSpeedHint";
@@ -17,6 +17,7 @@ import MacroRatioControl from "@/components/MacroRatioControl";
 import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
 import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
+import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 
 
 const GROCERY_STORES = [
@@ -111,21 +112,12 @@ export default function BudgetForm() {
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
-  // ── Guided accordion advancement ──
-  // One logical sequence across both columns: basics → diet → stores → pantry.
-  // Only one section open at a time. Completing the open section closes it and
-  // opens the next incomplete one; opening any section (incl. a previous one)
-  // makes it the sole open section and scrolls it into view.
-  const STEP_ORDER = ["basics", "diet", "stores", "pantry"];
-  const [openSection, setOpenSection] = useState("basics");
-  const [advancedFrom, setAdvancedFrom] = useState(null);
   const [visited, setVisited] = useState({ diet: false, pantry: false });
 
   const formRef = useRef(null);
   const generateRef = useRef(null);
   const [formInView, setFormInView] = useState(false);
   const [genInView, setGenInView] = useState(false);
-  const prevDoneRef = useRef(null);
 
   useEffect(() => {
     const f = formRef.current;
@@ -247,49 +239,18 @@ export default function BudgetForm() {
     ? selectedStoreLocations.map(s => s.name).join(", ")
     : selectedStores.map(id => ALL_STORES.find(s => s.id === id)?.name || id).join(", ");
 
-  const sectionDone = (key) => {
-    if (key === "basics") return budget[0] > 0;
-    if (key === "diet") return !enabled.diet || metricsFilled;
-    if (key === "stores") return !enabled.stores || storeCount > 0;
-    if (key === "pantry") return true; // pantry is optional, never blocks
-    return true;
-  };
-
-  useEffect(() => {
-    if (!openSection) { prevDoneRef.current = null; return; }
-    const done = sectionDone(openSection);
-    const wasDone = prevDoneRef.current;
-    prevDoneRef.current = done;
-    if (!done) { setAdvancedFrom(null); return; }
-    if (advancedFrom === openSection) return; // already advanced from here
-    if (wasDone === true) return; // was already done when opened — user re-opened it, stay
-    const idx = STEP_ORDER.indexOf(openSection);
-    const next = STEP_ORDER.slice(idx + 1).find((k) => !sectionDone(k));
-    setAdvancedFrom(openSection);
-    setOpenSection(next || STEP_ORDER[idx + 1] || openSection);
-    if (next) setVisited((p) => ({ ...p, [next]: true }));
-  }, [openSection, budget[0], metricsFilled, storeCount, advancedFrom]);
-
-  const goToStep = (key) => {
-    setAdvancedFrom(null);
-    setOpenSection(key);
-    if (key === "diet" || key === "pantry") setVisited((p) => ({ ...p, [key]: true }));
-    setTimeout(() => document.getElementById(`step-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
-  const handleLeftChange = (val) => {
-    setAdvancedFrom(null);
-    setOpenSection(val || "");
-    if (val) setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-  const handleRightChange = (val) => {
-    setAdvancedFrom(null);
-    setOpenSection(val || "");
-    if (val) {
-      if (val === "diet" || val === "pantry") setVisited((p) => ({ ...p, [val]: true }));
-      setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    }
-  };
+  const { openSection, selectSection, withStepInput } = useGuidedAccordion({
+    steps: ["basics", "diet", "stores", "pantry"],
+    completed: {
+      basics: budget[0] > 0,
+      diet: !enabled.diet || metricsFilled,
+      stores: !enabled.stores || storeCount > 0,
+      pantry: true,
+    },
+    formRef,
+    prefix: "step-",
+    onOpen: (key) => setVisited((previous) => ({ ...previous, [key]: true })),
+  });
 
   return (
     <div ref={formRef} className="space-y-5">
@@ -300,13 +261,14 @@ export default function BudgetForm() {
           { key: "stores", label: t("storesSection") || "Stores", required: enabled.stores, done: !enabled.stores || storeCount > 0 },
           { key: "pantry", label: t("pantrySection") || "Pantry", done: visited.pantry },
         ]}
-        onStepClick={goToStep}
+        activeStep={openSection}
+        onStepClick={selectSection}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Left column - Plan Your Meals */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
-          <Accordion type="single" collapsible value={openSection} onValueChange={handleLeftChange} className="space-y-3">
+          <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Basics ── */}
         <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
@@ -322,10 +284,10 @@ export default function BudgetForm() {
             <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
               {/* Budget Slider */}
               <div className="space-y-4">
-                <BudgetInput value={budget[0]} onChange={v => setBudget([v])} label={t("monthlyBudget")} />
+                <BudgetInput value={budget[0]} onChange={withStepInput("basics", (value) => setBudget([value]))} label={t("monthlyBudget")} />
                 <Slider
                   value={[budget[0]]}
-                  onValueChange={setBudget}
+                  onValueChange={withStepInput("basics", setBudget)}
                   max={2400}
                   min={0}
                   step={5}
@@ -396,7 +358,7 @@ export default function BudgetForm() {
         {/* Right column - Configure Preferences */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
-          <Accordion type="single" collapsible value={openSection} onValueChange={handleRightChange} className="space-y-3">
+          <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
         <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
@@ -470,7 +432,7 @@ export default function BudgetForm() {
               {/* Calorie Goal — computed from body metrics */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">{t("calorieGoal")}</label>
-                <CalorieCalculator value={calorieMetrics} onChange={setCalorieMetrics} />
+                <CalorieCalculator value={calorieMetrics} onChange={withStepInput("diet", setCalorieMetrics)} />
               </div>
 
               {/* Macronutrient Ratios */}
@@ -524,9 +486,9 @@ export default function BudgetForm() {
                 <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
                 <StoreMapPicker
                   selectedStoreLocations={selectedStoreLocations}
-                  onChangeStoreLocations={setSelectedStoreLocations}
+                  onChangeStoreLocations={withStepInput("stores", setSelectedStoreLocations)}
                   selectedChains={selectedStores}
-                  onToggleChain={toggleStore}
+                  onToggleChain={withStepInput("stores", toggleStore)}
                   cityCoords={cityCoords}
                   onCityCoordsUsed={() => setCityCoords(null)}
                 />
@@ -584,7 +546,7 @@ export default function BudgetForm() {
                        return (
                          <button
                            key={store.id}
-                           onClick={() => toggleStore(store.id)}
+                           onClick={withStepInput("stores", () => toggleStore(store.id))}
                            className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
                              isSelected
                                ? store.color + " border-current shadow-sm"
@@ -616,7 +578,7 @@ export default function BudgetForm() {
                        return (
                          <button
                            key={store.id}
-                           onClick={() => toggleStore(store.id)}
+                           onClick={withStepInput("stores", () => toggleStore(store.id))}
                            className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
                              isSelected
                                ? store.color + " border-current shadow-sm"
