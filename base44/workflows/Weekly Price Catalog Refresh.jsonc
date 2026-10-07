@@ -5,7 +5,7 @@
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "0 1 * * 1",
+      "cron_expression": "0 5 * * 1-6",
       "one_time_date": null,
       "timezone": "Europe/Berlin",
       "interval_value": null,
@@ -16,12 +16,12 @@
       "ends_after_count": null
     }
   },
-  "name": "Weekly Price Catalog Refresh",
-  "description": "Refreshes German supermarket prices in the PriceEstimate database once a week. This keeps prices accurate without requiring AI calls for every user.",
+  "name": "Daily Supermarket Price Update",
+  "description": "Daily price update across all German supermarkets (Aldi, Lidl, Kaufland, Penny, Netto, REWE, Edeka, Norma, dm, Rossmann) every morning at 05:00 Berlin time when stores update their prices, automatically skipping Sundays and German public holidays.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
-      "name": "weekly_price_catalog_refresh",
+      "name": "daily_supermarket_price_update",
       "version": "1.0",
       "namespace": "base44"
     },
@@ -35,8 +35,8 @@
           },
           "then": "end",
           "x-base44": {
-            "title": "Preiskatalog aktualisieren",
-            "description": "W\u00f6chentliche Aktualisierung der Supermarktpreise"
+            "title": "T\u00e4gliches Supermarkt-Preisupdate",
+            "description": "Aktualisiert Preise aller Superm\u00e4rkte (Mo\u2013Sa um 05:00 Uhr)"
           }
         }
       }
