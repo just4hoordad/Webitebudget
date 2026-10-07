@@ -111,16 +111,54 @@ export default function BudgetForm() {
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
-  const [leftOpen, setLeftOpen] = useState("basics");
-  const [rightOpen, setRightOpen] = useState("");
+  // ── Guided accordion advancement ──
+  // One logical sequence across both columns: basics → diet → stores → pantry.
+  // Only one section open at a time. Completing the open section closes it and
+  // opens the next incomplete one; opening any section (incl. a previous one)
+  // makes it the sole open section and scrolls it into view.
+  const STEP_ORDER = ["basics", "diet", "stores", "pantry"];
+  const [openSection, setOpenSection] = useState("basics");
+  const [advancedFrom, setAdvancedFrom] = useState(null);
   const [visited, setVisited] = useState({ diet: false, pantry: false });
-  const openRight = (v) => {
-    setRightOpen(v);
-    if (v === "diet" || v === "pantry") setVisited((p) => ({ ...p, [v]: true }));
+
+  const sectionDone = (key) => {
+    if (key === "basics") return budget[0] > 0;
+    if (key === "diet") return !enabled.diet || metricsFilled;
+    if (key === "stores") return !enabled.stores || storeCount > 0;
+    if (key === "pantry") return true; // pantry is optional, never blocks
+    return true;
   };
+
+  useEffect(() => {
+    if (!openSection) return;
+    if (!sectionDone(openSection)) return;
+    if (advancedFrom === openSection) return; // already advanced from here
+    const idx = STEP_ORDER.indexOf(openSection);
+    const next = STEP_ORDER.slice(idx + 1).find((k) => !sectionDone(k));
+    setAdvancedFrom(openSection);
+    setOpenSection(next || STEP_ORDER[idx + 1] || openSection);
+    if (next) setVisited((p) => ({ ...p, [next]: true }));
+  }, [openSection, budget[0], metricsFilled, storeCount, advancedFrom]);
+
   const goToStep = (key) => {
-    if (key === "basics") setLeftOpen("basics"); else openRight(key);
+    setAdvancedFrom(null);
+    setOpenSection(key);
+    if (key === "diet" || key === "pantry") setVisited((p) => ({ ...p, [key]: true }));
     setTimeout(() => document.getElementById(`step-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const handleLeftChange = (val) => {
+    setAdvancedFrom(null);
+    setOpenSection(val || "");
+    if (val) setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+  const handleRightChange = (val) => {
+    setAdvancedFrom(null);
+    setOpenSection(val || "");
+    if (val) {
+      if (val === "diet" || val === "pantry") setVisited((p) => ({ ...p, [val]: true }));
+      setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
   };
 
   const formRef = useRef(null);
@@ -263,7 +301,7 @@ export default function BudgetForm() {
         {/* Left column - Plan Your Meals */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
-          <Accordion type="single" collapsible value={leftOpen} onValueChange={setLeftOpen} className="space-y-3">
+          <Accordion type="single" collapsible value={openSection} onValueChange={handleLeftChange} className="space-y-3">
         {/* ── Basics ── */}
         <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
@@ -353,7 +391,7 @@ export default function BudgetForm() {
         {/* Right column - Configure Preferences */}
         <div className="space-y-3">
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
-          <Accordion type="single" collapsible value={rightOpen} onValueChange={openRight} className="space-y-3">
+          <Accordion type="single" collapsible value={openSection} onValueChange={handleRightChange} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
         <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
           <div className="flex items-center gap-2 py-4">
