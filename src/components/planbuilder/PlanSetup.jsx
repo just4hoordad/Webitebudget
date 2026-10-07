@@ -162,7 +162,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 transition-colors ${
                       isSelected
                         ? "bg-white/20 text-primary-foreground"
-                        : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                        : "bg-primary/10 text-primary border border-primary/30"
                     }`}
                     title={`Estimated ~${discount}% savings on ${diet || "staple"} essentials`}
                   >
@@ -174,7 +174,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
           })}
         </div>
         <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
-          <TrendingDown className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
           <span>
             {t("storeDiscountExplanation") || "Estimated discount % calculated from current shelf prices for your diet & macro split"}
           </span>
