@@ -15,7 +15,7 @@ export default function SetupStoreChoices({ stores, toggleStore, diet, macros, o
             <span>{store}</span>
             {discount > 0 && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 transition-colors ${selected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary border border-primary/30"}`}
-                title={`Estimated ~${discount}% savings on ${diet || "staple"} essentials`}>
+                title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${diet || "staple"} essentials`}>
                 <Tag className="h-2.5 w-2.5" /> -{discount}%
               </span>
             )}

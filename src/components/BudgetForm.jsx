@@ -541,34 +541,33 @@ export default function BudgetForm() {
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                      {GROCERY_STORES.map((store) => {
-                       const discount = getStoreDiscount(store.id, selectedDiet, macros);
-                       const isSelected = selectedStores.includes(store.id);
-                       const savings = budget[0] > 0 && discount > 0 ? (budget[0] * discount / 100) : 0;
-                       return (
-                         <button
-                           key={store.id}
-                           onClick={withStepInput("stores", () => toggleStore(store.id))}
-                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
-                             isSelected
-                               ? store.color + " border-current shadow-sm"
-                               : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                           }`}
-                         >
-                           <span>{store.name}</span>
-                           {discount > 0 && (
-                             <span
-                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
-                                 isSelected
-                                   ? "bg-current/15 text-current"
-                                   : "bg-primary/10 text-primary border border-primary/30"
-                               }`}
-                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials${savings ? ` (≈ €${savings.toFixed(2)})` : ""}`}
-                             >
-                               <Tag className="h-2.5 w-2.5" /> -{discount}%{savings > 0 ? ` €${savings.toFixed(2)}` : ""}
-                             </span>
-                           )}
-                         </button>
-                       );
+                      const discount = getStoreDiscount(store.id, selectedDiet, macros);
+                      const isSelected = selectedStores.includes(store.id);
+                      return (
+                        <button
+                          key={store.id}
+                          onClick={withStepInput("stores", () => toggleStore(store.id))}
+                          className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
+                            isSelected
+                              ? store.color + " border-current shadow-sm"
+                              : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                          }`}
+                        >
+                          <span>{store.name}</span>
+                          {discount > 0 && (
+                            <span
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                                isSelected
+                                  ? "bg-current/15 text-current"
+                                  : "bg-primary/10 text-primary border border-primary/30"
+                              }`}
+                              title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
+                            >
+                              <Tag className="h-2.5 w-2.5" /> -{discount}%
+                            </span>
+                          )}
+                        </button>
+                      );
                      })}
                    </div>
                    <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
@@ -576,7 +575,6 @@ export default function BudgetForm() {
                      {DRUGSTORES.map((store) => {
                        const discount = getStoreDiscount(store.id, selectedDiet, macros);
                        const isSelected = selectedStores.includes(store.id);
-                       const savings = budget[0] > 0 && discount > 0 ? (budget[0] * discount / 100) : 0;
                        return (
                          <button
                            key={store.id}
@@ -595,9 +593,9 @@ export default function BudgetForm() {
                                    ? "bg-current/15 text-current"
                                    : "bg-primary/10 text-primary border border-primary/30"
                                }`}
-                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials${savings ? ` (≈ €${savings.toFixed(2)})` : ""}`}
+                               title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
                              >
-                               <Tag className="h-2.5 w-2.5" /> -{discount}%{savings > 0 ? ` €${savings.toFixed(2)}` : ""}
+                               <Tag className="h-2.5 w-2.5" /> -{discount}%
                              </span>
                            )}
                          </button>
@@ -607,7 +605,7 @@ export default function BudgetForm() {
                    <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
                      <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
                      <span>
-                       {t("storeDiscountExplanation") || "Estimated discount % calculated from current shelf prices for your diet & macro split"}
+                       {t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) for your diet & macro split — actual savings depend on the items in your generated list"}
                      </span>
                    </p>
                 </div>
