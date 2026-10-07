@@ -125,6 +125,7 @@ export default function BudgetForm() {
   const generateRef = useRef(null);
   const [formInView, setFormInView] = useState(false);
   const [genInView, setGenInView] = useState(false);
+  const prevDoneRef = useRef(null);
 
   useEffect(() => {
     const f = formRef.current;
@@ -255,9 +256,13 @@ export default function BudgetForm() {
   };
 
   useEffect(() => {
-    if (!openSection) return;
-    if (!sectionDone(openSection)) return;
+    if (!openSection) { prevDoneRef.current = null; return; }
+    const done = sectionDone(openSection);
+    const wasDone = prevDoneRef.current;
+    prevDoneRef.current = done;
+    if (!done) { setAdvancedFrom(null); return; }
     if (advancedFrom === openSection) return; // already advanced from here
+    if (wasDone === true) return; // was already done when opened — user re-opened it, stay
     const idx = STEP_ORDER.indexOf(openSection);
     const next = STEP_ORDER.slice(idx + 1).find((k) => !sectionDone(k));
     setAdvancedFrom(openSection);
