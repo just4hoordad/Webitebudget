@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { MapPin, X, Check, Store } from "lucide-react";
+import { MapPin, X, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -215,7 +215,7 @@ function MapController({ stores, selectedStoreIds, onToggleStoreLocation, onStor
 // onChangeStoreLocations: (newLocations) => void
 // selectedChains: array of chain ids (for the chain-level toggles in BudgetForm)
 // onToggleChain: (chainId) => void
-export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain, cityCoords, onCityCoordsUsed }) {
+export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLocations, selectedChains, onToggleChain, cityCoords, onCityCoordsUsed, onDone }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState([]);
@@ -356,7 +356,7 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                   ? t("mapTapToPin")
                   : t("mapExactStoresUsed")}
               </p>
-              <Button size="sm" onClick={() => setOpen(false)} className="ml-3 shrink-0">{t("done")}</Button>
+              <Button size="sm" onClick={() => { setOpen(false); onDone?.(); }} className="ml-3 shrink-0">{t("done")}</Button>
             </div>
           </div>
         </div>

@@ -23,7 +23,7 @@ function matchesPreset(value, preset) {
   return value.protein === preset.protein && value.carbs === preset.carbs && value.fats === preset.fats;
 }
 
-export default function MacroRatioControl({ value, onChange, active, onToggle, unset }) {
+export default function MacroRatioControl({ value, onChange, active, onToggle, unset, onCommit }) {
   const { t } = useLanguage();
 
   const [selectedPresetId, setSelectedPresetId] = useState(() => {
@@ -35,6 +35,7 @@ export default function MacroRatioControl({ value, onChange, active, onToggle, u
   const selectPreset = (preset) => {
     setSelectedPresetId(preset.id);
     onChange({ protein: preset.protein, carbs: preset.carbs, fats: preset.fats });
+    if (preset.id !== "custom") onCommit?.();
   };
 
   // The two handles sit at the protein and protein+carbs boundaries,
@@ -93,6 +94,7 @@ export default function MacroRatioControl({ value, onChange, active, onToggle, u
         <SliderPrimitive.Root
           value={[proteinEnd, carbsEnd]}
           onValueChange={handleChange}
+          onValueCommit={() => onCommit?.()}
           max={100}
           min={0}
           step={5}
