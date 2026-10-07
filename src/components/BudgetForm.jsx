@@ -543,6 +543,7 @@ export default function BudgetForm() {
                      {GROCERY_STORES.map((store) => {
                        const discount = getStoreDiscount(store.id, selectedDiet, macros);
                        const isSelected = selectedStores.includes(store.id);
+                       const savings = budget[0] > 0 && discount > 0 ? (budget[0] * discount / 100) : 0;
                        return (
                          <button
                            key={store.id}
@@ -561,9 +562,9 @@ export default function BudgetForm() {
                                    ? "bg-current/15 text-current"
                                    : "bg-primary/10 text-primary border border-primary/30"
                                }`}
-                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
+                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials${savings ? ` (≈ €${savings.toFixed(2)})` : ""}`}
                              >
-                               <Tag className="h-2.5 w-2.5" /> -{discount}%
+                               <Tag className="h-2.5 w-2.5" /> -{discount}%{savings > 0 ? ` €${savings.toFixed(2)}` : ""}
                              </span>
                            )}
                          </button>
@@ -575,6 +576,7 @@ export default function BudgetForm() {
                      {DRUGSTORES.map((store) => {
                        const discount = getStoreDiscount(store.id, selectedDiet, macros);
                        const isSelected = selectedStores.includes(store.id);
+                       const savings = budget[0] > 0 && discount > 0 ? (budget[0] * discount / 100) : 0;
                        return (
                          <button
                            key={store.id}
@@ -593,9 +595,9 @@ export default function BudgetForm() {
                                    ? "bg-current/15 text-current"
                                    : "bg-primary/10 text-primary border border-primary/30"
                                }`}
-                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials`}
+                               title={`Estimated ~${discount}% savings on ${selectedDiet || "staple"} essentials${savings ? ` (≈ €${savings.toFixed(2)})` : ""}`}
                              >
-                               <Tag className="h-2.5 w-2.5" /> -{discount}%
+                               <Tag className="h-2.5 w-2.5" /> -{discount}%{savings > 0 ? ` €${savings.toFixed(2)}` : ""}
                              </span>
                            )}
                          </button>
