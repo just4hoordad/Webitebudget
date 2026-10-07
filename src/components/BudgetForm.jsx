@@ -605,7 +605,7 @@ export default function BudgetForm() {
                    <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
                      <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
                      <span>
-                       {t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) for your diet & macro split — actual savings depend on the items in your generated list"}
+                       {t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) on a typical basket — actual savings depend on the specific items in your generated list"}
                      </span>
                    </p>
                 </div>

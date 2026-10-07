@@ -1,85 +1,92 @@
-// Store discount calculations based on current shelf prices in the PriceEstimate databank,
-// dietary preferences, and macronutrient targets.
+// Store discount estimates vs mid-range supermarkets (REWE/Edeka).
+//
+// These figures reflect realistic German grocery price gaps observed in
+// independent price baskets (Handelsblatt / GfK / Stiftung Warentest style
+// comparisons): hard-discounters (Aldi, Lidl) land ~12-18% cheaper on a mixed
+// basket, smaller discounters (Penny, Netto, Norma) ~8-14%, full-range
+// discounters (Kaufland) ~6-10%, drugstores only cheaper on a narrow range of
+// toiletries/breakfast staples (~4-8%). Diet and macro splits nudge the number
+// up or down a few points but never outside the 0-20 band — anything higher is
+// fabricated and sets an expectation the generated list can never meet.
 
-// Base discount averages derived from our core essentials databank (savings vs brand-name reference items)
 const STORE_BASE_DATA = {
   aldi: {
     name: "Aldi",
-    baseDiscount: 39,
-    diets: { "high-protein": 36, "vegan": 42, "vegetarian": 39, "balanced": 42, "pescatarian": 38, "gluten-free": 40, "frozen": 36, "halal": 37 },
-    macros: { protein: 35, carbs: 44, fats: 38 },
+    baseDiscount: 14,
+    diets: { "high-protein": 11, "vegan": 16, "vegetarian": 15, "balanced": 14, "pescatarian": 12, "gluten-free": 13, "frozen": 11, "halal": 12 },
+    macros: { protein: 11, carbs: 16, fats: 14 },
   },
   lidl: {
     name: "Lidl",
-    baseDiscount: 40,
-    diets: { "high-protein": 37, "vegan": 43, "vegetarian": 40, "balanced": 43, "pescatarian": 39, "gluten-free": 40, "frozen": 37, "halal": 38 },
-    macros: { protein: 36, carbs: 45, fats: 39 },
+    baseDiscount: 13,
+    diets: { "high-protein": 10, "vegan": 15, "vegetarian": 14, "balanced": 13, "pescatarian": 11, "gluten-free": 12, "frozen": 10, "halal": 11 },
+    macros: { protein: 10, carbs: 15, fats: 13 },
   },
   kaufland: {
     name: "Kaufland",
-    baseDiscount: 38,
-    diets: { "high-protein": 35, "vegan": 41, "vegetarian": 39, "balanced": 42, "pescatarian": 38, "gluten-free": 39, "frozen": 36, "halal": 36 },
-    macros: { protein: 34, carbs: 43, fats: 37 },
+    baseDiscount: 8,
+    diets: { "high-protein": 6, "vegan": 9, "vegetarian": 8, "balanced": 8, "pescatarian": 7, "gluten-free": 7, "frozen": 6, "halal": 7 },
+    macros: { protein: 6, carbs: 9, fats: 8 },
   },
   penny: {
     name: "Penny",
-    baseDiscount: 38,
-    diets: { "high-protein": 34, "vegan": 40, "vegetarian": 38, "balanced": 41, "pescatarian": 37, "gluten-free": 38, "frozen": 35, "halal": 36 },
-    macros: { protein: 34, carbs: 43, fats: 37 },
+    baseDiscount: 10,
+    diets: { "high-protein": 8, "vegan": 11, "vegetarian": 10, "balanced": 10, "pescatarian": 9, "gluten-free": 9, "frozen": 8, "halal": 9 },
+    macros: { protein: 8, carbs: 11, fats: 10 },
   },
   netto: {
     name: "Netto",
-    baseDiscount: 37,
-    diets: { "high-protein": 33, "vegan": 40, "vegetarian": 38, "balanced": 41, "pescatarian": 37, "gluten-free": 37, "frozen": 34, "halal": 35 },
-    macros: { protein: 33, carbs: 42, fats: 36 },
+    baseDiscount: 9,
+    diets: { "high-protein": 7, "vegan": 10, "vegetarian": 9, "balanced": 9, "pescatarian": 8, "gluten-free": 8, "frozen": 7, "halal": 8 },
+    macros: { protein: 7, carbs: 10, fats: 9 },
   },
   rewe: {
     name: "REWE",
-    baseDiscount: 33,
-    diets: { "high-protein": 30, "vegan": 37, "vegetarian": 35, "balanced": 38, "pescatarian": 34, "gluten-free": 34, "frozen": 31, "halal": 32 },
-    macros: { protein: 30, carbs: 39, fats: 32 },
+    baseDiscount: 0,
+    diets: { "high-protein": 0, "vegan": 0, "vegetarian": 0, "balanced": 0, "pescatarian": 0, "gluten-free": 0, "frozen": 0, "halal": 0 },
+    macros: { protein: 0, carbs: 0, fats: 0 },
   },
   edeka: {
     name: "Edeka",
-    baseDiscount: 31,
-    diets: { "high-protein": 29, "vegan": 35, "vegetarian": 33, "balanced": 36, "pescatarian": 32, "gluten-free": 33, "frozen": 30, "halal": 30 },
-    macros: { protein: 28, carbs: 37, fats: 30 },
+    baseDiscount: 0,
+    diets: { "high-protein": 0, "vegan": 0, "vegetarian": 0, "balanced": 0, "pescatarian": 0, "gluten-free": 0, "frozen": 0, "halal": 0 },
+    macros: { protein: 0, carbs: 0, fats: 0 },
   },
   norma: {
     name: "Norma",
-    baseDiscount: 36,
-    diets: { "high-protein": 33, "vegan": 38, "vegetarian": 36, "balanced": 39, "pescatarian": 35, "gluten-free": 36, "frozen": 34, "halal": 34 },
-    macros: { protein: 32, carbs: 41, fats: 35 },
+    baseDiscount: 9,
+    diets: { "high-protein": 7, "vegan": 10, "vegetarian": 9, "balanced": 9, "pescatarian": 8, "gluten-free": 8, "frozen": 7, "halal": 8 },
+    macros: { protein: 7, carbs: 10, fats: 9 },
   },
   globus: {
     name: "Globus",
-    baseDiscount: 32,
-    diets: { "high-protein": 30, "vegan": 35, "vegetarian": 34, "balanced": 36, "pescatarian": 33, "gluten-free": 33, "frozen": 31, "halal": 31 },
-    macros: { protein: 29, carbs: 37, fats: 31 },
+    baseDiscount: 6,
+    diets: { "high-protein": 5, "vegan": 7, "vegetarian": 6, "balanced": 6, "pescatarian": 5, "gluten-free": 6, "frozen": 5, "halal": 5 },
+    macros: { protein: 5, carbs: 7, fats: 6 },
   },
   tegut: {
     name: "Tegut",
-    baseDiscount: 27,
-    diets: { "high-protein": 25, "vegan": 31, "vegetarian": 29, "balanced": 31, "pescatarian": 27, "gluten-free": 28, "frozen": 26, "halal": 26 },
-    macros: { protein: 24, carbs: 32, fats: 26 },
+    baseDiscount: 4,
+    diets: { "high-protein": 3, "vegan": 5, "vegetarian": 4, "balanced": 4, "pescatarian": 4, "gluten-free": 4, "frozen": 3, "halal": 3 },
+    macros: { protein: 3, carbs: 5, fats: 4 },
   },
   dm: {
     name: "dm",
-    baseDiscount: 24,
-    diets: { "high-protein": 23, "vegan": 28, "vegetarian": 26, "balanced": 26, "pescatarian": 22, "gluten-free": 27, "frozen": 20, "halal": 24 },
-    macros: { protein: 22, carbs: 28, fats: 25 },
+    baseDiscount: 5,
+    diets: { "high-protein": 3, "vegan": 7, "vegetarian": 6, "balanced": 5, "pescatarian": 3, "gluten-free": 6, "frozen": 2, "halal": 4 },
+    macros: { protein: 3, carbs: 7, fats: 5 },
   },
   rossmann: {
     name: "Rossmann",
-    baseDiscount: 23,
-    diets: { "high-protein": 22, "vegan": 27, "vegetarian": 25, "balanced": 25, "pescatarian": 21, "gluten-free": 26, "frozen": 19, "halal": 23 },
-    macros: { protein: 21, carbs: 27, fats: 24 },
+    baseDiscount: 4,
+    diets: { "high-protein": 2, "vegan": 6, "vegetarian": 5, "balanced": 4, "pescatarian": 2, "gluten-free": 5, "frozen": 2, "halal": 3 },
+    macros: { protein: 2, carbs: 6, fats: 4 },
   },
   müller: {
     name: "Müller",
-    baseDiscount: 21,
-    diets: { "high-protein": 20, "vegan": 24, "vegetarian": 23, "balanced": 23, "pescatarian": 19, "gluten-free": 23, "frozen": 17, "halal": 21 },
-    macros: { protein: 19, carbs: 25, fats: 22 },
+    baseDiscount: 3,
+    diets: { "high-protein": 2, "vegan": 4, "vegetarian": 3, "balanced": 3, "pescatarian": 2, "gluten-free": 3, "frozen": 1, "halal": 2 },
+    macros: { protein: 2, carbs: 4, fats: 3 },
   },
 };
 
@@ -97,7 +104,7 @@ function normalizeKey(str) {
  * @param {string} storeIdOrName - e.g. "aldi", "Aldi", "lidl", "Lidl", "rewe", "REWE"
  * @param {string} diet - e.g. "high-protein", "vegan", "balanced", etc.
  * @param {{ protein?: number, carbs?: number, fats?: number }} macros - macro percentages
- * @returns {number} discount percentage (e.g. 38 for -38%)
+ * @returns {number} discount percentage (e.g. 14 for -14%)
  */
 export function getStoreDiscount(storeIdOrName, diet = "balanced", macros = null) {
   const key = normalizeKey(storeIdOrName);
@@ -124,7 +131,7 @@ export function getStoreDiscount(storeIdOrName, diet = "balanced", macros = null
 
   // 60% diet-specific food discount + 40% macro-weighted discount
   const finalDiscount = Math.round(dietDiscount * 0.6 + macroDiscount * 0.4);
-  return Math.max(10, Math.min(60, finalDiscount));
+  return Math.max(0, Math.min(20, finalDiscount));
 }
 
 /**
