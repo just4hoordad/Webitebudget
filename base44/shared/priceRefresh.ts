@@ -26,6 +26,36 @@ const CORE_STAPLES = [
   { name: "Magerquark 500g", quantity: "500g" }
 ];
 
+// One representative 5-digit postal code per German federal state (Bundesland).
+// German supermarket shelf prices vary by region (federal state), so the daily
+// refresh samples each tracked chain in each of these PLZs. This builds a
+// region-tagged price pool; the grocery generator prefers the user's own PLZ
+// and falls back to the national baseline (postal_code "").
+const REGION_PLZS: { plz: string; state: string }[] = [
+  { plz: "01067", state: "Sachsen" },          // Dresden
+  { plz: "04109", state: "Sachsen" },          // Leipzig
+  { plz: "10623", state: "Berlin" },           // Berlin-Charlottenburg
+  { plz: "20095", state: "Hamburg" },          // Hamburg
+  { plz: "28195", state: "Bremen" },           // Bremen
+  { plz: "30159", state: "Niedersachsen" },    // Hannover
+  { plz: "40210", state: "Nordrhein-Westfalen" }, // Düsseldorf
+  { plz: "50667", state: "Nordrhein-Westfalen" }, // Köln
+  { plz: "60311", state: "Hessen" },           // Frankfurt
+  { plz: "66111", state: "Saarland" },         // Saarbrücken
+  { plz: "70173", state: "Baden-Württemberg" },// Stuttgart
+  { plz: "76133", state: "Baden-Württemberg" },// Karlsruhe
+  { plz: "80331", state: "Bayern" },           // München
+  { plz: "90402", state: "Bayern" },           // Nürnberg
+  { plz: "24103", state: "Schleswig-Holstein" },// Kiel
+  { plz: "18055", state: "Mecklenburg-Vorpommern" }, // Rostock
+  { plz: "39104", state: "Sachsen-Anhalt" },   // Magdeburg
+  { plz: "99084", state: "Thüringen" },        // Erfurt
+  { plz: "06108", state: "Sachsen-Anhalt" },   // Halle
+  { plz: "07743", state: "Thüringen" },        // Jena
+  { plz: "38820", state: "Sachsen-Anhalt" },   // Halberstadt (rural)
+  { plz: "15230", state: "Brandenburg" },      // Frankfurt (Oder)
+];
+
 function getEasterSunday(year: number): { month: number; day: number } {
   // Meeus/Jones/Butcher algorithm for Gregorian Easter
   const a = year % 19;
@@ -141,52 +171,65 @@ export async function performPriceRefresh(base44: any) {
     }
   });
 
-  // Ensure every supermarket is covered (dont miss a single one!)
-  const queriesToMake: { product: string; store: string; quantity: string; plz: string }[] = [];
+  // Ensure every supermarket is covered per region (dont miss a single one!)
+  // Each store is sampled across REGION_PLZS so region-specific prices accumulate.
+  // Each run rotates which 3 core staples are used per (store, region) to keep
+  // variety across days while bounding the per-run query count.
+  const queriesToMake: { product: string; store: string; quantity: string; plz: string; state: string }[] = [];
+  const dayIndex = Math.floor(Date.now() / 86400000); // rotates daily
+  const stapleRotation = CORE_STAPLES.slice(dayIndex % CORE_STAPLES.length, (dayIndex % CORE_STAPLES.length) + 3)
+    .concat(CORE_STAPLES.slice(0, Math.max(0, (dayIndex % CORE_STAPLES.length) + 3 - CORE_STAPLES.length)));
 
   for (const store of TRACKED_SUPERMARKETS) {
-    // Find stale items for this specific store
-    const storeItems = [...latestBy.values()].filter(
-      (r: any) => (r.store || "").toLowerCase() === store.toLowerCase()
-    );
-    const staleStoreItems = storeItems
-      .filter((r: any) => (r.fetched_date || "") < today)
-      .sort((a: any, b: any) => (a.fetched_date || "").localeCompare(b.fetched_date || ""));
+    for (const region of REGION_PLZS) {
+      // Find the latest observation for this exact (store, product, region)
+      const hasFreshForRegion = [...latestBy.values()].some(
+        (r: any) =>
+          (r.store || "").toLowerCase() === store.toLowerCase() &&
+          (r.postal_code || "") === region.plz &&
+          (r.fetched_date || "") >= today
+      );
+      if (hasFreshForRegion) continue;
 
-    if (staleStoreItems.length >= 3) {
-      staleStoreItems.slice(0, 3).forEach((item) => {
-        queriesToMake.push({
-          product: item.product_name,
-          store,
-          quantity: item.quantity || "1 Stk",
-          plz: item.postal_code || "national"
-        });
-      });
-    } else {
-      // If store has fewer stale items, pick core staples to ensure it is updated
-      const sampleStaples = CORE_STAPLES.slice(0, 3);
-      sampleStaples.forEach((staple) => {
-        queriesToMake.push({
-          product: staple.name,
-          store,
-          quantity: staple.quantity,
-          plz: "national"
-        });
+      // Pick stale regional items first; otherwise refresh rotated core staples.
+      const staleRegional = [...latestBy.values()]
+        .filter((r: any) =>
+          (r.store || "").toLowerCase() === store.toLowerCase() &&
+          (r.postal_code || "") === region.plz &&
+          (r.fetched_date || "") < today
+        )
+        .sort((a: any, b: any) => (a.fetched_date || "").localeCompare(b.fetched_date || ""));
+
+      const picks = staleRegional.length >= 3
+        ? staleRegional.slice(0, 3).map((it: any) => ({ product: it.product_name, quantity: it.quantity || "1 Stk" }))
+        : stapleRotation.map((s) => ({ product: s.name, quantity: s.quantity }));
+
+      picks.forEach((p) => {
+        queriesToMake.push({ product: p.product, store, quantity: p.quantity, plz: region.plz, state: region.state });
       });
     }
   }
 
   if (queriesToMake.length === 0) {
-    return { refreshed: 0, message: "All supermarket prices are already fresh for today." };
+    return { refreshed: 0, message: "All supermarket prices are already fresh for today across all regions." };
   }
 
-  const lines = queriesToMake.map((q, idx) =>
-    `${idx + 1}. [${q.store}] ${q.product} (qty: ${q.quantity}, PLZ: ${q.plz})`
+  // Cap the per-run query count to keep the LLM call within limits — sample evenly
+  // across (store, region) pairs when the full matrix is too large.
+  const MAX_QUERIES = 120;
+  let finalQueries = queriesToMake;
+  if (queriesToMake.length > MAX_QUERIES) {
+    const step = Math.ceil(queriesToMake.length / MAX_QUERIES);
+    finalQueries = queriesToMake.filter((_, i) => i % step === 0).slice(0, MAX_QUERIES);
+  }
+
+  const lines = finalQueries.map((q, idx) =>
+    `${idx + 1}. [${q.store}] ${q.product} (qty: ${q.quantity}, PLZ: ${q.plz}, Bundesland: ${q.state})`
   );
 
-  const prompt = `You are a German supermarket price analyst updating daily shelf prices across all German supermarkets.
+  const prompt = `You are a German supermarket price analyst updating daily shelf prices across all German supermarket chains, sampled per federal state (Bundesland).
 Today is ${today}. German supermarkets have updated their daily shelf prices for morning trade.
-Check and provide current shelf prices in Germany for each product at the specified supermarket. Every single supermarket (Aldi, Lidl, Kaufland, Penny, Netto, REWE, Edeka, Norma, dm, Rossmann) must be accurately updated without missing any store.
+Provide the current shelf price for each product at the specified supermarket in the specified postal code (PLZ). Prices in Germany vary by region — use the regional price for that exact PLZ when available, not a national average.
 
 Products to check:
 ${lines.join("\n")}
@@ -194,8 +237,8 @@ ${lines.join("\n")}
 Return JSON with an "items" array where each object has:
 - name: product name
 - store: exact supermarket chain (Aldi, Lidl, Kaufland, Penny, Netto, REWE, Edeka, Norma, dm, Rossmann)
-- postal_code: 5-digit PLZ or ""
-- price: current shelf price in EUR as a number (e.g. 1.19)
+- postal_code: the 5-digit PLZ from the request (must match one of the PLZs listed above)
+- price: current shelf price in EUR as a number (e.g. 1.19) for that PLZ region
 - quantity: package size (e.g. "1L", "250g")
 - normal_price: regular non-promotional price in EUR as a number
 Return only the JSON object.`;
@@ -276,11 +319,13 @@ Return only the JSON object.`;
   }
 
   const storesCovered = [...new Set(records.map((r: any) => r.store))];
+  const regionsCovered = [...new Set(records.map((r: any) => r.postal_code).filter(Boolean))];
 
   return {
     refreshed: created,
     stores_checked: TRACKED_SUPERMARKETS.length,
     stores_updated: storesCovered,
+    regions_updated: regionsCovered.length,
     date: today,
     status: "success"
   };
