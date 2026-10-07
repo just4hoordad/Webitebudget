@@ -128,6 +128,12 @@ export default function PlanGroceryResult({
   const normalTotal = activeTotal + totalSaved;
   const pct = normalTotal > 0 ? Math.round((totalSaved / normalTotal) * 100) : 0;
 
+  // Pro upsell: only for non-Pro users whose savings exceed the subscription
+  // price, so the "still save €X" claim is always true.
+  const PRO_PRICE = 3.99;
+  const stillSaved = totalSaved - PRO_PRICE;
+  const showProUpsell = !isPro && totalSaved > PRO_PRICE;
+
   const catMap = allCategoryTranslations[currentLanguage?.code] || {};
   const trCat = (name) => catMap[name] || name;
 
@@ -520,6 +526,20 @@ export default function PlanGroceryResult({
                     <p className="text-sm opacity-90 mt-2 leading-relaxed">
                       {t("savedCelebration", { amount: `€${totalSaved.toFixed(2)}`, pct })}
                     </p>
+                    {showProUpsell && (
+                      <button
+                        type="button"
+                        onClick={() => openPricing?.()}
+                        className="mt-3 flex w-full items-center gap-2 rounded-xl bg-foreground/10 px-3 py-2 text-left backdrop-blur-sm transition-colors hover:bg-foreground/15"
+                      >
+                        <span className="text-sm opacity-95 leading-snug">
+                          {t("proUpsellSavings", { price: PRO_PRICE.toFixed(2), saved: `€${stillSaved.toFixed(2)}` })}
+                        </span>
+                        <span className="ml-auto shrink-0 rounded-lg bg-foreground px-3 py-1.5 text-xs font-heading font-bold text-background">
+                          {t("proUpsellCta")}
+                        </span>
+                      </button>
+                    )}
                   </div>
                   <div className="hidden sm:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-3 py-2 backdrop-blur-sm shrink-0">
                     <TrendingDown className="h-5 w-5" />
