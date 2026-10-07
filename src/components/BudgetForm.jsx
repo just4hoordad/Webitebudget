@@ -121,46 +121,6 @@ export default function BudgetForm() {
   const [advancedFrom, setAdvancedFrom] = useState(null);
   const [visited, setVisited] = useState({ diet: false, pantry: false });
 
-  const sectionDone = (key) => {
-    if (key === "basics") return budget[0] > 0;
-    if (key === "diet") return !enabled.diet || metricsFilled;
-    if (key === "stores") return !enabled.stores || storeCount > 0;
-    if (key === "pantry") return true; // pantry is optional, never blocks
-    return true;
-  };
-
-  useEffect(() => {
-    if (!openSection) return;
-    if (!sectionDone(openSection)) return;
-    if (advancedFrom === openSection) return; // already advanced from here
-    const idx = STEP_ORDER.indexOf(openSection);
-    const next = STEP_ORDER.slice(idx + 1).find((k) => !sectionDone(k));
-    setAdvancedFrom(openSection);
-    setOpenSection(next || STEP_ORDER[idx + 1] || openSection);
-    if (next) setVisited((p) => ({ ...p, [next]: true }));
-  }, [openSection, budget[0], metricsFilled, storeCount, advancedFrom]);
-
-  const goToStep = (key) => {
-    setAdvancedFrom(null);
-    setOpenSection(key);
-    if (key === "diet" || key === "pantry") setVisited((p) => ({ ...p, [key]: true }));
-    setTimeout(() => document.getElementById(`step-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
-  const handleLeftChange = (val) => {
-    setAdvancedFrom(null);
-    setOpenSection(val || "");
-    if (val) setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-  const handleRightChange = (val) => {
-    setAdvancedFrom(null);
-    setOpenSection(val || "");
-    if (val) {
-      if (val === "diet" || val === "pantry") setVisited((p) => ({ ...p, [val]: true }));
-      setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    }
-  };
-
   const formRef = useRef(null);
   const generateRef = useRef(null);
   const [formInView, setFormInView] = useState(false);
@@ -285,6 +245,46 @@ export default function BudgetForm() {
   const storeNamesSummary = selectedStoreLocations.length > 0
     ? selectedStoreLocations.map(s => s.name).join(", ")
     : selectedStores.map(id => ALL_STORES.find(s => s.id === id)?.name || id).join(", ");
+
+  const sectionDone = (key) => {
+    if (key === "basics") return budget[0] > 0;
+    if (key === "diet") return !enabled.diet || metricsFilled;
+    if (key === "stores") return !enabled.stores || storeCount > 0;
+    if (key === "pantry") return true; // pantry is optional, never blocks
+    return true;
+  };
+
+  useEffect(() => {
+    if (!openSection) return;
+    if (!sectionDone(openSection)) return;
+    if (advancedFrom === openSection) return; // already advanced from here
+    const idx = STEP_ORDER.indexOf(openSection);
+    const next = STEP_ORDER.slice(idx + 1).find((k) => !sectionDone(k));
+    setAdvancedFrom(openSection);
+    setOpenSection(next || STEP_ORDER[idx + 1] || openSection);
+    if (next) setVisited((p) => ({ ...p, [next]: true }));
+  }, [openSection, budget[0], metricsFilled, storeCount, advancedFrom]);
+
+  const goToStep = (key) => {
+    setAdvancedFrom(null);
+    setOpenSection(key);
+    if (key === "diet" || key === "pantry") setVisited((p) => ({ ...p, [key]: true }));
+    setTimeout(() => document.getElementById(`step-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const handleLeftChange = (val) => {
+    setAdvancedFrom(null);
+    setOpenSection(val || "");
+    if (val) setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+  const handleRightChange = (val) => {
+    setAdvancedFrom(null);
+    setOpenSection(val || "");
+    if (val) {
+      if (val === "diet" || val === "pantry") setVisited((p) => ({ ...p, [val]: true }));
+      setTimeout(() => document.getElementById(`step-${val}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
+  };
 
   return (
     <div ref={formRef} className="space-y-5">
