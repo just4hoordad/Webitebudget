@@ -64,6 +64,7 @@ function busyMessage() {
 }
 
 let warnedFallback = false;
+let busyToastId = null;
 
 /**
  * Invokes AI through OpenRouter via the invokeAI backend function.
@@ -86,6 +87,14 @@ export async function invokeAI({ prompt, response_json_schema, model, add_contex
   }
 
   const msg = busyMessage();
-  toast({ title: msg, variant: "destructive" });
+  // Avoid stacking duplicate "AI is busy" toasts on repeated retries —
+  // dismiss any prior busy toast before showing a fresh one.
+  if (busyToastId) {
+    const prior = busyToastId;
+    busyToastId = null;
+    toast.dismiss(prior);
+  }
+  const t = toast({ title: msg, variant: "destructive", duration: 6000 });
+  busyToastId = t.id;
   throw new Error(data?.error || msg);
 }
