@@ -10,6 +10,12 @@ const FLYER_CHAINS: { chain: string; marktguruSlug: string }[] = [
   { chain: "Penny", marktguruSlug: "penny-prospekte" },
   { chain: "Netto", marktguruSlug: "netto-marken-discount-prospekte" },
   { chain: "Norma", marktguruSlug: "norma-prospekte" },
+  { chain: "REWE", marktguruSlug: "rewe-prospekte" },
+  { chain: "Edeka", marktguruSlug: "edeka-prospekte" },
+  { chain: "Kaufland", marktguruSlug: "kaufland-prospekte" },
+  // dm and Rossmann are drugstores — marktguru lists their flyers under the same slug pattern.
+  { chain: "dm", marktguruSlug: "dm-drogerie-markt-prospekte" },
+  { chain: "Rossmann", marktguruSlug: "rossmann-prospekte" },
 ];
 
 // Offer items are national weekly promotions — they are not region-specific,
