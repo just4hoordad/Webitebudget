@@ -33,11 +33,15 @@ export default function SavedMealPlans() {
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
   const [expandedDay, setExpandedDay] = useState({}); // `${planId}:${dayKey}` -> bool
+  const [expandedCat, setExpandedCat] = useState({}); // `${planId}:${catName}` -> bool
   const [sharePlan, setSharePlan] = useState(null);
   const [recipeTarget, setRecipeTarget] = useState(null);
 
   const toggleDay = (planId, dayKey) =>
     setExpandedDay((prev) => ({ ...prev, [`${planId}:${dayKey}`]: !prev[`${planId}:${dayKey}`] }));
+
+  const toggleCat = (planId, catName) =>
+    setExpandedCat((prev) => ({ ...prev, [`${planId}:${catName}`]: !prev[`${planId}:${catName}`] }));
   const [boughtItems, setBoughtItems] = useState(() => {
     try {
       const raw = localStorage.getItem("bb_bought_saved");
@@ -276,31 +280,43 @@ export default function SavedMealPlans() {
                     </button>
                     {expandedGrocery[plan.id] && (
                       <div className="divide-y divide-border">
-                        {plan.groceryList.categories.map((cat) => (
-                          <div key={cat.name}>
-                            <div className="bg-muted px-4 py-2">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat.name}</p>
-                            </div>
-                            {cat.items?.map((item, i) => {
-                              const bKey = `${plan.id}::${cat.name}::${item.name}`;
-                              const bought = boughtItems.has(bKey);
-                              return (
-                                <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
-                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <button onClick={() => toggleBought(bKey)} className="shrink-0" title={t("markBought")} aria-label={t("markBought")}>
-                                      {bought ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />}
-                                    </button>
-                                    <div className="min-w-0">
-                                      <p className={`font-medium ${bought ? "text-muted-foreground line-through opacity-60" : "text-foreground"}`}>{item.name}</p>
-                                      <p className="text-xs text-muted-foreground">{item.quantity} · {item.store}</p>
-                                    </div>
-                                  </div>
-                                  <p className={`font-semibold ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>€{item.price?.toFixed(2)}</p>
+                        {plan.groceryList.categories.map((cat) => {
+                          const catOpen = !!expandedCat[`${plan.id}:${cat.name}`];
+                          const itemCount = (cat.items?.length || 0);
+                          const catTotal = (cat.items || []).reduce((s, it) => s + (it.price || 0), 0);
+                          return (
+                            <div key={cat.name}>
+                              <button
+                                onClick={() => toggleCat(plan.id, cat.name)}
+                                className="w-full flex items-center justify-between gap-2 bg-muted px-4 py-2 hover:bg-muted/70 transition-colors text-left"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate">{cat.name}</span>
+                                  <span className="text-[11px] text-muted-foreground/70 shrink-0">· {itemCount} {t("items") || "items"} · €{catTotal.toFixed(2)}</span>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        ))}
+                                {catOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                              </button>
+                              {catOpen && cat.items?.map((item, i) => {
+                                const bKey = `${plan.id}::${cat.name}::${item.name}`;
+                                const bought = boughtItems.has(bKey);
+                                return (
+                                  <div key={i} className="flex items-center justify-between px-4 py-2 text-sm">
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      <button onClick={() => toggleBought(bKey)} className="shrink-0" title={t("markBought")} aria-label={t("markBought")}>
+                                        {bought ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />}
+                                      </button>
+                                      <div className="min-w-0">
+                                        <p className={`font-medium ${bought ? "text-muted-foreground line-through opacity-60" : "text-foreground"}`}>{item.name}</p>
+                                        <p className="text-xs text-muted-foreground">{item.quantity} · {item.store}</p>
+                                      </div>
+                                    </div>
+                                    <p className={`font-semibold ${bought ? "text-muted-foreground/50 line-through" : "text-foreground"}`}>€{item.price?.toFixed(2)}</p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
