@@ -1,0 +1,44 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * 1,3,5",
+      "one_time_date": null,
+      "timezone": "Europe/Berlin",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "weekly_flyer_offers_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_flyers": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshFlyerOffers"
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh weekly flyer offers",
+            "description": "Pull marktguru leaflet promos into PriceEstimate"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Pulls current-week promotional offers from marktguru's public leaflet pages for Aldi, Lidl, Penny, Netto and Norma, and stores them as PriceEstimate rows (source: weekly-flyer-marktguru). Runs Mon, Wed and Fri at 08:00 Europe/Berlin so offers stay current without redundant daily calls.",
+  "name": "Weekly Flyer Offers Refresh"
+}
