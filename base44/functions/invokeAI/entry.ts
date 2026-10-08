@@ -69,6 +69,24 @@ async function notifyFallback(base44: any, reason: string) {
   }
 }
 
+let lastTotalFailureNotification = 0;
+const TOTAL_FAILURE_NOTIFY_COOLDOWN_MS = 60 * 60 * 1000;
+
+async function notifyTotalFailure(base44: any, openRouterReason: string, base44Reason: string) {
+  const now = Date.now();
+  if (now - lastTotalFailureNotification < TOTAL_FAILURE_NOTIFY_COOLDOWN_MS) return;
+  lastTotalFailureNotification = now;
+  try {
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: FALLBACK_NOTIFY_TO,
+      subject: "BudgetBite: All AI providers failed",
+      body: `Both OpenRouter and the Base44 AI fallback failed. Users are currently unable to generate plans.<br><br>OpenRouter error: ${openRouterReason}<br>Base44 error: ${base44Reason}<br>Time: ${new Date().toISOString()}<br><br>This alert is rate-limited to once per hour.`,
+    });
+  } catch (e) {
+    console.error("invokeAI: failed to send total-failure notification:", e?.message || e);
+  }
+}
+
 // Concurrency gate so bursts queue instead of flooding
 const MAX_CONCURRENT = 8;
 const QUEUE_TIMEOUT_MS = 30000;
@@ -165,6 +183,7 @@ export default async function (req: Request): Promise<Response> {
     }
   } catch (error: any) {
     console.error("invokeAI final error:", error?.message || error);
+    notifyTotalFailure(base44, openRouterError?.message || String(openRouterError), error?.message || String(error));
     return Response.json({ openrouter_unavailable: true, error: error?.message || "AI service temporarily unavailable" }, { status: 500 });
   } finally {
     release();
