@@ -49,6 +49,26 @@ function checkRateLimit(key: string): boolean {
   return true;
 }
 
+// Fallback notification cooldown — email the owner at most once per hour
+let lastFallbackNotification = 0;
+const FALLBACK_NOTIFY_COOLDOWN_MS = 60 * 60 * 1000;
+const FALLBACK_NOTIFY_TO = "Hoordad.sedaghat@gmail.com";
+
+async function notifyFallback(base44: any, reason: string) {
+  const now = Date.now();
+  if (now - lastFallbackNotification < FALLBACK_NOTIFY_COOLDOWN_MS) return;
+  lastFallbackNotification = now;
+  try {
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: FALLBACK_NOTIFY_TO,
+      subject: "BudgetBite: OpenRouter fallback activated",
+      body: `OpenRouter failed and BudgetBite is now running on the Base44 AI fallback.<br><br>Reason: ${reason}<br>Time: ${new Date().toISOString()}<br><br>This alert is rate-limited to once per hour.`,
+    });
+  } catch (e) {
+    console.error("invokeAI: failed to send fallback notification:", e?.message || e);
+  }
+}
+
 // Concurrency gate so bursts queue instead of flooding
 const MAX_CONCURRENT = 8;
 const QUEUE_TIMEOUT_MS = 30000;
@@ -131,6 +151,7 @@ export default async function (req: Request): Promise<Response> {
       return Response.json(safeSchema ? result : { text: result });
     } catch (openRouterError: any) {
       console.warn("invokeAI: OpenRouter unavailable, falling back to Base44 Core.InvokeLLM:", openRouterError?.message || openRouterError);
+      notifyFallback(base44, openRouterError?.message || String(openRouterError));
       
       // Secondary: Fallback to Base44 Core.InvokeLLM via service role
       const fallbackResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
