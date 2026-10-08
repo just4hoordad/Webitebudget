@@ -32,8 +32,12 @@ export default function SavedMealPlans() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
+  const [expandedDay, setExpandedDay] = useState({}); // `${planId}:${dayKey}` -> bool
   const [sharePlan, setSharePlan] = useState(null);
   const [recipeTarget, setRecipeTarget] = useState(null);
+
+  const toggleDay = (planId, dayKey) =>
+    setExpandedDay((prev) => ({ ...prev, [`${planId}:${dayKey}`]: !prev[`${planId}:${dayKey}`] }));
   const [boughtItems, setBoughtItems] = useState(() => {
     try {
       const raw = localStorage.getItem("bb_bought_saved");
@@ -309,11 +313,15 @@ export default function SavedMealPlans() {
                     </div>
                     <div className="divide-y divide-border">
                       {plan.plan.map((day, idx) => {
+                        const dayKey = `a:${idx}`;
                         const dayPrep = plan.prep?.days?.[idx];
+                        const isOpen = !!expandedDay[`${plan.id}:${dayKey}`];
+                        const summary = ["breakfast", "lunch", "dinner"]
+                          .map((type) => mealName(day[type]))
+                          .filter(Boolean)
+                          .join(" · ");
                         const cell = (type, val) => {
-                          const name = Array.isArray(val)
-                            ? val.map((x) => (x && typeof x === "object" ? x.name : x)).filter((n) => n && String(n).trim()).join(", ")
-                            : (val && String(val).trim()) || "";
+                          const name = mealName(val);
                           return (
                             <div>
                               <span className="block text-[10px] uppercase text-muted-foreground mb-0.5">{t(type)}</span>
@@ -336,13 +344,26 @@ export default function SavedMealPlans() {
                           );
                         };
                         return (
-                          <div key={idx} className="px-5 py-3 text-sm">
-                            <div className="font-semibold text-foreground text-xs mb-1.5">{t("day") || "Day"} {idx + 1}</div>
-                            <div className="grid grid-cols-3 gap-2 text-xs">
-                              {cell("breakfast", day.breakfast)}
-                              {cell("lunch", day.lunch)}
-                              {cell("dinner", day.dinner)}
-                            </div>
+                          <div key={idx}>
+                            <button
+                              onClick={() => toggleDay(plan.id, dayKey)}
+                              className="w-full flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors text-left"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <span className="font-semibold text-foreground text-xs">{t("day") || "Day"} {idx + 1}</span>
+                                {summary && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{summary}</p>}
+                              </div>
+                              {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                            </button>
+                            {isOpen && (
+                              <div className="px-4 pb-3 pt-1 text-sm">
+                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                  {cell("breakfast", day.breakfast)}
+                                  {cell("lunch", day.lunch)}
+                                  {cell("dinner", day.dinner)}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -356,29 +377,50 @@ export default function SavedMealPlans() {
                       </h3>
                     </div>
                     <div className="divide-y divide-border">
-                      {week.days?.map((day, idx) => (
-                        <div key={idx} className="px-5 py-4 grid grid-cols-4 gap-3 text-sm items-start">
-                          <div className="font-semibold text-foreground col-span-4 border-b border-border pb-1 mb-1">{day.day}</div>
-                          <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                            <span className="font-medium text-foreground block text-xs mb-0.5">{t("breakfast")} {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
-                            <span>{day.breakfast}</span>
-                            {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                            {mealName(day.breakfast) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "breakfast", mealName(day.breakfast), weekIdx)} />}
+                      {week.days?.map((day, idx) => {
+                        const dayKey = `w:${weekIdx}:${idx}`;
+                        const isOpen = !!expandedDay[`${plan.id}:${dayKey}`];
+                        const summary = ["breakfast", "lunch", "dinner"]
+                          .map((type) => mealName(day[type]))
+                          .filter(Boolean)
+                          .join(" · ");
+                        return (
+                          <div key={idx}>
+                            <button
+                              onClick={() => toggleDay(plan.id, dayKey)}
+                              className="w-full flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors text-left"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <span className="font-semibold text-foreground text-xs">{day.day}</span>
+                                {summary && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{summary}</p>}
+                              </div>
+                              {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                            </button>
+                            {isOpen && (
+                              <div className="px-4 pb-3 pt-1 grid grid-cols-4 gap-3 text-sm items-start">
+                                <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                                  <span className="font-medium text-foreground block text-xs mb-0.5">{t("breakfast")} {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
+                                  <span>{day.breakfast}</span>
+                                  {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                                  {mealName(day.breakfast) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "breakfast", mealName(day.breakfast), weekIdx)} />}
+                                </div>
+                                <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                                  <span className="font-medium text-foreground block text-xs mb-0.5">{t("lunch")} {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
+                                  <span>{day.lunch}</span>
+                                  {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                                  {mealName(day.lunch) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "lunch", mealName(day.lunch), weekIdx)} />}
+                                </div>
+                                <div className="text-muted-foreground col-span-4 sm:col-span-1">
+                                  <span className="font-medium text-foreground block text-xs mb-0.5">{t("dinner")} {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
+                                  <span>{day.dinner}</span>
+                                  {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                                  {mealName(day.dinner) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "dinner", mealName(day.dinner), weekIdx)} />}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                            <span className="font-medium text-foreground block text-xs mb-0.5">{t("lunch")} {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
-                            <span>{day.lunch}</span>
-                            {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                            {mealName(day.lunch) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "lunch", mealName(day.lunch), weekIdx)} />}
-                          </div>
-                          <div className="text-muted-foreground col-span-4 sm:col-span-1">
-                            <span className="font-medium text-foreground block text-xs mb-0.5">{t("dinner")} {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
-                            <span>{day.dinner}</span>
-                            {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
-                            {mealName(day.dinner) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "dinner", mealName(day.dinner), weekIdx)} />}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
