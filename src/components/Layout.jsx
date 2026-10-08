@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Tags, Activity } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Tags } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -81,7 +81,6 @@ export default function Layout() {
     { path: "/datenschutz", label: t("privacyNav"), icon: Lock },
     ...(user?.role === "admin" ? [
       { path: "/flink-check", label: "Flink Check", icon: Tags },
-      { path: "/openrouter-check", label: "OpenRouter", icon: Activity },
     ] : []),
   ];
 
