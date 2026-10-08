@@ -87,6 +87,33 @@ async function notifyTotalFailure(base44: any, openRouterReason: string, base44R
   }
 }
 
+// ─── OpenRouter recovery probe ───────────────────────────────────────────
+// OpenRouter stays the default provider. When a request fails and we fall
+// back to Base44, a throttled background probe keeps checking whether
+// OpenRouter is back online. It costs nothing on the happy path (each user
+// request already tries OpenRouter first), and self-stops once a probe
+// succeeds — so the next request goes straight back to OpenRouter.
+let recoveryProbing = false;
+const RECOVERY_PROBE_INTERVAL_MS = 60 * 1000; // one probe per minute
+
+function startRecoveryProbe() {
+  if (recoveryProbing) return;
+  recoveryProbing = true;
+  (async () => {
+    while (true) {
+      await new Promise((r) => setTimeout(r, RECOVERY_PROBE_INTERVAL_MS));
+      try {
+        await callOpenRouter({ prompt: "Reply with the single word: ok", model: "openai/gpt-4o-mini" });
+        console.log("invokeAI: OpenRouter recovery probe succeeded — back on default provider.");
+        recoveryProbing = false;
+        return;
+      } catch (e: any) {
+        console.warn("invokeAI: OpenRouter still down, staying on Base44:", e?.message || e);
+      }
+    }
+  })().catch((e) => { recoveryProbing = false; console.error("invokeAI: recovery probe crashed:", e?.message || e); });
+}
+
 // Concurrency gate so bursts queue instead of flooding
 const MAX_CONCURRENT = 8;
 const QUEUE_TIMEOUT_MS = 30000;
@@ -170,6 +197,7 @@ export default async function (req: Request): Promise<Response> {
     } catch (openRouterError: any) {
       console.warn("invokeAI: OpenRouter unavailable, falling back to Base44 Core.InvokeLLM:", openRouterError?.message || openRouterError);
       notifyFallback(base44, openRouterError?.message || String(openRouterError));
+      startRecoveryProbe(); // detect when OpenRouter comes back online
       
       // Secondary: Fallback to Base44 Core.InvokeLLM via service role
       const fallbackResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
