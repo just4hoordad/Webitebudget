@@ -1,19 +1,39 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
+import RecipeModal from "@/components/RecipeModal";
+
+function RecipeBtn({ onClick }) {
+  const { t } = useLanguage();
+  const { isPro } = useMonetization();
+  return (
+    <button
+      onClick={onClick}
+      className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
+      title={isPro ? t("recipe") : t("recipePro")}
+    >
+      <ChefHat className="h-3 w-3" />
+      {t("recipe")}
+      {!isPro && <Lock className="h-2.5 w-2.5 text-foreground/70" />}
+    </button>
+  );
+}
 
 export default function SavedMealPlans() {
   const { t } = useLanguage();
+  const { isPro, openPricing } = useMonetization();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedGrocery, setExpandedGrocery] = useState({});
   const [sharePlan, setSharePlan] = useState(null);
+  const [recipeTarget, setRecipeTarget] = useState(null);
   const [boughtItems, setBoughtItems] = useState(() => {
     try {
       const raw = localStorage.getItem("bb_bought_saved");
@@ -51,6 +71,39 @@ export default function SavedMealPlans() {
     if (!confirm(t("deletePlanConfirm"))) return;
     setPlans(prev => prev.filter(p => p.id !== id));
     await base44.entities.MealPlan.delete(id);
+  };
+
+  // Normalizes the many stored meal shapes into a plain meal name string.
+  const mealName = (val) => {
+    if (!val) return "";
+    if (Array.isArray(val)) return val.map((x) => (x && typeof x === "object" ? x.name : x)).filter((n) => n && String(n).trim()).join(", ");
+    return String(val).trim();
+  };
+
+  const handleRecipe = (plan, dayIdx, mealType, mealNameStr, weekIdx = 0) => {
+    if (!isPro) { openPricing?.(); return; }
+    if (!mealNameStr) return;
+    const key = `${weekIdx}:${dayIdx}:${mealType}`;
+    const cached = plan.recipes?.[key];
+    setRecipeTarget({
+      planId: plan.id,
+      plan,
+      dayIdx,
+      mealType,
+      weekIdx,
+      key,
+      meal: { name: mealNameStr, mealType, ingredients: [] },
+      initialRecipe: cached && cached.mealName === mealNameStr ? cached : null,
+    });
+  };
+
+  const cacheRecipe = async (entry) => {
+    if (!recipeTarget) return;
+    const plan = recipeTarget.plan;
+    if (!plan) return;
+    const next = { ...(plan.recipes || {}), [recipeTarget.key]: entry };
+    setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, recipes: next } : p));
+    try { await base44.entities.MealPlan.update(plan.id, { recipes: next }); } catch { /* offline cache ok */ }
   };
 
   const exportToSheets = (plan) => {
@@ -268,6 +321,17 @@ export default function SavedMealPlans() {
                               {dayPrep?.[type]?.portion && (
                                 <span className="block text-[10px] text-primary mt-0.5">🍽 {dayPrep[type].portion}</span>
                               )}
+                              {name && (
+                                <button
+                                  onClick={() => handleRecipe(plan, idx, type, name)}
+                                  className="relative mt-1 inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
+                                  title={isPro ? t("recipe") : t("recipePro")}
+                                >
+                                  <ChefHat className="h-3 w-3" />
+                                  {t("recipe")}
+                                  {!isPro && <Lock className="h-2.5 w-2.5 text-foreground/70" />}
+                                </button>
+                              )}
                             </div>
                           );
                         };
@@ -299,16 +363,19 @@ export default function SavedMealPlans() {
                             <span className="font-medium text-foreground block text-xs mb-0.5">{t("breakfast")} {day.breakfast_calories && <span className="text-primary">({day.breakfast_calories} kcal)</span>}</span>
                             <span>{day.breakfast}</span>
                             {Array.isArray(day.breakfast_ingredients) && day.breakfast_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.breakfast_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                            {mealName(day.breakfast) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "breakfast", mealName(day.breakfast), weekIdx)} />}
                           </div>
                           <div className="text-muted-foreground col-span-4 sm:col-span-1">
                             <span className="font-medium text-foreground block text-xs mb-0.5">{t("lunch")} {day.lunch_calories && <span className="text-primary">({day.lunch_calories} kcal)</span>}</span>
                             <span>{day.lunch}</span>
                             {Array.isArray(day.lunch_ingredients) && day.lunch_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.lunch_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                            {mealName(day.lunch) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "lunch", mealName(day.lunch), weekIdx)} />}
                           </div>
                           <div className="text-muted-foreground col-span-4 sm:col-span-1">
                             <span className="font-medium text-foreground block text-xs mb-0.5">{t("dinner")} {day.dinner_calories && <span className="text-primary">({day.dinner_calories} kcal)</span>}</span>
                             <span>{day.dinner}</span>
                             {Array.isArray(day.dinner_ingredients) && day.dinner_ingredients.length > 0 && <ul className="text-xs text-primary/70 mt-1 italic list-disc ml-4">{day.dinner_ingredients.map((ing, i) => <li key={i}>{ing.name} - {ing.quantity}</li>)}</ul>}
+                            {mealName(day.dinner) && <RecipeBtn onClick={() => handleRecipe(plan, idx, "dinner", mealName(day.dinner), weekIdx)} />}
                           </div>
                         </div>
                       ))}
@@ -321,6 +388,16 @@ export default function SavedMealPlans() {
         )}
       </div>
       <SharePlanModal plan={sharePlan} open={!!sharePlan} onClose={() => setSharePlan(null)} />
+      {recipeTarget && (
+        <RecipeModal
+          meal={recipeTarget.meal}
+          diet={recipeTarget.plan.diet || "balanced"}
+          people={recipeTarget.plan.people || 1}
+          initialRecipe={recipeTarget.initialRecipe}
+          onCache={cacheRecipe}
+          onClose={() => setRecipeTarget(null)}
+        />
+      )}
     </PullToRefresh>
   );
 }
