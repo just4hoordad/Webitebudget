@@ -128,6 +128,65 @@ const CITY_PLZ: Record<string, string> = {
   hannover: "30159",
 };
 
+// Exported for on-demand checks from the admin UI. Runs the actor for the
+// given searches + city and returns normalized records. Does NOT persist —
+// the caller decides whether to save. Returns raw items too so the UI can
+// show stock/category before saving.
+export interface FlinkQueryResult {
+  records: FlinkPriceRecord[];
+  rawItems: FlinkActorItem[];
+  city: string;
+  postal_code: string;
+}
+
+export async function queryFlink(
+  token: string,
+  searches: string[],
+  city: string,
+  maxItemsPerSearch: number = 5
+): Promise<FlinkQueryResult> {
+  const plz = CITY_PLZ[city] || "";
+  const today = todayBerlinDate();
+  const records: FlinkPriceRecord[] = [];
+  const rawItems: FlinkActorItem[] = [];
+
+  const searchResults = await Promise.allSettled(
+    searches.map((s) => runFlinkActor(token, s, city, maxItemsPerSearch))
+  );
+
+  for (const r of searchResults) {
+    if (r.status !== "fulfilled") continue;
+    for (const it of r.value) {
+      rawItems.push(it);
+      const name = it.name || it.title || "";
+      const price = typeof (it.price ?? it.currentPrice) === "number"
+        ? (it.price ?? it.currentPrice) as number
+        : null;
+      if (!name || price === null) continue;
+
+      const unitPrice = typeof (it.unitPrice ?? it.pricePerUnit) === "number"
+        ? (it.unitPrice ?? it.pricePerUnit) as number
+        : null;
+
+      records.push({
+        product_name: name,
+        postal_code: plz,
+        store: "Flink",
+        price,
+        unit_price: unitPrice,
+        quantity: it.quantity || it.size || "",
+        normal_price: price,
+        currency: "eur",
+        diet: "",
+        source: "flink-apify",
+        fetched_date: today,
+      });
+    }
+  }
+
+  return { records, rawItems, city, postal_code: plz };
+}
+
 export async function performFlinkPriceRefresh(base44: any): Promise<{
   refreshed: number;
   cities_processed: number;
