@@ -139,6 +139,140 @@ export function isGermanSupermarketClosed(date: Date = new Date()): { closed: bo
   return { closed: false, dateStr };
 }
 
+// Dry-run variant of performPriceRefresh: runs the OpenRouter price query
+// but does NOT persist results. Used by the admin on-demand OpenRouter
+// check so the owner can verify the provider is responding without writing
+// PriceEstimate records. Returns provider status + a sample of parsed items.
+export async function performPriceRefreshDryRun(base44: any) {
+  const closure = isGermanSupermarketClosed();
+  const today = closure.dateStr;
+
+  // Bypass the Sunday/holiday skip for an on-demand check — the admin wants to
+  // know if OpenRouter works *now*, regardless of whether shops are open.
+  const svc = base44.asServiceRole;
+
+  // Build a small representative query: one core staple across 3 chains, one PLZ.
+  const sampleQueries = [
+    { product: "Frische Vollmilch 3,5%", store: "REWE", quantity: "1L", plz: "10115", state: "Berlin" },
+    { product: "Eier Bodenhaltung 10er", store: "Aldi", quantity: "10 Stk", plz: "10115", state: "Berlin" },
+    { product: "Deutsche Markenbutter 250g", store: "Lidl", quantity: "250g", plz: "10115", state: "Berlin" },
+  ];
+
+  const lines = sampleQueries.map((q, idx) =>
+    `${idx + 1}. [${q.store}] ${q.product} (qty: ${q.quantity}, PLZ: ${q.plz}, Bundesland: ${q.state})`
+  );
+
+  const prompt = `You are a German supermarket price analyst. Today is ${today}.
+Provide the current shelf price for each product at the specified supermarket in the specified postal code (PLZ).
+
+Products to check:
+${lines.join("\n")}
+
+Return JSON with an "items" array where each object has:
+- name, store, postal_code, price (EUR number), quantity, normal_price (EUR number)
+Return only the JSON object.`;
+
+  const startedAt = Date.now();
+  let provider = "openrouter";
+  let fallbackUsed = false;
+  let httpStatus: number | null = null;
+  let res: any;
+
+  try {
+    res = await callOpenRouter({
+      prompt,
+      add_context_from_internet: true,
+      model: "openai/gpt-4o-mini",
+      response_json_schema: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                store: { type: "string" },
+                postal_code: { type: "string" },
+                price: { type: "number" },
+                quantity: { type: "string" },
+                normal_price: { type: "number" },
+              },
+            },
+          },
+        },
+      },
+    });
+  } catch (err: any) {
+    // Fallback to Base44 InvokeLLM (same fallback as the real refresh)
+    fallbackUsed = true;
+    provider = "base44-invoke-llm";
+    try {
+      res = await svc.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        model: "gemini_3_flash",
+        response_json_schema: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  store: { type: "string" },
+                  postal_code: { type: "string" },
+                  price: { type: "number" },
+                  quantity: { type: "string" },
+                  normal_price: { type: "number" },
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (fallbackErr: any) {
+      return {
+        status: "error",
+        openrouter_ok: false,
+        fallback_used: false,
+        provider,
+        duration_ms: Date.now() - startedAt,
+        date: today,
+        error: err?.message || String(err),
+        fallback_error: fallbackErr?.message || String(fallbackErr),
+        items: [],
+      };
+    }
+  }
+
+  const items = Array.isArray(res?.items) ? res.items : [];
+  const normalized = items
+    .map((it: any) => ({
+      product_name: it.name,
+      store: it.store || "",
+      postal_code: it.postal_code || "",
+      price: typeof it.price === "number" ? it.price : null,
+      quantity: it.quantity || "",
+      normal_price: typeof it.normal_price === "number" ? it.normal_price : it.price,
+    }))
+    .filter((r: any) => r.product_name && typeof r.price === "number");
+
+  return {
+    status: "success",
+    openrouter_ok: !fallbackUsed,
+    fallback_used: fallbackUsed,
+    provider,
+    duration_ms: Date.now() - startedAt,
+    date: today,
+    supermarket_closed: closure.closed,
+    closure_reason: closure.reason || null,
+    items_returned: normalized.length,
+    items: normalized.slice(0, 10),
+  };
+}
+
 export async function performPriceRefresh(base44: any) {
   // Check if supermarkets are closed today (Sunday or German public holiday)
   const closure = isGermanSupermarketClosed();
