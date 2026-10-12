@@ -38,7 +38,8 @@ export function sanitizeItem(item, known) {
   i.price = round(price);
   // Regular (REWE/Edeka) price: never below our price, at most ~25% above.
   const midRange = MID_RANGE.some((s) => String(i.store || "").toLowerCase().includes(s));
-  const maxNormal = price * (midRange ? 1.05 : 1.25);
+  // REWE/Edeka *are* the comparison baseline, so they show no savings.
+  const maxNormal = price * (midRange ? 1 : 1.25);
   let normal = Number(i.normal_price);
   if (!(normal >= price)) normal = price * (midRange ? 1 : 1.12);
   i.normal_price = round(Math.min(normal, maxNormal));
