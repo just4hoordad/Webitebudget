@@ -95,6 +95,10 @@ export default function MealPlan() {
   const genCache = useRef({});
   const [planStyle, setPlanStyle] = useState(() => new URLSearchParams(window.location.search).get("planStyle") === "unique" ? "unique" : "repeat");
   const autoGenStarted = useRef(false);
+  // The page stays mounted between visits, so re-read the chosen style from the URL each time it changes.
+  useEffect(() => {
+    setPlanStyle(new URLSearchParams(searchKey).get("planStyle") === "unique" ? "unique" : "repeat");
+  }, [searchKey]);
 
   useEffect(() => {
     if (location.pathname !== "/meal-plan") return;
