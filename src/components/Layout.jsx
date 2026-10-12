@@ -12,7 +12,6 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import Footer from "@/components/Footer";
-import BronzeBackground from "@/components/BronzeBackground";
 import HomePage from "../pages/Home";
 import BudgetPlannerPage from "@/pages/BudgetPlanner";
 import { modeText } from "@/lib/translations_modes";
@@ -86,10 +85,9 @@ export default function Layout() {
   ];
 
   return (
-    <div className="relative isolate min-h-screen flex">
-      <BronzeBackground />
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex flex-col w-64 bg-black/50 backdrop-blur-xl border-r border-border sticky top-0 h-screen shrink-0 z-50">
+      <aside className="hidden md:flex flex-col w-64 bg-card border-r border-border sticky top-0 h-screen shrink-0 z-50">
         {/* Logo */}
         <div className="px-5 h-14 flex items-center border-b border-border shrink-0">
           <Link to="/" className="flex items-center gap-2.5 select-none">
@@ -203,7 +201,7 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header — mobile only */}
         <header
-          className="md:hidden sticky top-0 z-50 bg-black/60 backdrop-blur-xl border-b border-border"
+          className="md:hidden sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="px-4 h-14 flex items-center justify-between">

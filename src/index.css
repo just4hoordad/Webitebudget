@@ -1,63 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Italiana&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* Bronze & Time — cinematic black stage with molten bronze accents.
-     Same tokens for every theme class so the theme toggle never breaks the look. */
-  :root, .soft, .dark {
-    --font-heading: 'Italiana', serif;
-    --font-body: 'Outfit', sans-serif;
+  :root {
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
 
-    --background: 0 0% 0%;
-    --foreground: 30 100% 96%;
+    /* Sage Mist — default light theme */
+    --background: 83 21% 92%;
+    --foreground: 0 0% 10%;
 
-    --card: 28 18% 6%;
-    --card-foreground: 30 100% 96%;
-    --popover: 28 18% 7%;
-    --popover-foreground: 30 100% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 30 52% 58%;
-    --primary-foreground: 0 0% 4%;
+    --primary: 80 72% 38%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 28 14% 11%;
-    --secondary-foreground: 30 60% 92%;
+    --secondary: 83 15% 88%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 28 12% 12%;
-    --muted-foreground: 220 9% 72%;
+    --muted: 83 15% 88%;
+    --muted-foreground: 83 8% 40%;
 
-    --accent: 30 52% 58%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 80 72% 38%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 18%;
-    --input: 30 20% 20%;
-    --ring: 30 52% 58%;
+    --border: 216 12% 84%;
+    --input: 216 12% 84%;
+    --ring: 80 72% 38%;
 
-    --dark: 0 0% 3%;
-    --dark-foreground: 30 100% 96%;
-    --dark-muted: 220 9% 65%;
+    /* retained dark surface for auth / legacy chrome */
+    --dark: 220 24% 11%;
+    --dark-foreground: 0 0% 100%;
+    --dark-muted: 214 20% 60%;
 
-    --chart-1: 30 52% 58%;
-    --chart-2: 207 60% 62%;
-    --chart-3: 18 80% 55%;
-    --chart-4: 40 70% 65%;
-    --chart-5: 200 40% 45%;
+    --chart-1: 80 72% 38%;
+    --chart-2: 200 80% 50%;
+    --chart-3: 280 60% 58%;
+    --chart-4: 340 70% 55%;
+    --chart-5: 45 96% 51%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 2%;
-    --sidebar-foreground: 30 100% 96%;
-    --sidebar-primary: 30 52% 58%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 28 14% 11%;
-    --sidebar-accent-foreground: 30 100% 96%;
-    --sidebar-border: 30 20% 18%;
-    --sidebar-ring: 30 52% 58%;
+    --sidebar-background: 83 18% 93%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 80 72% 38%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 83 15% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 216 12% 84%;
+    --sidebar-ring: 80 72% 38%;
+  }
+
+  .soft {
+    /* Sage Mist — gray light variant with a faint sage-green undertone */
+    --background: 83 21% 92%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 80 72% 38%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 83 15% 88%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 83 15% 88%;
+    --muted-foreground: 83 8% 40%;
+    --accent: 80 72% 38%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 12% 84%;
+    --input: 216 12% 84%;
+    --ring: 80 72% 38%;
+    --dark: 220 24% 11%;
+    --dark-foreground: 0 0% 100%;
+    --dark-muted: 214 20% 60%;
+    --chart-1: 80 72% 38%;
+    --chart-2: 200 80% 50%;
+    --chart-3: 280 60% 58%;
+    --chart-4: 340 70% 55%;
+    --chart-5: 45 96% 51%;
+    --radius: 0.875rem;
+    --sidebar-background: 83 18% 93%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 80 72% 38%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 83 15% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 216 12% 84%;
+    --sidebar-ring: 80 72% 38%;
+  }
+
+  .dark {
+    --background: 222 24% 11%;
+    --foreground: 210 20% 96%;
+    --card: 222 20% 14%;
+    --card-foreground: 210 20% 96%;
+    --popover: 222 20% 14%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 83 78% 55%;
+    --primary-foreground: 222 24% 11%;
+    --secondary: 222 18% 18%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 222 18% 18%;
+    --muted-foreground: 220 9% 64%;
+    --accent: 83 78% 55%;
+    --accent-foreground: 222 24% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 16% 22%;
+    --input: 222 16% 22%;
+    --ring: 83 78% 55%;
+    --dark: 220 24% 11%;
+    --dark-foreground: 0 0% 100%;
+    --dark-muted: 214 20% 60%;
   }
 }
 
@@ -66,33 +131,9 @@
     @apply border-border outline-ring/50;
   }
 
-  html {
-    color-scheme: dark;
-    background: #000;
-  }
-
   body {
-    @apply bg-transparent text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-body antialiased;
     overscroll-behavior-y: none;
-    font-weight: 300;
-    letter-spacing: 0.01em;
-  }
-
-  /* Italiana ships one weight — keep headings crisp instead of faux-bold */
-  .font-heading {
-    font-synthesis: none;
-    letter-spacing: 0.04em;
-  }
-
-  h1.font-heading, h2.font-heading {
-    letter-spacing: 0.06em;
-  }
-
-  /* Translucent glass cards so the bronze waves breathe through */
-  .bg-card {
-    background-color: hsl(var(--card) / 0.72) !important;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
   }
 }
 
