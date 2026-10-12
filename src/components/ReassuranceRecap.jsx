@@ -56,9 +56,6 @@ export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle })
     { icon: Users, value: `${people} ${t("personS")}` },
     { icon: Target, value: goalLabel },
   ];
-  if (macros) {
-    cards.push({ icon: TrendingUp, value: `P${macros.protein}% · C${macros.carbs}% · F${macros.fats}%` });
-  }
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -84,6 +81,21 @@ export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle })
             );
           })}
         </div>
+        {macros && (
+          <div className="mt-2.5 flex items-center gap-2.5 bg-muted/40 rounded-xl px-3 py-2.5">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
+            <div className="grid grid-cols-3 gap-2 flex-1 min-w-0">
+              {[["protein", "Protein", macros.protein], ["carbs", "Carbs", macros.carbs], ["fats", "Fat", macros.fats]].map(([key, fallback, val]) => (
+                <div key={key} className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{t(key) === key ? fallback : t(key)}</p>
+                  <p className="text-sm font-heading font-semibold text-foreground">{val}%</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <p className="text-sm text-muted-foreground leading-relaxed mt-4">
           {s.body}
         </p>
