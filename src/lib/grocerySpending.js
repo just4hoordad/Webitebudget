@@ -15,7 +15,7 @@ export function normalizeGroceryTotal(result) {
   return { ...result, total_estimated_cost: grocerySpending(result).total };
 }
 
-export function spendingIssues(result, params) {
+export function spendingIssues(result, params, checkSavingTarget = true) {
   const { main, snacks } = grocerySpending(result);
   const budget = cents(params.budget);
   const mainCost = cents(main);
@@ -25,7 +25,7 @@ export function spendingIssues(result, params) {
   if (mainCost > budget) issues.push(`Main groceries cost €${main.toFixed(2)}, exceeding the main budget of €${(budget / 100).toFixed(2)}. The protein snack allowance cannot fund main groceries.`);
   if (cents(snacks) > snackBudget) issues.push(`Protein snacks cost €${snacks.toFixed(2)}, exceeding their separate €${(snackBudget / 100).toFixed(2)} allowance.`);
   if (snackBudget > 0 && cents(snacks) < Math.max(0, snackBudget - 100)) issues.push("Keep the dedicated Protein Snacks category within €1 of its separate allowance.");
-  if (mode === "save" && mainCost > Math.floor(budget * 0.8)) issues.push(`Save mode still costs €${main.toFixed(2)}. Replace expensive products with cheaper equivalents and remove only surplus food, aiming at or below €${(Math.floor(budget * 0.8) / 100).toFixed(2)} without reducing the required nutrition.`);
+  if (checkSavingTarget && mode === "save" && mainCost > Math.floor(budget * 0.8)) issues.push(`Save mode still costs €${main.toFixed(2)}. Replace expensive products with cheaper equivalents and remove only surplus food, aiming at or below €${(Math.floor(budget * 0.8) / 100).toFixed(2)} without reducing the required nutrition.`);
   if (mode === "balanced" && mainCost < Math.ceil(budget * 0.92)) issues.push(`Balanced mode costs only €${main.toFixed(2)}. Replace existing products with sensible everyday-quality alternatives to reach €${(Math.ceil(budget * 0.92) / 100).toFixed(2)}–€${(budget / 100).toFixed(2)}. Do not inflate prices, buy surplus food, or add luxury filler.`);
   return issues;
 }

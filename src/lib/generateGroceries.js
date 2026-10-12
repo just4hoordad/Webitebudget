@@ -138,7 +138,7 @@ function spendModeRule(p) {
   const totalCap = budget + snacks;
   const mode = p.spendMode || "balanced";
   if (mode === "save") {
-    return `4. SAVE MODE: Spend as little as possible, not a minimum percentage of the budget. Main groceries must cost at most €${(Math.floor(budget * 80) / 100).toFixed(2)} (80% of the user's €${budget} maximum). Use low-cost house brands and seasonal essentials from the selected stores. Buy enough for ${p.days} days at ~${p.calories} kcal/day, but no surplus, premium upgrades or luxury filler. Never cut needed calories or distort prices to meet the saving target. Protein snacks have their own separate €${snacks} allowance and cannot fund main groceries.`;
+    return `4. SAVE MODE: Spend as little as possible, not a minimum percentage of the budget. Aim for main groceries at or below €${(Math.floor(budget * 80) / 100).toFixed(2)} (80% of the user's €${budget} maximum). If the cheapest suitable foods genuinely require more to cover the full nutrition, use the minimum necessary up to the absolute €${budget} maximum, never drop meals just to hit a percentage. Use low-cost house brands and seasonal essentials from the selected stores. Buy enough for ${p.days} days at ~${p.calories} kcal/day, but no surplus, premium upgrades or luxury filler. Never cut needed calories or distort prices to meet the saving target. Protein snacks have their own separate €${snacks} allowance and cannot fund main groceries.`;
   }
   if (mode === "maximize") {
     return `4. CRITICAL BUDGET RULE — MAXIMIZE VALUE MODE: The user wants to SPEND THE FULL BUDGET on higher-value groceries. The main grocery budget (excluding Protein Snacks) should be as close to €${budget} as possible — ideally between €${Math.round(budget * 0.95)} and €${budget}, and never over. Use the full budget to UPGRADE quality and variety, NOT to pile up cheap bulk staples: prefer better cuts of meat, fresh fish, organic produce, branded quality goods, nuts, cheese, fresh fruit, and nicer treats. The list should feel like a noticeable step up in quality and variety compared to a budget list, while still covering ${p.days} days at ~${p.calories} kcal/day. If you are well under budget, add more premium / higher-value items (not more of the same cheap staple) until the total is close to €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
@@ -360,7 +360,7 @@ function validateGroceries(result, p, includeSpending = true) {
   }
   const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const cap = Number(p.budget) + (Number(p.proteinSnackBudget) || 0);
-  if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
+  if (p.spendMode === "maximize" && cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
   if (includeSpending && p.spendMode !== "maximize") issues.push(...spendingIssues(result, p));
   if (p.spendMode !== "maximize" && items.some((item) => ["total_kcal", "protein_g", "carb_g", "fat_g"].some((field) => item[field] == null || !Number.isFinite(Number(item[field]))))) {
     issues.push("Provide total_kcal, protein_g, carb_g and fat_g for every purchased item. Nutrition must not be dropped to reduce spending.");
@@ -439,6 +439,13 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   const qualityIssues = (result) => validateGroceries(result, p, false);
   const prepare = (result) => {
     const corrected = fixHouseBrandStores(result, p);
+    if (managedSpending) {
+      for (const category of corrected.categories || []) {
+        for (const item of category.items || []) {
+          fixHouseBrandStores({ categories: [{ items: item.alternatives || [] }] }, p);
+        }
+      }
+    }
     return managedSpending ? applySpendingAlternatives(corrected, p, qualityIssues) : normalizeGroceryTotal(corrected);
   };
   const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
@@ -482,8 +489,10 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(result);
-  if (managedSpending && issues.length) {
-    throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
+  if (managedSpending) {
+    // Save minimizes genuine costs; its 80% goal must never remove needed meals.
+    issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
+    if (issues.length) throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
   }
 
   // Only persist lists that pass validation, so bad output never gets

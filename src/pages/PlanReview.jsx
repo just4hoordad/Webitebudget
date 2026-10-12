@@ -58,7 +58,7 @@ export default function PlanReview() {
     { label: L("goal", "Goal"), value: goalLabel },
   ];
   if (proteinSnackBudget > 0) details.push({ label: L("proteinSnackBudgetTitle", "Protein snack budget"), value: `€${proteinSnackBudget}` });
-  if (spendMode && spendMode !== "balanced") details.push({ label: L("spendModeTitle", "Spending mode"), value: L(`spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}`, spendMode) });
+  if (spendMode) details.push({ label: L("spendModeTitle", "Spending mode"), value: L(`spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}`, spendMode) });
   if (bio) details.push({ label: L("bio", "Organic"), value: L("yes", "Yes") });
   if (saleHunt) details.push({ label: L("saleHunt", "Sale hunt"), value: L("yes", "Yes") });
   if (junkPercent > 0) details.push({ label: L("junkFood", "Junk allowance"), value: `${junkPercent}%` });

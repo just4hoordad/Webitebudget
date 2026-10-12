@@ -118,7 +118,8 @@ export default function MealPlan() {
     autoGenStarted.current = false;
     setWeeklyPlan(null);
     setGenerationError("");
-    const langKey = `${searchKey}::${currentLanguage.code}`;
+    const gparams = groceryParamsFromSearch(searchKey);
+    const langKey = grocerySignature(gparams, currentLanguage.code);
     const cached = genCache.current[langKey];
     if (cached && retryCount === 0 && !force) {
       setRemovedItems(new Set());
@@ -129,7 +130,6 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     try {
-      const gparams = groceryParamsFromSearch(searchKey);
       const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code, { force });
       setGroceries(result);
       genCache.current[langKey] = result;
@@ -151,7 +151,7 @@ export default function MealPlan() {
     const shared = getCachedGroceries(sig);
     if (shared) {
       setGenerationError("");
-      genCache.current[`${searchKey}::${currentLanguage.code}`] = shared;
+      genCache.current[sig] = shared;
       setRemovedItems(new Set());
       setGroceries(shared);
       setLoading(false);
