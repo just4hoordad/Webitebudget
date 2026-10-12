@@ -421,6 +421,21 @@ export default function MealPlan() {
   };
 
   const totalDays = days;
+  // Deterministic correction: scale each day's meal calories proportionally
+  // so the daily total matches the target. The AI model rarely hits the exact
+  // target, and a single retry is insufficient — this guarantees it in code.
+  const scaleDayCalories = (days, target) => (days || []).map((d) => {
+    if (!d) return d;
+    const total = (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0);
+    if (total <= 0 || Math.abs(total - target) < target * 0.05) return d;
+    const scale = target / total;
+    return {
+      ...d,
+      breakfast_calories: Math.round((d.breakfast_calories || 0) * scale),
+      lunch_calories: Math.round((d.lunch_calories || 0) * scale),
+      dinner_calories: Math.round((d.dinner_calories || 0) * scale),
+    };
+  });
   // True when the plan's average daily kcal misses the target by more than 10%.
   const calorieOff = (planDays) => {
     const list = (planDays || []).filter(Boolean);
@@ -511,7 +526,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       }
       const weeks = (result.weeks || []).map((w, i) => ({
         week: w.week || i + 1,
-        days: Array.isArray(w.days) ? w.days : [],
+        days: scaleDayCalories(Array.isArray(w.days) ? w.days : [], Number(calories)),
       }));
       setPlanCache(sig, weeks);
       return weeks;
@@ -540,7 +555,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     if (calorieOff(result.days)) {
       result = await invokeAI({ prompt: `${weekPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: weeklyPlanSchema });
     }
-    const days = result.days || [];
+    const days = scaleDayCalories(result.days || [], Number(calories));
     setPlanCache(wkSig, days);
     setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days }] });
     setLoadingPlan(false);

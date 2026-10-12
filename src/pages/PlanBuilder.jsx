@@ -302,16 +302,18 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
 
       const filtered = dropUnselectedStores({ categories: res.categories }, { stores: allowedStores });
       const grocery = await verifyPrices({ categories: filtered.categories }, knownMap);
+      // Final guarantee: no items from unselected stores
+      const cleanGrocery = dropUnselectedStores(grocery, { stores: allowedStores });
       const prep = res.prep || null;
-      setGrocery(grocery);
+      setGrocery(cleanGrocery);
       setPrep(prep);
-      saveLastPlan({ plan, grocery, prep });
+      saveLastPlan({ plan, grocery: cleanGrocery, prep });
       setPhase("result");
       window.scrollTo(0, 0);
-      savePriceObservations(grocery, postalCode, diet);
+      savePriceObservations(cleanGrocery, postalCode, diet);
 
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery, prep }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ key: cacheKey, date: todayStr(), grocery: cleanGrocery, prep }));
       } catch { /* ignore */ }
 
       base44.entities.MealPlan.create({
@@ -323,7 +325,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         postalCode,
         macros,
         plan,
-        groceryList: grocery,
+        groceryList: cleanGrocery,
         prep,
       })
         .then((rec) => {

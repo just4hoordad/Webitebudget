@@ -80,7 +80,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 21; // v21: hard food-quantity gate, junk rows removed // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 22; // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -269,10 +269,13 @@ export function isAllowedStoreItem(i, stores) {
   const list = Array.isArray(stores) ? stores.join(", ") : String(stores || "");
   const allowed = allowedStoreNames(list).map((s) => s.toLowerCase().split(" ")[0]);
   if (!allowed.length) return true;
+  const storeLower = String(i.store || "").toLowerCase().trim();
+  const storeFirstWord = storeLower.split(/[\s-]+/)[0];
+  // Exact or first-word match — prevents substring false positives (e.g. "Edeka" matching "dm")
+  const storeMatches = allowed.some((a) => storeLower === a || storeFirstWord === a);
   const selected = allowed.join(",");
   const chains = houseBrandChains(i.name);
-  return allowed.some((a) => String(i.store || "").toLowerCase().includes(a))
-    && !(chains && !chains.some((ch) => selected.includes(ch)));
+  return storeMatches && !(chains && !chains.some((ch) => selected.includes(ch)));
 }
 
 export function dropUnselectedStores(result, p) {
@@ -348,7 +351,11 @@ function validateGroceries(result, p, includeSpending = true) {
     issues.push(`These are store-own brands of chains the user didn't select: ${wrongChain.map((i) => i.name).join(", ")}. Replace them with products actually sold at ${p.stores}.`);
   }
   const allowed = allowedStoreNames(p.stores).map((s) => s.toLowerCase().split(" ")[0]);
-  const offStore = allowed.length ? items.filter((i) => !allowed.some((a) => String(i.store || "").toLowerCase().includes(a))) : [];
+  const offStore = allowed.length ? items.filter((i) => {
+    const sl = String(i.store || "").toLowerCase().trim();
+    const sf = sl.split(/[\s-]+/)[0];
+    return !allowed.some((a) => sl === a || sf === a);
+  }) : [];
   if (offStore.length) {
     issues.push(`These items are from stores the user didn't select: ${offStore.map((i) => `${i.name} (${i.store})`).join(", ")}. Replace them with products from ${allowedStoreNames(p.stores).join(", ")} only.`);
   }
@@ -512,6 +519,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   if (listKcal(result) < Number(p.calories) * p.days * 0.95) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
   }
+  // Final guarantee: no items from unselected stores survive to the user.
+  result = normalizeGroceryTotal(dropUnselectedStores(result, p));
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
