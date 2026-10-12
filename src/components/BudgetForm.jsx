@@ -486,9 +486,9 @@ export default function BudgetForm() {
                 <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
                 <StoreMapPicker
                   selectedStoreLocations={selectedStoreLocations}
-                  onChangeStoreLocations={withStepInput("stores", setSelectedStoreLocations)}
+                  onChangeStoreLocations={setSelectedStoreLocations}
                   selectedChains={selectedStores}
-                  onToggleChain={withStepInput("stores", toggleStore)}
+                  onToggleChain={toggleStore}
                   cityCoords={cityCoords}
                   onCityCoordsUsed={() => setCityCoords(null)}
                 />
