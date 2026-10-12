@@ -11,7 +11,7 @@ import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
-import { savePriceObservations, getKnownPricesText } from "@/lib/generateGroceries";
+import { savePriceObservations, getKnownPricesText, dropUnselectedStores } from "@/lib/generateGroceries";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -299,7 +299,11 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         },
       });
 
-      const grocery = { total_estimated_cost: res.total_estimated_cost, categories: res.categories };
+      const filtered = dropUnselectedStores({ categories: res.categories }, { stores: allowedStores });
+      const grocery = {
+        total_estimated_cost: Math.round(filtered.categories.flatMap((c) => c.items).reduce((s, i) => s + (Number(i.price) || 0), 0) * 100) / 100,
+        categories: filtered.categories,
+      };
       const prep = res.prep || null;
       setGrocery(grocery);
       setPrep(prep);

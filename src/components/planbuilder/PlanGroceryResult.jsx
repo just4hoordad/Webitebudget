@@ -758,6 +758,7 @@ export default function PlanGroceryResult({
             item={grocerySwapTarget.item}
             category={grocerySwapTarget.category}
             diet={diet}
+            stores={storesStr}
             onSwap={handleGrocerySwap}
             onClose={() => setGrocerySwapTarget(null)}
           />

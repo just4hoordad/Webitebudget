@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
+import { isAllowedStoreItem } from "@/lib/generateGroceries";
 
 export default function GrocerySwapModal({ item, category, diet, budget, stores, onSwap, onClose }) {
   const { t } = useLanguage();
@@ -70,7 +71,7 @@ For each alternative, provide:
         }
       }
     });
-    const alts = result.alternatives || [];
+    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores));
     setAlternatives(alts);
     try {
       const raw = localStorage.getItem("bb_grocery_swaps");

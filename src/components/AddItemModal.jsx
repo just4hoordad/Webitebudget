@@ -4,6 +4,7 @@ import { X, Search, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { useLanguage } from "@/lib/LanguageContext";
+import { isAllowedStoreItem } from "@/lib/generateGroceries";
 
 export default function AddItemModal({ stores, diet, onAdd, onClose }) {
   const { t } = useLanguage();
@@ -62,7 +63,7 @@ Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
         }
       }
     });
-    const alts = result.alternatives || [];
+    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores));
     setAlternatives(alts);
     try {
       const raw = localStorage.getItem("bb_additem_swaps");

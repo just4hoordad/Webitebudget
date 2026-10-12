@@ -291,12 +291,20 @@ function fixHouseBrandStores(result, p) {
 }
 
 // Hard guarantee: remove anything from a store (or store-own brand) the user didn't select.
-function dropUnselectedStores(result, p) {
-  const allowed = allowedStoreNames(p.stores).map((s) => s.toLowerCase().split(" ")[0]);
-  if (!allowed.length) return result;
-  const selected = String(p.stores || "").toLowerCase();
-  const ok = (i) => allowed.some((a) => String(i.store || "").toLowerCase().includes(a))
-    && !(houseBrandChains(i.name) && !houseBrandChains(i.name).some((ch) => selected.includes(ch)));
+// True when an item belongs to one of the selected stores (stores = "aldi, lidl" or array).
+export function isAllowedStoreItem(i, stores) {
+  const list = Array.isArray(stores) ? stores.join(", ") : String(stores || "");
+  const allowed = allowedStoreNames(list).map((s) => s.toLowerCase().split(" ")[0]);
+  if (!allowed.length) return true;
+  const selected = allowed.join(",");
+  const chains = houseBrandChains(i.name);
+  return allowed.some((a) => String(i.store || "").toLowerCase().includes(a))
+    && !(chains && !chains.some((ch) => selected.includes(ch)));
+}
+
+export function dropUnselectedStores(result, p) {
+  if (!allowedStoreNames(Array.isArray(p.stores) ? p.stores.join(",") : p.stores).length) return result;
+  const ok = (i) => isAllowedStoreItem(i, p.stores);
   const categories = (result?.categories || [])
     .map((c) => ({ ...c, items: (c.items || []).filter(ok).map((i) => i.alternatives ? { ...i, alternatives: i.alternatives.filter(ok) } : i) }))
     .filter((c) => c.items.length);
