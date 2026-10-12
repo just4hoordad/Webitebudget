@@ -71,7 +71,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 10;
+const PROMPT_VERSION = 11;
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -139,7 +139,7 @@ ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to co
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item. Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
-3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month).
+3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month). Never buy more than 6 packs of the same product — if more of an ingredient is needed, choose a larger pack size (e.g. a 2L milk carton instead of two 1L cartons, a 1kg rice bag instead of two 500g bags) rather than stacking many small packs. A healthy, varied diet spreads calories across many distinct foods, so no single item should dominate the list (dairy especially: a person does not drink close to a liter of milk every day).
 4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the realistic price for the SAME product (or its closest mid-range equivalent, e.g. the REWE Best Bucks / Edeka Eigenmarke version of the same product) at a mid-range German supermarket (REWE or Edeka) for the SAME quantity. This is a genuine price comparison against the budget store, NOT the same store's price. As a realistic guideline, mid-range supermarkets in Germany are typically 10–20% more expensive than hard-discounters (Aldi/Lidl) on the same or equivalent products — so normal_price should usually be HIGHER than price (typically by 10–20% for discounters, closer to 0% for mid-range chains like REWE/Edeka themselves), and should never be lower than price. Many branded goods (e.g. branded chocolate, Coca-Cola, Nutella) cost nearly the same everywhere — for those, normal_price should be at most a few cents above price. Compute each normal_price independently from a realistic mid-range price; do NOT copy the price field. The savings shown to the user is the sum of (normal_price − price), so accurate, honestly-higher normal_prices are essential.
@@ -341,6 +341,17 @@ function validateGroceries(result, p) {
   if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
   const badPrice = items.filter((i) => !(Number(i.unit_price) >= 0.15));
   if (badPrice.length) issues.push(`Unrealistic unit prices for: ${badPrice.map((i) => i.name).join(", ")}.`);
+  // Per-item pack sanity: flag any single item bought in an unreasonable number
+  // of packs (e.g. 27 cartons of milk). The model should pick a larger pack size
+  // or spread the quantity across different products, not stack small packs.
+  const maxPacks = Math.min(8, 3 + Number(p.people || 1) * 2);
+  const tooMany = items.filter((i) => {
+    const u = Number(i.unit_price), pr = Number(i.price);
+    return u > 0 && pr > 0 && Math.round(pr / u) > maxPacks;
+  });
+  if (tooMany.length) {
+    issues.push(`These items are bought in unrealistic quantities (more than ${maxPacks} packs each): ${tooMany.map((i) => `${i.name} (×${Math.round(Number(i.price) / Number(i.unit_price))})`).join(", ")}. Replace the many small packs with a larger pack size of the same product, or split the quantity across different products — a healthy diet does not rely on one item for most of its calories.`);
+  }
   return issues;
 }
 
