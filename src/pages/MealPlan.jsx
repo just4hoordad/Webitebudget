@@ -425,8 +425,8 @@ export default function MealPlan() {
   const calorieOff = (planDays) => {
     const list = (planDays || []).filter(Boolean);
     if (!list.length) return false;
-    const avg = list.reduce((s, d) => s + (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0), 0) / list.length;
-    return Math.abs(avg - Number(calories)) > Number(calories) * 0.1;
+    // Every single day must be within 10% of the goal, not just the average.
+    return list.some((d) => Math.abs((d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0) - Number(calories)) > Number(calories) * 0.1);
   };
   const totalWeeks = Math.ceil(totalDays / 7);
 

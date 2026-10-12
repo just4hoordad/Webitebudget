@@ -77,7 +77,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 20; // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 21; // v21: hard food-quantity gate, junk rows removed // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -421,6 +421,27 @@ function restrictStoreSchema(allowed) {
   return s;
 }
 
+const CATEGORY_WORDS = ["dairy", "vegetables", "fruits", "fruit", "meat", "fish", "grains", "snacks", "drinks", "bakery", "frozen", "other", "protein", "milchprodukte", "gemüse", "obst", "fleisch"];
+// Drop placeholder rows the model sometimes returns (no price, or a category name as product).
+function dropJunkItems(result) {
+  const ok = (i) => i?.name && (Number(i.unit_price) > 0 || Number(i.price) > 0)
+    && !CATEGORY_WORDS.includes(String(i.name).trim().toLowerCase());
+  const categories = (result?.categories || [])
+    .map((c) => ({ ...c, items: (c.items || []).filter(ok) })).filter((c) => c.items.length);
+  return { ...result, categories };
+}
+const listKcal = (r) => (r?.categories || []).flatMap((c) => c.items || []).reduce((s, i) => s + (Number(i.total_kcal) || 0), 0);
+// Returns a reason string when a list can't realistically feed the person, else "".
+function unlivable(r, p) {
+  const items = (r?.categories || []).flatMap((c) => c.items || []);
+  const minItems = p.days >= 14 ? 12 : 8;
+  if (items.length < minItems) return `only ${items.length} products`;
+  const target = Number(p.calories) * p.days;
+  const kcal = listKcal(r);
+  if (target && kcal < target * 0.75) return `only ${Math.round((kcal / target) * 100)}% of needed calories`;
+  return "";
+}
+
 const budgetCap = (p) => Number(p.budget) + (p.proteinSnackBudget || 0);
 const listCost = (r) => (r?.categories || []).flatMap((c) => c.items || []).reduce((s, i) => s + (Number(i.price) || 0), 0);
 
@@ -465,7 +486,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     product.required = replacement.required;
   }
   const qualityIssues = (result) => validateGroceries(result, p, false);
-  const prepare = (result) => {
+  const prepare = (raw) => {
+    const result = dropUnselectedStores(dropJunkItems(raw), p);
     const corrected = sanitizePrices(fixHouseBrandStores(result, p), known);
     if (managedSpending) {
       for (const category of corrected.categories || []) {
@@ -500,6 +522,13 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     if (retryBetter) { result = retry; issues = retryIssues; }
   }
 
+  // Hard gate: a list that can't feed the person for the whole period gets one
+  // more attempt with a stronger model instead of being shown.
+  if (unlivable(result, p)) {
+    const strong = prepare(await call(`${basePrompt}\n\nIMPORTANT: Previous attempts produced far too little food (${unlivable(result, p)}). The list MUST contain enough real branded products from the selected stores to cover ${Math.round(Number(p.calories) * p.days)} kcal in total over ${p.days} days.`, "openai/gpt-4o"));
+    if (!unlivable(strong, p) || listKcal(strong) > listKcal(result)) result = strong;
+  }
+
   // Maximize mode: the AI model (even gpt-4o) reliably ignores the "spend
   // close to budget" instruction and defaults to cheap lists. Instead of
   // retrying, deterministically pad the list with real premium products from
@@ -522,6 +551,12 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
+  // Never show a list that can't feed the person for the chosen period.
+  if (unlivable(result, p)) {
+    throw new Error(langCode === "de"
+      ? "Die Liste enthielt nicht genug Lebensmittel für den gewählten Zeitraum. Bitte erneut versuchen."
+      : "The generated list didn't contain enough food for the chosen period. Please try again.");
+  }
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
