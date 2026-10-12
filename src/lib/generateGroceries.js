@@ -2,7 +2,7 @@ import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
-import { normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
+import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
   type: "object",
@@ -492,7 +492,10 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
-    if (issues.length) throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
+    // Only a list that busts the main budget is unusable. Soft issues (macro
+    // split a few points off, balanced slightly under 92%) still show the list
+    // — it just isn't cached/shared below.
+    if (grocerySpending(result).main > Number(p.budget)) throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
   }
 
   // Only persist lists that pass validation, so bad output never gets
