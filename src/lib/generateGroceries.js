@@ -56,6 +56,7 @@ export function groceryParamsFromSearch(search) {
     people: params.get("people") || 1,
     saleHunt: params.get("saleHunt") === "true",
     bio: params.get("bio") === "true",
+    spendMode: params.get("spendMode") || "balanced",
     junkPercent: parseInt(params.get("junkPercent") || "0", 10),
     proteinSnackBudget: parseInt(params.get("proteinSnackBudget") || "0", 10),
     allergies: params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [],
@@ -71,13 +72,13 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 11;
+const PROMPT_VERSION = 12; // v12: adds spendMode (save / maximize / balanced)
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
     budget: p.budget, stores: p.stores, diet: p.diet, calories: p.calories,
     days: p.days, people: p.people, saleHunt: p.saleHunt, bio: p.bio,
-    junkPercent: p.junkPercent, proteinSnackBudget: p.proteinSnackBudget,
+    spendMode: p.spendMode, junkPercent: p.junkPercent, proteinSnackBudget: p.proteinSnackBudget,
     allergies: p.allergies, ownedItems: p.ownedItems, macros: p.macros, postalCode: p.postalCode, lang: langCode,
     v: PROMPT_VERSION,
   });
@@ -124,6 +125,24 @@ function saveCachedGroceryServer(sig, payload, p, langCode) {
   }
 }
 
+// Builds the budget rule (rule 4) based on the user's spending mode:
+//  - "save": spend as little as possible while still covering the days/calories
+//  - "maximize": spend the full budget on higher-value / premium groceries
+//  - default ("balanced"): stay just under budget, close to it
+function spendModeRule(p) {
+  const budget = Number(p.budget);
+  const snacks = Number(p.proteinSnackBudget) || 0;
+  const totalCap = budget + snacks;
+  const mode = p.spendMode || "balanced";
+  if (mode === "save") {
+    return `4. CRITICAL BUDGET RULE — SAVE MODE: The user wants to SPEND AS LITTLE AS POSSIBLE while still covering ${p.days} days of meals at ~${p.calories} kcal/day. The main grocery budget (excluding Protein Snacks) MUST stay UNDER €${budget}, and you should aim WELL BELOW it — ideally between €${Math.round(budget * 0.55)} and €${Math.round(budget * 0.80)} (roughly 55–80% of the budget). Choose the cheapest staples only (oats, rice, pasta, beans, lentils, eggs, discount dairy, potatoes, seasonal vegetables, bananas) and SKIP premium, branded-luxury, or treat items. Buy only what is needed to hit the calorie and macro targets — no extras, no upgrades. If the list already covers the days at the target calories, stop adding items even if you are far below budget. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+  }
+  if (mode === "maximize") {
+    return `4. CRITICAL BUDGET RULE — MAXIMIZE VALUE MODE: The user wants to SPEND THE FULL BUDGET on higher-value groceries. The main grocery budget (excluding Protein Snacks) should be as close to €${budget} as possible — ideally between €${Math.round(budget * 0.95)} and €${budget}, and never over. Use the full budget to UPGRADE quality and variety, NOT to pile up cheap bulk staples: prefer better cuts of meat, fresh fish, organic produce, branded quality goods, nuts, cheese, fresh fruit, and nicer treats. The list should feel like a noticeable step up in quality and variety compared to a budget list, while still covering ${p.days} days at ~${p.calories} kcal/day. If you are well under budget, add more premium / higher-value items (not more of the same cheap staple) until the total is close to €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+  }
+  return `4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${Math.round(budget * 0.92)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+}
+
 export function buildGroceryPrompt(p, langLabel, knownPricesText = "") {
   const { people, diet, days, budget, calories, stores, saleHunt, bio, junkPercent, proteinSnackBudget, allergies, ownedItems, macros } = p;
   return `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
@@ -140,8 +159,8 @@ Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. Pick the cheapest store for each item. Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month). Never buy more than 6 packs of the same product — if more of an ingredient is needed, choose a larger pack size (e.g. a 2L milk carton instead of two 1L cartons, a 1kg rice bag instead of two 500g bags) rather than stacking many small packs. Keep every item to a realistic amount a person actually consumes: no single item should provide more than ~25% of one day's calories, and milk in particular is a drink, not a calorie source — a person has at most one glass (~250ml) a day, so never plan more than ~${Math.max(2, Math.ceil(p.people * 0.25 * days))}L of milk total for the whole period; if you need more dairy calories, use yogurt, quark, skyr, or cheese, not more milk.
-4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${(budget * 0.92).toFixed(0)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${parseFloat(budget) + proteinSnackBudget}).
-5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
+${spendModeRule(p)}
+ 5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the realistic price for the SAME product (or its closest mid-range equivalent, e.g. the REWE Best Bucks / Edeka Eigenmarke version of the same product) at a mid-range German supermarket (REWE or Edeka) for the SAME quantity. This is a genuine price comparison against the budget store, NOT the same store's price. As a realistic guideline, mid-range supermarkets in Germany are typically 10–20% more expensive than hard-discounters (Aldi/Lidl) on the same or equivalent products — so normal_price should usually be HIGHER than price (typically by 10–20% for discounters, closer to 0% for mid-range chains like REWE/Edeka themselves), and should never be lower than price. Many branded goods (e.g. branded chocolate, Coca-Cola, Nutella) cost nearly the same everywhere — for those, normal_price should be at most a few cents above price. Compute each normal_price independently from a realistic mid-range price; do NOT copy the price field. The savings shown to the user is the sum of (normal_price − price), so accurate, honestly-higher normal_prices are essential.
 7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g"), total_kcal to the total kilocalories of the full purchased quantity, and protein_g/carb_g/fat_g to the total grams of each macronutrient in that same full quantity. The sum of all total_kcal should be close to ${Math.round(calories * days)} kcal — enough food for ${days} days, not more.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
@@ -339,6 +358,12 @@ function validateGroceries(result, p) {
   const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const cap = Number(p.budget) + (p.proteinSnackBudget || 0);
   if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
+  // Maximize-value mode: a list far under budget fails the user's goal — they
+  // asked to spend the budget on better groceries, not to save. Nudge one retry
+  // that adds premium / higher-value items until the total is close to budget.
+  if ((p.spendMode === "maximize") && cost < Number(p.budget) * 0.9) {
+    issues.push(`Total €${cost.toFixed(2)} is only ${Math.round((cost / Number(p.budget)) * 100)}% of the €${p.budget} budget. The user chose to SPEND THE FULL BUDGET on higher-value groceries — add more premium items (better meat, fish, organic produce, cheese, nuts, fresh fruit, branded quality goods) until the total is close to €${p.budget}, without going over.`);
+  }
   const badPrice = items.filter((i) => !(Number(i.unit_price) >= 0.15));
   if (badPrice.length) issues.push(`Unrealistic unit prices for: ${badPrice.map((i) => i.name).join(", ")}.`);
   // Per-item pack sanity: flag any single item bought in an unreasonable number

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BudgetInput from "@/components/BudgetInput";
 import DurationInput from "@/components/DurationInput";
+import SpendModeSelector from "@/components/SpendModeSelector";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -96,6 +97,7 @@ export default function BudgetForm() {
   const [days, setDays] = useState(1);
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
+  const [spendMode, setSpendMode] = useState("balanced"); // "balanced" | "save" | "maximize"
   const [junkPercent, setJunkPercent] = useState([0]);
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [proteinSnackBudget, setProteinSnackBudget] = useState(0);
@@ -195,6 +197,7 @@ export default function BudgetForm() {
       if (p.postalCode) { setPostalCode(p.postalCode); setLocationInput(p.postalCode); }
       setBio(!!p.bio);
       setSaleHunt(!!p.saleHunt);
+      if (p.spendMode) setSpendMode(p.spendMode);
     });
   }, []);
 
@@ -207,6 +210,7 @@ export default function BudgetForm() {
       const dailyKcal = computeDailyCalories(calorieMetrics) || 2000;
       params.set("calories", dailyKcal * people);
       params.set("goal", calorieMetrics.goal);
+      params.set("spendMode", spendMode);
       ["height", "weight", "age", "sex", "activity"].forEach((k) => calorieMetrics[k] && params.set(k, calorieMetrics[k]));
     }
     if (enabled.diet) {
@@ -227,7 +231,7 @@ export default function BudgetForm() {
       params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
     }
     base44.auth.isAuthenticated().then((ok) => ok && base44.auth.updateMe({
-      budgetFormPrefs: { budget: budget[0], days, people, selectedDiet, calorieMetrics, macros, allergies, selectedStores, selectedStoreLocations, postalCode, bio, saleHunt },
+      budgetFormPrefs: { budget: budget[0], days, people, selectedDiet, calorieMetrics, macros, allergies, selectedStores, selectedStoreLocations, postalCode, bio, saleHunt, spendMode },
     }));
     navigate(`/plan-review?${params.toString()}`);
   };
@@ -299,6 +303,9 @@ export default function BudgetForm() {
                   <span>€2400</span>
                 </div>
               </div>
+
+              {/* Spending mode */}
+              <SpendModeSelector value={spendMode} onChange={setSpendMode} />
 
               {/* Duration */}
               <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} />
