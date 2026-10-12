@@ -546,7 +546,7 @@ export default function BudgetForm() {
                       return (
                         <button
                           key={store.id}
-                          onClick={withStepInput("stores", () => toggleStore(store.id))}
+                          onClick={() => toggleStore(store.id)}
                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
                             isSelected
                               ? store.color + " border-current shadow-sm"
@@ -578,7 +578,7 @@ export default function BudgetForm() {
                        return (
                          <button
                            key={store.id}
-                           onClick={withStepInput("stores", () => toggleStore(store.id))}
+                           onClick={() => toggleStore(store.id)}
                            className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
                              isSelected
                                ? store.color + " border-current shadow-sm"

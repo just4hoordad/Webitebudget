@@ -10,7 +10,7 @@ export default function SetupStoreChoices({ stores, toggleStore, diet, macros, o
         const discount = getStoreDiscount(store, diet, macros);
         const selected = stores.includes(store);
         return (
-          <button key={store} onClick={() => { toggleStore(store); onComplete("stores"); }}
+          <button key={store} onClick={() => toggleStore(store)}
             className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all inline-flex items-center gap-1.5 ${selected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}>
             <span>{store}</span>
             {discount > 0 && (
