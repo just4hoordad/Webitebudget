@@ -137,6 +137,12 @@
   }
 }
 
+@keyframes print { from { clip-path: inset(0 0 100% 0); opacity: .4 } to { clip-path: inset(0 0 -20px 0); opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+.receipt { animation: print 1.1s cubic-bezier(.2,.8,.2,1) both; transform-origin: top; }
+.receipt::after { content: ""; position: absolute; left: -1px; right: -1px; bottom: -12px; height: 12px; background: linear-gradient(135deg,#fff 50%,transparent 50%) 0 0/16px 12px, linear-gradient(225deg,#fff 50%,transparent 50%) 0 0/16px 12px; filter: drop-shadow(0 4px 3px rgba(104,110,94,.16)); }
+.rise { animation: rise .7s both; }
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -13,7 +13,9 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
     ? "text-primary"
     : "text-foreground";
   const labelColor = onGlass ? "text-white/70" : "text-muted-foreground";
-  const wrapClass = onGlass
+  const wrapClass = variant === "pill"
+    ? "flex items-center justify-between gap-2 flex-wrap bg-background rounded-full px-3 py-1.5 font-mono text-[11px]"
+    : onGlass
     ? "flex items-center justify-between gap-2 flex-wrap"
     : "flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-xl px-4 py-3";
 
