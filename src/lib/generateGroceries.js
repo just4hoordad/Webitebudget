@@ -476,7 +476,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // close to budget" instruction and defaults to cheap lists. Instead of
   // retrying, deterministically pad the list with real premium products from
   // the selected stores until the total is within 3% of the budget.
-  if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.92) {
+  if (p.spendMode !== "save" && listCost(result) < Number(p.budget) * (p.spendMode === "maximize" ? 0.92 : 0.85)) {
     const selected = allowedStoreNames(p.stores);
     result = padToBudget(result, Number(p.budget), selected);
     issues = validateGroceries(result, p);
@@ -484,7 +484,9 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
 
   // Save/Balanced must preserve needed nutrition, not silently delete food to fit.
   // Retain the existing Maximize behavior.
-  if (!managedSpending && listCost(result) > budgetCap(p)) {
+  // Last resort for every mode: a list over the hard budget gets surplus packs
+  // trimmed instead of failing with an error.
+  if (grocerySpending(result).main > Number(p.budget) || (!managedSpending && listCost(result) > budgetCap(p))) {
     result = trimToBudget(result, budgetCap(p));
     issues = validateGroceries(result, p);
   }
