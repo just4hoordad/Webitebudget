@@ -3,6 +3,7 @@ import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
 import { sanitizePrices } from "@/lib/priceSanity";
 import { verifyPrices } from "@/lib/verifyPrices";
+import { topUpCalories } from "@/lib/calorieTopUp";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
@@ -551,6 +552,9 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
+  if (listKcal(result) < Number(p.calories) * p.days * 0.95) {
+    result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
+  }
   // Never show a list that can't feed the person for the chosen period.
   if (unlivable(result, p)) {
     throw new Error(langCode === "de"
