@@ -37,6 +37,7 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
+import { setGenerationStatus } from "@/lib/generationStatus";
 import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration } from "@/lib/generateGroceries";
 import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
@@ -184,6 +185,16 @@ export default function MealPlan() {
     if (isActive && !loading && groceries) saveLastBudget(searchKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, groceries]);
+
+  // Broadcast generation status to the global badge so users on other pages
+  // know the list is still building (or ready / failed) and can return to it.
+  useEffect(() => {
+    if (generationError || (planError && !weeklyPlan)) setGenerationStatus("error", searchKey);
+    else if (loading || loadingPlan || (groceries && !weeklyPlan)) setGenerationStatus("generating", searchKey);
+    else if (groceries && weeklyPlan) setGenerationStatus("ready", searchKey);
+    else setGenerationStatus("idle", searchKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, loadingPlan, groceries, weeklyPlan, generationError, planError, searchKey]);
 
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
@@ -999,6 +1010,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           <div className="space-y-5">
             <ReassuranceRecap planStyle={planStyle} setPlanStyle={setPlanStyle} />
             <GeneratingLoader type="grocery" stores={stores} />
+            <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 text-xs text-muted-foreground">
+              <Info className="h-4 w-4 text-primary shrink-0" />
+              <span>{t("bgGenerationNote") || "You can keep browsing the app — we'll keep generating in the background and your list will be ready when you come back."}</span>
+            </div>
             <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
           </div>
         ) : null
@@ -1223,6 +1238,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           {!weeklyPlan && loadingPlan && (
             <>
               <GeneratingLoader type="plan" />
+              <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 text-xs text-muted-foreground">
+                <Info className="h-4 w-4 text-primary shrink-0" />
+                <span>{t("bgGenerationNote") || "You can keep browsing the app — we'll keep generating in the background and your list will be ready when you come back."}</span>
+              </div>
               <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
             </>
           )}

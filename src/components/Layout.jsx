@@ -18,6 +18,7 @@ import { modeText } from "@/lib/translations_modes";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
 import MealPlanPage from "../pages/MealPlan";
 import PlanBuilderPage from "../pages/PlanBuilder";
+import GenerationBadge from "@/components/GenerationBadge";
 import { useState, useEffect } from "react";
 
 export default function Layout() {
@@ -276,6 +277,7 @@ export default function Layout() {
           <Footer />
         </main>
 
+        <GenerationBadge />
         <CookieBanner />
 
         {/* Floating Pill Dock — mobile only */}
