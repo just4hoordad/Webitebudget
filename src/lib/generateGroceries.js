@@ -1,6 +1,7 @@
 import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
+import { sanitizePrices } from "@/lib/priceSanity";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
@@ -75,7 +76,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 16; // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 17; // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -161,7 +162,7 @@ ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to co
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
 2. ${p.spendMode === "save" ? "Pick the cheapest suitable product and selected store for each ingredient." : p.spendMode === "maximize" ? "Pick the cheapest selected store for each item." : "Choose reasonably priced everyday-quality products, mixing house brands with fresh ingredients rather than buying only the cheapest staples."} Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
-3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month). Never buy more than 6 packs of the same product — if more of an ingredient is needed, choose a larger pack size (e.g. a 2L milk carton instead of two 1L cartons, a 1kg rice bag instead of two 500g bags) rather than stacking many small packs. Keep every item to a realistic amount a person actually consumes: no single item should provide more than ~25% of one day's calories, and milk in particular is a drink, not a calorie source — a person has at most one glass (~250ml) a day, so never plan more than ~${Math.max(2, Math.ceil(p.people * 0.25 * days))}L of milk total for the whole period; if you need more dairy calories, use yogurt, quark, skyr, or cheese, not more milk.
+3. Write quantity as "N × pack size" (e.g. "2 × 500g"); unit_price is the price of ONE pack and price = unit_price × N for the quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month). Never buy more than 6 packs of the same product — if more of an ingredient is needed, choose a larger pack size (e.g. a 2L milk carton instead of two 1L cartons, a 1kg rice bag instead of two 500g bags) rather than stacking many small packs. Keep every item to a realistic amount a person actually consumes: no single item should provide more than ~25% of one day's calories, and milk in particular is a drink, not a calorie source — a person has at most one glass (~250ml) a day, so never plan more than ~${Math.max(2, Math.ceil(p.people * 0.25 * days))}L of milk total for the whole period; if you need more dairy calories, use yogurt, quark, skyr, or cheese, not more milk.
 ${spendModeRule(p)}
  5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the realistic price for the SAME product (or its closest mid-range equivalent, e.g. the REWE Best Bucks / Edeka Eigenmarke version of the same product) at a mid-range German supermarket (REWE or Edeka) for the SAME quantity. This is a genuine price comparison against the budget store, NOT the same store's price. As a realistic guideline, mid-range supermarkets in Germany are typically 10–20% more expensive than hard-discounters (Aldi/Lidl) on the same or equivalent products — so normal_price should usually be HIGHER than price (typically by 10–20% for discounters, closer to 0% for mid-range chains like REWE/Edeka themselves), and should never be lower than price. Many branded goods (e.g. branded chocolate, Coca-Cola, Nutella) cost nearly the same everywhere — for those, normal_price should be at most a few cents above price. Compute each normal_price independently from a realistic mid-range price; do NOT copy the price field. The savings shown to the user is the sum of (normal_price − price), so accurate, honestly-higher normal_prices are essential.
@@ -204,10 +205,15 @@ async function fetchKnownPrices(postalCode, allowedStores) {
     const text = [...seen.values()].slice(0, 60)
       .map((r) => `- ${r.product_name} — €${Number(r.price || 0).toFixed(2)} @ ${r.store || "?"} (qty: ${r.quantity || "?"}, ${r.fetched_date || "?"})`)
       .join("\n");
-    return { text, count: seen.size };
+    return { text, count: seen.size, known: seen };
   } catch {
-    return { text: "", count: 0 };
+    return { text: "", count: 0, known: new Map() };
   }
+}
+
+// Known community prices keyed by lower-case product name (for price correction).
+export async function getKnownPriceMap(postalCode, allowedStores) {
+  return (await fetchKnownPrices(postalCode, allowedStores)).known || new Map();
 }
 
 // Public wrapper — keeps the old string-only return type so existing callers
@@ -442,7 +448,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   if (cached) return normalizeGroceryTotal(cached);
 
   const allowed = allowedStoreNames(p.stores);
-  const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode, allowed);
+  const { text: knownPricesText, count: knownCount, known } = await fetchKnownPrices(p.postalCode, allowed);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
   const managedSpending = p.spendMode !== "maximize";
   const alternativeInstruction = managedSpending
@@ -459,7 +465,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   }
   const qualityIssues = (result) => validateGroceries(result, p, false);
   const prepare = (result) => {
-    const corrected = fixHouseBrandStores(result, p);
+    const corrected = sanitizePrices(fixHouseBrandStores(result, p), known);
     if (managedSpending) {
       for (const category of corrected.categories || []) {
         for (const item of category.items || []) {

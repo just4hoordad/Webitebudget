@@ -11,7 +11,8 @@ import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
-import { savePriceObservations, getKnownPricesText, dropUnselectedStores } from "@/lib/generateGroceries";
+import { savePriceObservations, getKnownPricesText, getKnownPriceMap, dropUnselectedStores } from "@/lib/generateGroceries";
+import { sanitizePrices } from "@/lib/priceSanity";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -72,7 +73,7 @@ export default function PlanBuilder() {
   const savedPlanId = useRef(null);
   const savedPlanName = useRef(null);
 
-  const CACHE_KEY = "bb_plan_grocery_cache";
+  const CACHE_KEY = "bb_plan_grocery_cache_v2";
 
   const todayStr = () => new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD (local)
 
@@ -192,7 +193,7 @@ export default function PlanBuilder() {
       const allowedStores = enabled.stores
         ? (selectedStoreLocations.length > 0 ? [...new Set(selectedStoreLocations.map((s) => s.name))] : stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)))
         : [];
-      const knownPricesText = await getKnownPricesText(postalCode, allowedStores);
+      const [knownPricesText, knownMap] = await Promise.all([getKnownPricesText(postalCode, allowedStores), getKnownPriceMap(postalCode, allowedStores)]);
       const storeField = allowedStores.length ? { type: "string", enum: allowedStores } : { type: "string" };
       const lines = plan
         .map((day, d) => {
@@ -221,7 +222,7 @@ ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers 
 - Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
-- quantity = total amount/package needed. price = unit_price × units needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
+- quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
 - For each item, also provide normal_price: the typical regular/mid-range supermarket price (e.g. REWE, Edeka) for the same quantity, to demonstrate savings compared to discount prices.
 - Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").
 - Set calories_info to the energy density (e.g. "370 kcal/100g") or item total calories.
@@ -300,10 +301,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
       });
 
       const filtered = dropUnselectedStores({ categories: res.categories }, { stores: allowedStores });
-      const grocery = {
-        total_estimated_cost: Math.round(filtered.categories.flatMap((c) => c.items).reduce((s, i) => s + (Number(i.price) || 0), 0) * 100) / 100,
-        categories: filtered.categories,
-      };
+      const grocery = sanitizePrices({ categories: filtered.categories }, knownMap);
       const prep = res.prep || null;
       setGrocery(grocery);
       setPrep(prep);
