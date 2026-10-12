@@ -92,7 +92,7 @@ export async function callOpenRouter({
   const payload: Record<string, unknown> = {
     model: selectedModel,
     messages,
-    max_tokens: 4000,
+    max_tokens: 16000,
   };
 
   if (response_json_schema) {
