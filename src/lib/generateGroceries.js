@@ -440,7 +440,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // #1: shared server-side cache — identical config returns instantly, ~0 credits.
   const sig = grocerySignature(p, langCode);
   const cached = force ? null : await getCachedGroceryServer(sig);
-  if (cached) return normalizeGroceryTotal(cached);
+  if (cached) return normalizeGroceryTotal(dropUnselectedStores(cached, p));
 
   const allowed = allowedStoreNames(p.stores);
   const { text: knownPricesText, known } = await fetchKnownPrices(p.postalCode, allowed);

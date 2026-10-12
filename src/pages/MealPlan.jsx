@@ -38,7 +38,7 @@ import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { setGenerationStatus } from "@/lib/generationStatus";
-import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration } from "@/lib/generateGroceries";
+import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration, dropUnselectedStores } from "@/lib/generateGroceries";
 import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
@@ -123,7 +123,11 @@ export default function MealPlan() {
     // is used if available, avoiding a fresh generation.
     const gparams = groceryParamsFromSearch(searchKey);
     const newSig = grocerySignature(gparams, currentLanguage.code);
-    const cached = genCache.current[newSig] || getCachedGroceries(newSig);
+    let cached = genCache.current[newSig];
+    if (!cached) {
+      const raw = getCachedGroceries(newSig);
+      if (raw) cached = dropUnselectedStores(raw, gparams);
+    }
     if (cached) {
       genCache.current[newSig] = cached;
       setGroceries(cached);
@@ -169,10 +173,11 @@ export default function MealPlan() {
     const sig = grocerySignature(gparams, currentLanguage.code);
     const shared = getCachedGroceries(sig);
     if (shared) {
+      const clean = dropUnselectedStores(shared, gparams);
       setGenerationError("");
-      genCache.current[sig] = shared;
+      genCache.current[sig] = clean;
       setRemovedItems(new Set());
-      setGroceries(shared);
+      setGroceries(clean);
       setWeeklyPlan(null);
       autoGenStarted.current = false;
       setLoading(false);
