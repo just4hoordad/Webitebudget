@@ -523,13 +523,6 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     if (retryBetter) { result = retry; issues = retryIssues; }
   }
 
-  // Hard gate: a list that can't feed the person for the whole period gets one
-  // more attempt with a stronger model instead of being shown.
-  if (unlivable(result, p)) {
-    const strong = prepare(await call(`${basePrompt}\n\nIMPORTANT: Previous attempts produced far too little food (${unlivable(result, p)}). The list MUST contain enough real branded products from the selected stores to cover ${Math.round(Number(p.calories) * p.days)} kcal in total over ${p.days} days.`, "openai/gpt-4o"));
-    if (!unlivable(strong, p) || listKcal(strong) > listKcal(result)) result = strong;
-  }
-
   // Maximize mode: the AI model (even gpt-4o) reliably ignores the "spend
   // close to budget" instruction and defaults to cheap lists. Instead of
   // retrying, deterministically pad the list with real premium products from
@@ -554,12 +547,6 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
   if (listKcal(result) < Number(p.calories) * p.days * 0.95) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
-  }
-  // Never show a list that can't feed the person for the chosen period.
-  if (unlivable(result, p)) {
-    throw new Error(langCode === "de"
-      ? "Die Liste enthielt nicht genug Lebensmittel für den gewählten Zeitraum. Bitte erneut versuchen."
-      : "The generated list didn't contain enough food for the chosen period. Please try again.");
   }
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
