@@ -1,5 +1,6 @@
 import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
+import { padToBudget } from "@/lib/premiumProducts";
 
 const GROCERY_SCHEMA = {
   type: "object",
@@ -72,7 +73,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 13; // v13: maximize mode now does a second targeted top-up retry with a stronger model
+const PROMPT_VERSION = 14; // v14: maximize mode now deterministically pads with real premium products instead of unreliable AI retries
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -442,21 +443,14 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
     if (retryBetter) { result = retry; issues = retryIssues; }
   }
 
-  // Maximize mode: if still well under budget after the first retry, do a
-  // second targeted retry that tells the model EXACTLY how much more to spend
-  // and uses a stronger model. gpt-4o-mini tends to default to cheap lists.
-  if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.88) {
-    const remaining = Number(p.budget) - listCost(result);
-    const prevList = (result?.categories || []).flatMap((c) => c.items || [])
-      .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
-    const topUp = `${basePrompt}\n\nYOUR CURRENT LIST TOTALS €${listCost(result).toFixed(2)} — that is only ${Math.round((listCost(result) / Number(p.budget)) * 100)}% of the €${p.budget} budget.\nYOU MUST ADD €${remaining.toFixed(2)} WORTH OF GROCERIES to get the total between €${Math.round(Number(p.budget) * 0.95)} and €${p.budget}.\n\nCURRENT LIST:\n${prevList}\n\nKEEP all existing items. ADD these kinds of premium / higher-value products (with real branded names and prices) until the total is close to €${p.budget}:\n- Better cuts of meat (e.g. Rinderfilet, Bio-Hähnchenbrust, Lachsfilet)\n- Fresh fish and seafood\n- Organic / Bio produce and dairy\n- Cheese and cured meats (Gouda, Parmesan, Mozzarella di Bufala)\n- Nuts and dried fruit (Mandeln, Walnüsse, Cashews)\n- Fresh fruit (Beeren, Trauben, Steinobst)\n- Premium branded goods (Barilla, Lindt, Bertolli)\n- Nice treats and specialty items\n\nDo NOT go over €${p.budget}. The total_estimated_cost must equal the real sum of all item prices.`;
-    const topUpResult = fixHouseBrandStores(await call(topUp, "openai/gpt-4o"), p);
-    // Only accept the top-up if it actually got closer to budget without going over.
-    const topUpCost = listCost(topUpResult);
-    if (topUpCost > listCost(result) && topUpCost <= budgetCap(p)) {
-      result = topUpResult;
-      issues = validateGroceries(result, p);
-    }
+  // Maximize mode: the AI model (even gpt-4o) reliably ignores the "spend
+  // close to budget" instruction and defaults to cheap lists. Instead of
+  // retrying, deterministically pad the list with real premium products from
+  // the selected stores until the total is within 3% of the budget.
+  if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.92) {
+    const selected = allowedStoreNames(p.stores);
+    result = padToBudget(result, Number(p.budget), selected);
+    issues = validateGroceries(result, p);
   }
 
   // Hard guarantee: never return a list above the user's budget.
