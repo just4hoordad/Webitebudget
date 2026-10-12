@@ -182,9 +182,9 @@ export default function SavedMealPlans() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 gap-4 min-w-0">
             {plans.map((plan) => (
-              <div key={plan.id} className="bg-card border border-border rounded-xl p-5 space-y-3">
+              <div key={plan.id} className="bg-card border border-border rounded-xl p-5 space-y-3 min-w-0 overflow-hidden">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-heading font-semibold text-foreground break-words">{plan.name}</h3>
