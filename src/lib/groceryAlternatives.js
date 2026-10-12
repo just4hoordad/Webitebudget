@@ -20,7 +20,9 @@ export function applySpendingAlternatives(input, params, qualityIssues) {
       });
     });
   });
-  options.sort((a, b) => params.spendMode === "save" ? a.delta - b.delta : b.delta - a.delta);
+  // Save: biggest saving first. Balanced: smallest upgrade first, so the extra
+  // money lifts the quality of many items instead of one premium splurge.
+  options.sort((a, b) => a.delta - b.delta);
   const replaced = new Set();
   for (const option of options) {
     const { categoryIndex, itemIndex, replacement, delta } = option;

@@ -76,7 +76,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 17; // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 18; // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -503,7 +503,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // close to budget" instruction and defaults to cheap lists. Instead of
   // retrying, deterministically pad the list with real premium products from
   // the selected stores until the total is within 3% of the budget.
-  if (p.spendMode !== "save" && listCost(result) < Number(p.budget) * (p.spendMode === "maximize" ? 0.92 : 0.85)) {
+  if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.92) {
     const selected = allowedStoreNames(p.stores);
     result = padToBudget(result, Number(p.budget), selected);
     issues = validateGroceries(result, p);
