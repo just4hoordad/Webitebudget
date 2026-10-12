@@ -25,7 +25,8 @@ export function sanitizeItem(item, known) {
   let price = Number(i.price);
   const ref = known?.get(String(i.name || "").toLowerCase());
   // A real observed price beats the AI's guess when they disagree by >25%.
-  if (ref && Number(ref.unit_price) > 0 && (!(unit > 0) || Math.abs(unit - ref.unit_price) / ref.unit_price > 0.25)) {
+  const verified = ref && ref.source && ref.source !== "ai-web-search";
+  if (ref && Number(ref.unit_price) > 0 && (verified || !(unit > 0) || Math.abs(unit - ref.unit_price) / ref.unit_price > 0.25)) {
     unit = Number(ref.unit_price);
   }
   let packs = packCount(i.quantity);
