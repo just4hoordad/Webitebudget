@@ -171,6 +171,8 @@ export default function MealPlan() {
       genCache.current[sig] = shared;
       setRemovedItems(new Set());
       setGroceries(shared);
+      setWeeklyPlan(null);
+      autoGenStarted.current = false;
       setLoading(false);
       return;
     }
