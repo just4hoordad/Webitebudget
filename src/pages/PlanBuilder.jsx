@@ -16,6 +16,9 @@ import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { ArrowLeft, Share2 } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import LastResultButton from "@/components/LastResultButton";
+import { saveLastPlan, getLastPlan } from "@/lib/lastResult";
 
 const PREFS_KEY = "bb_planbuilder_prefs";
 const RECENT_KEY = "bb_recent_meals";
@@ -171,6 +174,7 @@ export default function PlanBuilder() {
         if (cached.key === cacheKey && cached.date === todayStr()) {
           setGrocery(cached.grocery);
           setPrep(cached.prep || null);
+          saveLastPlan({ plan, grocery: cached.grocery, prep: cached.prep || null });
           setPhase("result");
           window.scrollTo(0, 0);
           toast.success(t("usingCachedList"));
@@ -299,6 +303,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
       const prep = res.prep || null;
       setGrocery(grocery);
       setPrep(prep);
+      saveLastPlan({ plan, grocery, prep });
       setPhase("result");
       window.scrollTo(0, 0);
       savePriceObservations(grocery, postalCode, diet);
@@ -338,6 +343,25 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   };
 
   const reset = () => { setPhase("setup"); setGrocery(null); window.scrollTo(0, 0); };
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const showLast = () => {
+    const last = getLastPlan();
+    if (!last?.grocery) return;
+    setPlan(last.plan || []);
+    setGrocery(last.grocery);
+    setPrep(last.prep || null);
+    setPhase("result");
+    window.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    if (location.pathname === "/plan-builder" && new URLSearchParams(location.search).get("last") === "1") {
+      showLast();
+      navigate("/plan-builder", { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search]);
 
   if (phase === "result" && grocery) {
     const shareFooter = savedPlanId.current ? (
@@ -402,6 +426,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   return (
     <div className="space-y-4">
       <CreditBar variant="onLight" />
+      <LastResultButton kind="plan" className="w-full" />
       <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} />
     </div>
   );

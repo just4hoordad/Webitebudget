@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Wallet, Dumbbell, ArrowRight, ChefHat } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { modeText } from "@/lib/translations_modes";
+import LastResultButton from "@/components/LastResultButton";
 
 export default function PlanModeChooser() {
   const { currentLanguage } = useLanguage();
@@ -27,6 +28,10 @@ export default function PlanModeChooser() {
           <p className="text-xs flex items-center gap-1.5 text-muted-foreground"><ChefHat className="h-3.5 w-3.5" />{m.proNote}</p>
           <span className={cta}>{m.freeCta} <ArrowRight className="h-4 w-4" /></span>
         </Link>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2">
+        <LastResultButton kind="budget" />
+        <LastResultButton kind="plan" />
       </div>
     </section>
   );

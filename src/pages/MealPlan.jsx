@@ -42,6 +42,7 @@ import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
+import { saveLastBudget } from "@/lib/lastResult";
 import CreditPill from "@/components/monetization/CreditPill";
 import AdSlot from "@/components/ads/AdSlot";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -160,6 +161,11 @@ export default function MealPlan() {
     }
     guarded(generateGroceries);
   };
+
+  useEffect(() => {
+    if (isActive && !loading && groceries) saveLastBudget(searchKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, groceries]);
 
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));

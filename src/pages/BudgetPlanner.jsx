@@ -1,6 +1,7 @@
 import BudgetForm from "@/components/BudgetForm";
 import AdSlot from "@/components/ads/AdSlot";
 import CreditBar from "@/components/monetization/CreditBar";
+import LastResultButton from "@/components/LastResultButton";
 import { useLanguage } from "@/lib/LanguageContext";
 import { modeText } from "@/lib/translations_modes";
 
@@ -13,6 +14,7 @@ export default function BudgetPlanner() {
         <h1 className="font-heading text-2xl sm:text-3xl font-bold">{m.budgetTitle}</h1>
         <p className="text-sm text-muted-foreground mt-1">{m.budgetDesc}</p>
         <CreditBar className="mt-3" />
+        <LastResultButton kind="budget" className="mt-3 w-full" />
       </div>
       <div id="plan-form">
         <BudgetForm />
