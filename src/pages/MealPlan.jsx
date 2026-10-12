@@ -114,9 +114,20 @@ export default function MealPlan() {
       return;
     }
     if (location.pathname !== "/meal-plan") return;
+    // Language changed: keep the existing grocery list (product names are
+    // brand names that don't change between languages) and only clear the
+    // meal plan so it regenerates in the new language. Try the cache for
+    // the new language first — a previously generated list in that language
+    // is used if available, avoiding a fresh generation.
+    const gparams = groceryParamsFromSearch(searchKey);
+    const newSig = grocerySignature(gparams, currentLanguage.code);
+    const cached = genCache.current[newSig] || getCachedGroceries(newSig);
+    if (cached) {
+      genCache.current[newSig] = cached;
+      setGroceries(cached);
+    }
     setWeeklyPlan(null);
-    lastGenKey.current = searchKey;
-    kickoffGroceries();
+    setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage.code]);
 
