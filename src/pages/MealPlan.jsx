@@ -818,17 +818,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     setSaved(false);
   };
 
-  const saveMealPlan = async () => {
-    if (!weeklyPlan || saved) return;
-    setSaving(true);
-    try {
-      const isAuthed = await base44.auth.isAuthenticated();
-      if (!isAuthed) {
-        toast.error("Please log in to save meal plans.");
-        base44.auth.redirectToLogin();
-        return;
-      }
-      const rec = await base44.entities.MealPlan.create({
+  const buildPlanRecord = () => ({
         name: `${diet} Meal Plan - ${new Date().toLocaleDateString()}`,
         diet,
         budget: parseFloat(budget),
@@ -841,7 +831,40 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type },
         groceryList: groceries,
         recipes: Object.keys(recipes).length > 0 ? recipes : undefined
-      });
+  });
+
+  // Auto-save: once a plan is generated (and after every edit/swap), persist it
+  // for logged-in users. The first save creates the record; later ones update it.
+  const savedIdRef = useRef(null);
+  useEffect(() => {
+    if (!weeklyPlan || !groceries || loadingPlan) return;
+    (async () => {
+      if (!(await base44.auth.isAuthenticated())) return;
+      if (savedIdRef.current) {
+        await base44.entities.MealPlan.update(savedIdRef.current, buildPlanRecord());
+      } else {
+        const rec = await base44.entities.MealPlan.create(buildPlanRecord());
+        savedIdRef.current = rec.id;
+        toast.success(t("planSaved"));
+        base44.functions.invoke("googleCalendarSync", { planId: rec.id }).catch(() => {});
+      }
+      setSaved(true);
+    })().catch((e) => toast.error("Auto-save failed: " + (e?.message || "Unknown error")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weeklyPlan, recipes]);
+
+  const saveMealPlan = async () => {
+    if (!weeklyPlan || saved) return;
+    setSaving(true);
+    try {
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (!isAuthed) {
+        toast.error("Please log in to save meal plans.");
+        base44.auth.redirectToLogin();
+        return;
+      }
+      const rec = await base44.entities.MealPlan.create(buildPlanRecord());
+      savedIdRef.current = rec?.id;
       setSaved(true);
       toast.success(t("planSaved"));
       // Auto-sync to Google Calendar when the user is connected (fire-and-forget).
