@@ -3,6 +3,8 @@ import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
 import { sanitizePrices } from "@/lib/priceSanity";
 import { verifyPrices } from "@/lib/verifyPrices";
+import { fetchKnownPrices } from "@/lib/knownPrices";
+export { fetchKnownPrices } from "@/lib/knownPrices";
 import { topUpCalories } from "@/lib/calorieTopUp";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
@@ -158,7 +160,7 @@ Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores || "any German supermarket"}.${allowedStoreNames(stores).length ? `\nSTRICT STORE RULE: every item's "store" MUST be exactly one of: ${allowedStoreNames(stores).join(", ")}. Never use any other store, even if it is cheaper, and only pick products actually sold at these stores. Store names in the examples below are illustrations only.` : ""}
 Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by region in Germany; use local prices for this postal code when available.
 Language: ${langLabel}.
-${knownPricesText ? `PRICE REFERENCE (prices observed earlier — use them ONLY to price products you choose; this is NOT a shopping list, do not copy it or limit your selection to it):\n${knownPricesText}\n` : ""}
+${knownPricesText ? `PRE-CHECKED PRICE CATALOG (current source-confirmed prices per retail pack). Prefer these exact products and preserve their full shelf names when suitable for the user's diet and nutrition. Never transfer a price to another store or pack size. This is price data, not a shopping list; other products may be included with estimated prices:\n${knownPricesText}\n` : ""}
 ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. ONLY include fully frozen, ready-to-heat meals and frozen convenience products available at German supermarkets — e.g. "iglo Fischstäbchen 400g", "Gut & Günstig Tiefkühl-Pizza Salami 400g", "Apetito Schnitzel gebacken 400g", "Dr. Oetker Steinofen-Pizza Mozzarella 350g", "Aldi Tiefkühl Hähnchen-Nuggets 500g", "McCain Pommes Frites 750g", "Bofrost Spinat-Käse-Tortellini 500g", "iglo Gemüse-Pfanne 750g", "Lidl Fairglobe Bio Edamame 400g". DO NOT include any raw unprocessed ingredients (no raw vegetables, no flour, no raw meat cuts). All items must be sold frozen and require only microwave or oven heating.` : ""}
 ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the OVERALL grocery list hits this split as closely as possible (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats). For EVERY item you MUST fill protein_g, carb_g and fat_g with the total grams of each macronutrient in the full purchased quantity (all packs combined), using realistic German food-composition values. The sum of (protein_g*4 + carb_g*4 + fat_g*9) across all items must roughly equal the sum of total_kcal, and the resulting percentage split (by kcal) must be within ±8 percentage points of the target (${macros.protein}/${macros.carbs}/${macros.fats}).` : ""}
 Rules:
@@ -177,43 +179,9 @@ ${ownedItems.length > 0 ? `12. ALREADY OWNED: The user already has these at home
 ${proteinSnackBudget > 0 ? `13. ⚠️ MANDATORY PROTEIN SNACKS CATEGORY — DO NOT SKIP: The user has set a dedicated protein snack budget of €${proteinSnackBudget}. You MUST add a category called exactly "Protein Snacks" to the categories array. The total price of all items in this category MUST be as close to €${proteinSnackBudget} as possible (within €1). Include at least 4 real branded protein products sold in Germany (e.g. "Corny Big High Protein Bar Schoko 50g", "Lidl Protein Bar Chocolate 45g", "Aldi Skyr Protein Quark 500g", "dm Protein Shake Pulver Schoko 750g", "Müllermilch Protein Drink 400ml"). This €${proteinSnackBudget} is in ADDITION to the main €${budget} grocery budget — the total budget is €${parseFloat(budget) + proteinSnackBudget}.` : ""}`;
 }
 
-// Fetch previously-saved community prices for this region. Returns both the
-// reference text block (fed to the LLM) and the deduped count (used to decide
-// whether live web search is still needed — see #2).
-async function fetchKnownPrices(postalCode, allowedStores) {
-  try {
-    // Combine the national price pool (postal_code "") with region-specific
-    // prices for this PLZ. A sparse region borrows the national baseline so
-    // it can cross the no-search threshold sooner — broadening the cheap
-    // tier without waiting for dozens of local observations to accumulate.
-    const queries = [base44.entities.PriceEstimate.filter({ postal_code: "" }, "-fetched_date", 200)];
-    if (postalCode) {
-      queries.push(base44.entities.PriceEstimate.filter({ postal_code: postalCode }, "-fetched_date", 200));
-    }
-    const [nationalRecs, regionalRecs] = await Promise.all(queries);
-    // Regional first → it wins dedup (more locally relevant).
-    const ordered = postalCode ? [...(regionalRecs || []), ...(nationalRecs || [])] : (nationalRecs || []);
-    const seen = new Map();
-    ordered.forEach((r) => {
-      if (!r.product_name) return;
-      if (allowedStores?.length) {
-        const s = (r.store || "").toLowerCase();
-        if (!allowedStores.some((a) => s.includes(a.toLowerCase().split(" ")[0]))) return;
-      }
-      const key = r.product_name.toLowerCase();
-      if (!seen.has(key)) seen.set(key, r);
-    });
-    if (!seen.size) return { text: "", count: 0 };
-    const text = [...seen.values()].slice(0, 60)
-      .map((r) => `- ${r.product_name} — €${Number(r.price || 0).toFixed(2)} @ ${r.store || "?"} (qty: ${r.quantity || "?"}, ${r.fetched_date || "?"})`)
-      .join("\n");
-    return { text, count: seen.size, known: seen };
-  } catch {
-    return { text: "", count: 0, known: new Map() };
-  }
-}
+// Fresh price references are prepared by the shared morning catalog update.
+// The wrappers below remain available for existing consumers.
 
-// Known community prices keyed by lower-case product name (for price correction).
 export async function getKnownPriceMap(postalCode, allowedStores) {
   return (await fetchKnownPrices(postalCode, allowedStores)).known || new Map();
 }
@@ -254,10 +222,7 @@ export function savePriceObservations(groceries, postalCode, diet) {
   } catch { /* ignore — community DB is best-effort */ }
 }
 
-// #2: once a region has enough community prices on file, skip live web search
-// (the prompt already receives them via knownPricesText). Drops a mature
-// grocery generation from ~5 credits to ~1.
-const WEB_SEARCH_MIN_PRICES = 20;
+// Online price research is handled by the background catalog, not by generation.
 
 // Store-own ("house") brands, used to correct items the model assigns to the
 // wrong chain (e.g. Lidl's Milbona listed as Aldi).
@@ -471,8 +436,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   if (cached) return normalizeGroceryTotal(cached);
 
   const allowed = allowedStoreNames(p.stores);
-  const { text: knownPricesText, count: knownCount, known } = await fetchKnownPrices(p.postalCode, allowed);
-  const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
+  const { text: knownPricesText, known } = await fetchKnownPrices(p.postalCode, allowed);
   const managedSpending = p.spendMode !== "maximize";
   const alternativeInstruction = managedSpending
     ? `\nFor every main grocery item, provide 1–3 real replacement products under "alternatives". ${p.spendMode === "save" ? "Include the cheapest suitable house-brand equivalent, ideally cheaper than the original." : "Include ordinary good-quality alternatives at a range of real prices, including higher-priced equivalents where appropriate, not luxury filler."} Each replacement covers the same ingredient role and purchased amount, with its own accurate prices and nutrition. All replacements must obey the same selected stores, diet, organic setting, allergies and already-owned exclusions. Do not provide alternatives for Protein Snacks.`
@@ -501,7 +465,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   };
   const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
-    add_context_from_internet: useWebSearch,
+    add_context_from_internet: false,
     model,
     response_json_schema: schema,
   });

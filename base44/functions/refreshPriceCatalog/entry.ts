@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { performPriceRefresh } from "../../shared/priceRefresh.ts";
+import { refreshBackgroundPrices } from "../../shared/backgroundPrices.ts";
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -9,7 +9,8 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const result = await performPriceRefresh(base44);
+    const body = await req.json().catch(() => ({}));
+    const result = await refreshBackgroundPrices(base44, { previewOnly: body.previewOnly === true, limit: body.limit });
     return Response.json(result);
   } catch (error: any) {
     console.error("refreshPriceCatalog error:", error?.message || error);

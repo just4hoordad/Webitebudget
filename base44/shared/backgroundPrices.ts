@@ -43,6 +43,11 @@ export async function refreshBackgroundPrices(base44, { previewOnly = false, lim
     const checked = await Promise.all(prices.slice(start, start + 6).map(async (price) => {
       const request = candidates.find((item) => item.request_id === price.request_id);
       if (!request || !price.found || !price.name || !price.pack_size || !(Number(price.pack_price) > 0) || !Number.isFinite(Number(price.pack_price)) || price.pack_price > 100) return null;
+      const productWords = request.name.normalize('NFKC').toLowerCase().match(/[\p{L}]{3,}/gu) || [];
+      const foundName = String(price.name).normalize('NFKC').toLowerCase();
+      const expectedPack = request.name.toLowerCase().match(/\d+(?:[.,]\d+)?\s*(?:kg|ml|g|l)\b/);
+      if (!productWords.every((word) => foundName.includes(word))) return null;
+      if (expectedPack && expectedPack[0].replace(/\s/g, '') !== String(price.pack_size).toLowerCase().replace(/\s/g, '')) return null;
       if (!(await verifyPriceEvidence(price, request.store))) return null;
       return { product_name: request.name, postal_code: '', store: request.store, price: Number(price.pack_price), unit_price: Number(price.pack_price), quantity: `1 × ${price.pack_size}`, currency: 'eur', source: `catalog-verified ${price.source_url}`, fetched_date: today };
     }));
@@ -50,7 +55,7 @@ export async function refreshBackgroundPrices(base44, { previewOnly = false, lim
       if (record && !seen.has(productKey(record.product_name, record.store))) { records.push(record); seen.add(productKey(record.product_name, record.store)); }
     }
   }
-  if (records.length) await svc.entities.PriceEstimate.upsert(records, { key: ['product_name', 'store', 'postal_code', 'source'] });
+  if (records.length) await svc.entities.PriceEstimate.upsert(records, { key: ['product_name', 'store', 'postal_code'] });
   console.log(`Background prices: ${candidates.length} requested, ${records.length} source-confirmed.`);
   return { status: 'success', checked: candidates.length, refreshed: records.length, date: today };
 }

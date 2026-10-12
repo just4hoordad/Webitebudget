@@ -3,6 +3,8 @@
 // pack price × pack count, known community prices override guesses, and the
 // "regular price" comparison is clamped to a realistic range.
 
+import { knownPrice, isFreshVerifiedPrice } from "@/lib/priceReferences";
+
 const MID_RANGE = ["rewe", "edeka"];
 const round = (n) => Math.round(n * 100) / 100;
 
@@ -23,10 +25,13 @@ export function sanitizeItem(item, known) {
   const i = { ...item };
   let unit = Number(i.unit_price);
   let price = Number(i.price);
-  const ref = known?.get(String(i.name || "").toLowerCase());
-  // A real observed price beats the AI's guess when they disagree by >25%.
-  const verified = ref && ref.source && ref.source !== "ai-web-search";
-  if (ref && Number(ref.unit_price) > 0 && (verified || !(unit > 0) || Math.abs(unit - ref.unit_price) / ref.unit_price > 0.25)) {
+  const ref = knownPrice(i, known);
+  // Only a fresh, source-confirmed price from this item's store is verified.
+  const verified = isFreshVerifiedPrice(ref);
+  i.price_verified = verified;
+  i.price_source_url = verified ? ref.source.slice('catalog-verified '.length) : undefined;
+  i.price_fetched_date = verified ? ref.fetched_date : undefined;
+  if (verified) {
     unit = Number(ref.unit_price);
   }
   let packs = packCount(i.quantity);

@@ -11,7 +11,7 @@ import SharePlanModal from "@/components/planbuilder/SharePlanModal";
 import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
-import { savePriceObservations, getKnownPricesText, getKnownPriceMap, dropUnselectedStores } from "@/lib/generateGroceries";
+import { savePriceObservations, fetchKnownPrices, dropUnselectedStores } from "@/lib/generateGroceries";
 import { verifyPrices } from "@/lib/verifyPrices";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
@@ -193,7 +193,7 @@ export default function PlanBuilder() {
       const allowedStores = enabled.stores
         ? (selectedStoreLocations.length > 0 ? [...new Set(selectedStoreLocations.map((s) => s.name))] : stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)))
         : [];
-      const [knownPricesText, knownMap] = await Promise.all([getKnownPricesText(postalCode, allowedStores), getKnownPriceMap(postalCode, allowedStores)]);
+      const { text: knownPricesText, known: knownMap } = await fetchKnownPrices(postalCode, allowedStores);
       const storeField = allowedStores.length ? { type: "string", enum: allowedStores } : { type: "string" };
       const lines = plan
         .map((day, d) => {
@@ -221,7 +221,7 @@ ${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers 
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
 - Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
-${knownPricesText ? `- COMMUNITY PRICE DATABASE (prefer these prices where a product matches):\n${knownPricesText}` : ""}
+${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact matching shelf names and pack sizes, without changing the user's dishes):\n${knownPricesText}` : ""}
 - quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
 - For each item, also provide normal_price: the typical regular/mid-range supermarket price (e.g. REWE, Edeka) for the same quantity, to demonstrate savings compared to discount prices.
 - Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").

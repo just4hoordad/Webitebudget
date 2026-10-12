@@ -1,23 +1,4 @@
 {
-  "trigger": {
-    "condition": null,
-    "config": {
-      "trigger_type": "scheduled",
-      "events": [],
-      "schedule_mode": "recurring",
-      "cron_expression": "0 5 * * 1-6",
-      "one_time_date": null,
-      "timezone": "Europe/Berlin",
-      "interval_value": null,
-      "interval_unit": null,
-      "interval_anchor": null,
-      "ends_type": "never",
-      "ends_on_date": null,
-      "ends_after_count": null
-    }
-  },
-  "name": "Daily Supermarket Price Update",
-  "description": "Daily price update across all German supermarkets (Aldi, Lidl, Kaufland, Penny, Netto, REWE, Edeka, Norma, dm, Rossmann) every morning at 05:00 Berlin time when stores update their prices, automatically skipping Sundays and German public holidays.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -35,13 +16,32 @@
           },
           "then": "end",
           "x-base44": {
-            "title": "T\u00e4gliches Supermarkt-Preisupdate",
-            "description": "Aktualisiert Preise aller Superm\u00e4rkte (Mo\u2013Sa um 05:00 Uhr)"
+            "title": "Prepare shared price catalog",
+            "description": "Check retailer sources in advance (Mon\u2013Sat, 05:00 Berlin)"
           }
         }
       }
     ]
   },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 5 * * 1-6",
+      "one_time_date": null,
+      "timezone": "Europe/Berlin",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "At 05:00 Berlin time, prepare up to 40 source-confirmed product prices for all shoppers to reuse. Price searches do not run while a grocery list is generating. Fresh catalog entries are reused for seven days.",
+  "name": "Daily Supermarket Price Update",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "refreshPriceCatalog"
   }
