@@ -12,7 +12,7 @@ const MEAL_TYPES = [
 
 export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRecipe, isPro }) {
   const days = (week.days || []).filter(Boolean);
-  const [expanded, setExpanded] = useState(() => new Set([0]));
+  const [expanded, setExpanded] = useState(() => new Set());
 
   if (days.length === 0) return null;
 
