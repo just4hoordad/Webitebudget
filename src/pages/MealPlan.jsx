@@ -49,7 +49,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
-const PLAN_PREFIX = "bb_plan_v2_"; // v2: realism/health rules added — drops plans cached before the guard
+const PLAN_PREFIX = "bb_plan_v3_"; // v2: realism/health rules added — drops plans cached before the guard
 const getPlanCache = (sig) => {
   try { const raw = sessionStorage.getItem(PLAN_PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 };
@@ -421,6 +421,13 @@ export default function MealPlan() {
   };
 
   const totalDays = days;
+  // True when the plan's average daily kcal misses the target by more than 10%.
+  const calorieOff = (planDays) => {
+    const list = (planDays || []).filter(Boolean);
+    if (!list.length) return false;
+    const avg = list.reduce((s, d) => s + (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0), 0) / list.length;
+    return Math.abs(avg - Number(calories)) > Number(calories) * 0.1;
+  };
   const totalWeeks = Math.ceil(totalDays / 7);
 
   const buildWeekPrompt = (availableItems, weekNum, totalWks, daysInThisWeek, previousWeeksSummary = "") => `Create a complete ${daysInThisWeek}-day meal plan for week ${weekNum} of ${totalWks}.
@@ -431,7 +438,7 @@ AVAILABLE PRODUCTS (these are the TOTAL available for all ${totalDays} days — 
 ${availableItems}
 
 Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
-Target calories per day: ${calories} kcal
+Target calories per day: ${calories} kcal (MANDATORY — breakfast_calories + lunch_calories + dinner_calories must add up to ~${calories} kcal every day; do NOT default to 2000)
 ${macros ? `Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}% carbs, ~${macros.fats}% fats. Distribute foods across meals so the day's macros approach this ratio.` : ""}
 Number of people: ${people}
 
@@ -459,7 +466,7 @@ AVAILABLE PRODUCTS (TOTAL for ${totalDays} days = ${totalWeeks} week(s)):
 ${availableItems}
 
 Diet type: ${diet === "frozen" ? "FROZEN FOODS — all meals are frozen ready-to-heat products" : diet}
-Target calories per day: ${calories} kcal
+Target calories per day: ${calories} kcal (MANDATORY — breakfast_calories + lunch_calories + dinner_calories must add up to ~${calories} kcal every day; do NOT default to 2000)
 ${macros ? ` Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}% carbs, ~${macros.fats}% fats. Distribute foods across meals so the day's macros approach this ratio.` : ""}
 Number of people: ${people}
 
@@ -497,10 +504,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       // Single multi-week call instead of one call per week — a 30-day plan
       // drops from ~5 credits to ~1. The prompt already instructs the model
       // to vary meals across weeks.
-      const result = await invokeAI({
-        prompt: buildMultiWeekPrompt(availableItems),
-        response_json_schema: multiWeekPlanSchema,
-      });
+      const multiPrompt = buildMultiWeekPrompt(availableItems);
+      let result = await invokeAI({ prompt: multiPrompt, response_json_schema: multiWeekPlanSchema });
+      if (calorieOff((result.weeks || []).flatMap((w) => w.days || []))) {
+        result = await invokeAI({ prompt: `${multiPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: multiWeekPlanSchema });
+      }
       const weeks = (result.weeks || []).map((w, i) => ({
         week: w.week || i + 1,
         days: Array.isArray(w.days) ? w.days : [],
@@ -527,10 +535,11 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       return;
     }
     setLoadingPlan(true);
-    const result = await invokeAI({
-      prompt: buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek),
-      response_json_schema: weeklyPlanSchema
-    });
+    const weekPrompt = buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek);
+    let result = await invokeAI({ prompt: weekPrompt, response_json_schema: weeklyPlanSchema });
+    if (calorieOff(result.days)) {
+      result = await invokeAI({ prompt: `${weekPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: weeklyPlanSchema });
+    }
     const days = result.days || [];
     setPlanCache(wkSig, days);
     setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days }] });
