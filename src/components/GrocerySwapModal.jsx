@@ -6,7 +6,7 @@ import { invokeAI } from "@/lib/aiClient";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export default function GrocerySwapModal({ item, category, diet, budget, onSwap, onClose }) {
+export default function GrocerySwapModal({ item, category, diet, budget, stores, onSwap, onClose }) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [alternatives, setAlternatives] = useState(null);
@@ -39,7 +39,7 @@ CONSTRAINTS:
 - Same category: ${category}
 - Diet type: ${diet}
 - Similar or lower price to the original (€${item.price?.toFixed(2)})
-- Must be real products available in German supermarkets (Aldi, Lidl, REWE, Edeka, etc.)
+- ${stores ? `STRICT: only products sold at these stores: ${stores}. The "store" field must be one of them. Never suggest store-own brands of other chains.` : "Must be real products available in German supermarkets"}
 - Use real 2024-2025 German supermarket prices
 - CRITICAL: Product name MUST include full brand name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g")
 

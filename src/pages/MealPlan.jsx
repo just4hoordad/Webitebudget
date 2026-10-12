@@ -1296,6 +1296,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             category={grocerySwapTarget.category}
             diet={diet}
             budget={budget}
+            stores={stores}
             onSwap={handleGrocerySwap}
             onClose={() => setGrocerySwapTarget(null)}
           />

@@ -75,7 +75,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 15; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 16; // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -290,6 +290,19 @@ function fixHouseBrandStores(result, p) {
   return result;
 }
 
+// Hard guarantee: remove anything from a store (or store-own brand) the user didn't select.
+function dropUnselectedStores(result, p) {
+  const allowed = allowedStoreNames(p.stores).map((s) => s.toLowerCase().split(" ")[0]);
+  if (!allowed.length) return result;
+  const selected = String(p.stores || "").toLowerCase();
+  const ok = (i) => allowed.some((a) => String(i.store || "").toLowerCase().includes(a))
+    && !(houseBrandChains(i.name) && !houseBrandChains(i.name).some((ch) => selected.includes(ch)));
+  const categories = (result?.categories || [])
+    .map((c) => ({ ...c, items: (c.items || []).filter(ok).map((i) => i.alternatives ? { ...i, alternatives: i.alternatives.filter(ok) } : i) }))
+    .filter((c) => c.items.length);
+  return { ...result, categories };
+}
+
 // Deterministic quality checks on a generated list. Returns human-readable
 // problems (empty array = list is good).
 function validateGroceries(result, p, includeSpending = true) {
@@ -490,7 +503,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     result = trimToBudget(result, budgetCap(p));
     issues = validateGroceries(result, p);
   }
-  result = normalizeGroceryTotal(result);
+  result = normalizeGroceryTotal(dropUnselectedStores(result, p));
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
