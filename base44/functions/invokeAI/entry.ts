@@ -184,6 +184,7 @@ export default async function (req: Request): Promise<Response> {
     return Response.json({ openrouter_unavailable: true, error: "AI queue busy" }, { status: 503 });
   }
 
+  let openRouterError: any = null;
   try {
     // Primary: OpenRouter using safe model
     try {
@@ -194,16 +195,17 @@ export default async function (req: Request): Promise<Response> {
         add_context_from_internet: Boolean(add_context_from_internet),
       });
       return Response.json(safeSchema ? result : { text: result });
-    } catch (openRouterError: any) {
-      console.warn("invokeAI: OpenRouter unavailable, falling back to Base44 Core.InvokeLLM:", openRouterError?.message || openRouterError);
-      notifyFallback(base44, openRouterError?.message || String(openRouterError));
+    } catch (orErr: any) {
+      openRouterError = orErr;
+      console.warn("invokeAI: OpenRouter unavailable, falling back to Base44 Core.InvokeLLM:", orErr?.message || orErr);
+      notifyFallback(base44, orErr?.message || String(orErr));
       startRecoveryProbe(); // detect when OpenRouter comes back online
-      
+
       // Secondary: Fallback to Base44 Core.InvokeLLM via service role
       const fallbackResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: safeSchema,
-        model: "gemini_3_8_flash",
+        model: "gemini_3_flash",
         add_context_from_internet: Boolean(add_context_from_internet),
       });
 
@@ -212,7 +214,12 @@ export default async function (req: Request): Promise<Response> {
   } catch (error: any) {
     console.error("invokeAI final error:", error?.message || error);
     notifyTotalFailure(base44, openRouterError?.message || String(openRouterError), error?.message || String(error));
-    return Response.json({ openrouter_unavailable: true, error: error?.message || "AI service temporarily unavailable" }, { status: 500 });
+    return Response.json({
+      openrouter_unavailable: true,
+      error: error?.message || "AI service temporarily unavailable",
+      openrouter_error: openRouterError?.message || String(openRouterError),
+      fallback_error: error?.message || String(error),
+    }, { status: 500 });
   } finally {
     release();
   }
