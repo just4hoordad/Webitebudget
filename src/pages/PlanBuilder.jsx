@@ -12,7 +12,7 @@ import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
 import { savePriceObservations, getKnownPricesText, getKnownPriceMap, dropUnselectedStores } from "@/lib/generateGroceries";
-import { sanitizePrices } from "@/lib/priceSanity";
+import { verifyPrices } from "@/lib/verifyPrices";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -301,7 +301,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
       });
 
       const filtered = dropUnselectedStores({ categories: res.categories }, { stores: allowedStores });
-      const grocery = sanitizePrices({ categories: filtered.categories }, knownMap);
+      const grocery = await verifyPrices({ categories: filtered.categories }, knownMap);
       const prep = res.prep || null;
       setGrocery(grocery);
       setPrep(prep);

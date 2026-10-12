@@ -2,6 +2,7 @@ import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
 import { sanitizePrices } from "@/lib/priceSanity";
+import { verifyPrices } from "@/lib/verifyPrices";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
@@ -76,7 +77,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 19; // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 20; // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -503,6 +504,9 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // close to budget" instruction and defaults to cheap lists. Instead of
   // retrying, deterministically pad the list with real premium products from
   // the selected stores until the total is within 3% of the budget.
+  result = await verifyPrices(result, known);
+  issues = validateGroceries(result, p);
+
   if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.92) {
     const selected = allowedStoreNames(p.stores);
     result = padToBudget(result, Number(p.budget), selected);

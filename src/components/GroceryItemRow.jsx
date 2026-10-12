@@ -42,7 +42,9 @@ export default function GroceryItemRow({ item, categoryName, stores, onSwap, onR
             {item.store && <StoreBadge store={item.store} />}
             {item.quantity && <span className={`text-xs ${subCls}`}>· {item.quantity}</span>}
             {kcalShort && <span className={`text-xs ${subCls} ${bought ? "line-through" : ""}`}>· {kcalShort}</span>}
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">{t("estimatedTag") || "Estimated"}</span>
+            {item.price_verified
+              ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">✓ {t("verifiedTag") === "verifiedTag" ? "Verified" : t("verifiedTag")}</span>
+              : <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">{t("estimatedTag") || "Estimated"}</span>}
           </div>
         )}
       </div>
