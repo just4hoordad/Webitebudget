@@ -146,7 +146,7 @@ export default function MealPlan() {
     const cached = genCache.current[langKey];
     if (cached && retryCount === 0 && !force) {
       setRemovedItems(new Set());
-      setGroceries(cached);
+      setGroceries(dropUnselectedStores(cached, gparams));
       setLoading(false);
       return;
     }

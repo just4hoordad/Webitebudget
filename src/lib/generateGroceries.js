@@ -80,7 +80,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 22; // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 23; // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -92,7 +92,7 @@ export function grocerySignature(p, langCode) {
   });
 }
 
-const PREFIX = "bb_grocery_v2_"; // v2: drops lists cached before the budget cap was enforced
+const PREFIX = "bb_grocery_v3_"; // v3: invalidates stale lists that may contain unselected-store items
 export function getCachedGroceries(sig) {
   try { const raw = sessionStorage.getItem(PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
