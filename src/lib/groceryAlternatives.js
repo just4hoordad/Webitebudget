@@ -32,7 +32,8 @@ export function applySpendingAlternatives(input, params, qualityIssues) {
     const candidate = { ...result, categories: result.categories.map((category, index) => index !== categoryIndex ? category : {
       ...category, items: category.items.map((item, index) => index === itemIndex ? { ...replacement } : item),
     }) };
-    if (qualityIssues(candidate).length > qualityIssues(result).length) continue;
+    const existingIssues = qualityIssues(result);
+    if (qualityIssues(candidate).some((issue) => !existingIssues.includes(issue))) continue;
     result = candidate;
     replaced.add(key);
     if (params.spendMode !== "save" && grocerySpending(result).main >= Number(params.budget) * 0.96) break;

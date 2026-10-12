@@ -38,6 +38,7 @@ import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration } from "@/lib/generateGroceries";
+import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -79,6 +80,7 @@ export default function MealPlan() {
 
   const [groceries, setGroceries] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generationError, setGenerationError] = useState("");
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
@@ -112,12 +114,13 @@ export default function MealPlan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage.code]);
 
-  const generateGroceries = async (retryCount = 0) => {
+  const generateGroceries = async (retryCount = 0, force = false) => {
     autoGenStarted.current = false;
     setWeeklyPlan(null);
+    setGenerationError("");
     const langKey = `${searchKey}::${currentLanguage.code}`;
     const cached = genCache.current[langKey];
-    if (cached && retryCount === 0) {
+    if (cached && retryCount === 0 && !force) {
       setRemovedItems(new Set());
       setGroceries(cached);
       setLoading(false);
@@ -127,16 +130,17 @@ export default function MealPlan() {
     setLoading(true);
     try {
       const gparams = groceryParamsFromSearch(searchKey);
-      const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code);
+      const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code, { force });
       setGroceries(result);
       genCache.current[langKey] = result;
       setCachedGroceries(grocerySignature(gparams, currentLanguage.code), result);
     } catch (err) {
       const isTransient = err?.name === "TypeError" || err?.code === "ECONNABORTED" || /network|timeout|fetch/i.test(err?.message || "");
       if (isTransient && retryCount < 2) {
-        return generateGroceries(retryCount + 1);
+        return generateGroceries(retryCount + 1, force);
       }
-      toast.error("Failed to generate grocery list. Please try again.");
+      setGroceries(null);
+      setGenerationError(err?.message || "Failed to generate grocery list. Please try again.");
     }
     setLoading(false);
   };
@@ -146,6 +150,7 @@ export default function MealPlan() {
     const sig = grocerySignature(gparams, currentLanguage.code);
     const shared = getCachedGroceries(sig);
     if (shared) {
+      setGenerationError("");
       genCache.current[`${searchKey}::${currentLanguage.code}`] = shared;
       setRemovedItems(new Set());
       setGroceries(shared);
@@ -852,7 +857,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
   };
 
   return (
-    <PullToRefresh onRefresh={generateGroceries}>
+    <PullToRefresh onRefresh={() => generateGroceries(0, true)}>
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -872,6 +877,8 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
             <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
           </div>
         ) : null
+      ) : generationError ? (
+        <GroceryGenerationError message={generationError} onRetry={() => guarded(() => generateGroceries(0, true))} />
       ) : (
         <>
           {/* List intro */}
@@ -1209,7 +1216,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
           </div>
 
           <div className="pb-8">
-            <Button onClick={() => guarded(generateGroceries)} variant="outline" className="w-full">
+            <Button onClick={() => guarded(() => generateGroceries(0, true))} variant="outline" className="w-full">
               {t("regenerate")}
             </Button>
           </div>

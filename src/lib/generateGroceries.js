@@ -1,6 +1,8 @@
 import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
+import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
+import { normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
   type: "object",
@@ -73,7 +75,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 14; // v14: maximize mode now deterministically pads with real premium products instead of unreliable AI retries
+const PROMPT_VERSION = 15; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -136,19 +138,19 @@ function spendModeRule(p) {
   const totalCap = budget + snacks;
   const mode = p.spendMode || "balanced";
   if (mode === "save") {
-    return `4. CRITICAL BUDGET RULE — SAVE MODE: The user wants to SPEND AS LITTLE AS POSSIBLE while still covering ${p.days} days of meals at ~${p.calories} kcal/day. The main grocery budget (excluding Protein Snacks) MUST stay UNDER €${budget}, and you should aim WELL BELOW it — ideally between €${Math.round(budget * 0.55)} and €${Math.round(budget * 0.80)} (roughly 55–80% of the budget). Choose the cheapest staples only (oats, rice, pasta, beans, lentils, eggs, discount dairy, potatoes, seasonal vegetables, bananas) and SKIP premium, branded-luxury, or treat items. Buy only what is needed to hit the calorie and macro targets — no extras, no upgrades. If the list already covers the days at the target calories, stop adding items even if you are far below budget. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+    return `4. SAVE MODE: Spend as little as possible, not a minimum percentage of the budget. Main groceries must cost at most €${(Math.floor(budget * 80) / 100).toFixed(2)} (80% of the user's €${budget} maximum). Use low-cost house brands and seasonal essentials from the selected stores. Buy enough for ${p.days} days at ~${p.calories} kcal/day, but no surplus, premium upgrades or luxury filler. Never cut needed calories or distort prices to meet the saving target. Protein snacks have their own separate €${snacks} allowance and cannot fund main groceries.`;
   }
   if (mode === "maximize") {
     return `4. CRITICAL BUDGET RULE — MAXIMIZE VALUE MODE: The user wants to SPEND THE FULL BUDGET on higher-value groceries. The main grocery budget (excluding Protein Snacks) should be as close to €${budget} as possible — ideally between €${Math.round(budget * 0.95)} and €${budget}, and never over. Use the full budget to UPGRADE quality and variety, NOT to pile up cheap bulk staples: prefer better cuts of meat, fresh fish, organic produce, branded quality goods, nuts, cheese, fresh fruit, and nicer treats. The list should feel like a noticeable step up in quality and variety compared to a budget list, while still covering ${p.days} days at ~${p.calories} kcal/day. If you are well under budget, add more premium / higher-value items (not more of the same cheap staple) until the total is close to €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
   }
-  return `4. CRITICAL BUDGET RULE: The main grocery budget (excluding Protein Snacks category) MUST stay UNDER €${budget} — never go over the budget, not even by 1 cent. Aim to be as close to €${budget} as possible while staying below it (ideally between €${Math.round(budget * 0.92)} and €${budget}). If you are over €${budget}, remove items or reduce quantities until the total is strictly below €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+  return `4. BALANCED MODE: Main groceries must cost €${(Math.ceil(budget * 92) / 100).toFixed(2)}–€${budget}, targeting about €${(budget * 0.96).toFixed(2)}. Choose a sensible mix of everyday staples, fresh foods and variety, not exclusively the cheapest products and not luxury groceries. If under target, replace existing ingredients with better everyday-quality equivalents at their real prices, preserving the amount of food needed for ${p.days} days at ~${p.calories} kcal/day. Never inflate prices or add surplus food just to spend money. Protein snacks have a separate €${snacks} allowance; do not count them toward the main spending target. All item prices must add up to the actual total.`;
 }
 
 export function buildGroceryPrompt(p, langLabel, knownPricesText = "") {
   const { people, diet, days, budget, calories, stores, saleHunt, bio, junkPercent, proteinSnackBudget, allergies, ownedItems, macros } = p;
   return `Generate a grocery list for ${people} person(s) with a ${diet} diet in Germany, covering exactly ${days} days.
 
-Budget: €${budget} for ${days} days.
+Budget for main groceries: €${p.spendMode === "save" ? (Math.floor(Number(budget) * 80) / 100).toFixed(2) : budget} for ${days} days${p.spendMode === "save" ? ` (saving target; the user's absolute maximum is €${budget})` : ""}.
 Calories: ~${calories} kcal/day for all ${people} person(s).
 Stores: ${stores || "any German supermarket"}.${allowedStoreNames(stores).length ? `\nSTRICT STORE RULE: every item's "store" MUST be exactly one of: ${allowedStoreNames(stores).join(", ")}. Never use any other store, even if it is cheaper, and only pick products actually sold at these stores. Store names in the examples below are illustrations only.` : ""}
 Region: postal code ${p.postalCode || "unknown"} — supermarket prices vary by region in Germany; use local prices for this postal code when available.
@@ -158,7 +160,7 @@ ${diet === "half-cooked" || diet === "frozen" ? `DIET MODE: FROZEN FOODS ONLY. O
 ${macros ? `MACRONUTRIENT TARGETS: The user wants the daily caloric intake to come from approximately ${macros.protein}% protein, ${macros.carbs}% carbohydrates, and ${macros.fats}% fats. Choose products and quantities so the OVERALL grocery list hits this split as closely as possible (e.g. more protein-rich foods like eggs, skyr, chicken, lentils for higher protein; more grains, rice, pasta for higher carbs; more oils, nuts, avocado for higher fats). For EVERY item you MUST fill protein_g, carb_g and fat_g with the total grams of each macronutrient in the full purchased quantity (all packs combined), using realistic German food-composition values. The sum of (protein_g*4 + carb_g*4 + fat_g*9) across all items must roughly equal the sum of total_kcal, and the resulting percentage split (by kcal) must be within ±8 percentage points of the target (${macros.protein}/${macros.carbs}/${macros.fats}).` : ""}
 Rules:
 1. Use real 2024-2025 German supermarket prices from the listed stores (e.g. Aldi Vollmilch 1L = €0.99, Lidl Eier 10er = €1.99).
-2. Pick the cheapest store for each item. Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
+2. ${p.spendMode === "save" ? "Pick the cheapest suitable product and selected store for each ingredient." : p.spendMode === "maximize" ? "Pick the cheapest selected store for each item." : "Choose reasonably priced everyday-quality products, mixing house brands with fresh ingredients rather than buying only the cheapest staples."} Include a varied selection (${days >= 14 ? "roughly 15–25" : "roughly 10–18"} distinct products across proteins, grains, vegetables, fruit and dairy) so meals don't repeat — use fewer packs of each item rather than fewer items.
 3. The price field = unit price × quantity needed for ${days} days (scale quantities to exactly cover ${days} days, not a full month). Never buy more than 6 packs of the same product — if more of an ingredient is needed, choose a larger pack size (e.g. a 2L milk carton instead of two 1L cartons, a 1kg rice bag instead of two 500g bags) rather than stacking many small packs. Keep every item to a realistic amount a person actually consumes: no single item should provide more than ~25% of one day's calories, and milk in particular is a drink, not a calorie source — a person has at most one glass (~250ml) a day, so never plan more than ~${Math.max(2, Math.ceil(p.people * 0.25 * days))}L of milk total for the whole period; if you need more dairy calories, use yogurt, quark, skyr, or cheese, not more milk.
 ${spendModeRule(p)}
  5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
@@ -290,7 +292,7 @@ function fixHouseBrandStores(result, p) {
 
 // Deterministic quality checks on a generated list. Returns human-readable
 // problems (empty array = list is good).
-function validateGroceries(result, p) {
+function validateGroceries(result, p, includeSpending = true) {
   const items = (result?.categories || []).flatMap((c) => c.items || []);
   const issues = [];
   const minItems = p.days >= 14 ? 12 : 8;
@@ -357,8 +359,12 @@ function validateGroceries(result, p) {
     issues.push(`These items are from stores the user didn't select: ${offStore.map((i) => `${i.name} (${i.store})`).join(", ")}. Replace them with products from ${allowedStoreNames(p.stores).join(", ")} only.`);
   }
   const cost = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
-  const cap = Number(p.budget) + (p.proteinSnackBudget || 0);
+  const cap = Number(p.budget) + (Number(p.proteinSnackBudget) || 0);
   if (cost > cap) issues.push(`Total €${cost.toFixed(2)} exceeds the €${cap} budget.`);
+  if (includeSpending && p.spendMode !== "maximize") issues.push(...spendingIssues(result, p));
+  if (p.spendMode !== "maximize" && items.some((item) => ["total_kcal", "protein_g", "carb_g", "fat_g"].some((field) => item[field] == null || !Number.isFinite(Number(item[field]))))) {
+    issues.push("Provide total_kcal, protein_g, carb_g and fat_g for every purchased item. Nutrition must not be dropped to reduce spending.");
+  }
   // Maximize-value mode: a list far under budget fails the user's goal — they
   // asked to spend the budget on better groceries, not to save. Nudge one retry
   // that adds premium / higher-value items until the total is close to budget.
@@ -408,17 +414,33 @@ function trimToBudget(result, cap) {
   return { ...result, categories, total_estimated_cost: Math.round(cost * 100) / 100 };
 }
 
-export async function runGroceryGeneration(p, langLabel, langCode) {
+export async function runGroceryGeneration(p, langLabel, langCode, { force = false } = {}) {
   // #1: shared server-side cache — identical config returns instantly, ~0 credits.
   const sig = grocerySignature(p, langCode);
-  const cached = await getCachedGroceryServer(sig);
-  if (cached) return cached;
+  const cached = force ? null : await getCachedGroceryServer(sig);
+  if (cached) return normalizeGroceryTotal(cached);
 
   const allowed = allowedStoreNames(p.stores);
   const { text: knownPricesText, count: knownCount } = await fetchKnownPrices(p.postalCode, allowed);
   const useWebSearch = knownCount < WEB_SEARCH_MIN_PRICES;
-  const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText);
-  const schema = allowed.length ? restrictStoreSchema(allowed) : GROCERY_SCHEMA;
+  const managedSpending = p.spendMode !== "maximize";
+  const alternativeInstruction = managedSpending
+    ? `\nFor every main grocery item, provide 1–3 real replacement products under "alternatives". ${p.spendMode === "save" ? "Include the cheapest suitable house-brand equivalent, ideally cheaper than the original." : "Include ordinary good-quality alternatives at a range of real prices, including higher-priced equivalents where appropriate, not luxury filler."} Each replacement covers the same ingredient role and purchased amount, with its own accurate prices and nutrition. All replacements must obey the same selected stores, diet, organic setting, allergies and already-owned exclusions. Do not provide alternatives for Protein Snacks.`
+    : "";
+  const basePrompt = buildGroceryPrompt(p, langLabel, knownPricesText) + alternativeInstruction;
+  const schema = allowed.length ? restrictStoreSchema(allowed) : JSON.parse(JSON.stringify(GROCERY_SCHEMA));
+  if (managedSpending) {
+    const product = schema.properties.categories.items.properties.items.items;
+    const replacement = JSON.parse(JSON.stringify(product));
+    replacement.required = ["name", "quantity", "store", "price", "unit_price", "normal_price", "total_kcal", "protein_g", "carb_g", "fat_g"];
+    product.properties.alternatives = { type: "array", maxItems: 3, items: replacement };
+    product.required = replacement.required;
+  }
+  const qualityIssues = (result) => validateGroceries(result, p, false);
+  const prepare = (result) => {
+    const corrected = fixHouseBrandStores(result, p);
+    return managedSpending ? applySpendingAlternatives(corrected, p, qualityIssues) : normalizeGroceryTotal(corrected);
+  };
   const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
     add_context_from_internet: useWebSearch,
@@ -426,18 +448,18 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
     response_json_schema: schema,
   });
 
-  let result = fixHouseBrandStores(await call(basePrompt), p);
+  let result = prepare(await call(basePrompt));
   let issues = validateGroceries(result, p);
   // One targeted retry: feed back only the concrete problems found, instead of
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
-    const prevList = (result?.categories || []).flatMap((c) => c.items || [])
-      .map((i) => `${i.name} × ${i.quantity} = €${i.price}`).join("\n");
-    const retry = fixHouseBrandStores(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nEdit that list to fix them: keep good items, ADD new distinct products where more variety is needed, and reduce quantities of existing items to make room in the budget. Respect all rules above.`, "openai/gpt-4o-mini"), p);
+    const prevList = JSON.stringify(result);
+    const retry = prepare(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini"));
     const retryIssues = validateGroceries(retry, p);
     // Staying within budget matters most — prefer whichever attempt is cheaper when one is over.
     const over = (r) => listCost(r) > budgetCap(p);
-    const retryBetter = over(result) && !over(retry) ? true
+    const retryBetter = managedSpending ? preferSpendingCandidate(result, retry, p, qualityIssues)
+      : over(result) && !over(retry) ? true
       : !over(result) && over(retry) ? false
       : retryIssues.length <= issues.length;
     if (retryBetter) { result = retry; issues = retryIssues; }
@@ -453,10 +475,15 @@ export async function runGroceryGeneration(p, langLabel, langCode) {
     issues = validateGroceries(result, p);
   }
 
-  // Hard guarantee: never return a list above the user's budget.
-  if (listCost(result) > budgetCap(p)) {
+  // Save/Balanced must preserve needed nutrition, not silently delete food to fit.
+  // Retain the existing Maximize behavior.
+  if (!managedSpending && listCost(result) > budgetCap(p)) {
     result = trimToBudget(result, budgetCap(p));
     issues = validateGroceries(result, p);
+  }
+  result = normalizeGroceryTotal(result);
+  if (managedSpending && issues.length) {
+    throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
   }
 
   // Only persist lists that pass validation, so bad output never gets
