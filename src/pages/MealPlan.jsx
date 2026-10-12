@@ -86,6 +86,7 @@ export default function MealPlan() {
   const [removedItems, setRemovedItems] = useState(new Set());
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [planError, setPlanError] = useState("");
   const [saving, setSaving] = useState(false);
   const isFirstRender = useRef(true);
   const location = useLocation();
@@ -571,7 +572,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
     const sig = JSON.stringify({ items: availableItems, diet, calories, people, macros, lang: currentLanguage.code, totalDays });
     const cached = getPlanCache(sig);
-    if (cached) return cached;
+    if (cached) {
+      setLoadingPlan(false);
+      return cached;
+    }
 
     setLoadingPlan(true);
     try {
@@ -606,6 +610,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     const wkCached = getPlanCache(wkSig);
     if (wkCached) {
       setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days: wkCached }] });
+      setLoadingPlan(false);
       return;
     }
     setLoadingPlan(true);
@@ -655,6 +660,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       }
     }
 
+    setPlanError("");
     autoGenStarted.current = true;
     (async () => {
       try {
@@ -662,7 +668,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         else await generateUniqueMonthlyPlan();
       } catch (e) {
         setLoadingPlan(false);
-        toast.error("Failed to generate meal plan. Try regenerating.");
+        setPlanError(e?.message || "Failed to generate meal plan.");
+        // Reset so the user can retry via the button or effect re-fire.
+        autoGenStarted.current = false;
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1217,6 +1225,40 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
               <GeneratingLoader type="plan" />
               <AdSlot duringGeneration layout="fixed-height" style={{ minHeight: 90 }} />
             </>
+          )}
+
+          {/* Meal plan failed or never started — show a retry/generate button */}
+          {!weeklyPlan && !loadingPlan && (
+            <div className="bg-card border border-border rounded-xl p-5 text-center space-y-3">
+              {planError ? (
+                <>
+                  <p className="text-sm text-destructive font-medium">{t("planGenFailed") || "Meal plan could not be generated."}</p>
+                  <p className="text-xs text-muted-foreground">{planError}</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("planGenReady") || "Your grocery list is ready. Generate your meal plan."}</p>
+              )}
+              <Button
+                onClick={() => {
+                  setPlanError("");
+                  autoGenStarted.current = false;
+                  setLoadingPlan(true);
+                  (async () => {
+                    try {
+                      if (planStyle === "repeat") await generateWeeklyPlan();
+                      else await generateUniqueMonthlyPlan();
+                    } catch (e) {
+                      setLoadingPlan(false);
+                      setPlanError(e?.message || "Failed to generate meal plan.");
+                    }
+                  })();
+                }}
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                {planError ? (t("retry") || "Retry") : (t("generateMealPlan") || "Generate meal plan")}
+              </Button>
+            </div>
           )}
 
           {/* Weekly Plan Display */}
