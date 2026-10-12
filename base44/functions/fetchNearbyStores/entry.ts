@@ -56,7 +56,7 @@ async function queryChainPhoton(chainId: string, lat: number, lng: number, radiu
   const timeout = setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
   try {
     const res = await fetch(url, { headers: { "User-Agent": "BudgetBite/1.0 (meal planning app)" }, signal: controller.signal });
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const data = await res.json();
     const out: any[] = [];
     for (const f of data.features || []) {
@@ -84,15 +84,31 @@ async function queryChainPhoton(chainId: string, lat: number, lng: number, radiu
     }
     return out;
   } catch {
-    return [];
+    return null;
   } finally {
     clearTimeout(timeout);
   }
 }
 
+// Photon throttles bursts, so 13 parallel requests silently dropped chains
+// (e.g. tegut). Query in small batches and retry failed chains once.
 async function queryPhoton(chains: string[], lat: number, lng: number, radius: number) {
-  const results = await Promise.all(chains.map((c) => queryChainPhoton(c, lat, lng, radius)));
-  return dedupe(results.flat());
+  const all: any[] = [];
+  let failed = 0;
+  for (let i = 0; i < chains.length; i += 4) {
+    const batch = chains.slice(i, i + 4);
+    const results = await Promise.all(batch.map(async (c) => {
+      let r = await queryChainPhoton(c, lat, lng, radius);
+      if (r === null) {
+        await new Promise((ok) => setTimeout(ok, 600));
+        r = await queryChainPhoton(c, lat, lng, radius);
+      }
+      if (r === null) failed++;
+      return r || [];
+    }));
+    all.push(...results.flat());
+  }
+  return { elements: dedupe(all), complete: failed === 0 };
 }
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -128,10 +144,10 @@ Deno.serve(async (req) => {
       return Response.json({ elements: hit.elements });
     }
 
-    const elements = await queryPhoton(chainsToQuery, latNum, lngNum, safeRadius);
+    const { elements, complete } = await queryPhoton(chainsToQuery, latNum, lngNum, safeRadius);
 
-    console.log(`[fetchNearbyStores] photon (${elements.length} stores, chains: ${chainsToQuery.join(",") || "all"})`);
-    cache.set(key, { ts: Date.now(), elements });
+    console.log(`[fetchNearbyStores] photon (${elements.length} stores, complete: ${complete})`);
+    if (complete) cache.set(key, { ts: Date.now(), elements });
     return Response.json({ elements });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
