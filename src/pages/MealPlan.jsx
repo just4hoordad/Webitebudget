@@ -49,7 +49,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
-const PLAN_PREFIX = "bb_plan_v3_"; // v2: realism/health rules added — drops plans cached before the guard
+const PLAN_PREFIX = "bb_plan_v4_"; // v4: ingredient filter — strips invented ingredients not in grocery list
 const getPlanCache = (sig) => {
   try { const raw = sessionStorage.getItem(PLAN_PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 };
@@ -449,6 +449,52 @@ export default function MealPlan() {
       dinner_calories: Math.round((d.dinner_calories || 0) * scale),
     };
   });
+  // --- Ingredient filter: strip meal-plan ingredients not in the grocery list ---
+  // The meal-plan AI sometimes invents ingredients (e.g. "1 egg", "toast") that
+  // were never bought. This filter removes them so the plan only references real
+  // groceries, using a fuzzy prefix match to handle minor spelling differences.
+  const STORE_WORDS = new Set(["rewe", "aldi", "lidl", "edeka", "penny", "netto", "kaufland", "tegut", "dm", "rossmann", "bio", "fairtrade", "gut", "günstig", "ja"]);
+  const commonPrefixLen = (a, b) => { let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++; return i; };
+
+  const buildGroceryWordSet = () => {
+    const words = new Set();
+    (groceries?.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if (removedItems.has(`${cat.name}::${item.name}`)) return;
+        String(item.name || "").toLowerCase()
+          .replace(/\d+\s*[*x×]?\s*\d*\s*(kg|g|l|ml|mg|stk|st|pack|er)\b/g, "")
+          .split(/\s+/)
+          .forEach(w => { if (w.length > 2 && !STORE_WORDS.has(w)) words.add(w); });
+      });
+    });
+    return words;
+  };
+
+  const ingredientInGroceries = (ingName, groceryWords) => {
+    const n = String(ingName || "").toLowerCase().trim();
+    if (!n) return true;
+    const words = n.replace(/\d+/g, "").split(/\s+/).filter(w => w.length > 2 && !STORE_WORDS.has(w));
+    if (words.length === 0) return false;
+    return words.some(w => groceryWords.some(gw =>
+      commonPrefixLen(w, gw) >= 5 || gw.includes(w) || w.includes(gw)
+    ));
+  };
+
+  const filterPlanIngredients = (planDays) => {
+    const groceryWords = buildGroceryWordSet();
+    if (!groceryWords.size) return planDays;
+    return (planDays || []).map(d => {
+      if (!d) return d;
+      const filterIngs = (ings) => Array.isArray(ings) ? ings.filter(i => ingredientInGroceries(i.name, groceryWords)) : ings;
+      return {
+        ...d,
+        breakfast_ingredients: filterIngs(d.breakfast_ingredients),
+        lunch_ingredients: filterIngs(d.lunch_ingredients),
+        dinner_ingredients: filterIngs(d.dinner_ingredients),
+      };
+    });
+  };
+
   // True when the plan's average daily kcal misses the target by more than 10%.
   const calorieOff = (planDays) => {
     const list = (planDays || []).filter(Boolean);
@@ -471,7 +517,7 @@ ${macros ? `Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}% 
 Number of people: ${people}
 
 CRITICAL RULES:
-1. Use ONLY the products listed above — no substitutions or additions.
+1. Use ONLY the products listed above — no substitutions or additions. Every ingredient name in breakfast_ingredients, lunch_ingredients, dinner_ingredients MUST be copied EXACTLY from the AVAILABLE PRODUCTS list. Do NOT invent, assume, or add any ingredient (e.g. "egg", "toast", "oil") that is not in the list. If a product is not listed, the meal must not use it.
 2. For each meal, specify EXACTLY which product is used${diet === "frozen" ? " and the heating instruction (e.g. \"Oven 200°C for 20 min\" or \"Microwave 3 min\")" : ""}.
 ${diet === "frozen" ? `3. FROZEN FOODS MODE: Each meal entry MUST be the exact frozen product name + heating method. Format: "🥡 [Product Name] — [Heating instruction]".` : "3. Vary meals across the days — do NOT repeat the same meal every day."}
 4. Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
@@ -499,7 +545,7 @@ ${macros ? ` Macronutrient split: ~${macros.protein}% protein, ~${macros.carbs}%
 Number of people: ${people}
 
 CRITICAL RULES:
-1. Use ONLY the products listed above — no substitutions or additions
+1. Use ONLY the products listed above — no substitutions or additions. Every ingredient name in breakfast_ingredients, lunch_ingredients, dinner_ingredients MUST be copied EXACTLY from the AVAILABLE PRODUCTS list. Do NOT invent, assume, or add any ingredient (e.g. "egg", "toast", "oil") that is not in the list. If a product is not listed, the meal must not use it.
 2. The quantities listed are the TOTAL available for ALL ${totalDays} days
 3. Divide product usage roughly equally across all ${totalWeeks} weeks — use approx 1/${totalWeeks} of total quantity per week
 4. For each meal, specify EXACTLY which product is used${diet === "frozen" ? " and heating instructions (e.g. \"Oven 200°C for 20 min\" or \"Microwave 3 min\")" : ""}
@@ -539,7 +585,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       }
       const weeks = (result.weeks || []).map((w, i) => ({
         week: w.week || i + 1,
-        days: scaleDayCalories(Array.isArray(w.days) ? w.days : [], Number(calories)),
+        days: filterPlanIngredients(scaleDayCalories(Array.isArray(w.days) ? w.days : [], Number(calories))),
       }));
       setPlanCache(sig, weeks);
       return weeks;
@@ -568,7 +614,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     if (calorieOff(result.days)) {
       result = await invokeAI({ prompt: `${weekPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: weeklyPlanSchema });
     }
-    const days = scaleDayCalories(result.days || [], Number(calories));
+    const days = filterPlanIngredients(scaleDayCalories(result.days || [], Number(calories)));
     setPlanCache(wkSig, days);
     setWeeklyPlan({ type: "repeat", weeks: [{ week: 1, days }] });
     setLoadingPlan(false);
