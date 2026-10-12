@@ -47,7 +47,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
-const PLAN_PREFIX = "bb_plan_";
+const PLAN_PREFIX = "bb_plan_v2_"; // v2: realism/health rules added — drops plans cached before the guard
 const getPlanCache = (sig) => {
   try { const raw = sessionStorage.getItem(PLAN_PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 };
@@ -426,6 +426,12 @@ ${diet === "frozen" ? `3. FROZEN FOODS MODE: Each meal entry MUST be the exact f
 4. Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
 ${previousWeeksSummary ? `5. AVOID repeating meals already used in earlier weeks — keep this week different:\n${previousWeeksSummary}` : ""}
 
+REALISM & HEALTH — every meal must be a real, cookable dish a person would actually eat:
+- Never pass a single raw ingredient or a drink off as a meal (e.g. "1L of milk", "just oats", "a banana" is NOT a meal). Combine products into a recognizable dish (e.g. "Oats with milk and banana", "Pasta with tomato and cheese", "Rice with chicken and vegetables").
+- Portion sizes must be realistic for ONE sitting (e.g. ~250ml milk, ~150g rice/pasta, ~2 eggs, ~150g meat), never bulk quantities.
+- Keep the day balanced: a mix of protein, carbs and vegetables across the three meals, with variety between days — do not repeat the same meal every day.
+- The plan must be doable for a normal person to shop for and cook with the listed products.
+
 Return a "days" array with EXACTLY ${daysInThisWeek} day objects. Each day object: { day, breakfast, breakfast_calories, breakfast_ingredients[{name,quantity}], lunch, lunch_calories, lunch_ingredients, dinner, dinner_calories, dinner_ingredients }.
 RETURN EXACTLY ${daysInThisWeek} days with no gaps or missing days.`;
 
@@ -450,6 +456,12 @@ ${diet === "frozen" ? `5. FROZEN FOODS MODE: Each meal entry MUST be the exact f
 6. VARIETY: Make each week different — do NOT repeat the same meals across weeks.
 
 Calorie distribution: breakfast ~${Math.round(calories * 0.25)} kcal, lunch ~${Math.round(calories * 0.35)} kcal, dinner ~${Math.round(calories * 0.40)} kcal.
+
+REALISM & HEALTH — every meal must be a real, cookable dish a person would actually eat:
+- Never pass a single raw ingredient or a drink off as a meal (e.g. "1L of milk", "just oats", "a banana" is NOT a meal). Combine products into a recognizable dish (e.g. "Oats with milk and banana", "Pasta with tomato and cheese", "Rice with chicken and vegetables").
+- Portion sizes must be realistic for ONE sitting (e.g. ~250ml milk, ~150g rice/pasta, ~2 eggs, ~150g meat), never bulk quantities.
+- Keep each day balanced: a mix of protein, carbs and vegetables across the three meals, with variety between days and between weeks — do not repeat the same meal day after day.
+- The plan must be doable for a normal person to shop for and cook with the listed products.
 
 Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has a "days" array. Weeks 1 to ${totalWeeks - 1} have 7 days each; the final week has ${totalDays - (totalWeeks - 1) * 7} days. Total days across all weeks MUST equal ${totalDays}, with no gaps or missing meals.`;
 
