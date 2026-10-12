@@ -18,7 +18,7 @@ const SHARE_L = {
   tr: { share: "Listeyi paylaş", copied: "Liste kopyalandı! İstediğiniz yere yapıştırın." },
 };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info, Crown, Scale } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -71,6 +71,7 @@ export default function MealPlan() {
   const bio = params.get("bio") === "true";
   const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
   const proteinSnackBudget = parseInt(params.get("proteinSnackBudget") || "0", 10);
+  const spendMode = params.get("spendMode") || "balanced";
   const allergies = params.get("allergies") ? params.get("allergies").split(",").filter(Boolean) : [];
   const ownedItems = params.get("owned") ? params.get("owned").split(",").filter(Boolean) : [];
   const macrosParam = params.get("macros");
@@ -881,6 +882,27 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         <GroceryGenerationError message={generationError} onRetry={() => guarded(() => generateGroceries(0, true))} />
       ) : (
         <>
+          {/* Spending mode badge */}
+          {(() => {
+            const modeKey = `spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}`;
+            const modeLabel = t(modeKey) === modeKey ? spendMode : t(modeKey);
+            const modeDescKey = `spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}Desc`;
+            const modeDesc = t(modeDescKey) === modeDescKey ? "" : t(modeDescKey);
+            const Icon = spendMode === "save" ? PiggyBank : spendMode === "maximize" ? Crown : Scale;
+            return (
+              <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground leading-tight">{t("spendModeTitle") || "Spending mode"}</p>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{modeLabel}</p>
+                </div>
+                {modeDesc && <p className="text-xs text-muted-foreground leading-snug ml-auto text-right hidden sm:block max-w-[60%]">{modeDesc}</p>}
+              </div>
+            );
+          })()}
+
           {/* List intro */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
