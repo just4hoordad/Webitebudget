@@ -197,22 +197,28 @@ export async function getKnownPricesText(postalCode, allowedStores) {
 export function savePriceObservations(groceries, postalCode, diet) {
   try {
     const today = new Date().toISOString().slice(0, 10);
+    const make = (item) => ({
+      product_name: item.name,
+      postal_code: postalCode || "",
+      store: item.store || "",
+      price: item.price,
+      unit_price: item.unit_price,
+      quantity: item.quantity || "",
+      normal_price: item.normal_price,
+      currency: "eur",
+      diet: diet || "",
+      source: "ai-web-search",
+      fetched_date: today,
+    });
     const records = [];
     (groceries?.categories || []).forEach((cat) => {
       (cat.items || []).forEach((item) => {
-        if (!item.name || item.price == null) return;
-        records.push({
-          product_name: item.name,
-          postal_code: postalCode || "",
-          store: item.store || "",
-          price: item.price,
-          unit_price: item.unit_price,
-          quantity: item.quantity || "",
-          normal_price: item.normal_price,
-          currency: "eur",
-          diet: diet || "",
-          source: "ai-web-search",
-          fetched_date: today,
+        if (item.name && item.price != null) records.push(make(item));
+        // Also save suggested alternatives — real replacement products the AI
+        // considered but that weren't chosen. Their prices help future users
+        // even though they never made it onto the final grocery list.
+        (item.alternatives || []).forEach((alt) => {
+          if (alt.name && alt.price != null) records.push(make(alt));
         });
       });
     });
@@ -474,13 +480,19 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     response_json_schema: schema,
   });
 
-  let result = prepare(await call(basePrompt));
+  // Save prices from the RAW AI output before any store/spending filters drop
+  // items — rejected products still carry real prices that help future users.
+  const rawFirst = await call(basePrompt);
+  savePriceObservations(rawFirst, p.postalCode, p.diet);
+  let result = prepare(rawFirst);
   let issues = validateGroceries(result, p);
   // One targeted retry: feed back only the concrete problems found, instead of
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
     const prevList = JSON.stringify(result);
-    const retry = prepare(await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini"));
+    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
+    savePriceObservations(rawRetry, p.postalCode, p.diet);
+    const retry = prepare(rawRetry);
     const retryIssues = validateGroceries(retry, p);
     // Staying within budget matters most — prefer whichever attempt is cheaper when one is over.
     const over = (r) => listCost(r) > budgetCap(p);
