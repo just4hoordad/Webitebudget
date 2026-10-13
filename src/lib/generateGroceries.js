@@ -9,6 +9,7 @@ import { topUpCalories } from "@/lib/calorieTopUp";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { brandifyNames } from "@/lib/brandifyNames";
 import { fetchBrandCatalog } from "@/lib/brandCatalog";
+import { consolidatePacks } from "@/lib/consolidatePacks";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
@@ -478,7 +479,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
         }
       }
     }
-    return managedSpending ? applySpendingAlternatives(corrected, p, qualityIssues) : normalizeGroceryTotal(corrected);
+    const consolidated = consolidatePacks(corrected, p);
+    return managedSpending ? applySpendingAlternatives(consolidated, p, qualityIssues) : normalizeGroceryTotal(consolidated);
   };
   const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
