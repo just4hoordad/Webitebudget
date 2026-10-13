@@ -7,6 +7,7 @@ import { fetchKnownPrices } from "@/lib/knownPrices";
 export { fetchKnownPrices } from "@/lib/knownPrices";
 import { topUpCalories } from "@/lib/calorieTopUp";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
+import { brandifyNames } from "@/lib/brandifyNames";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
@@ -463,7 +464,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   const qualityIssues = (result) => validateGroceries(result, p, false);
   const prepare = (raw) => {
     const result = dropUnselectedStores(dropJunkItems(raw), p);
-    const corrected = sanitizePrices(fixHouseBrandStores(result, p), known);
+    const branded = brandifyNames(fixHouseBrandStores(result, p), known);
+    const corrected = sanitizePrices(branded, known);
     if (managedSpending) {
       for (const category of corrected.categories || []) {
         for (const item of category.items || []) {
@@ -530,6 +532,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   }
   // Final guarantee: no items from unselected stores survive to the user.
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
+  // Last pass: brandify any generic names introduced by top-up / padding.
+  result = brandifyNames(result, known);
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
