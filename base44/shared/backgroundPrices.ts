@@ -1,5 +1,5 @@
 import { verifyPriceEvidence } from './priceEvidence.ts';
-import { COMMON_GROCERY_ITEMS } from './priceRefresh.ts';
+import { COMMON_ITEMS_BY_CHAIN } from './commonItemsByChain.ts';
 
 const STORES = ['Aldi', 'Lidl', 'REWE', 'Edeka', 'Kaufland', 'Penny', 'Netto', 'Norma', 'dm', 'Rossmann', 'tegut'];
 const productKey = (name, store) => `${store}|${String(name).trim().toLowerCase()}`;
@@ -14,7 +14,7 @@ export async function refreshBackgroundPrices(base44, { previewOnly = false, lim
   // builds a vast catalog-verified price pool even before users generate them.
   const queues = new Map(STORES.map((store) => [store, []]));
   for (const store of STORES) {
-    for (const item of COMMON_GROCERY_ITEMS) {
+    for (const item of (COMMON_ITEMS_BY_CHAIN[store] || [])) {
       if (!ready.has(productKey(item.name, store))) queues.get(store)?.push({ name: item.name, store });
     }
   }
