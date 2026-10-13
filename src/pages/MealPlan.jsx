@@ -183,13 +183,19 @@ export default function MealPlan() {
     // page stays mounted app-wide, so without this guard the initial loading
     // state would show the "generating" badge on every page before the user
     // ever asks for a list.
-    if (!lastGenKey.current) { setGenerationStatus("idle", searchKey); return; }
-    if (generationError || (planError && !weeklyPlan)) setGenerationStatus("error", searchKey);
-    else if (loading || loadingPlan || (groceries && !weeklyPlan)) setGenerationStatus("generating", searchKey);
-    else if (groceries && weeklyPlan) setGenerationStatus("ready", searchKey);
-    else setGenerationStatus("idle", searchKey);
+    // Always broadcast with the search key the generation actually used —
+    // NOT the current page's URL. The page stays mounted app-wide, so using
+    // window.location.search here would overwrite the badge link with whatever
+    // page the user browsed to (often empty), and clicking "View" would land on
+    // /meal-plan with no params and trigger a fresh generation.
+    const genKey = lastGenKey.current;
+    if (!genKey) { setGenerationStatus("idle", null); return; }
+    if (generationError || (planError && !weeklyPlan)) setGenerationStatus("error", genKey);
+    else if (loading || loadingPlan || (groceries && !weeklyPlan)) setGenerationStatus("generating", genKey);
+    else if (groceries && weeklyPlan) setGenerationStatus("ready", genKey);
+    else setGenerationStatus("idle", genKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, loadingPlan, groceries, weeklyPlan, generationError, planError, searchKey]);
+  }, [loading, loadingPlan, groceries, weeklyPlan, generationError, planError]);
 
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
