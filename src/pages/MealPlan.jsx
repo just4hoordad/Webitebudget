@@ -482,7 +482,8 @@ export default function MealPlan() {
     if (!n) return true;
     const words = n.replace(/\d+/g, "").split(/\s+/).filter(w => w.length > 2 && !STORE_WORDS.has(w));
     if (words.length === 0) return false;
-    return words.some(w => groceryWords.some(gw =>
+    const groceryArr = Array.from(groceryWords);
+    return words.some(w => groceryArr.some(gw =>
       commonPrefixLen(w, gw) >= 5 || gw.includes(w) || w.includes(gw)
     ));
   };
