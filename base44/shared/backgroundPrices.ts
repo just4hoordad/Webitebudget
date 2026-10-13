@@ -1,4 +1,5 @@
 import { verifyPriceEvidence } from './priceEvidence.ts';
+import { COMMON_GROCERY_ITEMS } from './priceRefresh.ts';
 
 const STORES = ['Aldi', 'Lidl', 'REWE', 'Edeka', 'Kaufland', 'Penny', 'Netto', 'Norma', 'dm', 'Rossmann', 'tegut'];
 const productKey = (name, store) => `${store}|${String(name).trim().toLowerCase()}`;
@@ -7,14 +8,15 @@ export async function refreshBackgroundPrices(base44, { previewOnly = false, lim
   const svc = base44.asServiceRole;
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
   const since = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-  const [popular, fresh] = await Promise.all([
-    svc.entities.PriceEstimate.aggregate({ query: { postal_code: '', store: { $in: STORES } }, groupBy: ['store', 'product_name'], sort: '-count', limit: 200 }),
-    svc.entities.PriceEstimate.aggregate({ query: { source: { $regex: '^catalog-verified https://' }, postal_code: '', fetched_date: { $gte: since } }, groupBy: ['store', 'product_name'], limit: 1000 }),
-  ]);
+  const fresh = await svc.entities.PriceEstimate.aggregate({ query: { source: { $regex: '^catalog-verified https://' }, postal_code: '', fetched_date: { $gte: since } }, groupBy: ['store', 'product_name'], limit: 1000 });
   const ready = new Set(fresh.rows.map((row) => productKey(row.product_name, row.store)));
+  // Proactively seed the 100 most commonly bought items across every chain —
+  // builds a vast catalog-verified price pool even before users generate them.
   const queues = new Map(STORES.map((store) => [store, []]));
-  for (const row of popular.rows) {
-    if (row.product_name && !ready.has(productKey(row.product_name, row.store))) queues.get(row.store)?.push({ name: row.product_name, store: row.store });
+  for (const store of STORES) {
+    for (const item of COMMON_GROCERY_ITEMS) {
+      if (!ready.has(productKey(item.name, store))) queues.get(store)?.push({ name: item.name, store });
+    }
   }
   const candidates = [];
   const max = Math.min(40, Math.max(1, Number(limit) || 40));

@@ -10,20 +10,125 @@ export const TRACKED_SUPERMARKETS = [
   "Edeka",
   "Norma",
   "dm",
-  "Rossmann"
+  "Rossmann",
+  "tegut"
 ];
 
-const CORE_STAPLES = [
-  { name: "Frische Vollmilch 3,5%", quantity: "1L" },
-  { name: "Eier Bodenhaltung 10er", quantity: "10 Stk" },
-  { name: "Deutsche Markenbutter 250g", quantity: "250g" },
-  { name: "Bananen", quantity: "1kg" },
+// The 100 most commonly bought grocery items across all German supermarket
+// chains. Used as the proactive seed for the daily price catalog: every chain
+// is checked for each of these items so a vast, source-verified price pool
+// accumulates even before any user generates a list containing them.
+export const COMMON_GROCERY_ITEMS = [
+  // Dairy & eggs
+  { name: "Vollmilch 3,5% 1L", quantity: "1L" },
+  { name: "fettarme Milch 1,5% 1L", quantity: "1L" },
+  { name: "H-Milch 3,5% 1L", quantity: "1L" },
+  { name: "Naturjoghurt 500g", quantity: "500g" },
+  { name: "Griechischer Joghurt 500g", quantity: "500g" },
+  { name: "Magerquark 500g", quantity: "500g" },
+  { name: "Speisequark 250g", quantity: "250g" },
+  { name: "Skyr 500g", quantity: "500g" },
+  { name: "Gouda 200g", quantity: "200g" },
+  { name: "Emmentaler gerieben 200g", quantity: "200g" },
+  { name: "Parmesan 100g", quantity: "100g" },
+  { name: "Frischkäse 200g", quantity: "200g" },
+  { name: "Mozzarella 125g", quantity: "125g" },
+  { name: "Schlagsahne 200ml", quantity: "200ml" },
+  { name: "Butterkäse 200g", quantity: "200g" },
+  { name: "Eier 10er", quantity: "10 Stk" },
+  // Meat & fish
+  { name: "Hähnchenbrustfilet 500g", quantity: "500g" },
+  { name: "Hackfleisch gemischt 500g", quantity: "500g" },
+  { name: "Rinderhackfleisch 500g", quantity: "500g" },
+  { name: "Schweinerückensteak 400g", quantity: "400g" },
+  { name: "Wiener Würstchen 5 Paar", quantity: "5 Paar" },
+  { name: "Salami 100g", quantity: "100g" },
+  { name: "Leberkäse 200g", quantity: "200g" },
+  { name: "Schinken gekocht 100g", quantity: "100g" },
+  { name: "Thunfisch im eigenen Saft 200g", quantity: "200g" },
+  { name: "Lachsfilet 200g", quantity: "200g" },
+  { name: "Fischstäbchen 450g", quantity: "450g" },
+  { name: "Garnelen 200g", quantity: "200g" },
+  // Fruit & vegetables
+  { name: "Bananen 1kg", quantity: "1kg" },
+  { name: "Äpfel 1kg", quantity: "1kg" },
+  { name: "Birnen 1kg", quantity: "1kg" },
+  { name: "Orangen 1kg", quantity: "1kg" },
+  { name: "Zitronen 500g", quantity: "500g" },
+  { name: "Kartoffeln 2kg", quantity: "2kg" },
+  { name: "Tomaten 500g", quantity: "500g" },
+  { name: "Salatgurke 1 Stk", quantity: "1 Stk" },
+  { name: "Paprika rot 500g", quantity: "500g" },
+  { name: "Zwiebeln 1kg", quantity: "1kg" },
+  { name: "Knoblauch 3 Stk", quantity: "3 Stk" },
+  { name: "Karotten 1kg", quantity: "1kg" },
+  { name: "Eisbergsalat 1 Stk", quantity: "1 Stk" },
+  { name: "Avocado 2 Stk", quantity: "2 Stk" },
+  { name: "Champignons 250g", quantity: "250g" },
+  { name: "TK-Erbsen 1kg", quantity: "1kg" },
+  // Bakery
+  { name: "Toastbrot 500g", quantity: "500g" },
+  { name: "Brötchen 5 Stk", quantity: "5 Stk" },
+  { name: "Vollkornbrot 750g", quantity: "750g" },
+  { name: "Croissant 4 Stk", quantity: "4 Stk" },
+  { name: "Laugenstangen 4 Stk", quantity: "4 Stk" },
+  { name: "Knäckebrot 250g", quantity: "250g" },
+  { name: "Rosinenbrötchen 4 Stk", quantity: "4 Stk" },
+  { name: "Baguette 1 Stk", quantity: "1 Stk" },
+  // Grains & pasta
   { name: "Spaghetti 500g", quantity: "500g" },
+  { name: "Penne 500g", quantity: "500g" },
   { name: "Basmati Reis 1kg", quantity: "1kg" },
-  { name: "Haferflocken zart 500g", quantity: "500g" },
-  { name: "Hähnchenbrustfilet", quantity: "500g" },
-  { name: "Gouda jung Scheiben 400g", quantity: "400g" },
-  { name: "Magerquark 500g", quantity: "500g" }
+  { name: "Jasmin Reis 1kg", quantity: "1kg" },
+  { name: "Haferflocken 500g", quantity: "500g" },
+  { name: "Couscous 500g", quantity: "500g" },
+  { name: "Mehl Type 405 1kg", quantity: "1kg" },
+  { name: "Polenta 500g", quantity: "500g" },
+  { name: "Cornflakes 500g", quantity: "500g" },
+  { name: "Müsli 750g", quantity: "750g" },
+  // Pantry & sauces
+  { name: "Zucker 1kg", quantity: "1kg" },
+  { name: "Salz 500g", quantity: "500g" },
+  { name: "Sonnenblumenöl 1L", quantity: "1L" },
+  { name: "Olivenöl 500ml", quantity: "500ml" },
+  { name: "Tomatenmark 200g", quantity: "200g" },
+  { name: "passierte Tomaten 500g", quantity: "500g" },
+  { name: "Tomaten stückig 400g", quantity: "400g" },
+  { name: "Mayonnaise 250ml", quantity: "250ml" },
+  { name: "Ketchup 500ml", quantity: "500ml" },
+  { name: "Senf mittelscharf 200g", quantity: "200g" },
+  { name: "Brühe Huhn 10 Würfel", quantity: "10 Würfel" },
+  { name: "Sojasoße 250ml", quantity: "250ml" },
+  { name: "Essig 500ml", quantity: "500ml" },
+  { name: "Erdnussbutter 350g", quantity: "350g" },
+  // Beverages
+  { name: "stilles Wasser 1,5L", quantity: "1,5L" },
+  { name: "Mineralwasser 1,5L", quantity: "1,5L" },
+  { name: "Apfelsaft 1L", quantity: "1L" },
+  { name: "Orangensaft 1L", quantity: "1L" },
+  { name: "Cola 1L", quantity: "1L" },
+  { name: "Eistee Pfirsich 1,5L", quantity: "1,5L" },
+  { name: "Kaffee gemahlen 500g", quantity: "500g" },
+  { name: "Schwarztee 25 Beutel", quantity: "25 Beutel" },
+  { name: "Bier Pils 0,5L", quantity: "0,5L" },
+  { name: "Weißwein 0,75L", quantity: "0,75L" },
+  // Snacks & sweet
+  { name: "Schokolade Vollmilch 100g", quantity: "100g" },
+  { name: "Gummibärchen 300g", quantity: "300g" },
+  { name: "Kartoffelchips 150g", quantity: "150g" },
+  { name: "Salzstangen 200g", quantity: "200g" },
+  { name: "Studentenfutter 200g", quantity: "200g" },
+  { name: "Butterkekse 200g", quantity: "200g" },
+  { name: "Honig 500g", quantity: "500g" },
+  { name: "Nuss-Nougat-Creme 400g", quantity: "400g" },
+  // Frozen & convenience
+  { name: "TK-Pommes 1kg", quantity: "1kg" },
+  { name: "TK-Pizza 1 Stk", quantity: "1 Stk" },
+  { name: "TK-Beeren 500g", quantity: "500g" },
+  // Household & hygiene
+  { name: "Toilettenpapier 8 Rollen", quantity: "8 Rollen" },
+  { name: "Küchenrolle 4 Rollen", quantity: "4 Rollen" },
+  { name: "Spülmittel 500ml", quantity: "500ml" }
 ];
 
 // One representative 5-digit postal code per German federal state (Bundesland).
@@ -311,8 +416,8 @@ export async function performPriceRefresh(base44: any) {
   // variety across days while bounding the per-run query count.
   const queriesToMake: { product: string; store: string; quantity: string; plz: string; state: string }[] = [];
   const dayIndex = Math.floor(Date.now() / 86400000); // rotates daily
-  const stapleRotation = CORE_STAPLES.slice(dayIndex % CORE_STAPLES.length, (dayIndex % CORE_STAPLES.length) + 3)
-    .concat(CORE_STAPLES.slice(0, Math.max(0, (dayIndex % CORE_STAPLES.length) + 3 - CORE_STAPLES.length)));
+  const stapleRotation = COMMON_GROCERY_ITEMS.slice(dayIndex % COMMON_GROCERY_ITEMS.length, (dayIndex % COMMON_GROCERY_ITEMS.length) + 3)
+    .concat(COMMON_GROCERY_ITEMS.slice(0, Math.max(0, (dayIndex % COMMON_GROCERY_ITEMS.length) + 3 - COMMON_GROCERY_ITEMS.length)));
 
   for (const store of TRACKED_SUPERMARKETS) {
     for (const region of REGION_PLZS) {
