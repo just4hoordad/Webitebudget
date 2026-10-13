@@ -437,11 +437,8 @@ function trimToBudget(result, cap) {
 }
 
 export async function runGroceryGeneration(p, langLabel, langCode, { force = false } = {}) {
-  // #1: shared server-side cache — identical config returns instantly, ~0 credits.
-  const sig = grocerySignature(p, langCode);
-  const cached = force ? null : await getCachedGroceryServer(sig);
-  if (cached) return normalizeGroceryTotal(dropUnselectedStores(cached, p));
-
+  // No shared grocery-list cache — generate fresh every time for accuracy.
+  // (Verified price catalog is still cached separately via fetchKnownPrices.)
   const allowed = allowedStoreNames(p.stores);
   const { text: knownPricesText, known } = await fetchKnownPrices(p.postalCode, allowed);
   const managedSpending = p.spendMode !== "maximize";
@@ -534,7 +531,6 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // served to other users or pollutes the community price database.
   if (!issues.length) {
     savePriceObservations(result, p.postalCode, p.diet);
-    saveCachedGroceryServer(sig, result, p, langCode).catch(() => { /* best-effort */ });
   }
   return result;
 }

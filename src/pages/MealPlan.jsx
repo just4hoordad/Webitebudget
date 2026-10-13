@@ -38,7 +38,7 @@ import html2canvas from "html2canvas";
 
 import { base44 } from "@/api/base44Client";
 import { setGenerationStatus } from "@/lib/generationStatus";
-import { groceryParamsFromSearch, grocerySignature, getCachedGroceries, setCachedGroceries, runGroceryGeneration, dropUnselectedStores } from "@/lib/generateGroceries";
+import { groceryParamsFromSearch, grocerySignature, runGroceryGeneration, dropUnselectedStores } from "@/lib/generateGroceries";
 import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
@@ -123,13 +123,8 @@ export default function MealPlan() {
     // is used if available, avoiding a fresh generation.
     const gparams = groceryParamsFromSearch(searchKey);
     const newSig = grocerySignature(gparams, currentLanguage.code);
-    let cached = genCache.current[newSig];
-    if (!cached) {
-      const raw = getCachedGroceries(newSig);
-      if (raw) cached = dropUnselectedStores(raw, gparams);
-    }
+    const cached = genCache.current[newSig];
     if (cached) {
-      genCache.current[newSig] = cached;
       setGroceries(cached);
     }
     setWeeklyPlan(null);
@@ -156,7 +151,6 @@ export default function MealPlan() {
       const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code, { force });
       setGroceries(result);
       genCache.current[langKey] = result;
-      setCachedGroceries(grocerySignature(gparams, currentLanguage.code), result);
     } catch (err) {
       const isTransient = err?.name === "TypeError" || err?.code === "ECONNABORTED" || /network|timeout|fetch/i.test(err?.message || "");
       if (isTransient && retryCount < 2) {
@@ -169,20 +163,6 @@ export default function MealPlan() {
   };
 
   const kickoffGroceries = () => {
-    const gparams = groceryParamsFromSearch(searchKey);
-    const sig = grocerySignature(gparams, currentLanguage.code);
-    const shared = getCachedGroceries(sig);
-    if (shared) {
-      const clean = dropUnselectedStores(shared, gparams);
-      setGenerationError("");
-      genCache.current[sig] = clean;
-      setRemovedItems(new Set());
-      setGroceries(clean);
-      setWeeklyPlan(null);
-      autoGenStarted.current = false;
-      setLoading(false);
-      return;
-    }
     guarded(generateGroceries);
   };
 
