@@ -8,6 +8,7 @@ export { fetchKnownPrices } from "@/lib/knownPrices";
 import { topUpCalories } from "@/lib/calorieTopUp";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { brandifyNames } from "@/lib/brandifyNames";
+import { fetchBrandCatalog } from "@/lib/brandCatalog";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
@@ -447,7 +448,11 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // No shared grocery-list cache — generate fresh every time for accuracy.
   // (Verified price catalog is still cached separately via fetchKnownPrices.)
   const allowed = allowedStoreNames(p.stores);
-  const { text: knownPricesText, known } = await fetchKnownPrices(p.postalCode, allowed);
+  const [knownPricesBundle, brandCatalog] = await Promise.all([
+    fetchKnownPrices(p.postalCode, allowed),
+    fetchBrandCatalog(),
+  ]);
+  const { text: knownPricesText, known } = knownPricesBundle;
   const managedSpending = p.spendMode !== "maximize";
   const alternativeInstruction = managedSpending
     ? `\nFor every main grocery item, provide 1–3 real replacement products under "alternatives". ${p.spendMode === "save" ? "Include the cheapest suitable house-brand equivalent, ideally cheaper than the original." : "Include ordinary good-quality alternatives at a range of real prices, including higher-priced equivalents where appropriate, not luxury filler."} Each replacement covers the same ingredient role and purchased amount, with its own accurate prices and nutrition. All replacements must obey the same selected stores, diet, organic setting, allergies and already-owned exclusions. Do not provide alternatives for Protein Snacks.`
@@ -464,7 +469,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   const qualityIssues = (result) => validateGroceries(result, p, false);
   const prepare = (raw) => {
     const result = dropUnselectedStores(dropJunkItems(raw), p);
-    const branded = brandifyNames(fixHouseBrandStores(result, p), known);
+    const branded = brandifyNames(fixHouseBrandStores(result, p), known, brandCatalog);
     const corrected = sanitizePrices(branded, known);
     if (managedSpending) {
       for (const category of corrected.categories || []) {
@@ -533,7 +538,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // Final guarantee: no items from unselected stores survive to the user.
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
   // Last pass: brandify any generic names introduced by top-up / padding.
-  result = brandifyNames(result, known);
+  result = brandifyNames(result, known, brandCatalog);
   if (managedSpending) {
     // Save minimizes genuine costs; its 80% goal must never remove needed meals.
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];

@@ -1,11 +1,13 @@
 // Replaces generic grocery item names (e.g. "Salami 100g") with the real
-// branded product name from the source-verified price catalog (e.g. "Dulano
-// Salami 100g"), so every list item is the actual product sold at the store.
+// branded product name from the per-chain brand catalog (e.g. "Chef Select
+// Salami 100g" at Lidl), so every list item is the actual product sold at the
+// store.
 //
-// The catalog is built from commonItemsByChain, which seeds each chain's 100
-// most common items with that chain's real house-brand names. When the AI
-// returns a generic descriptor, this matches it to the branded catalog entry
-// for the same store and swaps in the real name.
+// The catalog is the static per-chain brand map (commonItemsByChain) exposed
+// via the getBrandCatalog backend function — it does NOT depend on the
+// source-verified price catalog (which requires live web scraping and is
+// often empty). The dynamic `known` Map (verified prices) is merged in when
+// available, so verified branded names still win.
 
 const normalize = (s) => String(s || "").normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -20,17 +22,33 @@ function keywords(name) {
     .filter((w) => w.length >= 3 && !/^\d+$/.test(w));
 }
 
-function buildIndex(known) {
+function addEntry(byStore, store, productName) {
+  if (!store || !productName) return;
+  const norm = normalize(productName);
+  const kws = keywords(productName);
+  if (!kws.length) return;
+  if (!byStore.has(store)) byStore.set(store, []);
+  byStore.get(store).push({ name: productName, norm, kws });
+}
+
+// Build the match index from two sources:
+//  1. brandCatalog — static per-chain branded names: { Aldi: [{name, quantity}], ... }
+//  2. known — dynamic Map of source-verified prices (product_name, store)
+// Both contribute branded names; the static catalog is the reliable baseline.
+function buildIndex(known, brandCatalog) {
   const byStore = new Map();
-  if (!known || typeof known.values !== "function") return byStore;
-  for (const ref of known.values()) {
-    const store = normalize(ref.store).split(/[\s(]/)[0];
-    if (!store) continue;
-    const norm = normalize(ref.product_name);
-    const kws = keywords(ref.product_name);
-    if (!kws.length) continue;
-    if (!byStore.has(store)) byStore.set(store, []);
-    byStore.get(store).push({ name: ref.product_name, norm, kws });
+  if (brandCatalog && typeof brandCatalog === "object") {
+    for (const [store, items] of Object.entries(brandCatalog)) {
+      const storeKey = normalize(store).split(/[\s(]/)[0];
+      if (!storeKey) continue;
+      for (const it of items || []) addEntry(byStore, storeKey, it.name);
+    }
+  }
+  if (known && typeof known.values === "function") {
+    for (const ref of known.values()) {
+      const store = normalize(ref.store).split(/[\s(]/)[0];
+      addEntry(byStore, store, ref.product_name);
+    }
   }
   return byStore;
 }
@@ -57,9 +75,9 @@ function brandifyItem(item, index) {
   return best ? { ...item, name: best.name } : item;
 }
 
-export function brandifyNames(result, known) {
-  if (!result?.categories || !known?.size) return result;
-  const index = buildIndex(known);
+export function brandifyNames(result, known, brandCatalog) {
+  if (!result?.categories) return result;
+  const index = buildIndex(known, brandCatalog);
   if (!index.size) return result;
   const categories = result.categories.map((c) => ({
     ...c,
