@@ -175,14 +175,16 @@ export default function PlanReview() {
         </div>
       </div>
 
-      <Button
-        onClick={confirm}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-        size="lg"
-      >
-        {t("reviewConfirm") || "Confirm & generate"}
-        <ArrowRight className="ml-2 h-5 w-5" />
-      </Button>
+      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+80px)] z-30 -mx-1 px-1 pt-3 pb-2 bg-gradient-to-t from-background via-background/95 to-background/0">
+        <Button
+          onClick={confirm}
+          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+          size="lg"
+        >
+          {t("reviewConfirm") || "Confirm & generate"}
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 }
