@@ -194,6 +194,11 @@ export default function MealPlan() {
   // Broadcast generation status to the global badge so users on other pages
   // know the list is still building (or ready / failed) and can return to it.
   useEffect(() => {
+    // Don't broadcast until a generation has actually been kicked off — the
+    // page stays mounted app-wide, so without this guard the initial loading
+    // state would show the "generating" badge on every page before the user
+    // ever asks for a list.
+    if (!lastGenKey.current) { setGenerationStatus("idle", searchKey); return; }
     if (generationError || (planError && !weeklyPlan)) setGenerationStatus("error", searchKey);
     else if (loading || loadingPlan || (groceries && !weeklyPlan)) setGenerationStatus("generating", searchKey);
     else if (groceries && weeklyPlan) setGenerationStatus("ready", searchKey);
