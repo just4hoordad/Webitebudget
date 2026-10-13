@@ -18,7 +18,7 @@ const SHARE_L = {
   tr: { share: "Listeyi paylaş", copied: "Liste kopyalandı! İstediğiniz yere yapıştırın." },
 };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info, Crown, Scale } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info, Crown, Scale, Trash2 } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -989,6 +989,22 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     }
   };
 
+  // Clear the generated meal plan and its cache so the user can start fresh.
+  const deleteAllMeals = () => {
+    if (!window.confirm(t("deleteAllMealsConfirm") || "Delete all generated meals? You can generate a new plan afterwards.")) return;
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith(PLAN_PREFIX))
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch { /* ignore */ }
+    setWeeklyPlan(null);
+    setRecipes({});
+    setSaved(false);
+    savedIdRef.current = null;
+    autoGenStarted.current = false;
+    toast.success(t("deleteAllMealsDone") || "Meals cleared. Generate a new plan when you're ready.");
+  };
+
   return (
     <PullToRefresh onRefresh={() => generateGroceries(0, true)}>
     <div className="max-w-3xl mx-auto space-y-6">
@@ -1386,6 +1402,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                  <Button onClick={saveMealPlan} disabled={saving || saved} size="sm" className="gap-2">
                    <Save className="h-4 w-4" />
                    {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
+                 </Button>
+                 <Button onClick={deleteAllMeals} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10">
+                   <Trash2 className="h-4 w-4" />
+                   {t("deleteAllMeals") || "Delete all"}
                  </Button>
                </div>
              </div>
