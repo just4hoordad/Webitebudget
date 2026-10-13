@@ -124,11 +124,13 @@ export default function MealPlan() {
     const gparams = groceryParamsFromSearch(searchKey);
     const newSig = grocerySignature(gparams, currentLanguage.code);
     const cached = genCache.current[newSig];
+    const groceriesForPlan = cached || groceries;
     if (cached) {
       setGroceries(cached);
     }
     setWeeklyPlan(null);
     setLoading(false);
+    autoStartMealPlan(groceriesForPlan);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage.code]);
 
@@ -141,8 +143,10 @@ export default function MealPlan() {
     const cached = genCache.current[langKey];
     if (cached && retryCount === 0 && !force) {
       setRemovedItems(new Set());
-      setGroceries(dropUnselectedStores(cached, gparams));
+      const result = dropUnselectedStores(cached, gparams);
+      setGroceries(result);
       setLoading(false);
+      autoStartMealPlan(result);
       return;
     }
     setRemovedItems(new Set());
@@ -151,6 +155,7 @@ export default function MealPlan() {
       const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code, { force });
       setGroceries(result);
       genCache.current[langKey] = result;
+      autoStartMealPlan(result);
     } catch (err) {
       const isTransient = err?.name === "TypeError" || err?.code === "ECONNABORTED" || /network|timeout|fetch/i.test(err?.message || "");
       if (isTransient && retryCount < 2) {
@@ -564,8 +569,9 @@ REALISM & HEALTH — every meal must be a real, cookable dish a person would act
 
 Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has a "days" array. Weeks 1 to ${totalWeeks - 1} have 7 days each; the final week has ${totalDays - (totalWeeks - 1) * 7} days. Total days across all weeks MUST equal ${totalDays}, with no gaps or missing meals.`;
 
-  const generateAllWeeks = async () => {
-    const availableItems = groceries?.categories?.flatMap(cat =>
+  const generateAllWeeks = async (groceriesSource) => {
+    const g = groceriesSource || groceries;
+    const availableItems = g?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
@@ -599,8 +605,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     }
   };
 
-  const generateWeeklyPlan = async () => {
-    const availableItems = groceries?.categories?.flatMap(cat =>
+  const generateWeeklyPlan = async (groceriesSource) => {
+    const g = groceriesSource || groceries;
+    const availableItems = g?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
@@ -626,19 +633,19 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     setLoadingPlan(false);
   };
 
-  const generateUniqueMonthlyPlan = async () => {
-    const weeks = await generateAllWeeks();
+  const generateUniqueMonthlyPlan = async (groceriesSource) => {
+    const weeks = await generateAllWeeks(groceriesSource);
     setWeeklyPlan({ type: "unique", weeks });
   };
 
-  // Auto-generate the meal plan once the grocery list is ready, using the
-  // style the user picked on the reassurance screen (repeat vs unique weeks).
-  // Before generating, hydrate from the sessionStorage plan cache so revisiting
-  // a plan (refresh / back / re-open) costs zero credits.
-  useEffect(() => {
-    if (loading || !groceries || weeklyPlan || autoGenStarted.current) return;
-
-    const availableItems = groceries?.categories?.flatMap(cat =>
+  // Start the meal plan once the grocery list is ready. Called directly from
+  // generateGroceries after the list is set (cache hit or fresh generation), so
+  // the plan always builds on a real grocery list and never races ahead of it.
+  // Hydrates from the sessionStorage plan cache first so revisiting a plan
+  // (refresh / back / re-open) costs zero credits.
+  const autoStartMealPlan = (groceriesResult) => {
+    if (!groceriesResult) return;
+    const availableItems = groceriesResult?.categories?.flatMap(cat =>
       cat.items
         .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
         .map(item => `${item.name} (${item.quantity})`)
@@ -663,19 +670,18 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
     setPlanError("");
     autoGenStarted.current = true;
+    setLoadingPlan(true);
     (async () => {
       try {
-        if (planStyle === "repeat") await generateWeeklyPlan();
-        else await generateUniqueMonthlyPlan();
+        if (planStyle === "repeat") await generateWeeklyPlan(groceriesResult);
+        else await generateUniqueMonthlyPlan(groceriesResult);
       } catch (e) {
         setLoadingPlan(false);
         setPlanError(e?.message || "Failed to generate meal plan.");
-        // Reset so the user can retry via the button or effect re-fire.
         autoGenStarted.current = false;
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, groceries, weeklyPlan, planStyle]);
+  };
 
   const [saved, setSaved] = useState(false);
   const [swapTarget, setSwapTarget] = useState(null);
