@@ -81,6 +81,14 @@ export default function SavedMealPlans() {
     await base44.entities.MealPlan.delete(id);
   };
 
+  const deleteAllPlans = async () => {
+    if (!confirm(t("deleteAllPlansConfirm"))) return;
+    for (const plan of plans) {
+      await base44.entities.MealPlan.delete(plan.id).catch(() => {});
+    }
+    setPlans([]);
+  };
+
   // Normalizes the many stored meal shapes into a plain meal name string.
   const mealName = (val) => {
     if (!val) return "";
