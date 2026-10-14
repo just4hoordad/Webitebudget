@@ -164,6 +164,8 @@ const translations = {
     weeks: "week(s)",
     nutrition: "Nutrition",
     deletePlanConfirm: "Delete this meal plan?",
+    deleteAllPlans: "Delete all",
+    deleteAllPlansConfirm: "Delete all saved meal plans? This cannot be undone.",
     budgetPerMonth: "/month",
 
     // SavedMealPlans
@@ -347,6 +349,8 @@ const translations = {
     weeks: "Woche(n)",
     nutrition: "Ernährung",
     deletePlanConfirm: "Diesen Mahlzeitenplan löschen?",
+    deleteAllPlans: "Alle löschen",
+    deleteAllPlansConfirm: "Alle gespeicherten Mahlzeitenpläne löschen? Dies kann nicht rückgängig gemacht werden.",
     budgetPerMonth: "/Monat",
     breakfast: "Frühstück",
     lunch: "Mittagessen",

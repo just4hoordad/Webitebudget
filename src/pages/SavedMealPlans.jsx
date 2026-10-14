@@ -138,9 +138,22 @@ export default function SavedMealPlans() {
   return (
     <PullToRefresh onRefresh={loadPlans}>
       <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
-          <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
+            <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
+          </div>
+          {plans.length > 0 && (
+            <Button
+              onClick={deleteAllPlans}
+              variant="outline"
+              size="sm"
+              className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 shrink-0"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("deleteAllPlans")}
+            </Button>
+          )}
         </div>
 
         {/* Google Calendar sync */}

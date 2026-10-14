@@ -1409,10 +1409,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    <Save className="h-4 w-4" />
                    {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
                  </Button>
-                 <Button onClick={deleteAllMeals} variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10">
-                   <Trash2 className="h-4 w-4" />
-                   {t("deleteAllMeals") || "Delete all"}
-                 </Button>
+
                </div>
              </div>
            </div>
