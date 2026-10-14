@@ -57,29 +57,31 @@ export default function RecipeModal({ meal, diet, people, initialRecipe, onCache
   const [savedLib, setSavedLib] = useState(false);
   const isFrozen = diet === "frozen";
 
-  const saveToLibrary = async () => {
-    if (!recipe) return;
+  const persistRecipe = async (rec, { showError = false } = {}) => {
+    if (!rec) return;
     setSavingLib(true);
     try {
       await base44.entities.Recipe.create({
-        title: recipe.title || meal.name,
+        title: rec.title || meal.name,
         mealType: meal.mealType || "dinner",
         diet: diet || "custom",
-        servings: recipe.servings || people || 1,
-        prepTime: recipe.prep_time || 0,
-        cookTime: recipe.cook_time || 0,
-        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
-        steps: Array.isArray(recipe.steps) ? recipe.steps : [],
+        servings: rec.servings || people || 1,
+        prepTime: rec.prep_time || 0,
+        cookTime: rec.cook_time || 0,
+        ingredients: Array.isArray(rec.ingredients) ? rec.ingredients : [],
+        steps: Array.isArray(rec.steps) ? rec.steps : [],
         source: "from_plan",
       });
       setSavedLib(true);
       toast.success(tr("saved"));
     } catch (e) {
-      toast.error(tr("saveFailed"));
+      if (showError) toast.error(tr("saveFailed"));
     } finally {
       setSavingLib(false);
     }
   };
+
+  const saveToLibrary = () => persistRecipe(recipe, { showError: true });
 
   const ingredientList = Array.isArray(meal.ingredients)
     ? meal.ingredients.map((i) => `${i.name}${i.quantity ? ` (${i.quantity})` : ""}`).join(", ")
@@ -115,6 +117,7 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
       if (!reported.current) {
         reported.current = true;
         onCache({ mealName: meal.name, recipe: result });
+        persistRecipe(result);
       }
     } catch (e) {
       setLoading(false);
