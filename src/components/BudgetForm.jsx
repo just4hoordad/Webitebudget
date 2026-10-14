@@ -228,9 +228,11 @@ export default function BudgetForm() {
       params.set("allergies", allergies.join(","));
     }
     if (effEnabled.stores) {
-      const storesParam = selectedStoreLocations.length > 0
-        ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
-        : selectedStores.map(id => [...GROCERY_STORES, ...DRUGSTORES].find(s => s.id === id)?.name || id).join(",");
+      const storesParam = easyMode
+        ? selectedStores.map(id => [...GROCERY_STORES, ...DRUGSTORES].find(s => s.id === id)?.name || id).join(",")
+        : selectedStoreLocations.length > 0
+          ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
+          : selectedStores.map(id => [...GROCERY_STORES, ...DRUGSTORES].find(s => s.id === id)?.name || id).join(",");
       params.set("stores", storesParam);
       params.set("plz", postalCode);
       params.set("bio", bio);
