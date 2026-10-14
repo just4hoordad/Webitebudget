@@ -173,7 +173,7 @@ Rules:
 ${spendModeRule(p)}
  5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the realistic price for the SAME product (or its closest mid-range equivalent, e.g. the REWE Best Bucks / Edeka Eigenmarke version of the same product) at a mid-range German supermarket (REWE or Edeka) for the SAME quantity. This is a genuine price comparison against the budget store, NOT the same store's price. As a realistic guideline, mid-range supermarkets in Germany are typically 10–20% more expensive than hard-discounters (Aldi/Lidl) on the same or equivalent products — so normal_price should usually be HIGHER than price (typically by 10–20% for discounters, closer to 0% for mid-range chains like REWE/Edeka themselves), and should never be lower than price. Many branded goods (e.g. branded chocolate, Coca-Cola, Nutella) cost nearly the same everywhere — for those, normal_price should be at most a few cents above price. Compute each normal_price independently from a realistic mid-range price; do NOT copy the price field. The savings shown to the user is the sum of (normal_price − price), so accurate, honestly-higher normal_prices are essential.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g"), total_kcal to the total kilocalories of the full purchased quantity, and protein_g/carb_g/fat_g to the total grams of each macronutrient in that same full quantity. The sum of all total_kcal should be close to ${Math.round(calories * days)} kcal — enough food for ${days} days, not more.
+7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g"), total_kcal to the total kilocalories of the full purchased quantity, and protein_g/carb_g/fat_g to the total grams of each macronutrient in that same full quantity.\nCALORIE MATHEMATICS (MANDATORY): The sum of every item's total_kcal MUST be between ${Math.round(calories * days * 0.95)} and ${Math.round(calories * days * 1.08)} kcal. Before returning, VERIFY: add up every item's total_kcal and check the sum. If the sum is below ${Math.round(calories * days * 0.95)} kcal, increase the pack count (N) of main staples — grains, bread, pasta, rice, oats, dairy, oils — until the total reaches this range. A list that provides less than ${Math.round(calories * days * 0.95)} kcal for ${days} days at ${calories} kcal/day is STARVATION and will be rejected.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
 ${bio ? `10. BIO / ORGANIC MODE IS ON: ALL items MUST be certified organic or bio products (e.g. "Alnatura", "Bioland", "demeter", "Bio" label). Prefer organic ranges available at the listed stores. Product names must include the bio/organic brand or label (e.g. "Alnatura Vollmilch 3,5% 1L", "Bio Bio Haferflocken 500g"). Do not include any conventional non-organic products.` : ""}
@@ -309,9 +309,9 @@ function validateGroceries(result, p, includeSpending = true) {
   const target = Number(p.calories) * p.days;
   if (target && withKcal.length >= items.length / 2) {
     const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
-    if (kcal < target * 0.8) {
-      issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Swap low-calorie filler for cheap calorie-dense staples (oats, rice, pasta, bread, legumes, oil) while staying within budget.`);
-    } else if (kcal > target * 1.3) {
+    if (kcal < target * 0.9) {
+      issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Scale up quantities of main staples (oats, rice, pasta, bread, legumes, oil, meat, dairy) so the total reaches at least ${Math.round(target * 0.95)} kcal while staying within budget.`);
+    } else if (kcal > target * 1.15) {
       issues.push(`The list contains ~${Math.round(kcal)} kcal, ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed — far too much food. Reduce quantities so the total is close to ${target} kcal, keeping the variety of products.`);
     }
   }
@@ -463,7 +463,7 @@ function hasHardIssues(result, p) {
   const target = Number(p.calories) * p.days;
   if (target && withKcal.length >= items.length / 2) {
     const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
-    if (kcal < target * 0.7) return true;
+    if (kcal < target * 0.85) return true;
   }
   const itemSum = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
   const reportedTotal = Number(result?.total_estimated_cost);
@@ -545,7 +545,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   for (let hardAttempt = 0; hardAttempt < 2 && hasHardIssues(result, p); hardAttempt++) {
     const prevList = JSON.stringify(result);
     const hardIssues = validateGroceries(result, p).filter((m) => m.includes("kcal") || m.includes("total_estimated_cost"));
-    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. Scale up the quantities of every item so the total calories across all items reach at least ${Math.round(Number(p.calories) * p.days * 0.9)} kcal for ${p.days} days at ${p.calories} kcal/day. Set total_estimated_cost to EXACTLY the sum of all item prices. Do not reduce variety. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
+    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. You MUST fix both:\n1. CALORIES: The total calories across ALL items must reach at least ${Math.round(Number(p.calories) * p.days * 0.98)} kcal for ${p.days} days at ${p.calories} kcal/day. Increase the pack count (the N in "N × pack size") of EVERY main staple — grains, bread, pasta, rice, oats, dairy, meat, oils — until the sum of total_kcal is at least ${Math.round(Number(p.calories) * p.days * 0.98)}. Do NOT just add one item; scale them all up proportionally.\n2. TOTAL COST: Set total_estimated_cost to EXACTLY the sum of all item prices (price = unit_price × N for each item, then sum all prices). Do not report a higher number.\nDo not reduce variety. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
     savePriceObservations(rawHard, p.postalCode, p.diet);
     const hardResult = prepare(rawHard);
     // Only accept the hard retry if it's actually better and doesn't bust budget.
@@ -562,7 +562,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     const target = Number(p.calories) * p.days;
     if (target && withKcal.length >= allItems.length / 2) {
       const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
-      if (kcal < target * 0.6) {
+      if (kcal < target * 0.7) {
         throw new Error(`The generated list only covers ${Math.round((kcal / target) * 100)}% of the needed calories. Please try again.`);
       }
     }
@@ -590,7 +590,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
-  if (listKcal(result) < Number(p.calories) * p.days * 0.95) {
+  if (listKcal(result) < Number(p.calories) * p.days * 0.98) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
   }
   // Final guarantee: no items from unselected stores survive to the user.
