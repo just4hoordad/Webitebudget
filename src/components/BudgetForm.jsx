@@ -9,15 +9,13 @@ import SpendModeSelector from "@/components/SpendModeSelector";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ArrowRight, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Package, TrendingDown } from "lucide-react";
+import { ArrowRight, Tag, X, Search, Wallet, MapPin, Package, TrendingDown, Leaf } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 import { getStoreDiscount } from "@/lib/storeDiscounts";
 import StoreSpeedHint from "@/components/StoreSpeedHint";
 import PantryManager from "@/components/PantryManager";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCalculator";
-import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
 import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 
@@ -42,51 +40,27 @@ const DRUGSTORES = [
 ];
 
 const DIET_KEYS = [
-  { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc" },
+  { id: "balanced", nameKey: "balanced", icon: null, descKey: "balancedDesc" },
   { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, descKey: "vegetarianDesc" },
   { id: "vegan", nameKey: "vegan", icon: Leaf, descKey: "veganDesc" },
-  { id: "high-protein", nameKey: "highProtein", icon: Beef, descKey: "highProteinDesc" },
-  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, descKey: "pescatarianDesc" },
-  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, descKey: "glutenFreeDesc" },
+  { id: "high-protein", nameKey: "highProtein", icon: null, descKey: "highProteinDesc" },
+  { id: "pescatarian", nameKey: "pescatarian", icon: null, descKey: "pescatarianDesc" },
+  { id: "gluten-free", nameKey: "glutenFree", icon: null, descKey: "glutenFreeDesc" },
   { id: "halal", nameKey: "halal", icon: null, descKey: "halalDesc" },
-  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, descKey: "frozenFoodsDesc" },
+  { id: "frozen", nameKey: "frozenFoods", icon: null, descKey: "frozenFoodsDesc" },
 ];
 
-function SectionHeader({ icon: Icon, label, summary }) {
-  return (
-    <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="h-[18px] w-[18px] text-primary" />
-      </div>
-      <div className="flex-1 min-w-0 text-left">
-        <p className="font-heading font-semibold text-sm text-foreground leading-tight">{label}</p>
-        {summary && <p className="text-xs text-muted-foreground truncate mt-0.5 group-data-[state=open]:hidden">{summary}</p>}
-      </div>
-    </div>
-  );
-}
-
-function SectionToggle({ active, onToggle, label }) {
-  return (
-    <div className="shrink-0">
-      <Switch
-        checked={active}
-        onCheckedChange={onToggle}
-        aria-label={`Toggle ${label}`}
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>
-  );
-}
+const HERO_IMG = "https://media.base44.com/images/public/69d66c6fdbba74a7439efa90/5f006f036_generated_399beae0.jpg";
 
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { isPro, openPricing } = useMonetization();
+  const L = (k, fb) => { const v = t(k); return v === k ? fb : v; };
   const maxDays = isPro ? 30 : 7;
   const [budget, setBudget] = useState([0]);
   const [selectedStores, setSelectedStores] = useState([]);
-  const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
+  const [selectedStoreLocations, setSelectedStoreLocations] = useState([]);
   const [selectedDiet, setSelectedDiet] = useState("balanced");
   const [calorieMetrics, setCalorieMetrics] = useState({
     height: "",
@@ -100,7 +74,7 @@ export default function BudgetForm() {
   const [days, setDays] = useState(1);
   const [saleHunt, setSaleHunt] = useState(false);
   const [bio, setBio] = useState(false);
-  const [spendMode, setSpendMode] = useState("balanced"); // "balanced" | "save" | "maximize"
+  const [spendMode, setSpendMode] = useState("balanced");
   const [junkPercent, setJunkPercent] = useState([0]);
   const [macros, setMacros] = useState({ protein: 30, carbs: 40, fats: 30 });
   const [proteinSnackBudget, setProteinSnackBudget] = useState(0);
@@ -259,415 +233,416 @@ export default function BudgetForm() {
     onOpen: (key) => setVisited((previous) => ({ ...previous, [key]: true })),
   });
 
+  const stepDone = {
+    basics: budget[0] > 0,
+    diet: !enabled.diet || metricsFilled,
+    stores: !enabled.stores || storeCount > 0,
+    pantry: visited.pantry,
+  };
+  const stepLabels = [
+    { key: "basics", label: t("basicsSection") || "Basics" },
+    { key: "diet", label: t("dietSection") || "Diet" },
+    { key: "stores", label: t("storesSection") || "Stores" },
+    { key: "pantry", label: t("pantrySection") || "Pantry" },
+  ];
+
   return (
-    <div ref={formRef} className="space-y-5">
-      <StepProgress
-        steps={[
-          { key: "basics", label: t("basicsSection") || "Basics", required: true, done: budget[0] > 0 },
-          { key: "diet", label: t("dietSection") || "Diet", required: enabled.diet, done: !enabled.diet || metricsFilled },
-          { key: "stores", label: t("storesSection") || "Stores", required: enabled.stores, done: !enabled.stores || storeCount > 0 },
-          { key: "pantry", label: t("pantrySection") || "Pantry", done: visited.pantry },
-        ]}
-        activeStep={openSection}
-        onStepClick={selectSection}
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Left column - Plan Your Meals */}
-        <div className="space-y-3">
-          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
-          <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
-        {/* ── Basics ── */}
-        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
-          <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
-              <SectionHeader
-                icon={Wallet}
-                label={t("basicsSection") || "Basics"}
-                summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${t("headcountLabel") || "People"} ${people}${saleHunt ? " · 🏷️" : ""}`}
-              />
-            </AccordionTrigger>
+    <div ref={formRef}>
+      {/* Hero */}
+      <div className="relative min-h-[260px] flex flex-col gap-3 p-7 overflow-hidden rounded-2xl border border-border">
+        <img src={HERO_IMG} alt="Fresh ingredients on sage linen" className="absolute inset-0 w-full h-full object-cover z-0" />
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/35 to-foreground/82 z-[1]" />
+        <div className="relative z-[2] flex flex-col gap-3 mt-auto">
+          <h1 className="text-[34px] leading-[1.05] text-white font-heading font-bold tracking-tight animate-rise">{L("budgetBuilderTitle", "Budget Builder")}</h1>
+          <h2 className="text-[15px] leading-[1.3] text-white/90 font-medium animate-rise" style={{ animationDelay: "0.15s" }}>{L("planBuilderSubtitle", "Plan Builder")}</h2>
+          <div className="flex flex-wrap gap-1.5 animate-rise" style={{ animationDelay: "0.3s" }}>
+            {stepLabels.map((s) => (
+              <span key={s.key} className="text-xs leading-tight px-2.5 py-1.5 rounded-full bg-white/18 border border-white/35 text-white font-semibold">{s.label}</span>
+            ))}
           </div>
-          <AccordionContent>
-            <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
-              {/* Budget Slider */}
-              <div className="space-y-4">
-                <BudgetInput value={budget[0]} onChange={withStepInput("basics", (value) => setBudget([value]))} label={t("monthlyBudget")} />
-                <Slider
-                  value={[budget[0]]}
-                  onValueChange={withStepInput("basics", setBudget)}
-                  max={2400}
-                  min={0}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>€10</span>
-                  <span>{t("avgStudent")}</span>
-                  <span>€2400</span>
-                </div>
-              </div>
+        </div>
+      </div>
 
-              {/* Spending mode */}
-              <SpendModeSelector value={spendMode} onChange={setSpendMode} />
+      {/* Steps */}
+      <div className="px-4 pt-5 pb-6 flex flex-col gap-3.5">
+        <h3 className="text-xl leading-tight font-bold text-primary px-1">{t("planYourMeals")}</h3>
 
-              {/* Duration */}
-              <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} maxDays={maxDays} isPro={isPro} onUpgrade={openPricing} />
-
-              {/* People */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("numberOfPeople")}</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setPeople(n)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                        people === n
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card text-foreground border-border hover:border-primary/40"
-                      }`}
-                    >
-                      {n} {n === 1 ? t("person") : t("people")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sale Hunt — savings toggle that belongs with the budget */}
-              <div className="pt-2 mt-2 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setSaleHunt(!saleHunt)}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
-                    saleHunt
-                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
-                      : "bg-card border-border hover:border-primary/40"
-                  }`}
-                >
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    saleHunt ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                  }`}>
-                    <Tag className="h-5 w-5" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                      {t("saleHunt")}
-                      {saleHunt && <TrendingDown className="h-3.5 w-3.5 text-primary" />}
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-snug">{t("saleHuntDesc")}</p>
-                  </div>
-                  <Switch checked={saleHunt} onCheckedChange={setSaleHunt} aria-label={t("saleHunt")} onClick={(e) => e.stopPropagation()} />
-                </button>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-          </Accordion>
+        {/* Progress pills */}
+        <div className="flex gap-1.5">
+          {stepLabels.map((s) => {
+            const done = stepDone[s.key];
+            const active = openSection === s.key;
+    return (
+      <button
+        key={s.key}
+        type="button"
+        onClick={() => selectSection(s.key)}
+        className={`flex-1 text-center text-[11px] font-semibold leading-tight py-1.5 px-0.5 rounded-full transition-colors ${
+          done
+            ? "bg-primary text-primary-foreground"
+            : active
+            ? "bg-card border border-primary text-primary"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        {s.label}
+      </button>
+    );
+          })}
         </div>
 
-        {/* Right column - Configure Preferences */}
-        <div className="space-y-3">
-          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
-          <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
-        {/* ── Diet & Nutrition ── */}
-        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
-          <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
-              <SectionHeader
-                icon={Leaf}
-                label={t("dietSection") || "Diet"}
-                summary={`${dietLabel} · ${computeDailyCalories(calorieMetrics) || 0} kcal · P${macros.protein}/C${macros.carbs}/F${macros.fats}${bio ? " · Bio" : ""}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}`}
-              />
-            </AccordionTrigger>
+        {/* Step 1: Basics */}
+        <div id="step-basics" className="scroll-mt-24 bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm">
+          <div className="flex gap-3 items-center">
+            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">1</span>
+            <div>
+              <p className="text-[15px] leading-tight font-bold text-foreground">{t("basicsSection") || "Basics"}</p>
+              <p className="text-xs leading-tight text-muted-foreground mt-0.5">€{budget[0]} · {days} {t("days") || "days"} · {t("headcountLabel") || "People"} {people}{saleHunt ? " · 🏷️" : ""}</p>
+            </div>
           </div>
-          <AccordionContent>
-            <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
-              {/* Diet Type */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {DIET_KEYS.map((diet) => {
-                    const Icon = diet.icon;
-                    const isSelected = selectedDiet === diet.id;
-                    return (
-                      <button
-                        key={diet.id}
-                        onClick={() => setSelectedDiet(diet.id)}
-                        className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border min-w-0 overflow-hidden ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                            : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
-                        }`}
-                      >
-                        <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
-                          {diet.id === "halal" ? (
-                            <span className="text-xl font-bold leading-none">حلال</span>
-                          ) : Icon ? (
-                            <Icon className="h-6 w-6" />
-                          ) : null}
-                        </div>
-                        <span className={`font-heading font-semibold text-sm leading-tight break-words ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
-                          {t(diet.nameKey)}
-                        </span>
-                        <span className={`text-xs leading-tight break-words ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                           {t(diet.descKey)}
-                        </span>
-                      </button>
-                    );
-                  })}
+
+          <div className={`space-y-5 ${dimCls("basics")}`}>
+            {/* Budget */}
+            <div className="space-y-3">
+              <p className="text-[13px] font-semibold text-foreground">{t("monthlyBudget")}</p>
+              <BudgetInput value={budget[0]} onChange={withStepInput("basics", (value) => setBudget([value]))} label={t("monthlyBudget")} />
+              <Slider
+                value={[budget[0]]}
+                onValueChange={withStepInput("basics", setBudget)}
+                max={2400}
+                min={0}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>€10</span>
+                <span>{t("avgStudent")}</span>
+                <span>€2400</span>
+              </div>
+            </div>
+
+            {/* Spending mode */}
+            <SpendModeSelector value={spendMode} onChange={setSpendMode} />
+
+            {/* Duration */}
+            <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} maxDays={maxDays} isPro={isPro} onUpgrade={openPricing} />
+
+            {/* People */}
+            <div className="space-y-2">
+              <p className="text-[13px] font-semibold text-foreground">{t("numberOfPeople")}</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {[1, 2, 3, 4].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPeople(n)}
+                    className={`flex-1 min-w-[70px] py-2 px-1.5 rounded-xl text-[13px] font-semibold border transition-colors ${
+                      people === n
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-foreground border-border hover:border-primary"
+                    }`}
+                  >
+                    {n} {n === 1 ? t("person") : t("people")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sale Hunt */}
+            <button
+              type="button"
+              onClick={() => setSaleHunt(!saleHunt)}
+              className={`w-full flex gap-2.5 items-center p-3 rounded-xl border transition-colors text-left ${
+                saleHunt
+                  ? "bg-primary/10 border-primary"
+                  : "bg-muted/40 border-border hover:border-primary"
+              }`}
+            >
+              <span className={`w-8.5 h-8.5 rounded-[10px] flex items-center justify-center shrink-0 ${saleHunt ? "bg-primary text-primary-foreground" : "bg-muted text-primary"}`} style={{ width: "34px", height: "34px" }}>
+                <Tag className="h-[18px] w-[18px]" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold leading-tight text-foreground flex items-center gap-1.5">
+                  {t("saleHunt")}
+                  {saleHunt && <TrendingDown className="h-3.5 w-3.5 text-primary" />}
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-tight">{t("saleHuntDesc")}</p>
+              </div>
+              <Switch checked={saleHunt} onCheckedChange={setSaleHunt} aria-label={t("saleHunt")} onClick={(e) => e.stopPropagation()} />
+            </button>
+          </div>
+        </div>
+
+        <h3 className="text-xl leading-tight font-bold text-primary px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
+
+        {/* Step 2: Diet */}
+        <div id="step-diet" className="scroll-mt-24 bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm">
+          <div className="flex gap-3 items-center">
+            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">2</span>
+            <div>
+              <p className="text-[15px] leading-tight font-bold text-foreground">{t("dietSection") || "Diet"}</p>
+              <p className="text-xs leading-tight text-muted-foreground mt-0.5">{dietLabel} · {computeDailyCalories(calorieMetrics) || 0} kcal · P{macros.protein}/C{macros.carbs}/F{macros.fats}{bio ? " · Bio" : ""}{allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}</p>
+            </div>
+          </div>
+
+          <div className={`space-y-5 ${dimCls("diet")}`}>
+            {/* Diet Type */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                {DIET_KEYS.map((diet) => {
+                  const Icon = diet.icon;
+                  const isSelected = selectedDiet === diet.id;
+                  return (
+                    <button
+                      key={diet.id}
+                      onClick={() => setSelectedDiet(diet.id)}
+                      className={`flex flex-col gap-[3px] p-2.5 rounded-xl text-left border transition-all min-h-[68px] ${
+                        isSelected
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "bg-card border-border text-foreground hover:border-primary hover:shadow-sm"
+                      }`}
+                    >
+                      {diet.id === "halal" ? (
+                        <span className="text-[17px] font-bold leading-none">حلال</span>
+                      ) : Icon ? (
+                        <Icon className={`h-5 w-5 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                      ) : null}
+                      <strong className={`text-[13px] leading-tight font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>{t(diet.nameKey)}</strong>
+                      <span className={`text-[11px] leading-tight ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{t(diet.descKey)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Bio / Organic */}
+              <button
+                type="button"
+                onClick={() => setBio(!bio)}
+                className={`w-full flex gap-2.5 items-center p-3 rounded-xl border transition-colors text-left ${
+                  bio
+                    ? "bg-primary/10 border-primary"
+                    : "bg-muted/40 border-border hover:border-primary"
+                }`}
+              >
+                <span className={`w-8.5 h-8.5 rounded-[10px] flex items-center justify-center shrink-0 ${bio ? "bg-primary text-primary-foreground" : "bg-muted text-primary"}`} style={{ width: "34px", height: "34px" }}>
+                  <Leaf className="h-[18px] w-[18px]" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-bold leading-tight text-foreground">{t("bioTitle")}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">{t("bioDesc")}</p>
                 </div>
+                <Switch checked={bio} onCheckedChange={setBio} aria-label={t("bioTitle")} onClick={(e) => e.stopPropagation()} />
+              </button>
+            </div>
 
-                {/* Bio / Organic — preference toggle that belongs with diet choices */}
-                <button
-                  type="button"
-                  onClick={() => setBio(!bio)}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
-                    bio
-                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
-                      : "bg-card border-border hover:border-primary/40"
-                  }`}
-                >
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    bio ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                  }`}>
-                    <Leaf className="h-5 w-5" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{t("bioTitle")}</p>
-                    <p className="text-xs text-muted-foreground leading-snug">{t("bioDesc")}</p>
-                  </div>
-                  <Switch checked={bio} onCheckedChange={setBio} aria-label={t("bioTitle")} onClick={(e) => e.stopPropagation()} />
-                </button>
-              </div>
+            {/* Calorie Goal */}
+            <div className="space-y-2">
+              <p className="text-[13px] font-semibold text-foreground">{t("calorieGoal")}</p>
+              <CalorieCalculator value={calorieMetrics} onChange={withStepInput("diet", setCalorieMetrics)} />
+            </div>
 
-              {/* Calorie Goal — computed from body metrics */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("calorieGoal")}</label>
-                <CalorieCalculator value={calorieMetrics} onChange={withStepInput("diet", setCalorieMetrics)} />
-              </div>
+            {/* Macronutrient Ratios */}
+            <MacroRatioControl value={macros} onChange={setMacros} />
 
-              {/* Macronutrient Ratios */}
-              <MacroRatioControl value={macros} onChange={setMacros} />
-
-              {/* Allergies */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">{t("allergiesTitle")}</label>
-                <p className="text-xs text-muted-foreground">{t("allergiesDesc")}</p>
-                <div className="flex flex-wrap gap-1.5 mb-2">
+            {/* Allergies */}
+            <div className="space-y-2">
+              <p className="text-[13px] font-semibold text-foreground">{t("allergiesTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("allergiesDesc")}</p>
+              {allergies.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
                   {allergies.map(tag => (
-                    <span key={tag} className="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <span key={tag} className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
                       {tag}
                       <button onClick={() => removeTag(tag, allergies, setAllergies)}><X className="h-3 w-3" /></button>
                     </span>
                   ))}
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder={t("allergiesPlaceholder")}
-                    value={allergyInput}
-                    onChange={e => setAllergyInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
-                  />
-                  <button
-                    onClick={() => addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-                  >{t("add")}</button>
-                </div>
-              </div>
-
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ── Stores ── */}
-        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
-          <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
-              <SectionHeader
-                icon={MapPin}
-                label={t("storesSection") || "Stores"}
-                summary={storeNamesSummary || t("noStoresSelected")}
-              />
-            </AccordionTrigger>
-          </div>
-          <AccordionContent>
-            <div className={`space-y-3 pt-1 ${dimCls("stores")}`}>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
-                <StoreMapPicker
-                  selectedStoreLocations={selectedStoreLocations}
-                  onChangeStoreLocations={setSelectedStoreLocations}
-                  selectedChains={selectedStores}
-                  onToggleChain={toggleStore}
-                  cityCoords={cityCoords}
-                  onCityCoordsUsed={() => setCityCoords(null)}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
-              <StoreSpeedHint />
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ) or city"}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={locationInput}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setLocationInput(val);
-                      if (/^\d{5}$/.test(val)) setPostalCode(val);
-                    }}
-                    onKeyDown={(e) => e.key === "Enter" && handleLocationSubmit()}
-                    placeholder={t("plzPlaceholder") || "e.g. 10115 or Berlin"}
-                    className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  />
-                  <button
-                    onClick={handleLocationSubmit}
-                    className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
-                  >
-                    <Search className="h-4 w-4" />
-                    {t("search")}
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
-              </div>
-              {selectedStoreLocations.length > 0 ? (
-                <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-primary mb-2">📍 {t("pinnedStores")}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedStoreLocations.map((s) => (
-                      <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">
-                        {s.name}
-                        {s.address && <span className="opacity-70 text-xs">· {s.address}</span>}
-                      </span>
-                    ))}
-                  </div>
-                  <button onClick={() => setSelectedStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
-                    {t("clearPinnedStores")}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                     {GROCERY_STORES.map((store) => {
-                      const discount = getStoreDiscount(store.id, selectedDiet, macros);
-                      const isSelected = selectedStores.includes(store.id);
-                      return (
-                        <button
-                          key={store.id}
-                          onClick={() => toggleStore(store.id)}
-                          className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
-                            isSelected
-                              ? store.color + " border-current shadow-sm"
-                              : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                          }`}
-                        >
-                          <span>{store.name}</span>
-                          {discount > 0 && (
-                            <span
-                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
-                                isSelected
-                                  ? "bg-current/15 text-current"
-                                  : "bg-primary/10 text-primary border border-primary/30"
-                              }`}
-                              title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
-                            >
-                              <Tag className="h-2.5 w-2.5" /> -{discount}%
-                            </span>
-                          )}
-                        </button>
-                      );
-                     })}
-                   </div>
-                   <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
-                   <div className="flex flex-wrap gap-2">
-                     {DRUGSTORES.map((store) => {
-                       const discount = getStoreDiscount(store.id, selectedDiet, macros);
-                       const isSelected = selectedStores.includes(store.id);
-                       return (
-                         <button
-                           key={store.id}
-                           onClick={() => toggleStore(store.id)}
-                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
-                             isSelected
-                               ? store.color + " border-current shadow-sm"
-                               : "bg-card text-muted-foreground border-border hover:border-primary/40"
-                           }`}
-                         >
-                           <span>{store.name}</span>
-                           {discount > 0 && (
-                             <span
-                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
-                                 isSelected
-                                   ? "bg-current/15 text-current"
-                                   : "bg-primary/10 text-primary border border-primary/30"
-                               }`}
-                               title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
-                             >
-                               <Tag className="h-2.5 w-2.5" /> -{discount}%
-                             </span>
-                           )}
-                         </button>
-                       );
-                     })}
-                   </div>
-                   <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
-                     <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
-                     <span>
-                       {t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) on a typical basket — actual savings depend on the specific items in your generated list"}
-                     </span>
-                   </p>
-                </div>
               )}
-
-
+              <div className="flex gap-1.5">
+                <input
+                  className="flex-1 min-w-0 border border-border rounded-xl px-3 py-2 text-[13px] bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  placeholder={t("allergiesPlaceholder")}
+                  value={allergyInput}
+                  onChange={e => setAllergyInput(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
+                />
+                <button
+                  onClick={() => addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[13px] font-bold hover:bg-primary/90 transition-colors"
+                >{t("add")}</button>
+              </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ── Pantry ── */}
-        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
-          <div className="flex items-center gap-2 py-4">
-            <AccordionTrigger className="group flex-1 hover:no-underline py-0">
-              <SectionHeader
-                icon={Package}
-                label={t("pantrySection") || "Pantry"}
-                summary={pantryItems.length > 0 ? `${pantryItems.length} ${t("items") || "items"}` : (t("pantryEmptySummary") || "Add staples you already have")}
-              />
-            </AccordionTrigger>
-            <SectionToggle active={enabled.pantry} onToggle={() => toggleSection("pantry")} label={t("pantrySection") || "Pantry"} />
           </div>
-          <AccordionContent>
-            <div className={`pt-1 ${dimCls("pantry")}`}>
-              <PantryManager onPantryChange={setPantryItems} />
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-          </Accordion>
         </div>
-      </div>
 
-      {/* Generate Button */}
-      <div ref={generateRef} className="space-y-2">
-        {!canGenerate && (
-          <p className="text-xs text-destructive text-center font-medium">
-            {!(budget[0] > 0)
-              ? "Please enter your monthly budget"
-              : enabled.diet && !metricsFilled
-              ? "Please enter your height, weight and age in the Diet section"
-              : "Please select at least one store"}
-          </p>
-        )}
-        <Button
-          onClick={handleGenerate}
-          disabled={!canGenerate}
-          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-          size="lg"
-        >
-          {t("generateBtn")}
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        {/* Step 3: Stores */}
+        <div id="step-stores" className="scroll-mt-24 bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm">
+          <div className="flex gap-3 items-center">
+            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">3</span>
+            <div>
+              <p className="text-[15px] leading-tight font-bold text-foreground">{t("storesSection") || "Stores"}</p>
+              <p className="text-xs leading-tight text-muted-foreground mt-0.5">{storeNamesSummary || t("noStoresSelected")}</p>
+            </div>
+          </div>
+
+          <div className={`space-y-3 ${dimCls("stores")}`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[13px] font-semibold text-foreground">{t("preferredStores")}</p>
+              <StoreMapPicker
+                selectedStoreLocations={selectedStoreLocations}
+                onChangeStoreLocations={setSelectedStoreLocations}
+                selectedChains={selectedStores}
+                onToggleChain={toggleStore}
+                cityCoords={cityCoords}
+                onCityCoordsUsed={() => setCityCoords(null)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
+            <StoreSpeedHint />
+            <div className="space-y-2">
+              <p className="text-[13px] font-semibold text-foreground flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ) or city"}
+              </p>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLocationInput(val);
+                    if (/^\d{5}$/.test(val)) setPostalCode(val);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleLocationSubmit()}
+                  placeholder={t("plzPlaceholder") || "e.g. 10115 or Berlin"}
+                  className="flex-1 min-w-0 border border-border rounded-xl px-3 py-2.5 text-[13px] bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <button
+                  onClick={handleLocationSubmit}
+                  className="flex shrink-0 items-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-bold hover:bg-primary/90 transition-colors"
+                >
+                  <Search className="h-4 w-4" />
+                  {t("search")}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
+            </div>
+            {selectedStoreLocations.length > 0 ? (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+                <p className="text-xs font-semibold text-primary mb-2">📍 {t("pinnedStores")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedStoreLocations.map((s) => (
+                    <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">
+                      {s.name}
+                      {s.address && <span className="opacity-70 text-xs">· {s.address}</span>}
+                    </span>
+                  ))}
+                </div>
+                <button onClick={() => setSelectedStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
+                  {t("clearPinnedStores")}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {GROCERY_STORES.map((store) => {
+                    const discount = getStoreDiscount(store.id, selectedDiet, macros);
+                    const isSelected = selectedStores.includes(store.id);
+                    return (
+                      <button
+                        key={store.id}
+                        onClick={() => toggleStore(store.id)}
+                        className={`px-3.5 py-2 rounded-xl text-[13px] font-semibold border transition-colors inline-flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card text-foreground border-border hover:border-primary"
+                        }`}
+                      >
+                        <span>{store.name}</span>
+                        {discount > 0 && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                            isSelected ? "bg-primary-foreground/15 text-primary-foreground" : "bg-primary/10 text-primary border border-primary/30"
+                          }`}>
+                            <Tag className="h-2.5 w-2.5" /> -{discount}%
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {DRUGSTORES.map((store) => {
+                    const discount = getStoreDiscount(store.id, selectedDiet, macros);
+                    const isSelected = selectedStores.includes(store.id);
+                    return (
+                      <button
+                        key={store.id}
+                        onClick={() => toggleStore(store.id)}
+                        className={`px-3.5 py-2 rounded-xl text-[13px] font-semibold border transition-colors inline-flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card text-foreground border-border hover:border-primary"
+                        }`}
+                      >
+                        <span>{store.name}</span>
+                        {discount > 0 && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                            isSelected ? "bg-primary-foreground/15 text-primary-foreground" : "bg-primary/10 text-primary border border-primary/30"
+                          }`}>
+                            <Tag className="h-2.5 w-2.5" /> -{discount}%
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
+                  <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>{t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) on a typical basket"}</span>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Step 4: Pantry */}
+        <div id="step-pantry" className="scroll-mt-24 bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm">
+          <div className="flex gap-3 items-center">
+            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0">4</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] leading-tight font-bold text-foreground">{t("pantrySection") || "Pantry"}</p>
+              <p className="text-xs leading-tight text-muted-foreground mt-0.5">{pantryItems.length > 0 ? `${pantryItems.length} ${t("items") || "items"}` : (t("pantryEmptySummary") || "Add staples you already have")}</p>
+            </div>
+            <Switch checked={enabled.pantry} onCheckedChange={() => toggleSection("pantry")} aria-label={t("pantrySection") || "Pantry"} />
+          </div>
+          <div className={dimCls("pantry")}>
+            <PantryManager onPantryChange={setPantryItems} />
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div ref={generateRef} className="space-y-2">
+          {!canGenerate && (
+            <p className="text-xs text-destructive text-center font-medium">
+              {!(budget[0] > 0)
+                ? "Please enter your monthly budget"
+                : enabled.diet && !metricsFilled
+                ? "Please enter your height, weight and age in the Diet section"
+                : "Please select at least one store"}
+            </p>
+          )}
+          <button
+            onClick={handleGenerate}
+            disabled={!canGenerate}
+            className={`w-full py-3.5 rounded-xl text-[15px] font-bold flex justify-center gap-2 items-center transition-colors ${
+              canGenerate
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 animate-drift"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+            }`}
+          >
+            {L("continueToPlan", "Continue to Plan")}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Sticky generate bar — mobile only, shown while the inline button is off-screen */}
@@ -675,7 +650,7 @@ export default function BudgetForm() {
         visible={showStickyGenerate}
         onClick={handleGenerate}
         disabled={!canGenerate}
-        label={t("generateBtn")}
+        label={L("continueToPlan", "Continue to Plan")}
       />
     </div>
   );

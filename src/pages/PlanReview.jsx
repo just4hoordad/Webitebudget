@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, Check, Sparkles, Utensils } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, CalendarDays, Check } from "lucide-react";
 import { REASSURANCE_STR } from "@/components/ReassuranceRecap";
 import MacroBreakdown from "@/components/MacroBreakdown";
 
@@ -45,32 +44,24 @@ export default function PlanReview() {
 
   const L = (k, fb) => { const v = t(k); return v === k ? fb : v; };
 
-  const headline = [
-    { icon: Wallet, value: `€${budget.toFixed(0)}`, label: L("yourBudget", "Budget") },
-    { icon: Flame, value: `${calories} kcal`, label: L("calorieGoal", "Calories") },
-    { icon: Users, value: `${people} ${t("personS")}`, label: L("numberOfPeople", "People") },
-    { icon: Target, value: goalLabel, label: L("goal", "Goal") },
+  const summaryTop = [
+    { label: L("yourBudget", "Budget"), value: `€${budget.toFixed(0)}` },
+    { label: L("calorieGoal", "Calories"), value: `${calories} kcal` },
+    { label: L("numberOfPeople", "People"), value: `${people} ${t("personS")}` },
+    { label: L("goal", "Goal"), value: goalLabel },
   ];
 
-  const details = [
+  const summaryBottom = [
     { label: L("diet", "Diet"), value: dietLabel },
     { label: L("stores", "Stores"), value: stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(", ") },
     { label: L("days", "Days"), value: String(days) },
-    { label: L("goal", "Goal"), value: goalLabel },
+    { label: L("spendModeTitle", "Spending mode"), value: L(`spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}`, spendMode) },
   ];
-  if (proteinSnackBudget > 0) details.push({ label: L("proteinSnackBudgetTitle", "Protein snack budget"), value: `€${proteinSnackBudget}` });
-  if (spendMode) details.push({ label: L("spendModeTitle", "Spending mode"), value: L(`spendMode${spendMode.charAt(0).toUpperCase() + spendMode.slice(1)}`, spendMode) });
-  if (bio) details.push({ label: L("bio", "Organic"), value: L("yes", "Yes") });
-  if (saleHunt) details.push({ label: L("saleHunt", "Sale hunt"), value: L("yes", "Yes") });
-  if (junkPercent > 0) details.push({ label: L("junkFood", "Junk allowance"), value: `${junkPercent}%` });
-  if (allergies.length > 0) details.push({ label: L("allergies", "Allergies"), value: allergies.join(", ") });
-  if (ownedItems.length > 0) details.push({ label: L("owned", "Already owned"), value: ownedItems.join(", ") });
-  if (params.get("height")) details.push({ label: L("height", "Height"), value: `${params.get("height")} cm` });
-  if (params.get("weight")) details.push({ label: L("weight", "Weight"), value: `${params.get("weight")} kg` });
-  if (params.get("age")) details.push({ label: L("age", "Age"), value: params.get("age") });
-  if (params.get("sex")) details.push({ label: L("sex", "Sex"), value: L(params.get("sex"), params.get("sex")) });
-  if (params.get("activity")) details.push({ label: L("activityLevel", "Activity level"), value: L(params.get("activity"), params.get("activity")) });
-  if (postalCode) details.push({ label: L("plzLabel", "Postal code"), value: postalCode });
+  if (bio) summaryBottom.push({ label: L("bio", "Organic"), value: L("yes", "Yes") });
+  if (saleHunt) summaryBottom.push({ label: L("saleHunt", "Sale hunt"), value: L("yes", "Yes") });
+  if (allergies.length > 0) summaryBottom.push({ label: L("allergies", "Allergies"), value: allergies.join(", ") });
+  if (ownedItems.length > 0) summaryBottom.push({ label: L("owned", "Already owned"), value: ownedItems.join(", ") });
+  if (postalCode) summaryBottom.push({ label: L("plzLabel", "Postal code"), value: postalCode });
 
   const confirm = () => {
     const u = new URLSearchParams(window.location.search);
@@ -86,49 +77,58 @@ export default function PlanReview() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-5">
+    <div className="max-w-xl mx-auto">
+      {/* Back */}
       <button
         onClick={() => navigate("/budget")}
-        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors -ml-1"
+        className="flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:opacity-80 transition-opacity mb-3"
       >
-        <ArrowLeft className="h-4 w-4" /> {t("reviewBack") || "Back to edit"}
+        <ArrowLeft className="h-4 w-4" /> {t("reviewBack") || "Back"}
       </button>
 
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">{t("reviewTitle") || "Confirm your plan"}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}</p>
+      {/* Suggested / Custom tabs */}
+      <div className="flex bg-muted rounded-xl p-1 gap-1 mb-3">
+        <button
+          onClick={() => setPlanMode("suggested")}
+          className={`flex-1 py-2.5 rounded-lg text-[13px] font-bold transition-colors ${
+            planMode === "suggested"
+              ? "bg-card text-primary shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {L("suggestedPlan", "Suggested")}
+        </button>
+        <button
+          onClick={() => setPlanMode("custom")}
+          className={`flex-1 py-2.5 rounded-lg text-[13px] font-bold transition-colors ${
+            planMode === "custom"
+              ? "bg-card text-primary shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {L("customPlan", "Custom")}
+        </button>
       </div>
 
-      {/* Headline params — 2x2 grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {headline.map((c, i) => {
-          const Icon = c.icon;
-          return (
-            <div key={i} className="flex items-center gap-3 bg-muted/40 rounded-2xl px-4 py-3.5">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-heading font-semibold text-foreground text-base sm:text-lg leading-tight truncate">{c.value}</p>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{c.label}</p>
-              </div>
+      {/* Summary card 1 */}
+      <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm mb-3">
+        <div className="grid grid-cols-2 gap-2">
+          {summaryTop.map((kv, i) => (
+            <div key={i} className="p-2.5 rounded-xl bg-muted/40 border border-border flex flex-col gap-[3px]">
+              <small className="text-[11px] text-muted-foreground leading-tight">{kv.label}</small>
+              <b className="text-[15px] leading-tight text-foreground">{kv.value}</b>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      {/* Everything you selected */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="bg-secondary px-4 py-2.5">
-          <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
-            {t("reviewYourSelections") || "Your selections"}
-          </h3>
-        </div>
-        <div className="divide-y divide-border">
-          {details.map((d, i) => (
-            <div key={i} className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-sm text-muted-foreground">{d.label}</span>
-              <span className="text-sm font-medium text-foreground text-right">{d.value}</span>
+      {/* Summary card 2 */}
+      <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-sm mb-3">
+        <div className="grid grid-cols-2 gap-2">
+          {summaryBottom.map((kv, i) => (
+            <div key={i} className="p-2.5 rounded-xl bg-muted/40 border border-border flex flex-col gap-[3px]">
+              <small className="text-[11px] text-muted-foreground leading-tight">{kv.label}</small>
+              <b className="text-[15px] leading-tight text-foreground">{kv.value}</b>
             </div>
           ))}
         </div>
@@ -136,108 +136,60 @@ export default function PlanReview() {
 
       {macros && <MacroBreakdown macros={macros} dailyKcal={calories / Math.max(people, 1)} L={L} />}
 
-      <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-3">{recap.body}</p>
 
-      {/* Suggested vs Custom choice */}
-      <div className="pt-1">
-        <h2 className="font-heading text-xl font-bold text-foreground">{L("choosePlanType", "How do you want to plan?")}</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{L("choosePlanTypeDesc", "Pick a suggested plan or build your own from scratch.")}</p>
-
-        <div className="mt-4 space-y-3">
-          <button
-            onClick={() => setPlanMode("suggested")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-              planMode === "suggested"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
-            }`}
-          >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planMode === "suggested" ? "bg-primary/10" : "bg-muted"}`}>
-              <Sparkles className={`h-5 w-5 ${planMode === "suggested" ? "text-primary" : "text-muted-foreground"}`} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{L("suggestedPlan", "Suggested plan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{L("suggestedPlanDesc", "We generate a cost-effective meal plan and shopping list for you. Review, swap meals, and confirm.")}</p>
-            </div>
-            {planMode === "suggested" && <Check className="h-5 w-5 text-primary shrink-0" />}
-          </button>
-
-          <button
-            onClick={() => setPlanMode("custom")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-              planMode === "custom"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
-            }`}
-          >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planMode === "custom" ? "bg-primary/10" : "bg-muted"}`}>
-              <Utensils className={`h-5 w-5 ${planMode === "custom" ? "text-primary" : "text-muted-foreground"}`} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{L("customPlan", "Custom plan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{L("customPlanDesc", "Pick your own meals for each day, then we build the shopping list to match.")}</p>
-            </div>
-            {planMode === "custom" && <Check className="h-5 w-5 text-primary shrink-0" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Plan style selection — only for Suggested mode */}
+      {/* Plan style — only for Suggested */}
       {planMode === "suggested" && (
-      <div className="pt-1">
-        <h2 className="font-heading text-xl font-bold text-foreground">{t("weeklyPlanTitle")}</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{t("weeklyPlanSubtitle")}</p>
-
-        <div className="mt-4 space-y-3">
-          <button
-            onClick={() => setPlanStyle("repeat")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-              planStyle === "repeat"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
-            }`}
-          >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "repeat" ? "bg-amber-500/10" : "bg-muted"}`}>
-              <RefreshCw className={`h-5 w-5 ${planStyle === "repeat" ? "text-amber-500" : "text-muted-foreground"}`} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{t("repeatWeeklyPlan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("repeatWeeklyPlanDesc")}</p>
-            </div>
-            {planStyle === "repeat" && <Check className="h-5 w-5 text-primary shrink-0" />}
-          </button>
-
-          <button
-            onClick={() => setPlanStyle("unique")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-              planStyle === "unique"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
-            }`}
-          >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "unique" ? "bg-primary/10" : "bg-muted"}`}>
-              <CalendarDays className={`h-5 w-5 ${planStyle === "unique" ? "text-primary" : "text-muted-foreground"}`} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{t("uniqueMonthlyPlan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("uniqueMonthlyPlanDesc")}</p>
-            </div>
-            {planStyle === "unique" && <Check className="h-5 w-5 text-primary shrink-0" />}
-          </button>
+        <div className="mb-3">
+          <h3 className="text-xl leading-tight font-bold text-primary px-1 mb-2">{t("weeklyPlanTitle")}</h3>
+          <p className="text-sm text-muted-foreground px-1 mb-3">{t("weeklyPlanSubtitle")}</p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => setPlanStyle("repeat")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
+                planStyle === "repeat"
+                  ? "bg-primary/10 border-primary"
+                  : "bg-card border-border hover:border-primary"
+              }`}
+            >
+              <span className={`w-8.5 h-8.5 rounded-[10px] flex items-center justify-center shrink-0 ${planStyle === "repeat" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`} style={{ width: "34px", height: "34px" }}>
+                <RefreshCw className="h-[18px] w-[18px]" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-foreground">{t("repeatWeeklyPlan")}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight">{t("repeatWeeklyPlanDesc")}</p>
+              </div>
+              {planStyle === "repeat" && <Check className="h-5 w-5 text-primary shrink-0" />}
+            </button>
+            <button
+              onClick={() => setPlanStyle("unique")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
+                planStyle === "unique"
+                  ? "bg-primary/10 border-primary"
+                  : "bg-card border-border hover:border-primary"
+              }`}
+            >
+              <span className={`w-8.5 h-8.5 rounded-[10px] flex items-center justify-center shrink-0 ${planStyle === "unique" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`} style={{ width: "34px", height: "34px" }}>
+                <CalendarDays className="h-[18px] w-[18px]" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-foreground">{t("uniqueMonthlyPlan")}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight">{t("uniqueMonthlyPlanDesc")}</p>
+              </div>
+              {planStyle === "unique" && <Check className="h-5 w-5 text-primary shrink-0" />}
+            </button>
+          </div>
         </div>
-      </div>
       )}
 
-      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+80px)] z-30 -mx-1 px-1 pt-3 pb-2 bg-gradient-to-t from-background via-background/95 to-background/0">
-        <Button
-          onClick={confirm}
-          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-          size="lg"
-        >
-          {planMode === "custom" ? (L("customConfirm", "Build my plan") ) : (t("reviewConfirm") || "Confirm & generate")}
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
-      </div>
+      {/* CTA */}
+      <button
+        onClick={confirm}
+        className="w-full py-3.5 rounded-xl text-[15px] font-bold flex justify-center gap-2 items-center bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 animate-drift transition-colors"
+      >
+        {planMode === "custom" ? L("customConfirm", "Build my plan") : (t("reviewConfirm") || "Confirm & generate")}
+        <ArrowRight className="h-4 w-4" />
+      </button>
     </div>
   );
 }

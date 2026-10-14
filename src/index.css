@@ -148,4 +148,14 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes drift {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .animate-rise { animation: rise 0.8s ease-out both; }
+  .animate-drift { animation: drift 3.2s ease-in-out infinite; }
 }
