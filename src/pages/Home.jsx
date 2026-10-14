@@ -3,6 +3,8 @@ import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import CreditBar from "@/components/monetization/CreditBar";
 import PlanModeChooser from "@/components/PlanModeChooser";
+import NearbyDeals from "@/components/home/NearbyDeals";
+import ActivePlanPreview from "@/components/home/ActivePlanPreview";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -35,6 +37,10 @@ export default function Home() {
       </div>
 
       <PlanModeChooser />
+
+      <NearbyDeals />
+
+      <ActivePlanPreview />
 
       <OnboardingModal open={showOnboarding} onClose={closeOnboarding} />
     </div>

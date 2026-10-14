@@ -9,7 +9,7 @@ import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { Package, BookMarked, Info, Mail, Lock, User, LogIn, LogOut, Trash2, Crown } from "lucide-react";
+import { Package, BookMarked, Info, Mail, Lock, User, LogIn, LogOut, Trash2, Crown, Bell, Sliders } from "lucide-react";
 
 export default function Account() {
   const { t } = useLanguage();
@@ -28,9 +28,12 @@ export default function Account() {
     } catch { /* ignore */ }
   };
 
-  const links = [
-    { path: "/pantry", label: t("pantryNav"), icon: Package },
-    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
+  const savedLinks = [
+    { path: "/pantry", label: t("savedPreferences"), icon: Package, sub: t("pantryNav") },
+    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked, sub: t("navMyPlan") },
+  ];
+
+  const secondaryLinks = [
     { path: "/about", label: t("aboutNav"), icon: Info },
     { path: "/contact", label: t("contactNav"), icon: Mail },
     { path: "/datenschutz", label: t("privacyNav"), icon: Lock },
@@ -64,40 +67,76 @@ export default function Account() {
         )}
       </div>
 
-      {/* Premium */}
-      <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-primary" />
-          <h2 className="font-heading font-semibold">{isPro ? t("premium") : t("upgrade")}</h2>
-          {isPro && <ProBadge />}
+      {/* Saved Preferences & Saved Plans */}
+      <div>
+        <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">{t("savedPreferences")}</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {savedLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.path} to={item.path} className="flex flex-col gap-2 p-4 rounded-2xl bg-card border border-border hover:bg-muted transition-colors">
+                <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center">
+                  <Icon className="h-4.5 w-4.5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.sub}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
-        <CreditBar />
-        {!isPro && <UpgradeBanner onClick={openPricing} />}
-        <SupportUsButton onClick={openDonation} />
       </div>
 
-      {/* Navigation links */}
-      <div className="grid grid-cols-2 gap-3">
-        {links.map((item) => {
+      {/* Premium & Billing */}
+      <div>
+        <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">{t("premiumBilling")}</h2>
+        <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Crown className="h-5 w-5 text-primary" />
+            <h3 className="font-heading font-semibold">{isPro ? t("premium") : t("upgrade")}</h3>
+            {isPro && <ProBadge />}
+          </div>
+          <CreditBar />
+          {!isPro && <UpgradeBanner onClick={openPricing} />}
+          <SupportUsButton onClick={openDonation} />
+        </div>
+      </div>
+
+      {/* Settings & Notifications */}
+      <div>
+        <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">{t("settingsNotifications")}</h2>
+        <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="flex-1 min-w-0">
+              <LanguageSwitcher />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 pt-3 border-t border-border">
+            <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
+              <Bell className="h-4.5 w-4.5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">{t("notifications")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings")}</p>
+            </div>
+            <Sliders className="h-4 w-4 text-muted-foreground shrink-0" />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary links */}
+      <div className="flex items-center gap-2 flex-wrap pt-2">
+        {secondaryLinks.map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.path} to={item.path} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:bg-muted transition-colors">
-              <Icon className="h-5 w-5 text-primary shrink-0" />
-              <span className="text-sm font-medium">{item.label}</span>
+            <Link key={item.path} to={item.path} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-muted-foreground bg-muted/50 hover:bg-muted transition-colors">
+              <Icon className="h-3.5 w-3.5" />
+              {item.label}
             </Link>
           );
         })}
-      </div>
-
-      {/* Settings */}
-      <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-        <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-muted-foreground">{t("settings")}</h2>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <div className="flex-1 min-w-0">
-            <LanguageSwitcher />
-          </div>
-        </div>
       </div>
 
       {/* Delete account */}
