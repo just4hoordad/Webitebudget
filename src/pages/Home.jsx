@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
+import { modeText } from "@/lib/translations_modes";
 import CreditBar from "@/components/monetization/CreditBar";
-import PlanModeChooser from "@/components/PlanModeChooser";
+import LastResultButton from "@/components/LastResultButton";
+import { ArrowRight, Wallet } from "lucide-react";
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  const m = modeText(currentLanguage?.code);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding_completed")
   );
@@ -34,7 +38,26 @@ export default function Home() {
         </div>
       </div>
 
-      <PlanModeChooser />
+      {/* Single guided flow — one entry point instead of a mode chooser */}
+      <Link
+        to="/budget"
+        className="block rounded-3xl border border-border bg-card p-6 hover:border-primary transition-colors group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+            <Wallet className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-heading text-lg font-bold text-foreground">{m.budgetTitle}</h2>
+            <p className="text-sm text-muted-foreground">{m.budgetDesc}</p>
+          </div>
+          <span className="inline-flex items-center gap-2 font-heading font-semibold text-sm bg-primary text-primary-foreground rounded-full px-4 py-2.5 shrink-0 group-hover:gap-3 transition-all">
+            {m.budgetCta} <ArrowRight className="h-4 w-4" />
+          </span>
+        </div>
+      </Link>
+
+      <LastResultButton kind="budget" />
 
       <OnboardingModal open={showOnboarding} onClose={closeOnboarding} />
     </div>
