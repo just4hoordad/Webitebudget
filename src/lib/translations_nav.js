@@ -12,7 +12,12 @@ export const navTranslations = {
     logoutNav: "Log out",
     deleteAccount: "Delete account",
     deleteAccountConfirm: "Are you sure you want to delete your account? This cannot be undone.",
-    deleteAccountUnavailable: "Account deletion is not available yet. Please contact support."
+    deleteAccountUnavailable: "Account deletion is not available yet. Please contact support.",
+    navMyPlan: "My Plan",
+    navHomeSub: "Start & Offers",
+    navMyPlanSub: "Plan & Shopping",
+    navAccountSub: "Profile & Premium",
+    settings: "Settings"
   },
   de: {
     aboutNav: "Über",
@@ -24,7 +29,12 @@ export const navTranslations = {
     logoutNav: "Abmelden",
     deleteAccount: "Konto löschen",
     deleteAccountConfirm: "Möchtest du dein Konto wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-    deleteAccountUnavailable: "Die Kontolöschung ist noch nicht verfügbar. Bitte wende dich an den Support."
+    deleteAccountUnavailable: "Die Kontolöschung ist noch nicht verfügbar. Bitte wende dich an den Support.",
+    navMyPlan: "Mein Plan",
+    navHomeSub: "Start & Angebote",
+    navMyPlanSub: "Plan & Einkauf",
+    navAccountSub: "Profil & Premium",
+    settings: "Einstellungen"
   },
   fr: {
     aboutNav: "À propos",

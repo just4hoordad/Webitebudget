@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Calendar } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -27,7 +27,6 @@ export default function Layout() {
   const { t, currentLanguage } = useLanguage();
   const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const { isPro, credits, openPricing, openDonation, clearProStatus } = useMonetization();
   const { isAuthenticated, user, logout, navigateToLogin } = useAuth();
   const showUpgrade = !isPro;
@@ -69,14 +68,15 @@ export default function Layout() {
   const isPersistRoute = PERSIST_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
-    { path: "/", label: t("home"), icon: Home },
-    { path: "/budget", label: budgetLabel, icon: Wallet },
-    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
-    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
+    { path: "/", label: t("home"), sub: t("navHomeSub"), icon: Home, activeFor: ["/", "/budget", "/plan-builder"] },
+    { path: "/saved-plans", label: t("navMyPlan"), sub: t("navMyPlanSub"), icon: Calendar, activeFor: ["/saved-plans", "/meal-plan", "/nutrition", "/plan-review"] },
+    { path: "/account", label: t("accountNav"), sub: t("navAccountSub"), icon: User, activeFor: ["/account", "/pantry", "/about", "/contact", "/datenschutz", "/repo-stats"] },
   ];
 
   const secondaryNavItems = [
-    { path: "/pantry", label: "Pantry", icon: Package },
+    { path: "/budget", label: budgetLabel, icon: Wallet },
+    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
+    { path: "/pantry", label: t("pantryNav"), icon: Package },
     { path: "/about", label: t("aboutNav"), icon: Info },
     { path: "/contact", label: t("contactNav"), icon: Mail },
     { path: "/datenschutz", label: t("privacyNav"), icon: Lock },
@@ -103,7 +103,7 @@ export default function Layout() {
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = (item.activeFor || [item.path]).includes(location.pathname);
             return (
               <Link
                 key={item.path}
@@ -115,7 +115,10 @@ export default function Layout() {
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="truncate">{item.label}</span>
+                <div className="min-w-0 leading-tight">
+                  <span className="truncate block">{item.label}</span>
+                  <span className={`truncate block text-[10px] ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{item.sub}</span>
+                </div>
               </Link>
             );
           })}
@@ -282,128 +285,29 @@ export default function Layout() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 p-1.5">
+          <div className="pointer-events-auto flex items-stretch w-full max-w-[390px] rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 overflow-hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = (item.activeFor || [item.path]).includes(location.pathname);
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-semibold uppercase tracking-tight transition-colors select-none ${
+                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-colors select-none ${
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
-                  <Icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="truncate max-w-full text-center leading-none">{item.label}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="text-[10px] font-heading font-bold leading-none">{item.label}</span>
+                  <span className={`text-[8px] leading-none truncate max-w-full text-center ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{item.sub}</span>
                 </Link>
               );
             })}
-            <button
-              onClick={() => setMoreOpen(true)}
-              className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-0.5"
-              title={t("more") || "More"}
-              aria-label={t("more") || "More"}
-            >
-              <MoreHorizontal className="h-5 w-5" />
-            </button>
           </div>
         </nav>
 
-        {/* More sheet — mobile only */}
-        <AnimatePresence>
-          {moreOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMoreOpen(false)}
-                className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-border p-4"
-                style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
-              >
-                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted" />
-                {!isAuthenticated ? (
-                  <button
-                    onClick={() => { setMoreOpen(false); navigateToLogin(); }}
-                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md shadow-primary/20 w-full"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <LogIn className="h-5 w-5" />
-                      {t("signInNav")}
-                    </span>
-                    <span className="text-xs opacity-90">&rarr;</span>
-                  </button>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
-                      <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                      </div>
-                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors text-xs font-medium">
-                        <LogOut className="h-4 w-4" />
-                        {t("logoutNav")}
-                      </button>
-                    </div>
-                    <button
-                      onClick={handleDeleteAccount}
-                      className="flex items-center gap-1.5 mb-3 px-3 py-2 rounded-xl text-xs text-muted-foreground/70 hover:text-destructive transition-colors w-full"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      {t("deleteAccount") || "Delete account"}
-                    </button>
-                  </>
-                )}
-                <div className="grid grid-cols-3 gap-3">
-                  {secondaryNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors ${
-                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary border-border text-foreground"
-                        }`}
-                      >
-                        <Icon className="h-6 w-6" />
-                        <span className="text-xs font-medium text-center leading-tight">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 space-y-2">
-                  {showUpgrade && <UpgradeBanner onClick={() => { setMoreOpen(false); openPricing(); }} variant="sheet" />}
-                  <SupportUsButton onClick={() => { setMoreOpen(false); openDonation(); }} variant="sheet" />
-                </div>
-                {installPrompt && !isInstalled && (
-                  <button
-                    onClick={() => { handleInstall(); setMoreOpen(false); }}
-                    className="mt-3 w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm"
-                  >
-                    <Download className="h-5 w-5" />
-                    {t("installApp")}
-                  </button>
-                )}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
