@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import { CalendarDays, Crown } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export default function DurationInput({ value, onChange, label, onCommit, maxDays = 30, isPro = true, onUpgrade }) {
+export default function DurationInput({ value, onChange, label, onCommit }) {
   const { t } = useLanguage();
   const [draft, setDraft] = useState(String(value));
   useEffect(() => { setDraft(String(value)); }, [value]);
-
-  const atCap = value >= maxDays && !isPro;
 
   return (
     <div className="space-y-4">
@@ -20,13 +18,13 @@ export default function DurationInput({ value, onChange, label, onCommit, maxDay
             type="number"
             inputMode="numeric"
             min={1}
-            max={maxDays}
+            max={30}
             value={draft}
             onFocus={e => e.target.select()}
             onChange={e => {
               setDraft(e.target.value);
               const val = parseInt(e.target.value, 10);
-              if (!isNaN(val) && val >= 1) onChange(Math.min(maxDays, val));
+              if (!isNaN(val) && val >= 1) onChange(Math.min(30, val));
             }}
             onBlur={() => { setDraft(String(value)); if (value >= 1) onCommit?.(); }}
             onKeyDown={e => { if (onCommit && e.key === "Enter") e.currentTarget.blur(); }}
@@ -35,22 +33,11 @@ export default function DurationInput({ value, onChange, label, onCommit, maxDay
           <span className="text-sm">{t("days") || "days"}</span>
         </div>
       </div>
-      <Slider value={[value]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={maxDays} step={1} className="w-full" />
+      <Slider value={[value]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={30} step={1} className="w-full" />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>1</span>
-        <span>{maxDays}</span>
+        <span>30</span>
       </div>
-      {atCap && (
-        <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 text-xs">
-          <Crown className="h-3.5 w-3.5 text-primary shrink-0" />
-          <span className="text-muted-foreground">{t("durationPremiumHint") || "Free plans are limited to 7 days. Upgrade to Pro for up to 30 days."}</span>
-          {onUpgrade && (
-            <button onClick={onUpgrade} className="text-primary font-medium underline ml-auto shrink-0">
-              {t("upgrade") || "Upgrade"}
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

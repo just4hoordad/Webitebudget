@@ -367,46 +367,6 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
-  // Unified planner: when arriving from PlanReview with ?mode=custom, parse the
-  // shared setup params and skip directly to the meal grid.
-  const customModeProcessed = useRef(false);
-  useEffect(() => {
-    if (location.pathname !== "/plan-builder") return;
-    if (customModeProcessed.current) return;
-    const params = new URLSearchParams(location.search);
-    if (params.get("mode") !== "custom") return;
-    customModeProcessed.current = true;
-
-    const parsedDiet = params.get("diet") || "balanced";
-    const parsedDays = Math.max(1, parseInt(params.get("days") || "7", 10));
-    const parsedPeople = parseInt(params.get("people") || "1", 10);
-    const storesParam = params.get("stores") || "";
-    const parsedStores = storesParam.split(",").map(s => s.trim()).filter(Boolean);
-    const parsedPostalCode = params.get("plz") || "";
-    const macrosParam = params.get("macros");
-    const parsedMacros = macrosParam
-      ? (() => { const [p, c, f] = macrosParam.split(",").map(Number); return { protein: p || 30, carbs: c || 40, fats: f || 30 }; })()
-      : { protein: 30, carbs: 40, fats: 30 };
-
-    setDiet(parsedDiet);
-    setDays(parsedDays);
-    setPeople(parsedPeople);
-    setStores(parsedStores);
-    setPostalCode(parsedPostalCode);
-    setMacrosRaw(parsedMacros);
-    setMacrosSet(true);
-
-    const prefs = { diet: parsedDiet, days: parsedDays, people: parsedPeople, stores: parsedStores, postalCode: parsedPostalCode, selectedStoreLocations: [], macros: parsedMacros };
-    try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* ignore */ }
-
-    setPlan(Array.from({ length: parsedDays }, () => ({ breakfast: [], lunch: [], dinner: [] })));
-    setGrocery(null);
-    setPhase("grid");
-    window.scrollTo(0, 0);
-    navigate("/plan-builder", { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, location.search]);
-
   if (phase === "result" && grocery) {
     const shareFooter = savedPlanId.current ? (
       <Button onClick={() => setShowShare(true)} variant="outline" className="w-full h-12">

@@ -18,7 +18,6 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import Account from '@/pages/Account';
 import { AuthProvider } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
@@ -50,7 +49,6 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/datenschutz" element={<Datenschutz />} />
-                <Route path="/account" element={<Account />} />
                 <Route path="/repo-stats" element={<RepoStats />} />
               </Route>
               <Route path="/share/:token" element={<SharedPlan />} />
