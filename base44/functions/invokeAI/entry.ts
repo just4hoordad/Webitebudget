@@ -3,6 +3,7 @@ import { callOpenRouter, OpenRouterUnavailableError } from "../../shared/openrou
 
 // Allowlist of safe, low-cost models
 const ALLOWED_MODELS: Record<string, string> = {
+  "google/gemini-2.5-pro": "google/gemini-2.5-pro",
   "google/gemini-2.5-flash": "google/gemini-2.5-flash",
   "openai/gpt-4o-mini": "openai/gpt-4o-mini",
   "google/gemini-2.0-flash-001": "google/gemini-2.0-flash-001",
