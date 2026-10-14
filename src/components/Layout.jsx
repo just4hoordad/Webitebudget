@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Calendar } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, ArrowRight, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Calendar } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -285,26 +285,37 @@ export default function Layout() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="pointer-events-auto flex items-stretch w-full max-w-[390px] rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 overflow-hidden">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = (item.activeFor || [item.path]).includes(location.pathname);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-colors select-none ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="text-[10px] font-heading font-bold leading-none">{item.label}</span>
-                  <span className={`text-[8px] leading-none truncate max-w-full text-center ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{item.sub}</span>
-                </Link>
-              );
-            })}
+          <div className="pointer-events-auto w-full max-w-[390px] rounded-2xl bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 overflow-hidden">
+            <div className="flex items-stretch">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = (item.activeFor || [item.path]).includes(location.pathname);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-colors select-none ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="text-[10px] font-heading font-bold leading-none">{item.label}</span>
+                    <span className={`text-[8px] leading-none truncate max-w-full text-center ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{item.sub}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="border-t border-border" />
+            <Link
+              to="/plan-builder"
+              className="flex items-center justify-center gap-2 py-2.5 mx-2 mb-2 mt-1 rounded-full bg-[#A8F21D] text-black font-heading font-bold text-sm hover:brightness-95 transition-all"
+            >
+              <Utensils className="h-4 w-4" />
+              {t("createMealPlan")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </nav>
 
