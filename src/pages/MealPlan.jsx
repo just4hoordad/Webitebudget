@@ -18,7 +18,7 @@ const SHARE_L = {
   tr: { share: "Listeyi paylaş", copied: "Liste kopyalandı! İstediğiniz yere yapıştırın." },
 };
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info, Crown, Scale, Trash2 } from "lucide-react";
+import { ShoppingBasket, Save, FileDown, FileText, BarChart2, Shuffle, ArrowLeftRight, Edit2, X, Plus, Loader2, Sparkles, PiggyBank, TrendingDown, Share2, Info, Crown, Scale, Trash2, Lock } from "lucide-react";
 import MealSwapModal from "@/components/MealSwapModal";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import MealEditModal from "@/components/MealEditModal";
@@ -200,6 +200,7 @@ export default function MealPlan() {
   const removeItem = (categoryName, itemName) => {
     setRemovedItems(prev => new Set([...prev, `${categoryName}::${itemName}`]));
     setWeeklyPlan(null);
+    toast.success(t("itemRemoved") || "Item removed");
   };
 
   const getActiveItems = () =>
@@ -645,6 +646,70 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     setWeeklyPlan({ type: "unique", weeks });
   };
 
+  // Regenerate only meals that are NOT locked — locked meals stay in place.
+  const regenerateRemaining = async () => {
+    if (!weeklyPlan?.weeks) return;
+    setRegenerating(true);
+    try {
+      const availableItems = groceries?.categories?.flatMap(cat =>
+        cat.items
+          .filter(item => !removedItems.has(`${cat.name}::${item.name}`))
+          .map(item => `${item.name} (${item.quantity})`)
+      ).join(", ");
+
+      const newWeeks = await Promise.all((weeklyPlan.weeks || []).map(async (wk, wi) => {
+        const daysToRegen = (wk.days || []).map((d, di) => {
+          if (!d) return null;
+          const mealsToRegen = ["breakfast", "lunch", "dinner"].filter(mt => !lockedMeals.has(`${wi}:${di}:${mt}`));
+          if (mealsToRegen.length === 0) return null;
+          return { dayIdx: di, dayName: d.day, meals: mealsToRegen };
+        }).filter(Boolean);
+
+        if (daysToRegen.length === 0) return wk;
+
+        const regenPrompt = `Regenerate specific meals for this meal plan. Return ALL text in ${currentLanguage.label}.
+
+AVAILABLE PRODUCTS: ${availableItems}
+Diet: ${diet} · Target: ${calories} kcal/day · People: ${people}
+
+Regenerate these meals (keep everything else unchanged):
+${daysToRegen.map(d => `${d.dayName || `Day ${d.dayIdx + 1}`}: ${d.meals.join(", ")}`).join("\n")}
+
+Return a JSON object with "days" array. Each day object has: day (name), and for each regenerated meal: {meal}_calories (number), {meal}_ingredients (array of {name, quantity}). Keep the meal names realistic and varied. Use ONLY products from the AVAILABLE PRODUCTS list. Each day's meals should total ~${calories} kcal.
+
+Return only the days that have meals to regenerate.`;
+
+        const result = await invokeAI({ prompt: regenPrompt, response_json_schema: weeklyPlanSchema });
+        const regenDays = result.days || [];
+        const newDays = [...wk.days];
+        regenDays.forEach((rd) => {
+          const matchIdx = daysToRegen.findIndex(d => d.dayName === rd.day);
+          const targetIdx = matchIdx >= 0 ? daysToRegen[matchIdx].dayIdx : -1;
+          if (targetIdx >= 0 && newDays[targetIdx]) {
+            const oldDay = newDays[targetIdx];
+            const updated = { ...oldDay };
+            ["breakfast", "lunch", "dinner"].forEach(mt => {
+              if (rd[`${mt}`] !== undefined) {
+                updated[mt] = rd[mt];
+                updated[`${mt}_calories`] = rd[`${mt}_calories`] || 0;
+                updated[`${mt}_ingredients`] = rd[`${mt}_ingredients`] || [];
+              }
+            });
+            newDays[targetIdx] = updated;
+          }
+        });
+        return { ...wk, days: newDays };
+      }));
+
+      setWeeklyPlan(prev => ({ ...prev, weeks: newWeeks }));
+      toast.success(t("mealsRegenerated") || "Remaining meals regenerated.");
+    } catch (e) {
+      toast.error("Could not regenerate meals. Try again.");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
   // Start the meal plan once the grocery list is ready. Called directly from
   // generateGroceries after the list is set (cache hit or fresh generation), so
   // the plan always builds on a real grocery list and never races ahead of it.
@@ -698,6 +763,36 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
   const [recipes, setRecipes] = useState({});
   const [recipeTarget, setRecipeTarget] = useState(null);
   const [sortByStore, setSortByStore] = useState(false);
+  const [lockedMeals, setLockedMeals] = useState(() => {
+    try { const raw = sessionStorage.getItem("bb_locked_meals"); return raw ? new Set(JSON.parse(raw)) : new Set(); } catch { return new Set(); }
+  });
+  const [cookingDays, setCookingDays] = useState(() => {
+    try { const raw = sessionStorage.getItem("bb_cooking_days"); return raw ? new Set(JSON.parse(raw)) : new Set(); } catch { return new Set(); }
+  });
+  const [regenerating, setRegenerating] = useState(false);
+
+  const persistLocked = (next) => { try { sessionStorage.setItem("bb_locked_meals", JSON.stringify([...next])); } catch { /* ignore */ } };
+  const persistCooking = (next) => { try { sessionStorage.setItem("bb_cooking_days", JSON.stringify([...next])); } catch { /* ignore */ } };
+
+  const toggleLock = (weekIdx, dayIdx, mealType) => {
+    const key = `${weekIdx}:${dayIdx}:${mealType}`;
+    setLockedMeals(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      persistLocked(next);
+      return next;
+    });
+  };
+
+  const toggleCookingDay = (weekIdx, dayIdx) => {
+    const key = `${weekIdx}:${dayIdx}`;
+    setCookingDays(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      persistCooking(next);
+      return next;
+    });
+  };
 
   const recipeKey = (weekIndex, dayIndex, mealType) => `${weekIndex}:${dayIndex}:${mealType}`;
 
@@ -742,6 +837,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
     });
     setWeeklyPlan(null);
+    toast.success(t("itemAdded") || "Item added");
   };
 
   const translateCategory = (englishName) => {
@@ -776,6 +872,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       return { ...prev, categories: newCategories, total_estimated_cost: newTotal };
     });
     setWeeklyPlan(null);
+    toast.success(t("itemSwapped") || "Item swapped");
   };
 
   const exportMealPlanPDF = () => {
@@ -948,8 +1045,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
         recipes: Object.keys(recipes).length > 0 ? recipes : undefined
   });
 
-  // Auto-save: once a plan is generated (and after every edit/swap), persist it
-  // for logged-in users. The first save creates the record; later ones update it.
+  // Auto-save: once a plan is generated (and after every edit/swap/grocery
+  // change), persist it for logged-in users. The first save creates the record;
+  // later ones update it so grocery edits survive refresh.
   const savedIdRef = useRef(null);
   useEffect(() => {
     if (!weeklyPlan || !groceries || loadingPlan) return;
@@ -966,7 +1064,7 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       setSaved(true);
     })().catch((e) => toast.error("Auto-save failed: " + (e?.message || "Unknown error")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weeklyPlan, recipes]);
+  }, [weeklyPlan, recipes, groceries]);
 
   const saveMealPlan = async () => {
     if (!weeklyPlan || saved) return;
@@ -1328,6 +1426,10 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    weekIndex={weekIndex}
                    t={t}
                    isPro={isPro}
+                   lockedMeals={lockedMeals}
+                   onToggleLock={toggleLock}
+                   cookingDays={cookingDays}
+                   onToggleCookingDay={toggleCookingDay}
                    onEdit={(wi, di, mt, meal) => setEditTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
                    onSwap={(wi, di, mt, meal) => setSwapTarget({ weekIndex: wi, dayIndex: di, mealType: mt, meal })}
                    onRecipe={handleRecipe}
@@ -1393,14 +1495,34 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
 
              {/* Footer actions */}
              <div className="bg-muted rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-               <p className="text-xs text-muted-foreground">
-                 {weeklyPlan.type === "repeat"
-                   ? t("repeatNote")
-                   : weeklyPlan.type === "exact"
-                   ? `📅 ${t("exactDaysPlanNote", { days })}`
-                   : t("unique4WeeksGenerated")}
-               </p>
+               <div className="space-y-1">
+                 <p className="text-xs text-muted-foreground">
+                   {weeklyPlan.type === "repeat"
+                     ? t("repeatNote")
+                     : weeklyPlan.type === "exact"
+                     ? `📅 ${t("exactDaysPlanNote", { days })}`
+                     : t("unique4WeeksGenerated")}
+                 </p>
+                 {lockedMeals.size > 0 && (
+                   <p className="text-[11px] text-amber-600 flex items-center gap-1">
+                     <Lock className="h-3 w-3" />
+                     {t("lockedMealsNote") || "Locked meals stay when you regenerate."}
+                   </p>
+                 )}
+               </div>
                <div className="flex items-center gap-2 flex-wrap">
+                 {lockedMeals.size > 0 && (
+                   <Button
+                     onClick={regenerateRemaining}
+                     disabled={regenerating}
+                     variant="outline"
+                     size="sm"
+                     className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                   >
+                     {regenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shuffle className="h-4 w-4" />}
+                     {t("regenerateRemaining") || "Regenerate remaining"}
+                   </Button>
+                 )}
                  <Button onClick={() => exportMealPlanPDF()} variant="outline" size="sm" className="gap-2">
                    <FileDown className="h-4 w-4" />
                    {t("downloadPlan")}
@@ -1409,7 +1531,6 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
                    <Save className="h-4 w-4" />
                    {saved ? t("planSaved") : saving ? t("saving") : t("savePlan")}
                  </Button>
-
                </div>
              </div>
            </div>

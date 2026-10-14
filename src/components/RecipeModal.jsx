@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, ChefHat, Clock, Users, ListOrdered, Loader2, Snowflake, AlertCircle } from "lucide-react";
+import { X, ChefHat, Clock, Users, ListOrdered, Loader2, Snowflake, AlertCircle, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
@@ -14,8 +14,8 @@ import { toast } from "sonner";
 // Self-contained strings (these keys aren't in the shared translations file,
 // so a local dictionary keeps every supported language covered).
 const RECIPE_L = {
-  en: { recipe: "Recipe", recipeGenerating: "Generating your recipe…", readyToHeat: "Ready-to-heat product", reheatNote: "This is a frozen ready-to-heat meal — just follow the heating instructions on the packaging.", prepTime: "Prep", cookTime: "Cook", servings: "Serves", ingredients: "Ingredients", steps: "Steps", recipeIncomplete: "The recipe came back incomplete — try regenerating.", close: "Close", recipeError: "Couldn't generate the recipe. Try again." },
-  de: { recipe: "Rezept", recipeGenerating: "Rezept wird erstellt…", readyToHeat: "Fertigprodukt zum Erwärmen", reheatNote: "Dies ist eine gefrostete fertige Mahlzeit — einfach die Erwärmanleitung auf der Verpackung befolgen.", prepTime: "Vorbereitung", cookTime: "Kochen", servings: "Portionen", ingredients: "Zutaten", steps: "Schritte", recipeIncomplete: "Das Rezept wurde unvollständig zurückgegeben — bitte neu generieren.", close: "Schließen", recipeError: "Rezept konnte nicht erstellt werden. Bitte erneut versuchen." },
+  en: { recipe: "Recipe", recipeGenerating: "Generating your recipe…", readyToHeat: "Ready-to-heat product", reheatNote: "This is a frozen ready-to-heat meal — just follow the heating instructions on the packaging.", prepTime: "Prep", cookTime: "Cook", servings: "Serves", ingredients: "Ingredients", steps: "Steps", recipeIncomplete: "The recipe came back incomplete — try regenerating.", close: "Close", recipeError: "Couldn't generate the recipe. Try again.", saveToLibrary: "Save to library", saved: "Saved to your recipes", saveFailed: "Could not save recipe" },
+  de: { recipe: "Rezept", recipeGenerating: "Rezept wird erstellt…", readyToHeat: "Fertigprodukt zum Erwärmen", reheatNote: "Dies ist eine gefrostete fertige Mahlzeit — einfach die Erwärmanleitung auf der Verpackung befolgen.", prepTime: "Vorbereitung", cookTime: "Kochen", servings: "Portionen", ingredients: "Zutaten", steps: "Schritte", recipeIncomplete: "Das Rezept wurde unvollständig zurückgegeben — bitte neu generieren.", close: "Schließen", recipeError: "Rezept konnte nicht erstellt werden. Bitte erneut versuchen.", saveToLibrary: "In Bibliothek speichern", saved: "In deinen Rezepten gespeichert", saveFailed: "Rezept konnte nicht gespeichert werden" },
   fr: { recipe: "Recette", recipeGenerating: "Génération de la recette…", readyToHeat: "Produit à réchauffer", reheatNote: "C'est un plat surgelé prêt à réchauffer — suivez les instructions sur l'emballage.", prepTime: "Préparation", cookTime: "Cuisson", servings: "Portions", ingredients: "Ingrédients", steps: "Étapes", recipeIncomplete: "La recette est incomplète — essayez de régénérer.", close: "Fermer", recipeError: "Impossible de générer la recette. Réessayez." },
   es: { recipe: "Receta", recipeGenerating: "Generando tu receta…", readyToHeat: "Producto listo para calentar", reheatNote: "Es una comida congelada lista para calentar — sigue las instrucciones del envase.", prepTime: "Preparación", cookTime: "Cocción", servings: "Porciones", ingredients: "Ingredientes", steps: "Pasos", recipeIncomplete: "La receta quedó incompleta — intenta regenerar.", close: "Cerrar", recipeError: "No se pudo generar la receta. Intenta de nuevo." },
   ar: { recipe: "وصفة", recipeGenerating: "جارٍ إنشاء الوصفة…", readyToHeat: "منتج جاهز للتسخين", reheatNote: "هذه وجبة مجمدة جاهزة للتسخين — اتبع تعليمات التسخين على العبوة.", prepTime: "تحضير", cookTime: "طبخ", servings: "حصص", ingredients: "مكونات", steps: "خطوات", recipeIncomplete: "عادت الوصفة غير مكتملة — حاول إعادة الإنشاء.", close: "إغلاق", recipeError: "تعذر إنشاء الوصفة. حاول مرة أخرى." },
@@ -53,7 +53,33 @@ export default function RecipeModal({ meal, diet, people, initialRecipe, onCache
   );
   const [loading, setLoading] = useState(!recipe);
   const reported = useRef(false);
+  const [savingLib, setSavingLib] = useState(false);
+  const [savedLib, setSavedLib] = useState(false);
   const isFrozen = diet === "frozen";
+
+  const saveToLibrary = async () => {
+    if (!recipe) return;
+    setSavingLib(true);
+    try {
+      await base44.entities.Recipe.create({
+        title: recipe.title || meal.name,
+        mealType: meal.mealType || "dinner",
+        diet: diet || "custom",
+        servings: recipe.servings || people || 1,
+        prepTime: recipe.prep_time || 0,
+        cookTime: recipe.cook_time || 0,
+        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+        steps: Array.isArray(recipe.steps) ? recipe.steps : [],
+        source: "from_plan",
+      });
+      setSavedLib(true);
+      toast.success(tr("saved"));
+    } catch (e) {
+      toast.error(tr("saveFailed"));
+    } finally {
+      setSavingLib(false);
+    }
+  };
 
   const ingredientList = Array.isArray(meal.ingredients)
     ? meal.ingredients.map((i) => `${i.name}${i.quantity ? ` (${i.quantity})` : ""}`).join(", ")
@@ -201,10 +227,20 @@ Keep the steps concise and actionable. Do not include the meal's calorie count.`
           ) : null}
         </div>
 
-        <div className="bg-card border-t border-border px-5 py-4 pb-6 flex shrink-0">
+        <div className="bg-card border-t border-border px-5 py-4 pb-6 flex items-center gap-3 shrink-0">
+          {!isFrozen && recipe && (
+            <button
+              onClick={saveToLibrary}
+              disabled={savingLib || savedLib}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {savingLib ? <Loader2 className="h-4 w-4 animate-spin" /> : savedLib ? <Bookmark className="h-4 w-4 fill-current" /> : <Bookmark className="h-4 w-4" />}
+              {savedLib ? tr("saved") : tr("saveToLibrary")}
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="w-full text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+            className="flex-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2.5"
           >
             {tr("close")}
           </button>

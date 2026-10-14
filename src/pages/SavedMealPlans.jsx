@@ -4,7 +4,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock, Search } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
@@ -31,6 +31,8 @@ export default function SavedMealPlans() {
   const { isPro, openPricing } = useMonetization();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [dietFilter, setDietFilter] = useState("");
   const [expandedGrocery, setExpandedGrocery] = useState({});
   const [expandedDay, setExpandedDay] = useState({}); // `${planId}:${dayKey}` -> bool
   const [expandedCat, setExpandedCat] = useState({}); // `${planId}:${catName}` -> bool
@@ -62,12 +64,15 @@ export default function SavedMealPlans() {
   useEffect(() => {
     if (location.pathname === "/saved-plans") loadPlans();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, search, dietFilter]);
 
   const loadPlans = async () => {
     try {
-      const mealPlans = await base44.entities.MealPlan.list();
-      setPlans(mealPlans);
+      const query = {};
+      if (search.trim()) query.name = { $regex: search.trim(), $options: "i" };
+      if (dietFilter) query.diet = dietFilter;
+      const page = await base44.entities.MealPlan.filter(query, { sort: "-created_date", limit: 100 });
+      setPlans(page.items || []);
     } catch (error) {
       console.error("Error loading plans:", error);
     } finally {
@@ -162,6 +167,35 @@ export default function SavedMealPlans() {
               {t("deleteAllPlans")}
             </Button>
           )}
+        </div>
+
+        {/* Search + Filter */}
+        <div className="space-y-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("searchPlans") || "Search plans…"}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+            />
+          </div>
+          <select
+            value={dietFilter}
+            onChange={(e) => setDietFilter(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          >
+            <option value="">{t("allDiets") || "All diets"}</option>
+            <option value="balanced">{t("balanced") || "Balanced"}</option>
+            <option value="vegetarian">{t("vegetarian") || "Vegetarian"}</option>
+            <option value="vegan">{t("vegan") || "Vegan"}</option>
+            <option value="high-protein">{t("highProtein") || "High-protein"}</option>
+            <option value="pescatarian">{t("pescatarian") || "Pescatarian"}</option>
+            <option value="gluten-free">{t("glutenFree") || "Gluten-free"}</option>
+            <option value="halal">{t("halal") || "Halal"}</option>
+            <option value="frozen">{t("frozenFoods") || "Frozen"}</option>
+          </select>
         </div>
 
         {/* Google Calendar sync */}
