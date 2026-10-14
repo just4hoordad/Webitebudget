@@ -4,7 +4,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock, Utensils } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
@@ -36,6 +36,7 @@ export default function SavedMealPlans() {
   const [expandedCat, setExpandedCat] = useState({}); // `${planId}:${catName}` -> bool
   const [sharePlan, setSharePlan] = useState(null);
   const [recipeTarget, setRecipeTarget] = useState(null);
+  const [viewTab, setViewTab] = useState("meals");
 
   const toggleDay = (planId, dayKey) =>
     setExpandedDay((prev) => ({ ...prev, [`${planId}:${dayKey}`]: !prev[`${planId}:${dayKey}`] }));
@@ -193,6 +194,26 @@ export default function SavedMealPlans() {
           </div>
         </div>
 
+        {/* Tab toggle */}
+        {plans.length > 0 && (
+          <div className="flex gap-1 p-1 bg-muted rounded-xl">
+            <button
+              onClick={() => setViewTab("meals")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${viewTab === "meals" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+            >
+              <Utensils className="h-4 w-4" />
+              {t("mealPlanTab")}
+            </button>
+            <button
+              onClick={() => setViewTab("shopping")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${viewTab === "shopping" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+            >
+              <ShoppingBasket className="h-4 w-4" />
+              {t("shoppingListTab")}
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>
         ) : plans.length === 0 ? (
@@ -286,7 +307,7 @@ export default function SavedMealPlans() {
                   </div>
                 </div>
                 {/* Grocery List */}
-                {plan.groceryList?.categories && (
+                {viewTab === "shopping" && plan.groceryList?.categories && (
                   <div className="border border-border rounded-xl overflow-hidden">
                     <button
                       onClick={() => setExpandedGrocery(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}
@@ -343,7 +364,7 @@ export default function SavedMealPlans() {
                   </div>
                 )}
 
-                {Array.isArray(plan.plan) ? (
+                {viewTab === "meals" && Array.isArray(plan.plan) ? (
                   <div className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="bg-primary px-5 py-3">
                       <h3 className="font-heading font-semibold text-primary-foreground">{plan.plan.length}-{t("days")}</h3>
@@ -406,7 +427,7 @@ export default function SavedMealPlans() {
                       })}
                     </div>
                   </div>
-                ) : plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
+                ) : viewTab === "meals" && plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
                   <div key={weekIdx} className="bg-card border border-border rounded-xl overflow-hidden">
                     <div className="bg-primary px-5 py-3">
                       <h3 className="font-heading font-semibold text-primary-foreground">
