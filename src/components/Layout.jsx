@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, ArrowRight, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, ArrowRight, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, LogIn, LogOut, Trash2, Wallet, Package, Calendar } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -68,8 +68,9 @@ export default function Layout() {
   const isPersistRoute = PERSIST_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
-    { path: "/", label: t("home"), sub: t("navHomeSub"), icon: Home, activeFor: ["/", "/budget", "/plan-builder", "/meal-plan", "/nutrition", "/plan-review"] },
-    { path: "/account", label: t("accountNav"), sub: t("navAccountSub"), icon: User, activeFor: ["/account", "/saved-plans", "/pantry", "/about", "/contact", "/datenschutz", "/repo-stats"] },
+    { path: "/", label: t("home"), sub: t("navHomeSub"), icon: Home, activeFor: ["/", "/budget", "/plan-builder"] },
+    { path: "/saved-plans", label: t("navMyPlan"), sub: t("navMyPlanSub"), icon: Calendar, activeFor: ["/saved-plans", "/meal-plan", "/nutrition", "/plan-review"] },
+    { path: "/account", label: t("accountNav"), sub: t("navAccountSub"), icon: User, activeFor: ["/account", "/pantry", "/about", "/contact", "/datenschutz", "/repo-stats"] },
   ];
 
   const secondaryNavItems = [
