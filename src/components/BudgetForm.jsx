@@ -185,8 +185,8 @@ export default function BudgetForm() {
 
   const metricsFilled = ["height", "weight", "age"].every((k) => Number(calorieMetrics[k]) > 0);
   const hasAnyStore = selectedStoreLocations.length > 0 || selectedStores.length > 0;
-  const effEnabled = easyMode ? { basics: true, diet: true, stores: false, pantry: false } : enabled;
-  const canGenerate = easyMode ? budget[0] > 0 : (budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore));
+  const effEnabled = easyMode ? { basics: true, diet: true, stores: true, pantry: false } : enabled;
+  const canGenerate = easyMode ? (budget[0] > 0 && hasAnyStore) : (budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore));
 
   // Restore the logged-in user's previous inputs
   useEffect(() => {
@@ -279,9 +279,12 @@ export default function BudgetForm() {
           people={people}
           setPeople={setPeople}
           onGenerate={handleGenerate}
-          canGenerate={budget[0] > 0}
+          canGenerate={budget[0] > 0 && hasAnyStore}
           maxDays={maxDays}
           onSwitchDetailed={() => handleEasyChange("detailed")}
+          selectedStores={selectedStores}
+          setSelectedStores={setSelectedStores}
+          isPro={isPro}
         />
       ) : (
       <>

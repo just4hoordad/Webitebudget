@@ -2,7 +2,20 @@ import { useLanguage } from "@/lib/LanguageContext";
 import BudgetInput from "@/components/BudgetInput";
 import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, SlidersHorizontal, Store } from "lucide-react";
+
+const GROCERY_STORES = [
+  { id: "aldi", name: "Aldi" },
+  { id: "lidl", name: "Lidl" },
+  { id: "rewe", name: "REWE" },
+  { id: "edeka", name: "Edeka" },
+  { id: "penny", name: "Penny" },
+  { id: "netto", name: "Netto" },
+  { id: "kaufland", name: "Kaufland" },
+  { id: "norma", name: "Norma" },
+  { id: "globus", name: "Globus" },
+  { id: "tegut", name: "Tegut" },
+];
 
 const MORE = {
   en: "Want more control? Switch to Detailed",
@@ -18,12 +31,59 @@ const MORE = {
   tr: "Daha fazla kontrol mü? Detaylı'ya geç",
 };
 
-export default function BudgetEasyEssentials({ budget, setBudget, days, setDays, people, setPeople, onGenerate, canGenerate, maxDays, onSwitchDetailed }) {
+const FREE_HINT = {
+  en: "Free plan: 1 store. Upgrade for multiple.",
+  de: "Gratis-Tarif: 1 Geschäft. Upgrade für mehrere.",
+  fr: "Plan gratuit : 1 magasin. Passez au supérieur pour plus.",
+  es: "Plan gratuito: 1 tienda. Mejora para más.",
+  ar: "الباقة المجانية: متجر واحد. ترقَّ للمزيد.",
+  ru: "Бесплатный план: 1 магазин. Обновите для большего.",
+  uk: "Безкоштовний план: 1 магазин. Оновіть для більшого.",
+  fa: "پلن رایگان: ۱ فروشگاه. ارتقا برای بیشتر.",
+  zh: "免费计划：1家店。升级可选更多。",
+  vi: "Gói miễn phí: 1 cửa hàng. Nâng cấp để chọn thêm.",
+  tr: "Ücretsiz plan: 1 mağaza. Daha fazlası için yükseltin.",
+};
+
+const PICK_HINT = {
+  en: "Pick at least one store to continue",
+  de: "Wähle mindestens ein Geschäft",
+  fr: "Choisissez au moins un magasin",
+  es: "Elige al menos una tienda",
+  ar: "اختر متجراً واحداً على الأقل",
+  ru: "Выберите хотя бы один магазин",
+  uk: "Оберіть хоча б один магазин",
+  fa: "حداقل یک فروشگاه انتخاب کنید",
+  zh: "请至少选择一家店",
+  vi: "Chọn ít nhất một cửa hàng",
+  tr: "Devam etmek için en az bir mağaza seçin",
+};
+
+export default function BudgetEasyEssentials({
+  budget, setBudget, days, setDays, people, setPeople,
+  onGenerate, canGenerate, maxDays, onSwitchDetailed,
+  selectedStores, setSelectedStores, isPro,
+}) {
   const { t, currentLanguage } = useLanguage();
   const more = MORE[currentLanguage?.code] || MORE.en;
+  const freeHint = FREE_HINT[currentLanguage?.code] || FREE_HINT.en;
+  const pickHint = PICK_HINT[currentLanguage?.code] || PICK_HINT.en;
+
+  const handleStoreClick = (storeId) => {
+    if (selectedStores.includes(storeId)) {
+      setSelectedStores(selectedStores.filter((s) => s !== storeId));
+    } else if (isPro) {
+      setSelectedStores([...selectedStores, storeId]);
+    } else {
+      // Free tier: max 1 store — replace current selection
+      setSelectedStores([storeId]);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-border bg-card p-5 space-y-6">
+        {/* Budget */}
         <div className="space-y-3">
           <BudgetInput value={budget[0]} onChange={(v) => setBudget([v])} label={t("monthlyBudget")} />
           <input
@@ -42,11 +102,45 @@ export default function BudgetEasyEssentials({ budget, setBudget, days, setDays,
           </div>
         </div>
 
+        {/* Stores */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Store className="h-4 w-4 text-primary" />
+            {t("preferredStores") || "Preferred stores"}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {GROCERY_STORES.map((store) => {
+              const isSelected = selectedStores.includes(store.id);
+              return (
+                <button
+                  key={store.id}
+                  onClick={() => handleStoreClick(store.id)}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {store.name}
+                </button>
+              );
+            })}
+          </div>
+          {!isPro && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              {freeHint}
+            </p>
+          )}
+        </div>
+
+        {/* Duration */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
           <DurationInput value={Number(days) || 1} onChange={setDays} max={maxDays} />
         </div>
 
+        {/* People */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">{t("numberOfPeople")}</label>
           <div className="flex gap-2">
@@ -64,6 +158,10 @@ export default function BudgetEasyEssentials({ budget, setBudget, days, setDays,
           </div>
         </div>
       </div>
+
+      {budget[0] > 0 && selectedStores.length === 0 && (
+        <p className="text-xs text-destructive text-center font-medium -mt-2">{pickHint}</p>
+      )}
 
       <Button
         onClick={onGenerate}
