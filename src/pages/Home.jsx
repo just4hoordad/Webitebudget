@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Utensils, ArrowRight } from "lucide-react";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useLanguage } from "@/lib/LanguageContext";
 import CreditBar from "@/components/monetization/CreditBar";
@@ -33,6 +35,15 @@ export default function Home() {
           <p className="text-sm text-white/80 mt-2">{t("planSubtitle")}</p>
         </div>
       </div>
+
+      <Link
+        to="/plan-builder"
+        className="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl bg-primary text-primary-foreground font-heading font-bold text-base shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
+      >
+        <Utensils className="h-5 w-5" />
+        {t("createMealPlan")}
+        <ArrowRight className="h-5 w-5" />
+      </Link>
 
       <PlanModeChooser />
 

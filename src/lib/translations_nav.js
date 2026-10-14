@@ -17,7 +17,8 @@ export const navTranslations = {
     navHomeSub: "Start & Offers",
     navMyPlanSub: "Plan & Shopping",
     navAccountSub: "Profile & Premium",
-    settings: "Settings"
+    settings: "Settings",
+    createMealPlan: "Create Meal Plan"
   },
   de: {
     aboutNav: "Über",
@@ -34,7 +35,8 @@ export const navTranslations = {
     navHomeSub: "Start & Angebote",
     navMyPlanSub: "Plan & Einkauf",
     navAccountSub: "Profil & Premium",
-    settings: "Einstellungen"
+    settings: "Einstellungen",
+    createMealPlan: "Essensplan erstellen"
   },
   fr: {
     aboutNav: "À propos",
