@@ -15,7 +15,7 @@ const PRO_BENEFITS = [
 ];
 
 const PRO_PLUS_BENEFITS = [
-  "50 generations per month",
+  "30 generations per month",
   "Everything in Pro, plus:",
   "Priority AI — faster generation",
   "Advanced macro controls",

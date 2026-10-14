@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import DurationInput from "@/components/DurationInput";
 import MacroRatioControl from "@/components/MacroRatioControl";
 import StepProgress from "@/components/StepProgress";
@@ -12,6 +13,8 @@ import { Users, CalendarDays, Scale, ArrowRight, Sparkles, ShoppingCart } from "
 
 export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed }) {
   const { t } = useLanguage();
+  const { isPro } = useMonetization();
+  const maxDays = isPro ? 30 : 7;
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
   const hasStores = stores.length > 0 || (selectedStoreLocations && selectedStoreLocations.length > 0);
@@ -94,7 +97,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       <SetupPart part="days" icon={CalendarDays} label={t("durationDays") || "Duration"}>
         <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("days")}`}>
-          <DurationInput value={days} onChange={setDays} onCommit={() => completePart("days")} />
+          <DurationInput value={days} onChange={setDays} onCommit={() => completePart("days")} max={maxDays} />
         </div>
       </SetupPart>
 

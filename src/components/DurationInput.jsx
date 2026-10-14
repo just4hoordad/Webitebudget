@@ -3,10 +3,16 @@ import { CalendarDays } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export default function DurationInput({ value, onChange, label, onCommit }) {
+export default function DurationInput({ value, onChange, label, onCommit, max = 30 }) {
   const { t } = useLanguage();
   const [draft, setDraft] = useState(String(value));
   useEffect(() => { setDraft(String(value)); }, [value]);
+
+  // Clamp the value when the allowed maximum shrinks (e.g. free tier capped at 7 days).
+  useEffect(() => {
+    if (value > max) onChange(max);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [max]);
 
   return (
     <div className="space-y-4">
@@ -18,13 +24,13 @@ export default function DurationInput({ value, onChange, label, onCommit }) {
             type="number"
             inputMode="numeric"
             min={1}
-            max={30}
+            max={max}
             value={draft}
             onFocus={e => e.target.select()}
             onChange={e => {
               setDraft(e.target.value);
               const val = parseInt(e.target.value, 10);
-              if (!isNaN(val) && val >= 1) onChange(Math.min(30, val));
+              if (!isNaN(val) && val >= 1) onChange(Math.min(max, val));
             }}
             onBlur={() => { setDraft(String(value)); if (value >= 1) onCommit?.(); }}
             onKeyDown={e => { if (onCommit && e.key === "Enter") e.currentTarget.blur(); }}
@@ -33,10 +39,10 @@ export default function DurationInput({ value, onChange, label, onCommit }) {
           <span className="text-sm">{t("days") || "days"}</span>
         </div>
       </div>
-      <Slider value={[value]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={30} step={1} className="w-full" />
+      <Slider value={[Math.min(value, max)]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={max} step={1} className="w-full" />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>1</span>
-        <span>30</span>
+        <span>{max}</span>
       </div>
     </div>
   );

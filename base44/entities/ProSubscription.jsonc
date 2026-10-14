@@ -22,7 +22,7 @@
         "pro_plus"
       ],
       "default": "pro",
-      "description": "Subscription tier: 'pro' (\u20ac3.99/mo, 15 credits) or 'pro_plus' (\u20ac9.99/mo, 50 credits)"
+      "description": "Subscription tier: 'pro' (\u20ac3.99/mo, 15 credits) or 'pro_plus' (\u20ac9.99/mo, 30 credits)"
     },
     "creditsRemaining": {
       "type": "number",

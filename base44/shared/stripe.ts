@@ -3,7 +3,7 @@ import { secrets } from "base44:runtime";
 export const PRO_PRODUCT_ID = "prod_V55hlAm96ZnHNa";
 export const PRO_PLUS_PRODUCT_ID = "prod_VRHRM0mfGKd04P";
 export const PRO_MONTHLY_CREDITS = 15;
-export const PRO_PLUS_MONTHLY_CREDITS = 50;
+export const PRO_PLUS_MONTHLY_CREDITS = 30;
 export const FREE_MONTHLY_CREDITS = 2;
 export const FREE_STARTER_CREDITS = 2;
 
