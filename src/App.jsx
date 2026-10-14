@@ -15,7 +15,6 @@ import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
 import RepoStats from './pages/RepoStats';
 import Recipes from '@/pages/Recipes';
-import QwenEval from '@/pages/QwenEval';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -53,7 +52,6 @@ function App() {
                 <Route path="/datenschutz" element={<Datenschutz />} />
                 <Route path="/repo-stats" element={<RepoStats />} />
                 <Route path="/recipes" element={<Recipes />} />
-                <Route path="/qwen-eval" element={<QwenEval />} />
               </Route>
               <Route path="/share/:token" element={<SharedPlan />} />
               <Route path="*" element={<PageNotFound />} />
