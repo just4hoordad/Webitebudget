@@ -65,7 +65,7 @@ export async function callOpenRouter({
     "google/gemini-2.0-flash-001"
   ]);
 
-  let selectedModel = "google/gemini-2.5-flash";
+  let selectedModel = "google/gemini-2.0-flash-001";
   if (model && ALLOWED_OPENROUTER_MODELS.has(model)) {
     selectedModel = model;
   }
