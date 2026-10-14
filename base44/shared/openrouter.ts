@@ -62,10 +62,11 @@ export async function callOpenRouter({
     "google/gemini-2.5-pro",
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
-    "google/gemini-2.0-flash-001"
+    "google/gemini-2.0-flash-001",
+    "mistralai/mistral-small-24b-instruct-2501"
   ]);
 
-  let selectedModel = "google/gemini-2.0-flash-001";
+  let selectedModel = "mistralai/mistral-small-24b-instruct-2501";
   if (model && ALLOWED_OPENROUTER_MODELS.has(model)) {
     selectedModel = model;
   }
