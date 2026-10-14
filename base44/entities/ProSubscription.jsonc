@@ -22,11 +22,11 @@
         "pro_plus"
       ],
       "default": "pro",
-      "description": "Subscription tier: 'pro' (\u20ac3.99/mo, 30 credits) or 'pro_plus' (\u20ac9.99/mo, 100 credits)"
+      "description": "Subscription tier: 'pro' (\u20ac3.99/mo, 15 credits) or 'pro_plus' (\u20ac9.99/mo, 50 credits)"
     },
     "creditsRemaining": {
       "type": "number",
-      "default": 30,
+      "default": 15,
       "description": "Generations remaining this billing period"
     },
     "periodEnd": {

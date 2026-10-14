@@ -6,9 +6,9 @@ import AdInterstitial from "@/components/monetization/AdInterstitial";
 import ProPricingModal from "@/components/monetization/ProPricingModal";
 import DonationModal from "@/components/monetization/DonationModal";
 
-const FREE_MONTHLY = 3;
-const PRO_MONTHLY = 30;
-const PRO_PLUS_MONTHLY = 100;
+const FREE_MONTHLY = 2;
+const PRO_MONTHLY = 15;
+const PRO_PLUS_MONTHLY = 50;
 const FREE_KEY = "bb_free_credits";
 const FREE_PERIOD_KEY = "bb_free_period_start";
 const PRO_KEY = "bb_pro_status";

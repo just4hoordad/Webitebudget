@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useMonetization } from "@/lib/MonetizationContext";
 
 const PRO_BENEFITS = [
-  "30 generations per month",
+  "15 generations per month",
   "On-demand recipes for every meal",
   "100% ad-free experience",
   "Pro badge next to your name",
@@ -15,7 +15,7 @@ const PRO_BENEFITS = [
 ];
 
 const PRO_PLUS_BENEFITS = [
-  "100 generations per month",
+  "50 generations per month",
   "Everything in Pro, plus:",
   "Priority AI — faster generation",
   "Advanced macro controls",
