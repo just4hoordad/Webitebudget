@@ -241,7 +241,7 @@ ${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact 
 ${effEnabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
 
 PREP GUIDE: In the same response, under "prep", write a short cooking guide for each day. Return a "days" array with exactly ${plan.length} entries, one per plan day in order. For each day provide "breakfast", "lunch", "dinner" objects; each object has: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical cooking steps). Leave a meal object with meal: "" if that slot is blank. All prep text in ${currentLanguage.label}.` : ""}`,
-        model: "gemini_3_flash",
+        model: "google/gemini-2.5-flash",
         response_json_schema: prepEnabled ? {
           type: "object",
           properties: {
