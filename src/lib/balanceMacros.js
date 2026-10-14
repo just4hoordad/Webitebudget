@@ -54,11 +54,11 @@ export function balanceMacros(result, p) {
   }).filter((x) => x.unit > 0);
 
   const needMoreProtein = devP < -8;
-  const needFewerCarbs = devC > 8;
 
-  // Phase 1: Scale DOWN carb-heavy items first — this frees up budget
-  // for more protein without exceeding the cap.
-  if (needMoreProtein && needFewerCarbs) {
+  // Phase 1: When protein needs boosting, always trim carb-heavy items first.
+  // This frees up budget for protein scaling — even when carb deviation is
+  // only marginal, the budget room is what matters for the protein scale-up.
+  if (needMoreProtein) {
     const carbItems = info
       .filter((x) => x.carbShare > 0.50 && x.protShare < 0.15)
       .sort((a, b) => b.carbShare - a.carbShare);
@@ -93,7 +93,7 @@ export function balanceMacros(result, p) {
     proteinItems.forEach((x) => { x.n = Math.max(MIN_PACKS, Math.floor(x.n * 0.75)); });
     const otherItems = info.filter((x) => x.carbShare > 0.4 || (x.fatPack * 9) / (x.kcalPack || 1) > 0.4).sort((a, b) => b.carbShare - a.carbShare);
     otherItems.forEach((x) => { x.n = Math.min(MAX_PACKS, Math.ceil(x.n * 1.3)); });
-  } else if (needFewerCarbs) {
+  } else if (devC > 8) {
     const carbItems = info.filter((x) => x.carbShare > 0.55).sort((a, b) => b.carbShare - a.carbShare);
     carbItems.forEach((x) => { x.n = Math.max(MIN_PACKS, Math.floor(x.n * 0.8)); });
   } else if (split.fats - targetF > 8) {
