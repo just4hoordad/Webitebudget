@@ -58,6 +58,20 @@
       "type": "object",
       "description": "Cached on-demand cooking recipes keyed by meal signature (weekIndex:dayIndex:mealType). Each value holds the mealName and the generated recipe so re-opening a meal shows the cached recipe without a new LLM call."
     },
+    "lockedMeals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Meal signatures (weekIndex:dayIndex:mealType) the user pinned so 'Regenerate remaining' skips them."
+    },
+    "cookingDays": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Day signatures (weekIndex:dayIndex) the user marked as cook days (vs. rest/leftover days)."
+    },
     "shareToken": {
       "type": "string",
       "description": "Unique public share token. When set, the plan is readable via the public share route (getSharedPlan). Empty/absent means not shared."

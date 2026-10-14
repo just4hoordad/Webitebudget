@@ -1042,7 +1042,9 @@ Return only the days that have meals to regenerate.`;
         macros: macros || undefined,
         plan: { weeks: weeklyPlan.weeks, type: weeklyPlan.type },
         groceryList: groceries,
-        recipes: Object.keys(recipes).length > 0 ? recipes : undefined
+        recipes: Object.keys(recipes).length > 0 ? recipes : undefined,
+        lockedMeals: lockedMeals.size > 0 ? [...lockedMeals] : undefined,
+        cookingDays: cookingDays.size > 0 ? [...cookingDays] : undefined,
   });
 
   // Auto-save: once a plan is generated (and after every edit/swap/grocery
@@ -1064,7 +1066,7 @@ Return only the days that have meals to regenerate.`;
       setSaved(true);
     })().catch((e) => toast.error("Auto-save failed: " + (e?.message || "Unknown error")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weeklyPlan, recipes, groceries]);
+  }, [weeklyPlan, recipes, groceries, lockedMeals, cookingDays]);
 
   const saveMealPlan = async () => {
     if (!weeklyPlan || saved) return;
