@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Wallet, Flame, Users, Target, RefreshCw, CalendarDays, Check, Sparkles, Utensils } from "lucide-react";
 import { REASSURANCE_STR } from "@/components/ReassuranceRecap";
 import MacroBreakdown from "@/components/MacroBreakdown";
 
@@ -37,6 +37,7 @@ export default function PlanReview() {
   const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
 
   const [planStyle, setPlanStyle] = useState(params.get("planStyle") === "unique" ? "unique" : "repeat");
+  const [planMode, setPlanMode] = useState("suggested");
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -73,9 +74,15 @@ export default function PlanReview() {
 
   const confirm = () => {
     const u = new URLSearchParams(window.location.search);
-    u.set("planStyle", planStyle);
-    window.scrollTo(0, 0);
-    navigate(`/meal-plan?${u.toString()}`);
+    if (planMode === "custom") {
+      u.set("mode", "custom");
+      window.scrollTo(0, 0);
+      navigate(`/plan-builder?${u.toString()}`);
+    } else {
+      u.set("planStyle", planStyle);
+      window.scrollTo(0, 0);
+      navigate(`/meal-plan?${u.toString()}`);
+    }
   };
 
   return (
@@ -131,7 +138,52 @@ export default function PlanReview() {
 
       <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
 
-      {/* Plan style selection */}
+      {/* Suggested vs Custom choice */}
+      <div className="pt-1">
+        <h2 className="font-heading text-xl font-bold text-foreground">{L("choosePlanType", "How do you want to plan?")}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{L("choosePlanTypeDesc", "Pick a suggested plan or build your own from scratch.")}</p>
+
+        <div className="mt-4 space-y-3">
+          <button
+            onClick={() => setPlanMode("suggested")}
+            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
+              planMode === "suggested"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/40"
+            }`}
+          >
+            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planMode === "suggested" ? "bg-primary/10" : "bg-muted"}`}>
+              <Sparkles className={`h-5 w-5 ${planMode === "suggested" ? "text-primary" : "text-muted-foreground"}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading font-semibold text-foreground">{L("suggestedPlan", "Suggested plan")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{L("suggestedPlanDesc", "We generate a cost-effective meal plan and shopping list for you. Review, swap meals, and confirm.")}</p>
+            </div>
+            {planMode === "suggested" && <Check className="h-5 w-5 text-primary shrink-0" />}
+          </button>
+
+          <button
+            onClick={() => setPlanMode("custom")}
+            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
+              planMode === "custom"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/40"
+            }`}
+          >
+            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planMode === "custom" ? "bg-primary/10" : "bg-muted"}`}>
+              <Utensils className={`h-5 w-5 ${planMode === "custom" ? "text-primary" : "text-muted-foreground"}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading font-semibold text-foreground">{L("customPlan", "Custom plan")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{L("customPlanDesc", "Pick your own meals for each day, then we build the shopping list to match.")}</p>
+            </div>
+            {planMode === "custom" && <Check className="h-5 w-5 text-primary shrink-0" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Plan style selection — only for Suggested mode */}
+      {planMode === "suggested" && (
       <div className="pt-1">
         <h2 className="font-heading text-xl font-bold text-foreground">{t("weeklyPlanTitle")}</h2>
         <p className="text-sm text-muted-foreground mt-0.5">{t("weeklyPlanSubtitle")}</p>
@@ -174,6 +226,7 @@ export default function PlanReview() {
           </button>
         </div>
       </div>
+      )}
 
       <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+80px)] z-30 -mx-1 px-1 pt-3 pb-2 bg-gradient-to-t from-background via-background/95 to-background/0">
         <Button
@@ -181,7 +234,7 @@ export default function PlanReview() {
           className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
           size="lg"
         >
-          {t("reviewConfirm") || "Confirm & generate"}
+          {planMode === "custom" ? (L("customConfirm", "Build my plan") ) : (t("reviewConfirm") || "Confirm & generate")}
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>

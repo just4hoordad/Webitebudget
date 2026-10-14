@@ -309,7 +309,7 @@ export default function Layout() {
             </div>
             <div className="border-t border-border" />
             <Link
-              to="/plan-builder"
+              to="/budget"
               className="flex items-center justify-center gap-2 py-2.5 mx-2 mb-2 mt-1 rounded-full bg-[#A8F21D] text-black font-heading font-bold text-sm hover:brightness-95 transition-all"
             >
               <Utensils className="h-4 w-4" />
