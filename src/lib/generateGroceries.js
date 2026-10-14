@@ -11,6 +11,7 @@ import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { brandifyNames } from "@/lib/brandifyNames";
 import { fetchBrandCatalog } from "@/lib/brandCatalog";
 import { consolidatePacks } from "@/lib/consolidatePacks";
+import { addProteinSupplements } from "@/lib/proteinSupplements";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
 
 const GROCERY_SCHEMA = {
@@ -603,8 +604,11 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // carb-heavy items down (or reverse) without another AI call. Runs before
   // topUpCalories so the proportional calorie scaling preserves the improved
   // macro split rather than re-skewing it.
+  // Bodybuilder protein target (>=35%): add whey protein powder / bars to
+  // help close the protein gap that groceries alone can't reach.
   if (p.macros) {
     result = normalizeGroceryTotal(balanceMacros(result, p));
+    result = addProteinSupplements(result, p);
   }
   if (listKcal(result) < Number(p.calories) * p.days * 0.98) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));

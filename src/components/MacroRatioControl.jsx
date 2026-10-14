@@ -2,11 +2,11 @@ import { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Beef, Wheat, Droplet } from "lucide-react";
+import { Beef, Wheat, Droplet, Dumbbell } from "lucide-react";
 
 const PRESETS = [
   { id: "balanced", key: "balanced", protein: 30, carbs: 40, fats: 30 },
-  { id: "high-protein", key: "highProtein", protein: 40, carbs: 40, fats: 20 },
+  { id: "high-protein", key: "highProtein", protein: 30, carbs: 40, fats: 30 },
   { id: "keto", key: "keto", protein: 25, carbs: 5, fats: 70 },
   { id: "low-fat", key: "lowFat", protein: 25, carbs: 60, fats: 15 },
   { id: "custom", key: "custom", protein: 30, carbs: 40, fats: 30 },
@@ -126,6 +126,17 @@ export default function MacroRatioControl({ value, onChange, active, onToggle, u
             </div>
           ))}
         </div>
+
+        {/* Bodybuilder note — shown when protein target is >=35% */}
+        {value.protein >= 35 && (
+          <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-3">
+            <Dumbbell className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-amber-800 leading-tight">{t("bodybuilderNoteTitle")}</p>
+              <p className="text-[11px] text-amber-700 leading-snug mt-1">{t("bodybuilderNoteBody")}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
