@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BudgetInput from "@/components/BudgetInput";
@@ -81,6 +82,8 @@ function SectionToggle({ active, onToggle, label }) {
 export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isPro, openPricing } = useMonetization();
+  const maxDays = isPro ? 30 : 7;
   const [budget, setBudget] = useState([0]);
   const [selectedStores, setSelectedStores] = useState([]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
@@ -308,7 +311,7 @@ export default function BudgetForm() {
               <SpendModeSelector value={spendMode} onChange={setSpendMode} />
 
               {/* Duration */}
-              <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} />
+              <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} maxDays={maxDays} isPro={isPro} onUpgrade={openPricing} />
 
               {/* People */}
               <div className="space-y-3">
