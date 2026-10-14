@@ -517,7 +517,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     // trying to make the AI recalculate a sum it already got wrong.
     return normalizeGroceryTotal(withAlternatives);
   };
-  const call = (prompt, model = "google/gemini-2.0-flash-001") => invokeAI({
+  const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
     prompt,
     add_context_from_internet: false,
     model,
@@ -534,7 +534,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
     const prevList = JSON.stringify(result);
-    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "google/gemini-2.0-flash-001");
+    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
     savePriceObservations(rawRetry, p.postalCode, p.diet);
     const retry = prepare(rawRetry);
     const retryIssues = validateGroceries(retry, p);
@@ -554,7 +554,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   for (let hardAttempt = 0; hardAttempt < 1 && hasHardIssues(result, p); hardAttempt++) {
     const prevList = JSON.stringify(result);
     const hardIssues = validateGroceries(result, p).filter((m) => m.includes("kcal") || m.includes("total_estimated_cost"));
-    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. You MUST fix both:\n1. CALORIES: The total calories across ALL items must reach at least ${Math.round(Number(p.calories) * p.days * 0.98)} kcal for ${p.days} days at ${p.calories} kcal/day. Increase the pack count (the N in "N × pack size") of EVERY main staple — grains, bread, pasta, rice, oats, dairy, meat, oils — until the sum of total_kcal is at least ${Math.round(Number(p.calories) * p.days * 0.98)}. Do NOT just add one item; scale them all up proportionally.\n2. TOTAL COST: Set total_estimated_cost to EXACTLY the sum of all item prices (price = unit_price × N for each item, then sum all prices). Do not report a higher number.\nDo not reduce variety. Return the complete corrected list with alternatives.`, "google/gemini-2.0-flash-001");
+    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. You MUST fix both:\n1. CALORIES: The total calories across ALL items must reach at least ${Math.round(Number(p.calories) * p.days * 0.98)} kcal for ${p.days} days at ${p.calories} kcal/day. Increase the pack count (the N in "N × pack size") of EVERY main staple — grains, bread, pasta, rice, oats, dairy, meat, oils — until the sum of total_kcal is at least ${Math.round(Number(p.calories) * p.days * 0.98)}. Do NOT just add one item; scale them all up proportionally.\n2. TOTAL COST: Set total_estimated_cost to EXACTLY the sum of all item prices (price = unit_price × N for each item, then sum all prices). Do not report a higher number.\nDo not reduce variety. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
     savePriceObservations(rawHard, p.postalCode, p.diet);
     const hardResult = prepare(rawHard);
     // Only accept the hard retry if it's actually better and doesn't bust budget.

@@ -174,7 +174,7 @@ Return only the JSON object.`;
     res = await callOpenRouter({
       prompt,
       add_context_from_internet: true,
-      model: "google/gemini-2.0-flash-001",
+      model: "openai/gpt-4o-mini",
       response_json_schema: {
         type: "object",
         properties: {
@@ -376,7 +376,7 @@ Return only the JSON object.`;
     res = await callOpenRouter({
       prompt,
       add_context_from_internet: true,
-      model: "google/gemini-2.0-flash-001",
+      model: "openai/gpt-4o-mini",
       response_json_schema: {
         type: "object",
         properties: {
