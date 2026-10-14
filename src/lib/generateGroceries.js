@@ -6,6 +6,7 @@ import { verifyPrices } from "@/lib/verifyPrices";
 import { fetchKnownPrices } from "@/lib/knownPrices";
 export { fetchKnownPrices } from "@/lib/knownPrices";
 import { topUpCalories } from "@/lib/calorieTopUp";
+import { balanceMacros } from "@/lib/balanceMacros";
 import { applySpendingAlternatives } from "@/lib/groceryAlternatives";
 import { brandifyNames } from "@/lib/brandifyNames";
 import { fetchBrandCatalog } from "@/lib/brandCatalog";
@@ -597,6 +598,14 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
+  // Deterministic macro rebalance FIRST: if the protein/carb/fat split is
+  // still >8pp off target after all retries, scale protein-rich items up and
+  // carb-heavy items down (or reverse) without another AI call. Runs before
+  // topUpCalories so the proportional calorie scaling preserves the improved
+  // macro split rather than re-skewing it.
+  if (p.macros) {
+    result = normalizeGroceryTotal(balanceMacros(result, p));
+  }
   if (listKcal(result) < Number(p.calories) * p.days * 0.98) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
   }
