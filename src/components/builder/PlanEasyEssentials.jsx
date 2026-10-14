@@ -1,7 +1,8 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, SlidersHorizontal, Leaf, Beef, Fish, Wheat, Scale, Microwave } from "lucide-react";
+import { ArrowRight, SlidersHorizontal, Leaf, Beef, Fish, Wheat, Scale, Microwave, Store } from "lucide-react";
+import { GROCERY_STORES } from "@/lib/groceryStores";
 
 const DIETS = [
   { id: "balanced", nameKey: "balanced", Icon: Scale },
@@ -28,9 +29,68 @@ const MORE = {
   tr: "Daha fazla kontrol mü? Detaylı'ya geç",
 };
 
-export default function PlanEasyEssentials({ diet, setDiet, days, setDays, people, setPeople, onBuild, canBuild, maxDays, onSwitchDetailed }) {
+const FREE_HINT = {
+  en: "Free plan: 1 store. Upgrade for multiple.",
+  de: "Gratis-Tarif: 1 Geschäft. Upgrade für mehrere.",
+  fr: "Plan gratuit : 1 magasin. Passez au supérieur pour plus.",
+  es: "Plan gratuito: 1 tienda. Mejora para más.",
+  ar: "الباقة المجانية: متجر واحد. ترقَّ للمزيد.",
+  ru: "Бесплатный план: 1 магазин. Обновите для большего.",
+  uk: "Безкоштовний план: 1 магазин. Оновіть для більшого.",
+  fa: "پلن رایگان: ۱ فروشگاه. ارتقا برای بیشتر.",
+  zh: "免费计划：1家店。升级可选更多。",
+  vi: "Gói miễn phí: 1 cửa hàng. Nâng cấp để chọn thêm.",
+  tr: "Ücretsiz plan: 1 mağaza. Daha fazlası için yükseltin.",
+};
+
+const PRO_HINT = {
+  en: "Up to 4 stores per plan.",
+  de: "Bis zu 4 Geschäfte pro Plan.",
+  fr: "Jusqu'à 4 magasins par plan.",
+  es: "Hasta 4 tiendas por plan.",
+  ar: "حتى 4 متاجر لكل خطة.",
+  ru: "До 4 магазинов на план.",
+  uk: "До 4 магазинів на план.",
+  fa: "تا ۴ فروشگاه برای هر برنامه.",
+  zh: "每个计划最多4家店。",
+  vi: "Tối đa 4 cửa hàng mỗi kế hoạch.",
+  tr: "Her plan için en fazla 4 mağaza.",
+};
+
+const PICK_HINT = {
+  en: "Pick at least one store to continue",
+  de: "Wähle mindestens ein Geschäft",
+  fr: "Choisissez au moins un magasin",
+  es: "Elige al menos una tienda",
+  ar: "اختر متجراً واحداً على الأقل",
+  ru: "Выберите хотя бы один магазин",
+  uk: "Оберіть хоча б один магазин",
+  fa: "حداقل یک فروشگاه انتخاب کنید",
+  zh: "请至少选择一家店",
+  vi: "Chọn ít nhất một cửa hàng",
+  tr: "Devam etmek için en az bir mağaza seçin",
+};
+
+export default function PlanEasyEssentials({ diet, setDiet, days, setDays, people, setPeople, onBuild, canBuild, maxDays, onSwitchDetailed, stores, toggleStore, isPro }) {
   const { t, currentLanguage } = useLanguage();
   const more = MORE[currentLanguage?.code] || MORE.en;
+  const freeHint = FREE_HINT[currentLanguage?.code] || FREE_HINT.en;
+  const proHint = PRO_HINT[currentLanguage?.code] || PRO_HINT.en;
+  const pickHint = PICK_HINT[currentLanguage?.code] || PICK_HINT.en;
+
+  const handleStoreClick = (storeId) => {
+    if (stores.includes(storeId)) {
+      toggleStore(storeId);
+    } else if (isPro) {
+      if (stores.length >= 4) return;
+      toggleStore(storeId);
+    } else {
+      // Free tier: max 1 store — replace current selection
+      stores.forEach((s) => toggleStore(s));
+      toggleStore(storeId);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-border bg-card p-5 space-y-6">
@@ -56,6 +116,36 @@ export default function PlanEasyEssentials({ diet, setDiet, days, setDays, peopl
           </div>
         </div>
 
+        {/* Stores */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Store className="h-4 w-4 text-primary" />
+            {t("preferredStores") || "Preferred stores"}
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {GROCERY_STORES.map((store) => {
+              const isSelected = stores.includes(store.id);
+              return (
+                <button
+                  key={store.id}
+                  onClick={() => handleStoreClick(store.id)}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {store.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            {isPro ? proHint : freeHint}
+          </p>
+        </div>
+
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">{t("numberOfPeople")}</label>
           <div className="flex gap-2">
@@ -78,6 +168,10 @@ export default function PlanEasyEssentials({ diet, setDiet, days, setDays, peopl
           <DurationInput value={Number(days) || 1} onChange={setDays} max={maxDays} />
         </div>
       </div>
+
+      {stores.length === 0 && (
+        <p className="text-xs text-destructive text-center font-medium -mt-2">{pickHint}</p>
+      )}
 
       <Button
         onClick={onBuild}

@@ -84,9 +84,12 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
           people={people}
           setPeople={setPeople}
           onBuild={onBuild}
-          canBuild={!!diet && people > 0 && days >= 1}
+          canBuild={!!diet && people > 0 && days >= 1 && stores.length > 0}
           maxDays={maxDays}
           onSwitchDetailed={() => onEasyModeChange("detailed")}
+          stores={stores}
+          toggleStore={toggleStore}
+          isPro={isPro}
         />
       ) : (
       <>

@@ -20,6 +20,7 @@ import { ArrowLeft, Share2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LastResultButton from "@/components/LastResultButton";
 import { saveLastPlan, getLastPlan } from "@/lib/lastResult";
+import { storeNameFromId } from "@/lib/groceryStores";
 
 const PREFS_KEY = "bb_planbuilder_prefs";
 const RECENT_KEY = "bb_recent_meals";
@@ -64,7 +65,16 @@ export default function PlanBuilder() {
   const [prepEnabled, setPrepEnabled] = useState(true);
   const [easyMode, setEasyMode] = useState(() => localStorage.getItem("bb_planbuilder_easy") !== "detailed");
   const handleEasyChange = (v) => { setEasyMode(v === "easy"); try { localStorage.setItem("bb_planbuilder_easy", v); } catch { /* ignore */ } };
-  const effEnabled = easyMode ? { diet: true, people: true, days: true, stores: false, macros: false } : enabled;
+  const effEnabled = easyMode ? { diet: true, people: true, days: true, stores: true, macros: false } : enabled;
+  // Easy mode: only button selections. Detailed mode: pinned locations take priority, then buttons.
+  const activeStoreNames = easyMode
+    ? stores.map(storeNameFromId)
+    : (selectedStoreLocations.length > 0 ? selectedStoreLocations.map((s) => s.name) : stores.map(storeNameFromId));
+  const promptStoreList = easyMode
+    ? activeStoreNames.join(", ")
+    : (selectedStoreLocations.length > 0
+        ? selectedStoreLocations.map((s) => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
+        : activeStoreNames.join(", "));
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
   const [prep, setPrep] = useState(null);
@@ -193,9 +203,7 @@ export default function PlanBuilder() {
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
-      const allowedStores = effEnabled.stores
-        ? (selectedStoreLocations.length > 0 ? [...new Set(selectedStoreLocations.map((s) => s.name))] : stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)))
-        : [];
+      const allowedStores = effEnabled.stores ? activeStoreNames : [];
       const { text: knownPricesText, known: knownMap } = await fetchKnownPrices(postalCode, allowedStores);
       const storeField = allowedStores.length ? { type: "string", enum: allowedStores } : { type: "string" };
       const lines = plan
@@ -222,7 +230,7 @@ ${effEnabled.macros ? `\nThe user's target macronutrient split is protein ${macr
 For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) over the whole plan.
 ${effEnabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
-- Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
+- Use real 2024-2025 German supermarket branded product names from these stores: ${effEnabled.stores ? promptStoreList : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact matching shelf names and pack sizes, without changing the user's dishes):\n${knownPricesText}` : ""}
 - quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
@@ -323,7 +331,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         name: `${plan.length}-${t("days")} · ${new Date().toLocaleDateString(currentLanguage.code)}`,
         diet,
         people,
-        stores: selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name).join(", ") : stores.join(", "),
+        stores: activeStoreNames.join(", "),
         days: plan.length,
         postalCode,
         macros,
@@ -384,7 +392,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           days={plan.length}
           people={people}
           diet={diet}
-          stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores}
+          stores={activeStoreNames}
           onReset={reset}
           footer={shareFooter}
           onGroceryChange={setGrocery}
@@ -404,7 +412,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         plan={plan}
         people={people}
         diet={diet}
-        stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores}
+        stores={activeStoreNames}
         prepEnabled={prepEnabled}
         onBack={() => setPhase("grid")}
         onConfirm={handleGenerate}
@@ -422,7 +430,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           <CreditBar variant="onLight" />
         </div>
         {loadingGrocery ? (
-          <GeneratingLoader type="grocery" stores={selectedStoreLocations.length ? selectedStoreLocations.map((s) => s.name) : stores} />
+          <GeneratingLoader type="grocery" stores={activeStoreNames} />
         ) : (
           <PlanGrid days={days} plan={plan} setSlot={setSlot} addDish={addDish} updateDish={updateDish} removeDish={removeDish} addSideDish={addSideDish} onAutoFill={autoFillMeals} autofilling={autofilling} onGenerate={() => { setPhase("confirm"); window.scrollTo(0, 0); }} generating={loadingGrocery} prepEnabled={prepEnabled} setPrepEnabled={setPrepEnabled} onSuggest={suggestMeal} suggesting={suggesting} recentMeals={recentMeals} diet={diet} />
         )}
