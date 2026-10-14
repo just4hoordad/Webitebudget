@@ -45,6 +45,20 @@ const FREE_HINT = {
   tr: "Ücretsiz plan: 1 mağaza. Daha fazlası için yükseltin.",
 };
 
+const PRO_HINT = {
+  en: "Up to 4 stores per plan.",
+  de: "Bis zu 4 Geschäfte pro Plan.",
+  fr: "Jusqu'à 4 magasins par plan.",
+  es: "Hasta 4 tiendas por plan.",
+  ar: "حتى 4 متاجر لكل خطة.",
+  ru: "До 4 магазинов на план.",
+  uk: "До 4 магазинів на план.",
+  fa: "تا ۴ فروشگاه برای هر برنامه.",
+  zh: "每个计划最多4家店。",
+  vi: "Tối đa 4 cửa hàng mỗi kế hoạch.",
+  tr: "Her plan için en fazla 4 mağaza.",
+};
+
 const PICK_HINT = {
   en: "Pick at least one store to continue",
   de: "Wähle mindestens ein Geschäft",
@@ -67,12 +81,14 @@ export default function BudgetEasyEssentials({
   const { t, currentLanguage } = useLanguage();
   const more = MORE[currentLanguage?.code] || MORE.en;
   const freeHint = FREE_HINT[currentLanguage?.code] || FREE_HINT.en;
+  const proHint = PRO_HINT[currentLanguage?.code] || PRO_HINT.en;
   const pickHint = PICK_HINT[currentLanguage?.code] || PICK_HINT.en;
 
   const handleStoreClick = (storeId) => {
     if (selectedStores.includes(storeId)) {
       setSelectedStores(selectedStores.filter((s) => s !== storeId));
     } else if (isPro) {
+      if (selectedStores.length >= 4) return;
       setSelectedStores([...selectedStores, storeId]);
     } else {
       // Free tier: max 1 store — replace current selection
@@ -126,12 +142,10 @@ export default function BudgetEasyEssentials({
               );
             })}
           </div>
-          {!isPro && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-              {freeHint}
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            {isPro ? proHint : freeHint}
+          </p>
         </div>
 
         {/* Duration */}

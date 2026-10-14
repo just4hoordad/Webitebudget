@@ -176,11 +176,11 @@ export default function BudgetForm() {
   };
 
   const toggleStore = (storeId) => {
-    setSelectedStores((prev) =>
-      prev.includes(storeId)
-        ? prev.filter((s) => s !== storeId)
-        : [...prev, storeId]
-    );
+    setSelectedStores((prev) => {
+      if (prev.includes(storeId)) return prev.filter((s) => s !== storeId);
+      if (prev.length >= 4) return prev;
+      return [...prev, storeId];
+    });
   };
 
   const metricsFilled = ["height", "weight", "age"].every((k) => Number(calorieMetrics[k]) > 0);
@@ -531,6 +531,10 @@ export default function BudgetForm() {
                 />
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                {t("maxStoresHint") || "Up to 4 stores"}
+              </p>
               <StoreSpeedHint />
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
