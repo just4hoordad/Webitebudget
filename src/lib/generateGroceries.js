@@ -618,12 +618,15 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // Last pass: brandify any generic names introduced by top-up / padding.
   result = brandifyNames(result, known, brandCatalog);
   if (managedSpending) {
-    // Save minimizes genuine costs; its 80% goal must never remove needed meals.
+    // If post-processing (calorie top-up, protein supplements, macro balancing)
+    // pushed the cost back over budget after the earlier trim, do a final trim
+    // instead of failing with a blank error — a slightly under-calorie list is
+    // far better UX than no list at all. The UI already shows an "over budget"
+    // indicator if the trim can't fully reconcile.
+    if (grocerySpending(result).main > Number(p.budget)) {
+      result = normalizeGroceryTotal(trimToBudget(result, budgetCap(p)));
+    }
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
-    // Only a list that busts the main budget is unusable. Soft issues (macro
-    // split a few points off, balanced slightly under 92%) still show the list
-    // — it just isn't cached/shared below.
-    if (grocerySpending(result).main > Number(p.budget)) throw new Error(spendingFailureMessage(p.spendMode || "balanced", langCode));
   }
 
   // Only persist lists that pass validation, so bad output never gets
