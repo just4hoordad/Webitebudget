@@ -7,12 +7,12 @@ import { ArrowRight } from "lucide-react";
 export default function StickyGenerateBar({ visible, onClick, disabled, label, icon: Icon = ArrowRight }) {
   return (
     <div
-      className={`md:hidden fixed left-3 right-3 z-40 transition-all duration-300 ease-out ${
+      className={`md:hidden fixed left-3 right-3 z-[60] transition-all duration-300 ease-out ${
         visible
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-6 pointer-events-none"
       }`}
-      style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 145px)" }}
     >
       <Button
         onClick={onClick}
