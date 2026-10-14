@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Shuffle, Edit2, Plus, Sun, Utensils, Moon, ChefHat, Lock, ChevronDown, Flame } from "lucide-react";
+import ExtendableList from "@/components/ExtendableList";
 
 // Per-day card layout: each day is a vertical card with breakfast/lunch/dinner rows.
 // Clearer on mobile than a horizontal day×meal grid. Days are collapsible to
 // keep long plans scannable — only the first day is expanded by default.
 // Supports cooking-day toggles and meal locking — locked meals survive
 // "regenerate remaining" because the parent skips them.
+// Long plans (24-30 days) are progressively disclosed via ExtendableList so
+// only the first 7 day cards render until the user expands.
 const MEAL_TYPES = [
   { type: "breakfast", labelKey: "breakfast", Icon: Sun },
   { type: "lunch", labelKey: "lunch", Icon: Utensils },
@@ -31,7 +34,10 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRec
 
   return (
     <div className="space-y-3">
-      {days.map((day, dayIdx) => {
+      <ExtendableList
+        items={days}
+        limit={7}
+        renderItem={(day, dayIdx) => {
         const dayTotal =
           (day.breakfast_calories || 0) +
           (day.lunch_calories || 0) +
@@ -173,7 +179,8 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRec
             )}
           </div>
         );
-      })}
+      }}
+      />
     </div>
   );
 }

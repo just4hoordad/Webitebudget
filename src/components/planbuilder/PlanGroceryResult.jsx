@@ -28,6 +28,7 @@ import GrocerySortToggle from "@/components/GrocerySortToggle";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
+import ExtendableList from "@/components/ExtendableList";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -692,7 +693,10 @@ export default function PlanGroceryResult({
           <p className="text-xs text-muted-foreground">{t("planPrepSubtitle")}</p>
 
           <div className="space-y-3">
-            {prep.days?.map((d, i) => {
+            <ExtendableList
+              items={prep.days || []}
+              limit={7}
+              renderItem={(d, i) => {
               const meals = MEAL_SLOTS.map((s) => ({ ...s, data: d[s.key] })).filter(
                 (s) => s.data && s.data.meal
               );
@@ -735,7 +739,8 @@ export default function PlanGroceryResult({
                   </div>
                 </div>
               );
-            })}
+            }}
+            />
           </div>
         </div>
       )}
