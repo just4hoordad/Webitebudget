@@ -59,11 +59,12 @@ export async function callOpenRouter({
 
   // Enforce strict allowlist of low-cost models to prevent cost abuse
   const ALLOWED_OPENROUTER_MODELS = new Set([
+    "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
     "google/gemini-2.0-flash-001"
   ]);
 
-  let selectedModel = "openai/gpt-4o-mini";
+  let selectedModel = "google/gemini-2.5-flash";
   if (model && ALLOWED_OPENROUTER_MODELS.has(model)) {
     selectedModel = model;
   }

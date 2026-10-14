@@ -83,7 +83,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 24; // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 25; // v25: switched to gemini-2.5-flash for stronger reasoning // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -508,7 +508,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     const consolidated = consolidatePacks(corrected, p);
     return managedSpending ? applySpendingAlternatives(consolidated, p, qualityIssues) : normalizeGroceryTotal(consolidated);
   };
-  const call = (prompt, model = "openai/gpt-4o-mini") => invokeAI({
+  const call = (prompt, model = "google/gemini-2.5-flash") => invokeAI({
     prompt,
     add_context_from_internet: false,
     model,
@@ -525,7 +525,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
     const prevList = JSON.stringify(result);
-    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
+    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
     savePriceObservations(rawRetry, p.postalCode, p.diet);
     const retry = prepare(rawRetry);
     const retryIssues = validateGroceries(retry, p);
@@ -545,7 +545,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   for (let hardAttempt = 0; hardAttempt < 2 && hasHardIssues(result, p); hardAttempt++) {
     const prevList = JSON.stringify(result);
     const hardIssues = validateGroceries(result, p).filter((m) => m.includes("kcal") || m.includes("total_estimated_cost"));
-    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. Scale up the quantities of every item so the total calories across all items reach at least ${Math.round(Number(p.calories) * p.days * 0.9)} kcal for ${p.days} days at ${p.calories} kcal/day. Set total_estimated_cost to EXACTLY the sum of all item prices. Do not reduce variety. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
+    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. Scale up the quantities of every item so the total calories across all items reach at least ${Math.round(Number(p.calories) * p.days * 0.9)} kcal for ${p.days} days at ${p.calories} kcal/day. Set total_estimated_cost to EXACTLY the sum of all item prices. Do not reduce variety. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
     savePriceObservations(rawHard, p.postalCode, p.diet);
     const hardResult = prepare(rawHard);
     // Only accept the hard retry if it's actually better and doesn't bust budget.
