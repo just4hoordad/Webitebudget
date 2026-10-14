@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
 import { secrets } from "base44:runtime";
-import { verifyStripeSignature, PRO_MONTHLY_CREDITS } from "../../shared/stripe.ts";
+import { verifyStripeSignature, TIER_CREDITS, tierFromPriceId } from "../../shared/stripe.ts";
 
 export default async function (req) {
   try {
@@ -35,6 +35,8 @@ export default async function (req) {
           return Response.json({ error: "Missing email" }, { status: 400 });
         }
 
+        const tier = session.metadata?.tier || "pro";
+        const monthlyCredits = TIER_CREDITS[tier] || TIER_CREDITS.pro;
         const periodEnd = new Date(Date.now() + 30 * 86400000).toISOString();
         const existing = await base44.asServiceRole.entities.ProSubscription.filter({ email });
         const rec = existing?.[0];
@@ -42,7 +44,8 @@ export default async function (req) {
         if (rec) {
           await base44.asServiceRole.entities.ProSubscription.update(rec.id, {
             active: true,
-            creditsRemaining: PRO_MONTHLY_CREDITS,
+            tier,
+            creditsRemaining: monthlyCredits,
             periodEnd,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
@@ -51,7 +54,8 @@ export default async function (req) {
           await base44.asServiceRole.entities.ProSubscription.create({
             email,
             active: true,
-            creditsRemaining: PRO_MONTHLY_CREDITS,
+            tier,
+            creditsRemaining: monthlyCredits,
             periodEnd,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
@@ -67,6 +71,37 @@ export default async function (req) {
           amount,
           currency: session.currency || "eur",
           stripeSessionId: session.id,
+        });
+      }
+    } else if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object;
+      const subscriptionId = subscription.id;
+      const customerId = subscription.customer;
+      const isActive = ["active", "trialing", "past_due"].includes(subscription.status);
+
+      let tier = subscription.metadata?.tier || "pro";
+      if (!subscription.metadata?.tier && subscription.items?.data?.length > 0) {
+        try {
+          tier = await tierFromPriceId(subscription.items.data[0].price.id);
+        } catch { /* keep default */ }
+      }
+
+      let rec = null;
+      const bySub = await base44.asServiceRole.entities.ProSubscription.filter({ stripeSubscriptionId: subscriptionId });
+      rec = bySub?.[0];
+      if (!rec) {
+        const byCust = await base44.asServiceRole.entities.ProSubscription.filter({ stripeCustomerId: customerId });
+        rec = byCust?.[0];
+      }
+      if (rec) {
+        const monthlyCredits = TIER_CREDITS[tier] || TIER_CREDITS.pro;
+        const tierChanged = rec.tier !== tier;
+        const periodEnd = new Date(Date.now() + 30 * 86400000).toISOString();
+        await base44.asServiceRole.entities.ProSubscription.update(rec.id, {
+          active: isActive,
+          tier,
+          creditsRemaining: tierChanged && isActive ? monthlyCredits : rec.creditsRemaining,
+          periodEnd,
         });
       }
     } else if (event.type === "customer.subscription.deleted") {

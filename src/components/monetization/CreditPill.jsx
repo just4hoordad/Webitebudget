@@ -2,7 +2,7 @@ import { Crown, PlayCircle } from "lucide-react";
 import { useMonetization } from "@/lib/MonetizationContext";
 
 export default function CreditPill({ credits, isPro }) {
-  const { openPricing, openWatchAd } = useMonetization();
+  const { openPricing, openWatchAd, tier } = useMonetization();
   const empty = credits <= 0;
 
   const accent = isPro
@@ -11,7 +11,7 @@ export default function CreditPill({ credits, isPro }) {
     ? "text-destructive"
     : "text-green-600";
 
-  const label = isPro ? "PRO LEFT" : "FREE GENERATIONS";
+  const label = isPro ? (tier === "pro_plus" ? "PRO+ LEFT" : "PRO LEFT") : "FREE GENERATIONS";
 
   return (
     <div className="inline-flex flex-col w-[120px] rounded-xl border border-border bg-card overflow-hidden shrink-0 select-none">

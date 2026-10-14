@@ -6,14 +6,34 @@ import AdInterstitial from "@/components/monetization/AdInterstitial";
 import ProPricingModal from "@/components/monetization/ProPricingModal";
 import DonationModal from "@/components/monetization/DonationModal";
 
-const FREE_DEFAULT = 3;
+const FREE_MONTHLY = 3;
 const PRO_MONTHLY = 30;
+const PRO_PLUS_MONTHLY = 100;
 const FREE_KEY = "bb_free_credits";
+const FREE_PERIOD_KEY = "bb_free_period_start";
 const PRO_KEY = "bb_pro_status";
 
+const FREE_RESET_DAYS = 30;
+
+function readFreePeriodStart() {
+  const v = parseInt(localStorage.getItem(FREE_PERIOD_KEY), 10);
+  return isNaN(v) ? null : v;
+}
+function writeFreePeriodStart(ts) {
+  localStorage.setItem(FREE_PERIOD_KEY, String(ts));
+}
 function readFree() {
+  // Monthly reset: if 30 days have passed since the free period started,
+  // reset the free credits to the monthly allowance.
+  const periodStart = readFreePeriodStart();
+  const now = Date.now();
+  if (!periodStart || now - periodStart >= FREE_RESET_DAYS * 86400000) {
+    writeFreePeriodStart(now);
+    localStorage.setItem(FREE_KEY, String(FREE_MONTHLY));
+    return FREE_MONTHLY;
+  }
   const v = parseInt(localStorage.getItem(FREE_KEY), 10);
-  return isNaN(v) ? FREE_DEFAULT : v;
+  return isNaN(v) ? FREE_MONTHLY : v;
 }
 function writeFree(n) {
   localStorage.setItem(FREE_KEY, String(Math.max(0, n)));
@@ -47,8 +67,12 @@ export function MonetizationProvider({ children }) {
   const proRef = useRef(readPro());
 
   const isPro = !!(proStatus?.active);
+  const tier = isPro ? (proStatus?.tier || "pro") : "free";
   const credits = isPro ? proStatus?.creditsRemaining ?? 0 : freeCredits;
   const periodEnd = proStatus?.periodEnd;
+  const tierLimit = isPro
+    ? (tier === "pro_plus" ? PRO_PLUS_MONTHLY : PRO_MONTHLY)
+    : FREE_MONTHLY;
 
   const syncProStatus = useCallback(async () => {
     try {
@@ -57,6 +81,7 @@ export function MonetizationProvider({ children }) {
       if (data?.active) {
         const ns = {
           active: true,
+          tier: data.tier || "pro",
           creditsRemaining: data.creditsRemaining ?? PRO_MONTHLY,
           periodEnd: data.periodEnd,
           email: data.email,
@@ -93,15 +118,18 @@ export function MonetizationProvider({ children }) {
     const justDonated = params.get("donation") === "success";
 
     if (justSubscribed) {
+      const subscribedTier = params.get("tier") || "pro";
+      const monthly = subscribedTier === "pro_plus" ? PRO_PLUS_MONTHLY : PRO_MONTHLY;
       const ns = {
         active: true,
-        creditsRemaining: PRO_MONTHLY,
+        tier: subscribedTier,
+        creditsRemaining: monthly,
         periodEnd: new Date(Date.now() + 30 * 86400000).toISOString(),
       };
       proRef.current = ns;
       writePro(ns);
       setProStatus(ns);
-      toast.success("Welcome to BudgetBite Pro! 👑");
+      toast.success(subscribedTier === "pro_plus" ? "Welcome to BudgetBite Pro+! 👑" : "Welcome to BudgetBite Pro! 👑");
     }
     if (justDonated) {
       toast.success("Thank you for supporting BudgetBite! 🎉");
@@ -109,6 +137,7 @@ export function MonetizationProvider({ children }) {
     if (justSubscribed || justDonated) {
       params.delete("pro");
       params.delete("donation");
+      params.delete("tier");
       const clean = params.toString();
       window.history.replaceState({}, "", window.location.pathname + (clean ? `?${clean}` : ""));
     }
@@ -183,7 +212,8 @@ export function MonetizationProvider({ children }) {
   const value = {
     credits,
     isPro,
-    tier: isPro ? "pro" : "free",
+    tier,
+    tierLimit,
     periodEnd,
     guarded,
     openPricing,
@@ -202,6 +232,7 @@ export function MonetizationProvider({ children }) {
         onWatchAd={handleWatchAd}
         onGoPro={handleGoPro}
         isPro={isPro}
+        tier={tier}
         periodEnd={periodEnd}
       />
       <AdInterstitial
@@ -222,6 +253,7 @@ export function useMonetization() {
       credits: 0,
       isPro: false,
       tier: "free",
+      tierLimit: FREE_MONTHLY,
       periodEnd: undefined,
       guarded: (fn) => fn(),
       openPricing: () => {},

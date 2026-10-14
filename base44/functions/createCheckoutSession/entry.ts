@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
-import { stripeHeaders, findProPriceId, appId, safeOrigin } from "../../shared/stripe.ts";
+import { stripeHeaders, findPriceForTier, appId, safeOrigin } from "../../shared/stripe.ts";
 
 export default async function (req) {
   try {
@@ -16,18 +16,21 @@ export default async function (req) {
 
     const body = await req.json().catch(() => ({}));
     const origin = safeOrigin(body.origin, req.headers.get("origin"));
+    const tier = body.tier === "pro_plus" ? "pro_plus" : "pro";
 
-    const priceId = await findProPriceId();
+    const priceId = await findPriceForTier(tier);
 
     const params = new URLSearchParams();
     params.set("mode", "subscription");
     params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
     if (email) params.set("customer_email", email);
-    params.set("success_url", `${origin}/?pro=success`);
+    params.set("success_url", `${origin}/?pro=success&tier=${tier}`);
     params.set("cancel_url", `${origin}/?pro=cancel`);
     params.set("metadata[base44_app_id]", appId());
+    params.set("metadata[tier]", tier);
     params.set("subscription_data[metadata][base44_app_id]", appId());
+    params.set("subscription_data[metadata][tier]", tier);
     params.set("allow_promotion_codes", "true");
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {

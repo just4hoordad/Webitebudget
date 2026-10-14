@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
-import { PRO_MONTHLY_CREDITS } from "../../shared/stripe.ts";
+import { TIER_CREDITS } from "../../shared/stripe.ts";
 
 export default async function (req) {
   try {
@@ -16,8 +16,9 @@ export default async function (req) {
     // Auto-reset monthly credits if the billing period has ended.
     let creditsRemaining = rec.creditsRemaining;
     let periodEnd = rec.periodEnd;
+    const tier = rec.tier || "pro";
     if (rec.active && periodEnd && new Date(periodEnd) < new Date()) {
-      creditsRemaining = PRO_MONTHLY_CREDITS;
+      creditsRemaining = TIER_CREDITS[tier] || TIER_CREDITS.pro;
       periodEnd = new Date(Date.now() + 30 * 86400000).toISOString();
       await base44.asServiceRole.entities.ProSubscription.update(rec.id, {
         creditsRemaining,
@@ -27,6 +28,7 @@ export default async function (req) {
 
     return Response.json({
       active: rec.active,
+      tier,
       creditsRemaining,
       periodEnd,
       email,

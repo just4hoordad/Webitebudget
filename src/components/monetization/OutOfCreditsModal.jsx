@@ -3,7 +3,7 @@ import { X, PlayCircle, Crown, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, isPro, periodEnd }) {
+export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, isPro, tier, periodEnd }) {
   const { t, language } = useLanguage();
   const periodLabel = periodEnd
     ? new Date(periodEnd).toLocaleDateString(language, { month: "short", day: "numeric" })
@@ -44,6 +44,11 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
                   {t("monthlyLimitBody")}{" "}
                   <span className="font-semibold text-foreground">{periodLabel}</span>.
                 </p>
+                {tier !== "pro_plus" && (
+                  <Button onClick={onGoPro} variant="outline" className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10">
+                    <Crown className="h-4 w-4" /> Upgrade to Pro+
+                  </Button>
+                )}
                 <Button onClick={onClose} className="w-full">
                   {t("gotIt")}
                 </Button>

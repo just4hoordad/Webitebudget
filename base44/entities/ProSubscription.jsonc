@@ -15,10 +15,19 @@
       "default": true,
       "description": "Whether the subscription is currently active"
     },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "pro",
+        "pro_plus"
+      ],
+      "default": "pro",
+      "description": "Subscription tier: 'pro' (\u20ac3.99/mo, 30 credits) or 'pro_plus' (\u20ac9.99/mo, 100 credits)"
+    },
     "creditsRemaining": {
       "type": "number",
       "default": 30,
-      "description": "Pro generations remaining this billing period"
+      "description": "Generations remaining this billing period"
     },
     "periodEnd": {
       "type": "string",

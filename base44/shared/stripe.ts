@@ -1,8 +1,17 @@
 import { secrets } from "base44:runtime";
 
 export const PRO_PRODUCT_ID = "prod_V55hlAm96ZnHNa";
+export const PRO_PLUS_PRODUCT_ID = "prod_VRHRM0mfGKd04P";
 export const PRO_MONTHLY_CREDITS = 30;
+export const PRO_PLUS_MONTHLY_CREDITS = 100;
+export const FREE_MONTHLY_CREDITS = 3;
 export const FREE_STARTER_CREDITS = 3;
+
+export const TIER_CREDITS = {
+  free: FREE_MONTHLY_CREDITS,
+  pro: PRO_MONTHLY_CREDITS,
+  pro_plus: PRO_PLUS_MONTHLY_CREDITS,
+};
 const STRIPE_API_VERSION = "2025-10-29.clover";
 
 export function getSecret(name) {
@@ -42,6 +51,31 @@ export async function findProPriceId() {
   const recurring = (data.data || []).find((p) => p.type === "recurring");
   if (!recurring) throw new Error("No active recurring price found for Pro product");
   return recurring.id;
+}
+
+// Find the active recurring price for a given tier ("pro" or "pro_plus").
+export async function findPriceForTier(tier) {
+  const productId = tier === "pro_plus" ? PRO_PLUS_PRODUCT_ID : PRO_PRODUCT_ID;
+  const res = await fetch(
+    `https://api.stripe.com/v1/prices?product=${productId}&active=true&limit=10`,
+    { headers: stripeHeaders() }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || "Failed to list prices");
+  const recurring = (data.data || []).find((p) => p.type === "recurring");
+  if (!recurring) throw new Error(`No active recurring price found for tier ${tier}`);
+  return recurring.id;
+}
+
+// Determine the tier from a price ID by looking up the product.
+export async function tierFromPriceId(priceId) {
+  const res = await fetch(`https://api.stripe.com/v1/prices/${priceId}`, {
+    headers: stripeHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) return "pro";
+  if (data.product === PRO_PLUS_PRODUCT_ID) return "pro_plus";
+  return "pro";
 }
 
 // Verify a Stripe webhook signature using Web Crypto HMAC-SHA256 (no SDK needed).
