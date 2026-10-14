@@ -10,8 +10,10 @@ import SetupDiet from "@/components/planbuilder/SetupDiet";
 import SetupStores from "@/components/planbuilder/SetupStores";
 import usePlanSetupGuidance from "@/components/planbuilder/usePlanSetupGuidance";
 import { Users, CalendarDays, Scale, ArrowRight, Sparkles, ShoppingCart } from "lucide-react";
+import EasyModeToggle from "@/components/EasyModeToggle";
+import PlanEasyEssentials from "@/components/builder/PlanEasyEssentials";
 
-export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed }) {
+export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed, easyMode, onEasyModeChange }) {
   const { t } = useLanguage();
   const { isPro } = useMonetization();
   const maxDays = isPro ? 30 : 7;
@@ -70,6 +72,24 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         <p className="text-muted-foreground text-sm mt-1.5 text-balance">{t("planBuilderSubtitle")}</p>
       </div>
 
+      <div className="flex justify-center">
+        <EasyModeToggle mode={easyMode ? "easy" : "detailed"} onChange={onEasyModeChange} />
+      </div>
+      {easyMode ? (
+        <PlanEasyEssentials
+          diet={diet}
+          setDiet={setDiet}
+          days={days}
+          setDays={setDays}
+          people={people}
+          setPeople={setPeople}
+          onBuild={onBuild}
+          canBuild={!!diet && people > 0 && days >= 1}
+          maxDays={maxDays}
+          onSwitchDetailed={() => onEasyModeChange("detailed")}
+        />
+      ) : (
+      <>
       <StepProgress
         steps={[
           { key: "diet", label: t("dietPreference"), required: enabled.diet, done: !enabled.diet || !!diet },
@@ -135,6 +155,8 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         label={t("buildMyPlan")}
         icon={Sparkles}
       />
+      </>
+      )}
     </div>
   );
 }

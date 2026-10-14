@@ -20,6 +20,8 @@ import CalorieCalculator, { computeDailyCalories } from "@/components/CalorieCal
 import StepProgress from "@/components/StepProgress";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
 import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
+import EasyModeToggle from "@/components/EasyModeToggle";
+import BudgetEasyEssentials from "@/components/builder/BudgetEasyEssentials";
 
 
 const GROCERY_STORES = [
@@ -117,6 +119,9 @@ export default function BudgetForm() {
   const toggleSection = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   const dimCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
 
+  const [easyMode, setEasyMode] = useState(() => localStorage.getItem("bb_budget_easy") !== "detailed");
+  const handleEasyChange = (v) => { setEasyMode(v === "easy"); try { localStorage.setItem("bb_budget_easy", v); } catch { /* ignore */ } };
+
   const [visited, setVisited] = useState({ diet: false, pantry: false });
 
   const formRef = useRef(null);
@@ -180,7 +185,8 @@ export default function BudgetForm() {
 
   const metricsFilled = ["height", "weight", "age"].every((k) => Number(calorieMetrics[k]) > 0);
   const hasAnyStore = selectedStoreLocations.length > 0 || selectedStores.length > 0;
-  const canGenerate = budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore);
+  const effEnabled = easyMode ? { basics: true, diet: true, stores: false, pantry: false } : enabled;
+  const canGenerate = easyMode ? budget[0] > 0 : (budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore));
 
   // Restore the logged-in user's previous inputs
   useEffect(() => {
@@ -206,7 +212,7 @@ export default function BudgetForm() {
 
   const handleGenerate = () => {
     const params = new URLSearchParams();
-    if (enabled.basics) {
+    if (effEnabled.basics) {
       params.set("budget", budget[0]);
       params.set("days", days);
       params.set("people", people);
@@ -216,12 +222,12 @@ export default function BudgetForm() {
       params.set("spendMode", spendMode);
       ["height", "weight", "age", "sex", "activity"].forEach((k) => calorieMetrics[k] && params.set(k, calorieMetrics[k]));
     }
-    if (enabled.diet) {
+    if (effEnabled.diet) {
       params.set("diet", selectedDiet);
       params.set("macros", `${macros.protein},${macros.carbs},${macros.fats}`);
       params.set("allergies", allergies.join(","));
     }
-    if (enabled.stores) {
+    if (effEnabled.stores) {
       const storesParam = selectedStoreLocations.length > 0
         ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ")
         : selectedStores.join(",");
@@ -230,7 +236,7 @@ export default function BudgetForm() {
       params.set("bio", bio);
       params.set("saleHunt", saleHunt);
     }
-    if (enabled.pantry) {
+    if (effEnabled.pantry) {
       params.set("owned", pantryItems.map(p => p.name + (p.amount && p.amount !== "some" ? ` (${p.amount})` : "")).join(","));
     }
     base44.auth.isAuthenticated().then((ok) => ok && base44.auth.updateMe({
@@ -261,6 +267,24 @@ export default function BudgetForm() {
 
   return (
     <div ref={formRef} className="space-y-5">
+      <div className="flex justify-center pb-1">
+        <EasyModeToggle mode={easyMode ? "easy" : "detailed"} onChange={handleEasyChange} />
+      </div>
+      {easyMode ? (
+        <BudgetEasyEssentials
+          budget={budget}
+          setBudget={setBudget}
+          days={days}
+          setDays={setDays}
+          people={people}
+          setPeople={setPeople}
+          onGenerate={handleGenerate}
+          canGenerate={budget[0] > 0}
+          maxDays={maxDays}
+          onSwitchDetailed={() => handleEasyChange("detailed")}
+        />
+      ) : (
+      <>
       <StepProgress
         steps={[
           { key: "basics", label: t("basicsSection") || "Basics", required: true, done: budget[0] > 0 },
@@ -677,6 +701,8 @@ export default function BudgetForm() {
         disabled={!canGenerate}
         label={t("generateBtn")}
       />
+      </>
+      )}
     </div>
   );
 }

@@ -62,6 +62,9 @@ export default function PlanBuilder() {
   }, []);
   const [enabled, setEnabled] = useState({ diet: true, people: true, days: true, stores: true, macros: true });
   const [prepEnabled, setPrepEnabled] = useState(true);
+  const [easyMode, setEasyMode] = useState(() => localStorage.getItem("bb_planbuilder_easy") !== "detailed");
+  const handleEasyChange = (v) => { setEasyMode(v === "easy"); try { localStorage.setItem("bb_planbuilder_easy", v); } catch { /* ignore */ } };
+  const effEnabled = easyMode ? { diet: true, people: true, days: true, stores: false, macros: false } : enabled;
   const [plan, setPlan] = useState(null);
   const [grocery, setGrocery] = useState(null);
   const [prep, setPrep] = useState(null);
@@ -81,7 +84,7 @@ export default function PlanBuilder() {
   const toggleSetting = (key) => setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const hasValidCache = () => {
-    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, effEnabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -167,7 +170,7 @@ export default function PlanBuilder() {
 
   const generateGrocery = async () => {
     // Reuse today's generated list if the plan hasn't changed (saves credits).
-    const cacheKey = JSON.stringify({ plan, enabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
+    const cacheKey = JSON.stringify({ plan, effEnabled, diet, people, stores, selectedStoreLocations, macros, prepEnabled, lang: currentLanguage.code });
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
@@ -190,7 +193,7 @@ export default function PlanBuilder() {
     setLoadingGrocery(true);
     savedPlanId.current = null;
     try {
-      const allowedStores = enabled.stores
+      const allowedStores = effEnabled.stores
         ? (selectedStoreLocations.length > 0 ? [...new Set(selectedStoreLocations.map((s) => s.name))] : stores.map((s) => s.charAt(0).toUpperCase() + s.slice(1)))
         : [];
       const { text: knownPricesText, known: knownMap } = await fetchKnownPrices(postalCode, allowedStores);
@@ -212,12 +215,12 @@ export default function PlanBuilder() {
 
       // Single merged call: grocery list + (optional) prep guide in one response — halves credit use vs two parallel calls.
       const res = await invokeAI({
-        prompt: `Here is a user's meal plan for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s)${enabled.diet ? ` on a ${diet} diet` : ""}:
+        prompt: `Here is a user's meal plan for ${effEnabled.people ? people : 1} person(s) over ${plan.length} day(s)${effEnabled.diet ? ` on a ${diet} diet` : ""}:
 ${lines}
-${enabled.macros ? `\nThe user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.` : ""}
+${effEnabled.macros ? `\nThe user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.` : ""}
 
 For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) over the whole plan.
-${enabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
+${effEnabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
 - Use real 2024-2025 German supermarket branded product names from these stores: ${enabled.stores ? (selectedStoreLocations.length > 0 ? selectedStoreLocations.map(s => s.name + (s.address ? ` (${s.address})` : "")).join(", ") : stores.join(", ")) : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
@@ -227,7 +230,7 @@ ${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact 
 - Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").
 - Set calories_info to the energy density (e.g. "370 kcal/100g") or item total calories.
 - All item names in ${currentLanguage.label}, category names in English.
-${enabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
+${effEnabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
 
 PREP GUIDE: In the same response, under "prep", write a short cooking guide for each day. Return a "days" array with exactly ${plan.length} entries, one per plan day in order. For each day provide "breakfast", "lunch", "dinner" objects; each object has: "meal" (the meal name), "portion" (realistic portion size per person), and "prep" (2-4 short practical cooking steps). Leave a meal object with meal: "" if that slot is blank. All prep text in ${currentLanguage.label}.` : ""}`,
         model: "gemini_3_flash",
@@ -431,7 +434,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     <div className="space-y-4">
       <CreditBar variant="onLight" />
       <LastResultButton kind="plan" className="w-full" />
-      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} />
+      <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} easyMode={easyMode} onEasyModeChange={handleEasyChange} />
     </div>
   );
 }
