@@ -14,7 +14,6 @@ import PantryDashboard from './pages/PantryDashboard';
 import Contact from './pages/Contact';
 import Datenschutz from './pages/Datenschutz';
 import RepoStats from './pages/RepoStats';
-import FlinkPriceCheck from './pages/FlinkPriceCheck';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -51,7 +50,6 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/datenschutz" element={<Datenschutz />} />
                 <Route path="/repo-stats" element={<RepoStats />} />
-                <Route path="/flink-check" element={<FlinkPriceCheck />} />
               </Route>
               <Route path="/share/:token" element={<SharedPlan />} />
               <Route path="*" element={<PageNotFound />} />
