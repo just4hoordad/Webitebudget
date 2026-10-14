@@ -174,7 +174,7 @@ Return only the JSON object.`;
     res = await callOpenRouter({
       prompt,
       add_context_from_internet: true,
-      model: "mistralai/mistral-small-24b-instruct-2501",
+      model: "google/gemini-2.0-flash-001",
       response_json_schema: {
         type: "object",
         properties: {
@@ -376,7 +376,7 @@ Return only the JSON object.`;
     res = await callOpenRouter({
       prompt,
       add_context_from_internet: true,
-      model: "mistralai/mistral-small-24b-instruct-2501",
+      model: "google/gemini-2.0-flash-001",
       response_json_schema: {
         type: "object",
         properties: {

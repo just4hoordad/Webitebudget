@@ -7,10 +7,9 @@ const ALLOWED_MODELS: Record<string, string> = {
   "google/gemini-2.5-flash": "google/gemini-2.5-flash",
   "openai/gpt-4o-mini": "openai/gpt-4o-mini",
   "google/gemini-2.0-flash-001": "google/gemini-2.0-flash-001",
-  "mistralai/mistral-small-24b-instruct-2501": "mistralai/mistral-small-24b-instruct-2501",
   "gemini_3_flash": "google/gemini-2.0-flash-001",
   "gemini_3_1_pro": "google/gemini-2.0-flash-001",
-  "automatic": "mistralai/mistral-small-24b-instruct-2501",
+  "automatic": "google/gemini-2.0-flash-001",
 };
 
 // In-memory sliding-window rate limiter with per-client and global ceilings
@@ -176,7 +175,7 @@ export default async function (req: Request): Promise<Response> {
   }
 
   // Enforce strict low-cost model allowlist
-  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : "mistralai/mistral-small-24b-instruct-2501";
+  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : "google/gemini-2.0-flash-001";
 
   const safeSchema = response_json_schema && typeof response_json_schema === "object"
     ? response_json_schema
