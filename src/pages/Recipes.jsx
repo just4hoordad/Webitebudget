@@ -19,6 +19,8 @@ const DIET_OPTIONS = [
   { value: "pescatarian", labelKey: "pescatarian" },
   { value: "gluten-free", labelKey: "glutenFree" },
   { value: "halal", labelKey: "halal" },
+  { value: "frozen", labelKey: "frozen" },
+  { value: "custom", labelKey: "custom" },
 ];
 
 const TYPE_OPTIONS = [
@@ -53,7 +55,10 @@ export default function Recipes() {
     setLoading(true);
     try {
       const query = {};
-      if (search.trim()) query.title = { $regex: search.trim(), $options: "i" };
+      if (search.trim()) {
+        const rx = { $regex: search.trim(), $options: "i" };
+        query.$or = [{ title: rx }, { "ingredients.name": rx }, { steps: rx }];
+      }
       if (dietFilter) query.diet = dietFilter;
       if (typeFilter) query.mealType = typeFilter;
       const opts = { sort: sortBy === "newest" ? "-created_date" : sortBy === "alpha" ? "title" : "-created_date", limit: 100 };
