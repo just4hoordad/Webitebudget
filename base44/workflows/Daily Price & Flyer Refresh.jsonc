@@ -1,0 +1,73 @@
+{
+  "name": "Daily Price & Flyer Refresh",
+  "description": "Consolidated daily price refresh: rebuilds the shared price catalog, refreshes stale community price estimates, and pulls current weekly flyer offers for German supermarkets. Runs every day at 05:00 Europe/Berlin.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 5 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Berlin",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_price_and_flyer_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_catalog": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshPriceCatalog",
+            "args": {}
+          },
+          "then": "refresh_estimates",
+          "x-base44": {
+            "title": "Refresh shared price catalog",
+            "description": "Rebuild source-confirmed product prices for all shoppers"
+          }
+        }
+      },
+      {
+        "refresh_estimates": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshPriceEstimates",
+            "args": {}
+          },
+          "then": "refresh_flyers",
+          "x-base44": {
+            "title": "Refresh community price estimates",
+            "description": "Re-search stale prices via web"
+          }
+        }
+      },
+      {
+        "refresh_flyers": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshFlyerOffers",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh weekly flyer offers",
+            "description": "Pull marktguru leaflet promos into PriceEstimate"
+          }
+        }
+      }
+    ]
+  }
+}
