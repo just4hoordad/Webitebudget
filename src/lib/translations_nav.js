@@ -18,7 +18,17 @@ export const navTranslations = {
     navMyPlanSub: "Plan & Shopping",
     navAccountSub: "Profile & Premium",
     settings: "Settings",
-    createMealPlan: "Create Meal Plan"
+    createMealPlan: "Create Meal Plan",
+    goProBanner: "Go Pro — 15/mo · €3.99/month",
+    goProBannerShort: "Go Pro — 15/mo · €3.99/mo",
+    supportUs: "Support Us",
+    proLeft: "PRO LEFT",
+    proPlusLeft: "PRO+ LEFT",
+    freeGen: "FREE GEN",
+    freeGenerations: "FREE GENERATIONS",
+    adFree: "Ad-free 👑",
+    premium: "Premium",
+    upgrade: "Upgrade"
   },
   de: {
     aboutNav: "Über",
@@ -36,7 +46,17 @@ export const navTranslations = {
     navMyPlanSub: "Plan & Einkauf",
     navAccountSub: "Profil & Premium",
     settings: "Einstellungen",
-    createMealPlan: "Essensplan erstellen"
+    createMealPlan: "Essensplan erstellen",
+    goProBanner: "Pro holen — 15/Monat · 3,99 €/Monat",
+    goProBannerShort: "Pro holen — 15/Monat · 3,99 €/Mo",
+    supportUs: "Unterstützen",
+    proLeft: "PRO ÜBRIG",
+    proPlusLeft: "PRO+ ÜBRIG",
+    freeGen: "FREE GEN",
+    freeGenerations: "FREE GENERATIONS",
+    adFree: "Werbefrei 👑",
+    premium: "Premium",
+    upgrade: "Upgrade"
   },
   fr: {
     aboutNav: "À propos",

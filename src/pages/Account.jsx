@@ -68,7 +68,7 @@ export default function Account() {
       <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
         <div className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-primary" />
-          <h2 className="font-heading font-semibold">{isPro ? "Premium" : "Upgrade"}</h2>
+          <h2 className="font-heading font-semibold">{isPro ? t("premium") : t("upgrade")}</h2>
           {isPro && <ProBadge />}
         </div>
         <CreditBar />

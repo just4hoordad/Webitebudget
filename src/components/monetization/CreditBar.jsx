@@ -1,8 +1,10 @@
 import { Leaf, Crown } from "lucide-react";
 import { useMonetization } from "@/lib/MonetizationContext";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function CreditBar({ variant = "onLight", className = "" }) {
   const { credits, isPro, openWatchAd, openPricing } = useMonetization();
+  const { t } = useLanguage();
   const onGlass = variant === "onGlass";
 
   const numColor = onGlass
@@ -38,11 +40,11 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
           {credits}
         </span>
         <span className={`text-[10px] font-heading font-bold uppercase tracking-wide ${labelColor} truncate`}>
-          {isPro ? "PRO LEFT" : "FREE GEN"}
+          {isPro ? t("proLeft") : t("freeGen")}
         </span>
       </div>
       {isPro ? (
-        <span className={`text-[11px] font-medium ${proLabel}`}>Ad-free 👑</span>
+        <span className={`text-[11px] font-medium ${proLabel}`}>{t("adFree")}</span>
       ) : (
         <div className="flex items-center gap-2 shrink-0">
           <button type="button" onClick={openWatchAd} className={adBtn}>
