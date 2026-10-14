@@ -33,12 +33,7 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
     setAlternatives([]);
     setSelected(null);
     const result = await invokeAI({
-      prompt: `The user wants to add "${trimmed}" to their German grocery list.
-Search these stores: ${stores}.
-Find 3-4 real branded product alternatives available at those stores with real 2024-2025 German prices.
-Use exact branded product names as sold in-store (e.g. "Ja! Vollmilch 3,5% 1L").
-Diet preference: ${diet}.
-Return category name always in English (e.g. "Dairy", "Snacks", "Vegetables").`,
+      prompt: `Find 3-4 real branded products for "${trimmed}" at these German stores: ${stores}. Diet: ${diet}. Use exact in-store product names (e.g. "Ja! Vollmilch 3,5% 1L") with 2024-2025 prices. Category names in English.`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {

@@ -90,23 +90,9 @@ export default function RecipeModal({ meal, diet, people, initialRecipe, onCache
   const generate = async () => {
     setLoading(true);
     try {
-      const prompt = `Write a complete, practical cooking recipe for this meal: "${meal.name}".
-
-Return ALL text (title, ingredient names, step instructions) in ${currentLanguage.label} language.
-
-These are the ingredients planned for this meal (from the grocery list): ${ingredientList || "not specified"}.
-Diet type: ${diet}
-Number of servings to prepare: ${people || 1}
-
-Provide:
-- A short recipe title
-- prep_time in minutes
-- cook_time in minutes
-- servings
-- An ingredients array with {name, quantity} for the recipe (use the planned ingredients; add basic pantry staples like salt/oil/pepper only if essential)
-- A steps array of clear, ordered cooking instructions (numbered naturally in the text)
-
-Keep the steps concise and actionable. Do not include the meal's calorie count.`;
+      const prompt = `Write a cooking recipe for "${meal.name}" in ${currentLanguage.label}.
+Available ingredients: ${ingredientList || "not specified"}. Diet: ${diet}. Serves: ${people || 1}.
+Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, quantity}], steps[] (concise, ordered). Use the planned ingredients; add salt/oil/pepper only if essential. No calorie count.`;
 
       const result = await invokeAI({
         prompt,

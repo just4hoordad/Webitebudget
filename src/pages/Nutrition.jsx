@@ -210,17 +210,8 @@ export default function Nutrition() {
     } catch { /* ignore */ }
     setLoading(true);
     const result = await invokeAI({
-      prompt: `You are a nutritionist. Estimate the total monthly macronutrient breakdown for a person following a ${diet} diet in Germany with these parameters:
-- Budget: €${budget}/month
-- Calories target: ${calories} kcal/day for ${people} person(s)
-- Stores: ${stores}
-- Junk food allowance: ${junkPercent}% of daily calories
-
-Provide the DAILY average macronutrient breakdown (protein, fat, carbohydrates) in grams, assuming a realistic grocery list for this diet. 
-Also provide a per-meal breakdown (breakfast, lunch, dinner) for an average day, in grams of protein, fat, carbs and calories.
-Also estimate the percentage of calories from each macro (protein%, fat%, carbs%).
-
-Use real nutritional data for typical ${diet} diet foods bought from German discount supermarkets.`,
+      prompt: `Estimate macronutrient breakdown for a ${diet} diet in Germany: €${budget}/month, ${calories} kcal/day, ${people} person(s), stores: ${stores}, junk food: ${junkPercent}% of calories.
+Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (protein_pct, fat_pct, carbs_pct), per_meal[{meal, calories, protein_g, fat_g, carbs_g}], and monthly_totals (protein_g, fat_g, carbs_g). Use real nutritional data for German discount supermarket foods.`,
       response_json_schema: {
         type: "object",
         properties: {

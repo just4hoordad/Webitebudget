@@ -34,22 +34,8 @@ export default function GrocerySwapModal({ item, category, diet, budget, stores,
     setAlternatives(null);
     setSelected(null);
     const result = await invokeAI({
-      prompt: `You are a budget grocery assistant for German supermarkets. Suggest exactly 3 alternative products to replace: "${item.name}" (${item.quantity}, €${item.price?.toFixed(2)}, from ${item.store || "unknown store"}).
-
-CONSTRAINTS:
-- Same category: ${category}
-- Diet type: ${diet}
-- Similar or lower price to the original (€${item.price?.toFixed(2)})
-- ${stores ? `STRICT: only products sold at these stores: ${stores}. The "store" field must be one of them. Never suggest store-own brands of other chains.` : "Must be real products available in German supermarkets"}
-- Use real 2024-2025 German supermarket prices
-- CRITICAL: Product name MUST include full brand name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g")
-
-For each alternative, provide:
-- Full branded product name
-- Quantity/size
-- Price (same quantity as original: ${item.quantity})
-- Store where it's available
-- A one-line reason why it's a good swap`,
+      prompt: `Suggest 3 alternatives for "${item.name}" (${item.quantity}, €${item.price?.toFixed(2)}, ${item.store || "unknown"}) at German supermarkets.
+Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${stores ? `Only products from: ${stores}.` : "Any German supermarket."} Use real branded names (e.g. "Milbona Naturjoghurt 500g") with 2024-2025 prices. Each: name, quantity, price (for ${item.quantity}), store, reason (one line).`,
       response_json_schema: {
         type: "object",
         properties: {
