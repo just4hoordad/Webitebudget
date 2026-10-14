@@ -83,7 +83,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 23; // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 24; // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -315,6 +315,16 @@ function validateGroceries(result, p, includeSpending = true) {
       issues.push(`The list contains ~${Math.round(kcal)} kcal, ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed — far too much food. Reduce quantities so the total is close to ${target} kcal, keeping the variety of products.`);
     }
   }
+  // Total mismatch: the AI often reports a fake total_estimated_cost near the
+  // budget while the actual item prices sum to far less. This must be fixed
+  // by retry, not silently — a fake total misleads the user about spending.
+  {
+    const itemSum = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    const reportedTotal = Number(result?.total_estimated_cost);
+    if (reportedTotal > 0 && itemSum > 0 && Math.abs(reportedTotal - itemSum) > Math.max(itemSum * 0.1, 2)) {
+      issues.push(`The total_estimated_cost (€${reportedTotal.toFixed(2)}) does not match the sum of all item prices (€${itemSum.toFixed(2)}). Set total_estimated_cost to EXACTLY the sum of all item prices — do not report a higher number to appear closer to budget.`);
+    }
+  }
   // Macro-split check — only when the user set a target split AND the model
   // returned per-item macro grams. Compares the actual kcal-derived split to
   // the requested one and flags deviations beyond ±8 percentage points.
@@ -445,6 +455,22 @@ function trimToBudget(result, cap) {
   return { ...result, categories, total_estimated_cost: Math.round(cost * 100) / 100 };
 }
 
+// Hard issues: calories severely under target (< 70%) or total_estimated_cost
+// doesn't match the actual item sum. These must be fixed by retry, not padded.
+function hasHardIssues(result, p) {
+  const items = (result?.categories || []).flatMap((c) => c.items || []);
+  const withKcal = items.filter((i) => Number(i.total_kcal) > 0);
+  const target = Number(p.calories) * p.days;
+  if (target && withKcal.length >= items.length / 2) {
+    const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
+    if (kcal < target * 0.7) return true;
+  }
+  const itemSum = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+  const reportedTotal = Number(result?.total_estimated_cost);
+  if (reportedTotal > 0 && itemSum > 0 && Math.abs(reportedTotal - itemSum) > Math.max(itemSum * 0.1, 2)) return true;
+  return false;
+}
+
 export async function runGroceryGeneration(p, langLabel, langCode, { force = false } = {}) {
   // No shared grocery-list cache — generate fresh every time for accuracy.
   // (Verified price catalog is still cached separately via fetchKnownPrices.)
@@ -510,6 +536,36 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
       : !over(result) && over(retry) ? false
       : retryIssues.length <= issues.length;
     if (retryBetter) { result = retry; issues = retryIssues; }
+  }
+
+  // Hard retry: if calories are still severely under target (< 70%) or the
+  // total_estimated_cost still doesn't match the item sum, retry up to 2 more
+  // times. A starvation-level list or a fake total is never acceptable to show
+  // — block it rather than silently padding with filler.
+  for (let hardAttempt = 0; hardAttempt < 2 && hasHardIssues(result, p); hardAttempt++) {
+    const prevList = JSON.stringify(result);
+    const hardIssues = validateGroceries(result, p).filter((m) => m.includes("kcal") || m.includes("total_estimated_cost"));
+    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. Scale up the quantities of every item so the total calories across all items reach at least ${Math.round(Number(p.calories) * p.days * 0.9)} kcal for ${p.days} days at ${p.calories} kcal/day. Set total_estimated_cost to EXACTLY the sum of all item prices. Do not reduce variety. Return the complete corrected list with alternatives.`, "openai/gpt-4o-mini");
+    savePriceObservations(rawHard, p.postalCode, p.diet);
+    const hardResult = prepare(rawHard);
+    // Only accept the hard retry if it's actually better and doesn't bust budget.
+    if (!hasHardIssues(hardResult, p) || (listCost(hardResult) <= budgetCap(p) && listKcal(hardResult) > listKcal(result))) {
+      result = hardResult;
+      issues = validateGroceries(result, p);
+    }
+  }
+  // After all retries, if calories are still critically low (< 60%), throw —
+  // never show a starvation-level list to the user.
+  {
+    const allItems = (result?.categories || []).flatMap((c) => c.items || []);
+    const withKcal = allItems.filter((i) => Number(i.total_kcal) > 0);
+    const target = Number(p.calories) * p.days;
+    if (target && withKcal.length >= allItems.length / 2) {
+      const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
+      if (kcal < target * 0.6) {
+        throw new Error(`The generated list only covers ${Math.round((kcal / target) * 100)}% of the needed calories. Please try again.`);
+      }
+    }
   }
 
   // Maximize mode: the AI model (even gpt-4o) reliably ignores the "spend
