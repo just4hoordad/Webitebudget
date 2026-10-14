@@ -180,7 +180,7 @@ export default function BudgetForm() {
 
   const metricsFilled = ["height", "weight", "age"].every((k) => Number(calorieMetrics[k]) > 0);
   const hasAnyStore = selectedStoreLocations.length > 0 || selectedStores.length > 0;
-  const canGenerate = budget[0] > 0;
+  const canGenerate = budget[0] > 0 && (!enabled.diet || metricsFilled) && (!enabled.stores || hasAnyStore);
 
   // Restore the logged-in user's previous inputs
   useEffect(() => {
@@ -652,7 +652,11 @@ export default function BudgetForm() {
       <div ref={generateRef} className="space-y-2">
         {!canGenerate && (
           <p className="text-xs text-destructive text-center font-medium">
-            Please enter your monthly budget
+            {!(budget[0] > 0)
+              ? "Please enter your monthly budget"
+              : enabled.diet && !metricsFilled
+              ? "Please enter your height, weight and age in the Diet section"
+              : "Please select at least one store"}
           </p>
         )}
         <Button

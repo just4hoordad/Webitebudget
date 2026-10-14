@@ -71,6 +71,7 @@ export default function Layout() {
   const navItems = [
     { path: "/", label: t("home"), icon: Home },
     { path: "/budget", label: budgetLabel, icon: Wallet },
+    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
   ];
 
