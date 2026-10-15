@@ -72,29 +72,48 @@ let busyToastId = null;
  * Base44 InvokeLLM and warns once per session. If that also fails, shows the
  * user a friendly "AI is busy" message and throws.
  */
+// Bounded client-side timeout — if the backend (DeepSeek + Base44 fallback)
+// hasn't responded in 120s, give up so loading state clears and the user
+// sees a retryable error instead of spinning forever.
+const CLIENT_TIMEOUT_MS = 120000;
 export async function invokeAI({ prompt, response_json_schema, model, add_context_from_internet }) {
-  const res = await base44.functions.invoke("invokeAI", {
-    prompt,
-    response_json_schema,
-    model,
-    add_context_from_internet: Boolean(add_context_from_internet),
-  }).catch((err) => ({ data: { error: err?.message || "Network error" } }));
+  let timeoutId;
+  try {
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error("AI request timed out — please try again")),
+        CLIENT_TIMEOUT_MS
+      );
+    });
 
-  const data = res?.data;
-  if (data && !data.error && !data.openrouter_unavailable) {
-    if (response_json_schema) return data;
-    return typeof data.text === "string" ? data.text : data;
-  }
+    const res = await Promise.race([
+      base44.functions.invoke("invokeAI", {
+        prompt,
+        response_json_schema,
+        model,
+        add_context_from_internet: Boolean(add_context_from_internet),
+      }),
+      timeoutPromise,
+    ]).catch((err) => ({ data: { error: err?.message || "Network error" } }));
 
-  const msg = busyMessage();
-  // Avoid stacking duplicate "AI is busy" toasts on repeated retries —
-  // dismiss any prior busy toast before showing a fresh one.
-  if (busyToastId) {
-    const prior = busyToastId;
-    busyToastId = null;
-    toast.dismiss(prior);
+    const data = res?.data;
+    if (data && !data.error && !data.openrouter_unavailable) {
+      if (response_json_schema) return data;
+      return typeof data.text === "string" ? data.text : data;
+    }
+
+    const msg = busyMessage();
+    // Avoid stacking duplicate "AI is busy" toasts on repeated retries —
+    // dismiss any prior busy toast before showing a fresh one.
+    if (busyToastId) {
+      const prior = busyToastId;
+      busyToastId = null;
+      toast.dismiss(prior);
+    }
+    const t = toast({ title: msg, variant: "destructive", duration: 6000 });
+    busyToastId = t.id;
+    throw new Error(data?.error || msg);
+  } finally {
+    clearTimeout(timeoutId);
   }
-  const t = toast({ title: msg, variant: "destructive", duration: 6000 });
-  busyToastId = t.id;
-  throw new Error(data?.error || msg);
 }
