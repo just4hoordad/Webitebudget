@@ -28,7 +28,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // POST to OpenRouter; on 429 wait (Retry-After, max 10s) and retry once.
 // Bounded to 90s via AbortController so a stalled provider triggers the
 // Base44 fallback instead of hanging the request forever.
-const OPENROUTER_TIMEOUT_MS = 90000;
+const OPENROUTER_TIMEOUT_MS = 60000;
 async function post(apiKey: string, payload: Record<string, unknown>): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);

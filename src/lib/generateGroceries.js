@@ -458,22 +458,6 @@ function trimToBudget(result, cap) {
   return { ...result, categories, total_estimated_cost: Math.round(cost * 100) / 100 };
 }
 
-// Hard issues: calories severely under target (< 70%) or total_estimated_cost
-// doesn't match the actual item sum. These must be fixed by retry, not padded.
-function hasHardIssues(result, p) {
-  const items = (result?.categories || []).flatMap((c) => c.items || []);
-  const withKcal = items.filter((i) => Number(i.total_kcal) > 0);
-  const target = Number(p.calories) * p.days;
-  if (target && withKcal.length >= items.length / 2) {
-    const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
-    if (kcal < target * 0.85) return true;
-  }
-  const itemSum = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
-  const reportedTotal = Number(result?.total_estimated_cost);
-  if (reportedTotal > 0 && itemSum > 0 && Math.abs(reportedTotal - itemSum) > Math.max(itemSum * 0.1, 2)) return true;
-  return false;
-}
-
 export async function runGroceryGeneration(p, langLabel, langCode, { force = false } = {}) {
   // No shared grocery-list cache — generate fresh every time for accuracy.
   // (Verified price catalog is still cached separately via fetchKnownPrices.)
@@ -547,22 +531,9 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     if (retryBetter) { result = retry; issues = retryIssues; }
   }
 
-  // Hard retry: if calories are still severely under target (< 70%) or the
-  // total_estimated_cost still doesn't match the item sum, retry up to 2 more
-  // times. A starvation-level list or a fake total is never acceptable to show
-  // — block it rather than silently padding with filler.
-  for (let hardAttempt = 0; hardAttempt < 1 && hasHardIssues(result, p); hardAttempt++) {
-    const prevList = JSON.stringify(result);
-    const hardIssues = validateGroceries(result, p).filter((m) => m.includes("kcal") || m.includes("total_estimated_cost"));
-    const rawHard = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAS CRITICAL PROBLEMS THAT MUST BE FIXED:\n- ${hardIssues.join("\n- ")}\n\nThese are CRITICAL. You MUST fix both:\n1. CALORIES: The total calories across ALL items must reach at least ${Math.round(Number(p.calories) * p.days * 0.98)} kcal for ${p.days} days at ${p.calories} kcal/day. Increase the pack count (the N in "N × pack size") of EVERY main staple — grains, bread, pasta, rice, oats, dairy, meat, oils — until the sum of total_kcal is at least ${Math.round(Number(p.calories) * p.days * 0.98)}. Do NOT just add one item; scale them all up proportionally.\n2. TOTAL COST: Set total_estimated_cost to EXACTLY the sum of all item prices (price = unit_price × N for each item, then sum all prices). Do not report a higher number.\nDo not reduce variety. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
-    savePriceObservations(rawHard, p.postalCode, p.diet);
-    const hardResult = prepare(rawHard);
-    // Only accept the hard retry if it's actually better and doesn't bust budget.
-    if (!hasHardIssues(hardResult, p) || (listCost(hardResult) <= budgetCap(p) && listKcal(hardResult) > listKcal(result))) {
-      result = hardResult;
-      issues = validateGroceries(result, p);
-    }
-  }
+  // No hard retry: the deterministic post-processing below (topUpCalories,
+  // trimToBudget, normalizeGroceryTotal) already fixes under-calorie lists,
+  // total mismatches and over-budget lists without another serial AI call.
   // After all retries, if calories are still critically low (< 60%), throw —
   // never show a starvation-level list to the user.
   {

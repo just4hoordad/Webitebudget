@@ -158,7 +158,7 @@ export default function MealPlan() {
       autoStartMealPlan(result);
     } catch (err) {
       const isTransient = err?.name === "TypeError" || err?.code === "ECONNABORTED" || /network|timeout|fetch/i.test(err?.message || "");
-      if (isTransient && retryCount < 2) {
+      if (isTransient && retryCount < 1) {
         return generateGroceries(retryCount + 1, force);
       }
       setGroceries(null);
