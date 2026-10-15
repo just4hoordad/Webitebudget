@@ -78,6 +78,7 @@ export async function callOpenRouter({
     "google/gemini-2.5-pro",
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
+    "openai/gpt-5-nano",
     "google/gemini-2.0-flash-001"
   ]);
 

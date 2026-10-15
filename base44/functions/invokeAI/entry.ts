@@ -9,6 +9,7 @@ const ALLOWED_MODELS: Record<string, string> = {
   "google/gemini-2.5-pro": GEMINI_25_FLASH,
   "openai/gpt-4o-mini": GEMINI_25_FLASH,
   "google/gemini-2.0-flash-001": GEMINI_25_FLASH,
+  "openai/gpt-5-nano": "openai/gpt-5-nano",
   "gemini_3_flash": GEMINI_25_FLASH,
   "gemini_3_1_pro": GEMINI_25_FLASH,
   "automatic": GEMINI_25_FLASH,
