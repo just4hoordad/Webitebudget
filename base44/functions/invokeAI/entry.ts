@@ -1,17 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { callOpenRouter, OpenRouterUnavailableError } from "../../shared/openrouter.ts";
 
-// Allowlist of safe, low-cost models — all routed to DeepSeek V4 Flash 0731 (DeepInfra)
-const DEEPSEEK_V4_FLASH = "deepseek/deepseek-v4-flash-0731";
+// Allowlist of safe, low-cost models — default route is Gemini 2.5 Flash
+const GEMINI_25_FLASH = "google/gemini-2.5-flash";
 const ALLOWED_MODELS: Record<string, string> = {
-  [DEEPSEEK_V4_FLASH]: DEEPSEEK_V4_FLASH,
-  "google/gemini-2.5-pro": DEEPSEEK_V4_FLASH,
-  "google/gemini-2.5-flash": DEEPSEEK_V4_FLASH,
-  "openai/gpt-4o-mini": DEEPSEEK_V4_FLASH,
-  "google/gemini-2.0-flash-001": DEEPSEEK_V4_FLASH,
-  "gemini_3_flash": DEEPSEEK_V4_FLASH,
-  "gemini_3_1_pro": DEEPSEEK_V4_FLASH,
-  "automatic": DEEPSEEK_V4_FLASH,
+  [GEMINI_25_FLASH]: GEMINI_25_FLASH,
+  "deepseek/deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
+  "google/gemini-2.5-pro": GEMINI_25_FLASH,
+  "openai/gpt-4o-mini": GEMINI_25_FLASH,
+  "google/gemini-2.0-flash-001": GEMINI_25_FLASH,
+  "gemini_3_flash": GEMINI_25_FLASH,
+  "gemini_3_1_pro": GEMINI_25_FLASH,
+  "automatic": GEMINI_25_FLASH,
 };
 
 // In-memory sliding-window rate limiter with per-client and global ceilings
@@ -107,7 +107,7 @@ function startRecoveryProbe() {
     while (true) {
       await new Promise((r) => setTimeout(r, RECOVERY_PROBE_INTERVAL_MS));
       try {
-        await callOpenRouter({ prompt: "Reply with the single word: ok", model: DEEPSEEK_V4_FLASH });
+        await callOpenRouter({ prompt: "Reply with the single word: ok", model: GEMINI_25_FLASH });
         console.log("invokeAI: OpenRouter recovery probe succeeded — back on default provider.");
         recoveryProbing = false;
         return;
@@ -177,7 +177,7 @@ export default async function (req: Request): Promise<Response> {
   }
 
   // Enforce strict low-cost model allowlist
-  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : DEEPSEEK_V4_FLASH;
+  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : GEMINI_25_FLASH;
 
   const safeSchema = response_json_schema && typeof response_json_schema === "object"
     ? response_json_schema

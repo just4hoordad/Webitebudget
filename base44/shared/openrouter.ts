@@ -81,7 +81,7 @@ export async function callOpenRouter({
     "google/gemini-2.0-flash-001"
   ]);
 
-  let selectedModel = "deepseek/deepseek-v4-flash-0731";
+  let selectedModel = "google/gemini-2.5-flash";
   if (model && ALLOWED_OPENROUTER_MODELS.has(model)) {
     selectedModel = model;
   }
@@ -118,6 +118,12 @@ export async function callOpenRouter({
     payload.provider = {
       order: ["DeepInfra"],
       allow_fallbacks: false,
+    };
+  }
+  // Gemini 2.5 Flash: let OpenRouter pick the best available provider
+  if (selectedModel.startsWith("google/gemini-2.5-flash")) {
+    payload.provider = {
+      allow_fallbacks: true,
     };
   }
 
