@@ -211,6 +211,12 @@ export default function MealPlan() {
     ) || [];
 
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
+  const actualMacroGrams = getActiveItems().reduce((acc, item) => {
+    acc.protein_g += Number(item.protein_g) || 0;
+    acc.carb_g += Number(item.carb_g) || 0;
+    acc.fat_g += Number(item.fat_g) || 0;
+    return acc;
+  }, { protein_g: 0, carb_g: 0, fat_g: 0 });
   const totalSaved = getActiveItems().reduce((sum, item) => {
     if (item.normal_price != null && item.normal_price > item.price) {
       return sum + (item.normal_price - item.price);
@@ -1479,7 +1485,7 @@ Return only the days that have meals to regenerate.`;
              })()}
 
              {/* Macro breakdown chart */}
-             <MacroChart calories={parseFloat(calories)} macros={macros} />
+             <MacroChart calories={parseFloat(calories)} macros={macros} totalGrams={actualMacroGrams} days={days} />
 
              {/* Nutrition CTA */}
              <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block">

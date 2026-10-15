@@ -6,23 +6,48 @@ const COLORS = { protein: "#d4f880", carbs: "#38bdf8", fats: "#fb7185" };
 // kcal per gram
 const KCAL_PER_GRAM = { protein: 4, carbs: 4, fats: 9 };
 
-export default function MacroChart({ calories, macros }) {
+export default function MacroChart({ calories, macros, totalGrams, days = 1 }) {
   const { t } = useLanguage();
-  if (!macros) return null;
+
+  // When totalGrams from the generated grocery list is available, compute the
+  // actual macro split from the real per-item protein/carb/fat grams instead of
+  // showing the user's target split (which defaults to 30/40/30).
+  const hasActual = totalGrams && (Number(totalGrams.protein_g) > 0 || Number(totalGrams.carb_g) > 0 || Number(totalGrams.fat_g) > 0);
+  let pct, gramsPerDay;
+  if (hasActual) {
+    const pKcal = Number(totalGrams.protein_g) * KCAL_PER_GRAM.protein;
+    const cKcal = Number(totalGrams.carb_g) * KCAL_PER_GRAM.carbs;
+    const fKcal = Number(totalGrams.fat_g) * KCAL_PER_GRAM.fats;
+    const sum = pKcal + cKcal + fKcal || 1;
+    pct = {
+      protein: Math.round((pKcal / sum) * 100),
+      carbs: Math.round((cKcal / sum) * 100),
+      fats: Math.round((fKcal / sum) * 100),
+    };
+    const d = Math.max(1, Number(days) || 1);
+    gramsPerDay = {
+      protein: Math.round(Number(totalGrams.protein_g) / d),
+      carbs: Math.round(Number(totalGrams.carb_g) / d),
+      fats: Math.round(Number(totalGrams.fat_g) / d),
+    };
+  } else {
+    if (!macros) return null;
+    const kcal = parseFloat(calories) || 0;
+    pct = { protein: macros.protein || 0, carbs: macros.carbs || 0, fats: macros.fats || 0 };
+    gramsPerDay = {
+      protein: Math.round((kcal * pct.protein / 100) / KCAL_PER_GRAM.protein),
+      carbs: Math.round((kcal * pct.carbs / 100) / KCAL_PER_GRAM.carbs),
+      fats: Math.round((kcal * pct.fats / 100) / KCAL_PER_GRAM.fats),
+    };
+  }
 
   const kcal = parseFloat(calories) || 0;
-  const grams = {
-    protein: Math.round((kcal * (macros.protein || 0) / 100) / KCAL_PER_GRAM.protein),
-    carbs: Math.round((kcal * (macros.carbs || 0) / 100) / KCAL_PER_GRAM.carbs),
-    fats: Math.round((kcal * (macros.fats || 0) / 100) / KCAL_PER_GRAM.fats),
-  };
-
   const data = [
-    { name: t("protein") || "Protein", value: macros.protein || 0, grams: grams.protein, color: COLORS.protein },
-    { name: t("carbs") || "Carbs", value: macros.carbs || 0, grams: grams.carbs, color: COLORS.carbs },
-    { name: t("fats") || "Fats", value: macros.fats || 0, grams: grams.fats, color: COLORS.fats },
+    { name: t("protein") || "Protein", value: pct.protein, grams: gramsPerDay.protein, color: COLORS.protein },
+    { name: t("carbs") || "Carbs", value: pct.carbs, grams: gramsPerDay.carbs, color: COLORS.carbs },
+    { name: t("fats") || "Fats", value: pct.fats, grams: gramsPerDay.fats, color: COLORS.fats },
   ];
-  const totalPct = (macros.protein || 0) + (macros.carbs || 0) + (macros.fats || 0);
+  const totalPct = pct.protein + pct.carbs + pct.fats;
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
