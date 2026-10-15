@@ -32,6 +32,19 @@ export default async function (req: Request): Promise<Response> {
     ? response_json_schema
     : undefined;
 
+  // LLMs can't sum 20+ prices correctly — they report a fake total near the
+  // budget instead of the real item sum. Normalize it here so the comparison
+  // shows the true spending, not an arithmetic hallucination.
+  function normalizeTotal(result: any): any {
+    if (!result || !Array.isArray(result.categories)) return result;
+    const sum = result.categories.reduce(
+      (acc: number, cat: any) =>
+        acc + (cat.items || []).reduce((s: number, i: any) => s + (Number(i.price) || 0), 0),
+      0
+    );
+    return { ...result, total_estimated_cost: Math.round(sum * 100) / 100 };
+  }
+
   // Run both models in parallel so the admin waits for the slower one, not the sum.
   const results = await Promise.allSettled(
     targetModels.map((model) =>
@@ -47,7 +60,7 @@ export default async function (req: Request): Promise<Response> {
   const output = targetModels.map((model, i) => {
     const r = results[i];
     if (r.status === "fulfilled") {
-      return { model, status: "ok", result: r.value };
+      return { model, status: "ok", result: normalizeTotal(r.value) };
     }
     return {
       model,
