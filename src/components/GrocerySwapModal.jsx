@@ -79,63 +79,72 @@ Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 pb-16 sm:pb-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="relative bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
-        style={{ maxHeight: "70vh" }}
+        className="relative bg-card text-card-foreground border-[3px] border-[#111827] dark:border-[#78a71b] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg flex flex-col shadow-[6px_6px_0_#111827] dark:shadow-[6px_6px_0_#000] overflow-hidden"
+        style={{ maxHeight: "75vh" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-start justify-between rounded-t-2xl">
-          <div>
-            <p className="text-xs font-medium text-primary uppercase tracking-wide">🛒 {category} · AI Swap</p>
-            <h2 className="font-heading font-bold text-foreground mt-0.5">Replace "{item.name}"</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{item.quantity} · €{item.price?.toFixed(2)} · {item.store}</p>
+        <div className="sticky top-0 bg-[#FFB020] text-[#111827] border-b-[3px] border-[#111827] px-5 py-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <span className="bba-sticker mb-1">🛒 {category} · AI Swap</span>
+            <h2 className="font-heading font-black text-lg text-[#111827] mt-0.5 leading-snug">Replace "{item.name}"</h2>
+            <p className="text-xs font-bold text-[#111827]/80 mt-0.5">{item.quantity} · €{item.price?.toFixed(2)} · {item.store}</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors mt-1">
-            <X className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827] shrink-0 mt-0.5"
+          >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4 overflow-y-auto flex-1">
+        <div className="p-5 space-y-3 overflow-y-auto flex-1">
           {loading ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground text-center">Finding alternative products…</p>
+              <p className="text-sm font-heading font-bold text-muted-foreground text-center">Finding alternative products…</p>
               {[0, 1, 2].map(i => (
-                <div key={i} className="bg-muted/50 rounded-xl p-4 animate-pulse h-20" />
+                <div key={i} className="bg-muted/50 border-2 border-[#111827]/15 rounded-2xl p-4 animate-pulse h-20" />
               ))}
             </div>
           ) : alternatives?.length > 0 ? (
             <>
-              <p className="text-sm text-muted-foreground">Select an alternative product:</p>
+              <p className="text-xs font-heading font-black uppercase tracking-wider text-muted-foreground">Select an alternative product:</p>
               {alternatives.map((alt, i) => (
                 <button
+                  type="button"
                   key={i}
                   onClick={() => setSelected(i)}
-                  className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                  className={`w-full text-left rounded-2xl border-2 p-4 transition-all ${
                     selected === i
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40 hover:bg-muted/30"
+                      ? "border-[#111827] bg-[#78a71b] text-[#111827] shadow-[3px_3px_0_#111827]"
+                      : "border-[#111827]/25 dark:border-[#78a71b]/40 bg-background hover:border-[#111827]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <p className="font-heading font-semibold text-foreground">{alt.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{alt.quantity} · {alt.store}</p>
-                      {alt.reason && <p className="text-xs text-primary/80 mt-1 italic">{alt.reason}</p>}
-                      {alt.calories_info && <p className="text-xs text-muted-foreground mt-0.5">{alt.calories_info}</p>}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-heading font-extrabold text-sm">{alt.name}</p>
+                      <p className={`text-xs font-semibold mt-0.5 ${selected === i ? "text-[#111827]/80" : "text-muted-foreground"}`}>{alt.quantity} · {alt.store}</p>
+                      {alt.reason && <p className={`text-xs font-medium mt-1 italic ${selected === i ? "text-[#111827]" : "text-primary"}`}>{alt.reason}</p>}
+                      {alt.calories_info && <p className={`text-xs mt-0.5 ${selected === i ? "text-[#111827]/75" : "text-muted-foreground"}`}>{alt.calories_info}</p>}
                     </div>
                     <div className="shrink-0 flex flex-col items-end gap-1">
-                      <span className="text-sm font-bold text-primary">€{alt.price?.toFixed(2)}</span>
+                      <span className="text-sm font-heading font-black bg-white text-[#111827] border-2 border-[#111827] px-2.5 py-0.5 rounded-xl">
+                        €{alt.price?.toFixed(2)}
+                      </span>
                       {alt.price < item.price && (
-                        <span className="text-xs text-green-600 font-medium">saves €{(item.price - alt.price).toFixed(2)}</span>
+                        <span className={`text-[11px] font-heading font-black ${selected === i ? "text-[#111827]" : "text-primary"}`}>
+                          saves €{(item.price - alt.price).toFixed(2)}
+                        </span>
                       )}
                       {selected === i && (
-                        <div className="bg-primary rounded-full p-0.5 mt-1">
-                          <Check className="h-3 w-3 text-primary-foreground" />
+                        <div className="bg-white border-2 border-[#111827] rounded-full p-1 mt-0.5">
+                          <Check className="h-3 w-3 text-[#111827] stroke-[3]" />
                         </div>
                       )}
                     </div>
@@ -144,12 +153,12 @@ Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${
               ))}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">{t("noAlternatives")}</p>
+            <p className="text-sm font-medium text-muted-foreground text-center py-4">{t("noAlternatives")}</p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="bg-card border-t border-border px-5 py-4 pb-6 flex gap-3 shrink-0">
+        <div className="bg-card border-t-2 border-[#111827]/15 dark:border-white/15 px-5 py-4 pb-6 flex gap-3 shrink-0">
           <Button variant="outline" size="sm" onClick={() => fetchAlternatives(true)} disabled={loading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Regenerate

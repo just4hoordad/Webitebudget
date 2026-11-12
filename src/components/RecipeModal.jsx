@@ -122,67 +122,71 @@ Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, qu
     meal.mealType === "breakfast" ? "🌅" : meal.mealType === "lunch" ? "☀️" : "🌙";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 pb-16 sm:pb-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="relative bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
-        style={{ maxHeight: "80vh" }}
+        className="relative bg-card text-card-foreground border-[3px] border-[#111827] dark:border-[#78a71b] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg flex flex-col shadow-[6px_6px_0_#111827] dark:shadow-[6px_6px_0_#000] overflow-hidden"
+        style={{ maxHeight: "82vh" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-start justify-between gap-3">
+        <div className="sticky top-0 bg-[#FF8FB5] text-[#111827] border-b-[3px] border-[#111827] px-5 py-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-primary uppercase tracking-wide flex items-center gap-1">
+            <span className="bba-sticker mb-1">
               <ChefHat className="h-3.5 w-3.5" /> {mealTypeLabel} {tr("recipe")}
-            </p>
-            <h2 className="font-heading font-bold text-foreground mt-0.5 line-clamp-2">{meal.name}</h2>
+            </span>
+            <h2 className="font-heading font-black text-lg text-[#111827] mt-0.5 line-clamp-2">{meal.name}</h2>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors mt-1 shrink-0">
-            <X className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827] shrink-0 mt-0.5"
+          >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="p-5 space-y-4 overflow-y-auto flex-1">
           {isFrozen ? (
             <div className="flex flex-col items-center text-center py-8 gap-3">
-              <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                <Snowflake className="h-7 w-7 text-blue-500" />
+              <div className="h-14 w-14 rounded-2xl bg-[#7DD3FC] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center">
+                <Snowflake className="h-7 w-7 text-[#111827]" />
               </div>
-              <p className="font-heading font-semibold text-foreground">{tr("readyToHeat")}</p>
-              <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+              <p className="font-heading font-black text-foreground">{tr("readyToHeat")}</p>
+              <p className="text-sm text-muted-foreground max-w-sm leading-relaxed font-medium">
                 {tr("reheatNote")}
               </p>
               {meal.name && (
-                <p className="text-sm text-primary bg-primary/10 rounded-lg px-3 py-2">{meal.name}</p>
+                <p className="text-sm font-heading font-bold text-[#111827] bg-[#F3F8E6] border-2 border-[#111827] rounded-xl px-3.5 py-2">{meal.name}</p>
               )}
             </div>
           ) : loading ? (
             <div className="flex flex-col items-center text-center py-10 gap-3">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">{tr("recipeGenerating")}</p>
+              <p className="text-sm font-heading font-bold text-muted-foreground">{tr("recipeGenerating")}</p>
             </div>
           ) : recipe ? (
             <>
               {/* Quick stats */}
-              <div className="grid grid-cols-3 gap-2">
-                <Stat icon={Clock} label={tr("prepTime")} value={recipe.prep_time != null ? `${recipe.prep_time} min` : "—"} />
-                <Stat icon={Clock} label={tr("cookTime")} value={recipe.cook_time != null ? `${recipe.cook_time} min` : "—"} />
-                <Stat icon={Users} label={tr("servings")} value={recipe.servings || people || 1} />
+              <div className="grid grid-cols-3 gap-2.5">
+                <Stat icon={Clock} label={tr("prepTime")} value={recipe.prep_time != null ? `${recipe.prep_time} min` : "—"} bg="bg-[#FFB020]" />
+                <Stat icon={Clock} label={tr("cookTime")} value={recipe.cook_time != null ? `${recipe.cook_time} min` : "—"} bg="bg-[#78a71b]" />
+                <Stat icon={Users} label={tr("servings")} value={recipe.servings || people || 1} bg="bg-[#7DD3FC]" />
               </div>
 
               {/* Ingredients */}
               {Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 && (
-                <div>
-                  <h3 className="font-heading font-semibold text-sm text-foreground mb-2 flex items-center gap-1.5">
-                    <ListOrdered className="h-4 w-4 text-primary" /> {tr("ingredients")}
+                <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4">
+                  <h3 className="font-heading font-black text-sm text-[#111827] dark:text-foreground mb-2.5 flex items-center gap-1.5 uppercase tracking-wide">
+                    <ListOrdered className="h-4 w-4" /> {tr("ingredients")}
                   </h3>
                   <ul className="space-y-1.5">
                     {recipe.ingredients.map((ing, i) => (
-                      <li key={i} className="flex justify-between gap-3 text-sm border-b border-border/60 pb-1.5">
-                        <span className="text-foreground">{ing.name}</span>
-                        <span className="text-muted-foreground shrink-0 font-mono text-xs">{ing.quantity}</span>
+                      <li key={i} className="flex justify-between gap-3 text-sm border-b border-[#111827]/15 dark:border-white/15 pb-1.5 last:border-0 last:pb-0">
+                        <span className="font-semibold text-[#111827] dark:text-foreground">{ing.name}</span>
+                        <span className="font-heading font-black text-xs bg-white text-[#111827] border border-[#111827] px-2 py-0.5 rounded-full shrink-0">{ing.quantity}</span>
                       </li>
                     ))}
                   </ul>
@@ -192,14 +196,14 @@ Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, qu
               {/* Steps */}
               {Array.isArray(recipe.steps) && recipe.steps.length > 0 && (
                 <div>
-                  <h3 className="font-heading font-semibold text-sm text-foreground mb-2">{tr("steps")}</h3>
+                  <h3 className="font-heading font-black text-sm uppercase tracking-wide text-foreground mb-2.5">{tr("steps")}</h3>
                   <ol className="space-y-2.5">
                     {recipe.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                        <span className="h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="h-6 w-6 rounded-full bg-[#FFB020] text-[#111827] border-2 border-[#111827] text-xs font-heading font-black flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
                         </span>
-                        <span className="text-foreground/90 pt-0.5">{step}</span>
+                        <span className="text-foreground font-medium pt-0.5">{step}</span>
                       </li>
                     ))}
                   </ol>
@@ -207,7 +211,7 @@ Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, qu
               )}
 
               {(!Array.isArray(recipe.steps) || recipe.steps.length === 0) && (
-                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/40 rounded-lg p-3">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/40 rounded-xl p-3 border-2 border-[#111827]/15">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>{tr("recipeIncomplete")}</span>
                 </div>
@@ -216,20 +220,22 @@ Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, qu
           ) : null}
         </div>
 
-        <div className="bg-card border-t border-border px-5 py-4 pb-6 flex items-center gap-3 shrink-0">
+        <div className="bg-card border-t-2 border-[#111827]/15 dark:border-white/15 px-5 py-4 pb-6 flex items-center gap-3 shrink-0">
           {!isFrozen && recipe && (
             <button
+              type="button"
               onClick={saveToLibrary}
               disabled={savingLib || savedLib}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-heading font-black bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-50"
             >
               {savingLib ? <Loader2 className="h-4 w-4 animate-spin" /> : savedLib ? <Bookmark className="h-4 w-4 fill-current" /> : <Bookmark className="h-4 w-4" />}
               {savedLib ? tr("saved") : tr("saveToLibrary")}
             </button>
           )}
           <button
+            type="button"
             onClick={onClose}
-            className="flex-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2.5"
+            className="flex-1 text-sm font-heading font-extrabold text-[#111827] bg-white border-2 border-[#111827] rounded-full py-2.5 shadow-[2px_2px_0_#111827] hover:bg-[#F3F8E6] transition-colors"
           >
             {tr("close")}
           </button>
@@ -239,12 +245,12 @@ Return: title, prep_time (min), cook_time (min), servings, ingredients[{name, qu
   );
 }
 
-function Stat({ icon: Icon, label, value }) {
+function Stat({ icon: Icon, label, value, bg = "bg-[#F3F8E6]" }) {
   return (
-    <div className="bg-muted/40 rounded-lg px-2.5 py-2 text-center">
-      <Icon className="h-3.5 w-3.5 text-primary mx-auto mb-1" />
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm font-heading font-bold text-foreground leading-none mt-0.5">{value}</p>
+    <div className={`${bg} text-[#111827] border-2 border-[#111827] rounded-2xl px-2.5 py-2.5 text-center shadow-[2px_2px_0_#111827]`}>
+      <Icon className="h-4 w-4 text-[#111827] mx-auto mb-1" />
+      <p className="text-[10px] font-heading font-black uppercase tracking-wider text-[#111827]/75">{label}</p>
+      <p className="text-sm font-heading font-black text-[#111827] leading-none mt-0.5">{value}</p>
     </div>
   );
 }
