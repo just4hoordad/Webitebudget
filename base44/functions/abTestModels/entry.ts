@@ -11,6 +11,7 @@ const DEFAULT_CANDIDATES = [
   "google/gemini-2.5-flash",
   "openai/gpt-5-nano",
   "openai/gpt-4o-mini",
+  "openai/gpt-oss-20b",
   "deepseek/deepseek-v4-flash-0731",
 ];
 
