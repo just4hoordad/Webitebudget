@@ -175,12 +175,18 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRec
                         <button
                           type="button"
                           onClick={() => onRecipe(weekIndex, dayIdx, type, mealObj)}
-                          className="relative h-7 w-7 rounded-lg bg-white dark:bg-secondary text-foreground border-[1.5px] border-[#111827] dark:border-[#78a71b] hover:bg-[#FF8FB5] hover:text-[#111827] flex items-center justify-center transition-all"
-                          title={isPro ? (t("recipe") || "Recipe") : (t("recipePro") || "Recipe — Pro")}
+                          className={`relative h-7 rounded-lg border-[1.5px] flex items-center justify-center transition-all ${
+                            isPro
+                              ? "w-7 bg-white dark:bg-secondary text-foreground border-[#111827] dark:border-[#78a71b] hover:bg-[#FF8FB5] hover:text-[#111827]"
+                              : "px-1.5 gap-1 bba-locked-arcade text-[#F3F8E6]/75 border-[#111827] dark:border-[#FFB020]/70 hover:text-white shadow-[1.5px_1.5px_0_#FFB020]"
+                          }`}
+                          title={isPro ? (t("recipe") || "Recipe") : (t("recipePro") || "Unlock AI Recipe — Pro")}
                         >
-                          <ChefHat className="h-3.5 w-3.5" />
+                          <ChefHat className="h-3.5 w-3.5 shrink-0" />
                           {!isPro && (
-                            <Lock className="absolute -bottom-1 -right-1 h-3 w-3 text-[#111827] bg-[#FFB020] border border-[#111827] rounded-full p-0.5" />
+                            <span className="inline-flex items-center gap-0.5 bg-[#FFB020] text-[#111827] rounded px-1 py-0.5 text-[8px] font-heading font-black leading-none">
+                              <Lock className="h-2 w-2 stroke-[3]" /> PRO
+                            </span>
                           )}
                         </button>
                       </div>

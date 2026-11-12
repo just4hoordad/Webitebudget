@@ -28,20 +28,22 @@ export default function FreeGroceryCapNotice({ planDays }) {
   const fill = (s) => s.replace(/\{cap\}/g, cap).replace(/\{planDays\}/g, planDays);
 
   return (
-    <div className="bba-t bg-[#FFB020] text-[#111827] flex items-start gap-3.5">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] text-[#111827]">
-        <Lock className="h-5 w-5" />
+    <div className="bba-t bba-locked-arcade border-[#111827] dark:border-[#FFB020] flex items-start gap-3.5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFB020] border-[2.5px] border-[#111827] shadow-[2px_2px_0_#000] text-[#111827]">
+        <Lock className="h-5 w-5 stroke-[2.5]" />
       </span>
       <div className="min-w-0 flex-1">
-        <span className="bba-sticker mb-1.5">{c.badge}</span>
-        <p className="font-heading font-black text-base text-[#111827] leading-snug">{fill(c.title)}</p>
-        <p className="text-xs font-medium text-[#111827]/85 leading-relaxed mt-1">{fill(c.desc)}</p>
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFB020] text-[#111827] border-[1.5px] border-[#111827] px-2.5 py-0.5 text-[10px] font-heading font-black uppercase tracking-wider mb-1.5">
+          <Lock className="h-2.5 w-2.5 stroke-[2.8]" /> {c.badge} · PRO UNLOCK
+        </span>
+        <p className="font-heading font-black text-base text-[#F3F8E6] leading-snug">{fill(c.title)}</p>
+        <p className="text-xs font-medium text-[#F3F8E6]/75 leading-relaxed mt-1">{fill(c.desc)}</p>
         <button
           type="button"
           onClick={() => openPricing?.()}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#111827] text-white border-2 border-[#111827] px-4 py-1.5 text-xs font-heading font-black shadow-[2px_2px_0_#FF3E7F] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#FFB020] text-[#111827] border-2 border-[#111827] px-4 py-1.5 text-xs font-heading font-black shadow-[2px_2px_0_#FF3E7F] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
         >
-          <Sparkles className="h-3.5 w-3.5 text-[#FFB020]" />
+          <Sparkles className="h-3.5 w-3.5 text-[#111827]" />
           {c.cta}
         </button>
       </div>
