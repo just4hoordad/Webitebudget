@@ -110,7 +110,7 @@ export default function Community() {
       ) : error ? (
         <div className="text-center py-12 text-sm text-destructive">{error}</div>
       ) : plans.length === 0 ? (
-        <div className="bba-t bg-[#A3E635] p-8 text-center space-y-3">
+        <div className="bba-t bg-[#78a71b] p-8 text-center space-y-3">
           <div className="mx-auto h-14 w-14 rounded-2xl bg-white border-3 border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
             <Users className="h-7 w-7 text-[#111827]" />
           </div>

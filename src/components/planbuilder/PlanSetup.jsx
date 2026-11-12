@@ -65,7 +65,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
   return (
     <div ref={formRef} className="space-y-6">
-      <div className="bba-t bg-[#A3E635] text-[#111827] space-y-1.5">
+      <div className="bba-t bg-[#78a71b] text-[#111827] space-y-1.5">
         <span className="bba-sticker">
           <ShoppingCart className="h-3.5 w-3.5" /> {t("planBuilderBadge")}
         </span>

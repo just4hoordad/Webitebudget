@@ -120,7 +120,7 @@ export default function Profile() {
       ) : (
         <>
           {/* Display name */}
-          <div className="bba-t bg-[#A3E635] p-5 space-y-3">
+          <div className="bba-t bg-[#78a71b] p-5 space-y-3">
             <label className="block text-sm font-bold text-[#111827]">
               {t("profileDisplayName") || "Display name"}
             </label>

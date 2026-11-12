@@ -118,7 +118,7 @@ export default function Recipes() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       {/* Header */}
-      <div className="bba-t bg-[#A3E635] text-[#111827] flex items-start justify-between gap-3">
+      <div className="bba-t bg-[#78a71b] text-[#111827] flex items-start justify-between gap-3">
         <div>
           <span className="bba-sticker mb-1.5">
             <ChefHat className="h-3.5 w-3.5" /> Kitchen Arcade

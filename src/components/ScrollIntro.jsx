@@ -45,7 +45,7 @@ const STORES = [
   { name: "Aldi", bg: "#7DD3FC", deal: "-22%" },
   { name: "Lidl", bg: "#FFB020", deal: "-19%" },
   { name: "REWE", bg: "#FF8FB5", deal: "Flyer" },
-  { name: "Edeka", bg: "#A3E635", deal: "Fresh" },
+  { name: "Edeka", bg: "#78a71b", deal: "Fresh" },
   { name: "Penny", bg: "#fff", deal: "-15%" },
   { name: "Netto", bg: "#F3F8E6", deal: "-17%" },
 ];
@@ -110,10 +110,10 @@ export default function ScrollIntro({ open, onComplete }) {
         className="fixed inset-0 z-[100] bg-[#F3F8E6] dark:bg-background text-[#111827] dark:text-foreground flex flex-col"
       >
         {/* Top sticky bar: progress + step pills + Skip button */}
-        <div className="relative z-20 px-4 pt-3 pb-2.5 border-b-[3px] border-[#111827] dark:border-[#A3E635] bg-white/95 dark:bg-card/95 backdrop-blur-md">
+        <div className="relative z-20 px-4 pt-3 pb-2.5 border-b-[3px] border-[#111827] dark:border-[#78a71b] bg-white/95 dark:bg-card/95 backdrop-blur-md">
           <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-xl bg-[#A3E635] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center font-heading font-black text-xs text-[#111827]">
+              <div className="h-8 w-8 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center font-heading font-black text-xs text-[#111827]">
                 {activeStage + 1}/4
               </div>
               <div className="flex items-center gap-1">
@@ -127,7 +127,7 @@ export default function ScrollIntro({ open, onComplete }) {
                       activeStage === idx
                         ? "w-7 bg-[#FF3E7F]"
                         : idx < activeStage
-                        ? "w-2.5 bg-[#A3E635]"
+                        ? "w-2.5 bg-[#78a71b]"
                         : "w-2.5 bg-[#F3F8E6]"
                     }`}
                   />
@@ -149,7 +149,7 @@ export default function ScrollIntro({ open, onComplete }) {
           <div className="max-w-lg mx-auto mt-2 h-2 rounded-full bg-[#F3F8E6] border-2 border-[#111827] overflow-hidden">
             <motion.div
               style={{ width: progressWidth }}
-              className="h-full bg-gradient-to-r from-[#A3E635] via-[#FFB020] to-[#FF3E7F]"
+              className="h-full bg-gradient-to-r from-[#78a71b] via-[#FFB020] to-[#FF3E7F]"
             />
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function ScrollIntro({ open, onComplete }) {
               </p>
 
               {/* Animated Interactive Budget Demo Tile */}
-              <div className="rounded-2xl bg-[#A3E635] text-[#111827] border-[3px] border-[#111827] shadow-[4px_4px_0_#111827] p-4 space-y-3">
+              <div className="rounded-2xl bg-[#78a71b] text-[#111827] border-[3px] border-[#111827] shadow-[4px_4px_0_#111827] p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-heading font-black uppercase tracking-wider flex items-center gap-1.5">
                     <Wallet className="h-4 w-4" /> Weekly Budget
@@ -256,7 +256,7 @@ export default function ScrollIntro({ open, onComplete }) {
                 {[
                   { slot: "Breakfast", dish: "Skyr Berry Bowl & Haferflocken", kcal: "480 kcal", p: "34g P", bg: "#fff" },
                   { slot: "Lunch", dish: "Mediterranean Chickpea Couscous", kcal: "640 kcal", p: "26g P", bg: "#F3F8E6" },
-                  { slot: "Dinner", dish: "Crispy Salmon & Oven Potatoes", kcal: "720 kcal", p: "45g P", bg: "#A3E635" },
+                  { slot: "Dinner", dish: "Crispy Salmon & Oven Potatoes", kcal: "720 kcal", p: "45g P", bg: "#78a71b" },
                 ].map((m, idx) => (
                   <motion.div
                     key={m.slot}
@@ -313,7 +313,7 @@ export default function ScrollIntro({ open, onComplete }) {
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="bba-sticker">{c.step3Badge}</span>
-                <span className="text-xs font-heading font-black bg-[#A3E635] text-[#111827] border-2 border-[#111827] px-2.5 py-1 rounded-full shadow-[2px_2px_0_#111827]">
+                <span className="text-xs font-heading font-black bg-[#78a71b] text-[#111827] border-2 border-[#111827] px-2.5 py-1 rounded-full shadow-[2px_2px_0_#111827]">
                   {c.savedTag}
                 </span>
               </div>
@@ -337,7 +337,7 @@ export default function ScrollIntro({ open, onComplete }) {
                     className="p-3 flex items-center justify-between gap-2 text-[#111827]"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <CheckCircle2 className="h-5 w-5 text-[#111827] fill-[#A3E635] shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-[#111827] fill-[#78a71b] shrink-0" />
                       <div className="min-w-0">
                         <p className="font-heading font-bold text-xs sm:text-sm truncate">{item.name}</p>
                         <span className="inline-block text-[10px] font-black uppercase bg-[#FFB020] px-1.5 py-0.2 rounded border border-[#111827]">
@@ -347,7 +347,7 @@ export default function ScrollIntro({ open, onComplete }) {
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[11px] line-through opacity-50 mr-1.5">{item.old}</span>
-                      <span className="font-heading font-black text-sm bg-[#A3E635] px-2 py-0.5 rounded-lg border-2 border-[#111827]">
+                      <span className="font-heading font-black text-sm bg-[#78a71b] px-2 py-0.5 rounded-lg border-2 border-[#111827]">
                         {item.price}
                       </span>
                     </div>
@@ -364,7 +364,7 @@ export default function ScrollIntro({ open, onComplete }) {
                 <motion.div
                   animate={{ y: [0, 6, 0] }}
                   transition={{ duration: 1.4, repeat: Infinity }}
-                  className="h-7 w-7 rounded-full bg-[#A3E635] text-[#111827] border-2 border-[#111827] flex items-center justify-center shadow-[2px_2px_0_#111827]"
+                  className="h-7 w-7 rounded-full bg-[#78a71b] text-[#111827] border-2 border-[#111827] flex items-center justify-center shadow-[2px_2px_0_#111827]"
                 >
                   <ChevronDown className="h-4 w-4" />
                 </motion.div>
@@ -400,7 +400,7 @@ export default function ScrollIntro({ open, onComplete }) {
                     onComplete();
                     navigate("/budget");
                   }}
-                  className="w-full min-h-[52px] rounded-full bg-[#A3E635] text-[#111827] border-[3px] border-[#111827] shadow-[4px_4px_0_#111827] font-heading font-black text-base flex items-center justify-center gap-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111827] transition-all"
+                  className="w-full min-h-[52px] rounded-full bg-[#78a71b] text-[#111827] border-[3px] border-[#111827] shadow-[4px_4px_0_#111827] font-heading font-black text-base flex items-center justify-center gap-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111827] transition-all"
                 >
                   <ShoppingBasket className="h-5 w-5" />
                   {c.startBtn}

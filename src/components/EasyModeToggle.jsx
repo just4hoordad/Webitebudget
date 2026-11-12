@@ -23,7 +23,7 @@ export default function EasyModeToggle({ mode, onChange }) {
       type="button"
       onClick={() => onChange(val)}
       className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-full text-sm font-heading font-extrabold transition-all ${
-        mode === val ? "bg-[#A3E635] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]" : "text-muted-foreground hover:text-foreground"
+        mode === val ? "bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       <Icon className="h-4 w-4" />

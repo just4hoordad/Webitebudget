@@ -10,14 +10,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[#A3E635] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#111827] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
+          "bg-[#78a71b] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#111827] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
         destructive:
           "bg-[#FF3E7F] text-white border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#111827] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
         outline:
           "border-[2.5px] border-[#111827] bg-white text-[#111827] shadow-[3px_3px_0_#111827] hover:bg-[#F3F8E6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#111827] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
         secondary:
           "bg-[#FFB020] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#111827] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
-        ghost: "hover:bg-[#A3E635]/30 text-[#111827]",
+        ghost: "hover:bg-[#78a71b]/30 text-[#111827]",
         link: "text-[#111827] underline-offset-4 hover:underline",
       },
       size: {

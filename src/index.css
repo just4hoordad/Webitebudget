@@ -25,7 +25,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 221 39% 11%;
 
-    --primary: 83 78% 55%;
+    --primary: 80 72% 38%;
     --primary-foreground: 221 39% 11%;
 
     --secondary: 77 40% 88%;
@@ -48,7 +48,7 @@
     --dark-foreground: 77 50% 94%;
     --dark-muted: 77 20% 70%;
 
-    --chart-1: 83 78% 55%;
+    --chart-1: 80 72% 38%;
     --chart-2: 340 100% 62%;
     --chart-3: 39 100% 56%;
     --chart-4: 199 95% 74%;
@@ -58,7 +58,7 @@
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 221 39% 11%;
-    --sidebar-primary: 83 78% 55%;
+    --sidebar-primary: 80 72% 38%;
     --sidebar-primary-foreground: 221 39% 11%;
     --sidebar-accent: 77 50% 94%;
     --sidebar-accent-foreground: 221 39% 11%;
@@ -74,7 +74,7 @@
     --card-foreground: 77 50% 94%;
     --popover: 220 32% 16%;
     --popover-foreground: 77 50% 94%;
-    --primary: 83 78% 55%;
+    --primary: 80 72% 38%;
     --primary-foreground: 221 39% 11%;
     --secondary: 220 26% 22%;
     --secondary-foreground: 77 50% 94%;
@@ -86,23 +86,23 @@
     --destructive-foreground: 0 0% 100%;
     --border: 77 30% 85%;
     --input: 77 30% 85%;
-    --ring: 83 78% 55%;
+    --ring: 80 72% 38%;
     --dark: 221 39% 11%;
     --dark-foreground: 77 50% 94%;
     --dark-muted: 77 20% 70%;
-    --chart-1: 83 78% 55%;
+    --chart-1: 80 72% 38%;
     --chart-2: 340 100% 62%;
     --chart-3: 39 100% 56%;
     --chart-4: 199 95% 74%;
     --chart-5: 262 83% 68%;
     --sidebar-background: 220 32% 14%;
     --sidebar-foreground: 77 50% 94%;
-    --sidebar-primary: 83 78% 55%;
+    --sidebar-primary: 80 72% 38%;
     --sidebar-primary-foreground: 221 39% 11%;
     --sidebar-accent: 220 26% 22%;
-    --sidebar-accent-foreground: 83 78% 55%;
+    --sidebar-accent-foreground: 80 72% 38%;
     --sidebar-border: 77 30% 85%;
-    --sidebar-ring: 83 78% 55%;
+    --sidebar-ring: 80 72% 38%;
   }
 }
 
@@ -125,7 +125,7 @@
   }
 
   ::selection {
-    background: #A3E635;
+    background: #78a71b;
     color: #111827;
   }
 
@@ -214,15 +214,15 @@
   }
 
   .dark .bba-t {
-    border-color: #A3E635;
+    border-color: #78a71b;
     box-shadow: 5px 5px 0 #000000;
   }
 
   .dark .bba-pill {
     background: hsl(var(--secondary));
     color: hsl(var(--foreground));
-    border-color: #A3E635;
-    box-shadow: 3px 3px 0 #A3E635;
+    border-color: #78a71b;
+    box-shadow: 3px 3px 0 #78a71b;
   }
   .dark .bba-pill svg {
     stroke: currentColor;

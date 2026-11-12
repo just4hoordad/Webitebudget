@@ -68,7 +68,7 @@ export default function HeroSection({ onOpenIntro }) {
       {/* Top arcade intro sticker */}
       <motion.div variants={itemVariants} className="flex items-center justify-between gap-2">
         <span className="bba-sticker">
-          <span className="inline-block h-2 w-2 rounded-full bg-[#A3E635] animate-pulse" />
+          <span className="inline-block h-2 w-2 rounded-full bg-[#78a71b] animate-pulse" />
           Smart Grocery Arcade
         </span>
         {onOpenIntro && (
@@ -125,7 +125,7 @@ export default function HeroSection({ onOpenIntro }) {
         {/* Floating parallax chips that react to scroll */}
         <motion.div
           style={{ y: chipLeftY }}
-          className="absolute left-1 top-3 z-10 bg-[#A3E635] text-[#111827] border-2 border-[#111827] rounded-full px-2.5 py-1 text-[11px] font-heading font-black shadow-[2px_2px_0_#111827] -rotate-6 pointer-events-none"
+          className="absolute left-1 top-3 z-10 bg-[#78a71b] text-[#111827] border-2 border-[#111827] rounded-full px-2.5 py-1 text-[11px] font-heading font-black shadow-[2px_2px_0_#111827] -rotate-6 pointer-events-none"
         >
           ⚡ Live Flyers
         </motion.div>

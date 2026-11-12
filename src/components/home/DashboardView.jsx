@@ -66,7 +66,7 @@ export default function DashboardView() {
       </header>
 
       {/* Featured stat tile: total budget + ring */}
-      <div className="bba-t bg-[#A3E635] flex items-center justify-between gap-4">
+      <div className="bba-t bg-[#78a71b] flex items-center justify-between gap-4">
         <div className="min-w-0">
           <span className="text-xs font-black tracking-[0.12em] uppercase text-[#111827]/80">
             {t("totalPlanned") || "Total planned"}
@@ -128,7 +128,7 @@ export default function DashboardView() {
             {t("recentPlans") || "Recent plans"}
           </h2>
           {plans.length > 0 && (
-            <Link to="/saved-plans" className="text-xs font-extrabold text-[#111827] bg-[#A3E635] border-2 border-[#111827] px-3 py-1 rounded-full shadow-[2px_2px_0_#111827] flex items-center gap-1">
+            <Link to="/saved-plans" className="text-xs font-extrabold text-[#111827] bg-[#78a71b] border-2 border-[#111827] px-3 py-1 rounded-full shadow-[2px_2px_0_#111827] flex items-center gap-1">
               {t("viewAll") || "View all"}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -143,7 +143,7 @@ export default function DashboardView() {
           </div>
         ) : plans.length === 0 ? (
           <div className="border-2 border-dashed border-[#111827]/40 rounded-2xl p-6 text-center space-y-2 bg-[#F3F8E6]">
-            <div className="h-11 w-11 rounded-2xl bg-[#A3E635] border-2 border-[#111827] flex items-center justify-center mx-auto shadow-[2px_2px_0_#111827]">
+            <div className="h-11 w-11 rounded-2xl bg-[#78a71b] border-2 border-[#111827] flex items-center justify-center mx-auto shadow-[2px_2px_0_#111827]">
               <Calendar className="h-5 w-5 text-[#111827]" />
             </div>
             <p className="text-sm font-bold text-[#111827]">
@@ -170,7 +170,7 @@ export default function DashboardView() {
                       <span className="font-heading font-black text-sm leading-tight line-clamp-1 text-[#111827]">{plan.name}</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-[11px] font-bold text-[#1f2937] mt-1 flex-wrap pl-6">
-                      {plan.diet && <span className="bg-[#A3E635] border border-[#111827] px-1.5 py-0.2 rounded-md text-[#111827]">{plan.diet}</span>}
+                      {plan.diet && <span className="bg-[#78a71b] border border-[#111827] px-1.5 py-0.2 rounded-md text-[#111827]">{plan.diet}</span>}
                       {plan.budget != null && <span className="flex items-center gap-0.5"><Wallet className="h-3 w-3" />€{Number(plan.budget).toFixed(0)}</span>}
                       {plan.days != null && <span className="flex items-center gap-0.5"><Calendar className="h-3 w-3" />{plan.days}d</span>}
                       {plan.calories != null && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3" />{plan.calories}</span>}

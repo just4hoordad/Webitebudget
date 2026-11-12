@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 
 function LogoMark({ className = "" }) {
   return (
-    <div className={`h-9 w-9 rounded-xl bg-[#A3E635] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center ${className}`}>
+    <div className={`h-9 w-9 rounded-xl bg-[#78a71b] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center ${className}`}>
       <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
     </div>
   );
@@ -230,7 +230,7 @@ export default function Layout() {
               {!isAuthenticated && (
                 <button
                   onClick={navigateToLogin}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-extrabold text-[#111827] bg-[#A3E635] border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-extrabold text-[#111827] bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0"
                   aria-label={t("signInNav")}
                 >
                   <LogIn className="h-3.5 w-3.5" />
@@ -286,7 +286,7 @@ export default function Layout() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-white dark:bg-card border-[3px] border-[#111827] dark:border-[#A3E635] shadow-[5px_5px_0_#111827] dark:shadow-[5px_5px_0_#000] p-1.5">
+          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-white dark:bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[5px_5px_0_#111827] dark:shadow-[5px_5px_0_#000] p-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -297,7 +297,7 @@ export default function Layout() {
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
                   className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-black uppercase tracking-tight transition-all select-none ${
                     isActive
-                      ? "bg-[#A3E635] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
+                      ? "bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
                       : "text-[#111827]/75 dark:text-foreground/75 hover:text-[#111827] dark:hover:text-foreground"
                   }`}
                 >
