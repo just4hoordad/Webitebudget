@@ -12,6 +12,7 @@ import PlanConfirm from "@/components/planbuilder/PlanConfirm";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { toDishes, filledDishes } from "@/lib/planDishes";
 import { savePriceObservations, fetchKnownPrices, dropUnselectedStores } from "@/lib/generateGroceries";
+import { sanitizeGroceryCalories } from "@/lib/calorieSanity";
 import { verifyPrices } from "@/lib/verifyPrices";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
