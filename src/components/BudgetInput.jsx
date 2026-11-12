@@ -37,7 +37,7 @@ export default function BudgetInput({ value, onChange, label }) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground">{label}</label>
-        <div className="flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-3 py-1 rounded-xl focus-within:ring-2 focus-within:ring-primary/40">
+        <div className="flex items-center gap-1 bg-[#FFB020] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827] font-heading font-black text-xl px-3 py-1 rounded-xl">
           <Euro className="h-5 w-5 shrink-0" />
           <input
             type="number"
@@ -52,7 +52,7 @@ export default function BudgetInput({ value, onChange, label }) {
               if (!isNaN(val) && val > 0) onChange(Math.min(2400, val));
             }}
             onBlur={() => setDraft(String(value))}
-            className="w-20 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"
+            className="w-20 bg-transparent text-[#111827] font-heading font-black text-xl focus:outline-none text-right"
           />
         </div>
       </div>

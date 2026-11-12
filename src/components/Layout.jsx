@@ -77,42 +77,45 @@ export default function Layout() {
   const isPersistRoute = PERSIST_PATHS.includes(location.pathname);
   const isRoot = location.pathname === "/";
   const navItems = [
-    { path: "/", label: t("home"), icon: Home },
-    { path: "/budget", label: budgetLabel, icon: Wallet },
-    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils },
-    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked },
+    { path: "/", label: t("home"), icon: Home, accent: "bg-[#78a71b]" },
+    { path: "/budget", label: budgetLabel, icon: Wallet, accent: "bg-[#FF3E7F] text-white" },
+    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils, accent: "bg-[#FFB020]" },
+    { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked, accent: "bg-[#7DD3FC]" },
   ];
 
   const secondaryNavItems = [
-    { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard },
-    { path: "/community", label: t("communityNav") || "Community", icon: Users },
-    { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat },
-    { path: "/pantry", label: "Pantry", icon: Package },
-    { path: "/about", label: t("aboutNav"), icon: Info },
-    { path: "/contact", label: t("contactNav"), icon: Mail },
-    { path: "/datenschutz", label: t("privacyNav"), icon: Lock },
-    { path: "/profile", label: t("profileNav") || "Profile", icon: User },
+    { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard, badgeBg: "bg-[#78a71b]" },
+    { path: "/community", label: t("communityNav") || "Community", icon: Users, badgeBg: "bg-[#7DD3FC]" },
+    { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat, badgeBg: "bg-[#FF8FB5]" },
+    { path: "/pantry", label: "Pantry", icon: Package, badgeBg: "bg-[#FFB020]" },
+    { path: "/profile", label: t("profileNav") || "Profile", icon: User, badgeBg: "bg-[#C084FC]" },
+    { path: "/about", label: t("aboutNav"), icon: Info, badgeBg: "bg-[#F3F8E6]" },
+    { path: "/contact", label: t("contactNav"), icon: Mail, badgeBg: "bg-[#F3F8E6]" },
+    { path: "/datenschutz", label: t("privacyNav"), icon: Lock, badgeBg: "bg-[#F3F8E6]" },
   ];
 
-  const navLinkBase = "relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors select-none";
+  const navLinkBase = "relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-heading font-extrabold transition-all select-none";
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border sticky top-0 h-screen shrink-0 z-50">
+      <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r-[3px] border-[#111827] dark:border-[#78a71b] sticky top-0 h-screen shrink-0 z-50">
         {/* Logo */}
-        <div className="px-5 h-16 flex items-center border-b border-sidebar-border shrink-0">
-          <Link to="/" className="flex items-center gap-2.5 select-none">
-            <LogoMark />
-            <span className="font-heading font-bold text-lg tracking-tight text-foreground">
-              Budget<span className="text-primary">Bite</span>
+        <div className="px-5 h-16 flex items-center border-b-[3px] border-[#111827] dark:border-[#78a71b] bg-[#F3F8E6] dark:bg-card shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 select-none group">
+            <LogoMark className="group-hover:-rotate-6 transition-transform" />
+            <span className="font-heading font-black text-lg tracking-tight text-foreground">
+              Budget<span className="bg-[#FF3E7F] text-white px-1.5 py-0.5 rounded-lg border-2 border-[#111827] shadow-[2px_2px_0_#111827] ml-0.5 inline-block -rotate-2">Bite</span>
             </span>
             {isPro && <ProBadge className="ml-1" />}
           </Link>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 px-3.5 py-4 space-y-1.5 overflow-y-auto scrollbar-hide">
+          <p className="px-2 pb-1 text-[10px] font-heading font-black uppercase tracking-[0.14em] text-muted-foreground">
+            🎮 Play Modes
+          </p>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -120,9 +123,12 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`${navLinkBase} ${isActive ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`${navLinkBase} ${
+                  isActive
+                    ? `${item.accent} text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5`
+                    : "text-foreground/80 hover:text-foreground hover:bg-secondary/80 border-[2.5px] border-transparent"
+                }`}
               >
-                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary" />}
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </Link>
@@ -131,13 +137,16 @@ export default function Layout() {
           {!isAuthenticated && (
             <button
               onClick={navigateToLogin}
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium bg-primary/10 text-primary hover:bg-primary/15 transition-colors select-none w-full"
+              className="mt-2 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-full text-sm font-heading font-black bg-[#78a71b] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#111827] transition-all select-none w-full"
             >
-              <LogIn className="h-5 w-5 shrink-0" />
+              <LogIn className="h-4 w-4 shrink-0" />
               <span className="truncate">{t("signInNav")}</span>
             </button>
           )}
-          <div className="pt-4 mt-4 border-t border-sidebar-border space-y-1">
+          <div className="pt-4 mt-4 border-t-2 border-dashed border-[#111827]/20 dark:border-[#78a71b]/30 space-y-1">
+            <p className="px-2 pb-1 text-[10px] font-heading font-black uppercase tracking-[0.14em] text-muted-foreground">
+              ✨ Arcade Hub
+            </p>
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -145,10 +154,15 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`${navLinkBase} ${isActive ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                  className={`${navLinkBase} ${
+                    isActive
+                      ? "bg-[#FFB020] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/70 border-[2.5px] border-transparent"
+                  }`}
                 >
-                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary" />}
-                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className={`h-7 w-7 rounded-lg ${item.badgeBg} border-2 border-[#111827] flex items-center justify-center shrink-0 text-[#111827]`}>
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
                   <span className="truncate">{item.label}</span>
                 </Link>
               );
@@ -157,18 +171,18 @@ export default function Layout() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-sidebar-border shrink-0 space-y-3">
+        <div className="p-4 border-t-[3px] border-[#111827] dark:border-[#78a71b] shrink-0 space-y-3 bg-[#F3F8E6]/60 dark:bg-card/60">
           {isAuthenticated && (
             <>
-              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-secondary/70">
-                <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                  <User className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827]">
+                <div className="h-9 w-9 rounded-xl bg-[#78a71b] border-2 border-[#111827] flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-[#111827]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
+                  <p className="text-xs font-heading font-extrabold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
                 </div>
-                <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
+                <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
@@ -333,14 +347,14 @@ export default function Layout() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 320 }}
-                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-border p-5"
+                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t-[3px] border-[#111827] dark:border-[#78a71b] p-5 shadow-[0_-6px_0_#111827]"
                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
               >
-                <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-muted" />
+                <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#111827]/25 dark:bg-foreground/30" />
                 {!isAuthenticated ? (
                   <button
                     onClick={() => { setMoreOpen(false); navigateToLogin(); }}
-                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm bb-shadow-glow w-full"
+                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-[#78a71b] text-[#111827] font-heading font-black text-sm border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] w-full"
                   >
                     <span className="flex items-center gap-2.5">
                       <LogIn className="h-5 w-5" />
@@ -350,15 +364,15 @@ export default function Layout() {
                   </button>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary/70">
-                      <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                        <User className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-3 mb-3 px-3.5 py-3 rounded-2xl bg-secondary border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827]">
+                      <div className="h-10 w-10 rounded-xl bg-[#78a71b] border-2 border-[#111827] flex items-center justify-center shrink-0">
+                        <User className="h-5 w-5 text-[#111827]" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
+                        <p className="text-sm font-heading font-extrabold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
-                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors text-xs font-medium">
+                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors text-xs font-bold">
                         <LogOut className="h-4 w-4" />
                         {t("logoutNav")}
                       </button>
@@ -372,7 +386,7 @@ export default function Layout() {
                     </button>
                   </>
                 )}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2.5">
                   {secondaryNavItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path;
@@ -381,12 +395,14 @@ export default function Layout() {
                         key={item.path}
                         to={item.path}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
-                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary/60 border-border text-foreground hover:border-primary/30 hover:text-primary"
+                        className={`flex flex-col items-center gap-2 p-3.5 rounded-2xl border-[2.5px] border-[#111827] dark:border-[#78a71b] shadow-[3px_3px_0_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${
+                          isActive ? "bg-[#78a71b] text-[#111827]" : "bg-card text-foreground"
                         }`}
                       >
-                        <Icon className="h-6 w-6" />
-                        <span className="text-xs font-medium text-center leading-tight">{item.label}</span>
+                        <span className={`h-9 w-9 rounded-xl ${item.badgeBg} border-2 border-[#111827] flex items-center justify-center text-[#111827]`}>
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="text-[11px] font-heading font-extrabold text-center leading-tight">{item.label}</span>
                       </Link>
                     );
                   })}

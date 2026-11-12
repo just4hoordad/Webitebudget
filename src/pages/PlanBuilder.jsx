@@ -425,26 +425,61 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     );
   }
 
+  const questStages = [
+    { id: "setup", num: "01", label: "Loadout", done: phase !== "setup", active: phase === "setup", bg: "bg-[#78a71b]" },
+    { id: "grid", num: "02", label: "Meal Deck", done: phase === "confirm" || phase === "result", active: phase === "grid", bg: "bg-[#FFB020]" },
+    { id: "confirm", num: "03", label: "Loot List", done: phase === "result", active: phase === "confirm", bg: "bg-[#FF3E7F] text-white" },
+  ];
+
+  const QuestBar = () => (
+    <div className="grid grid-cols-3 gap-2">
+      {questStages.map((st) => (
+        <div
+          key={st.id}
+          className={`flex items-center gap-2 px-3 py-2 rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] text-xs font-heading font-black transition-all ${
+            st.active
+              ? `${st.bg} text-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5`
+              : st.done
+              ? "bg-[#78a71b]/25 text-foreground border-[#111827]"
+              : "bg-card text-muted-foreground opacity-75"
+          }`}
+        >
+          <span className="h-5 w-5 rounded-full bg-white text-[#111827] border-[1.5px] border-[#111827] flex items-center justify-center text-[10px] shrink-0">
+            {st.done ? "✓" : st.num}
+          </span>
+          <span className="truncate">{st.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   if (phase === "confirm" && !loadingGrocery) {
     return (
-      <PlanConfirm
-        plan={plan}
-        people={people}
-        diet={diet}
-        stores={activeStoreNames}
-        prepEnabled={prepEnabled}
-        onBack={() => setPhase("grid")}
-        onConfirm={handleGenerate}
-      />
+      <div className="space-y-4">
+        <QuestBar />
+        <PlanConfirm
+          plan={plan}
+          people={people}
+          diet={diet}
+          stores={activeStoreNames}
+          prepEnabled={prepEnabled}
+          onBack={() => setPhase("grid")}
+          onConfirm={handleGenerate}
+        />
+      </div>
     );
   }
 
   if (phase === "grid" || phase === "confirm") {
     return (
-      <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <button onClick={reset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="h-4 w-4" /> {t("back")}
+      <div className="space-y-4">
+        <QuestBar />
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={reset}
+            className="inline-flex items-center gap-1.5 text-xs font-heading font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3.5 py-1.5 hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("back")}
           </button>
           <CreditBar variant="onLight" />
         </div>
@@ -460,12 +495,13 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   return (
     <div className="space-y-4">
       <PlanBuilderIntro open={showIntro} onComplete={handleCompleteIntro} />
-      <div className="flex items-center justify-between">
+      <QuestBar />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <CreditBar variant="onLight" />
         <button
           type="button"
           onClick={() => setShowIntro(true)}
-          className="text-[11px] font-heading font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border-2 border-[#111827] bg-[#FFB020] text-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          className="text-[11px] font-heading font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full border-2 border-[#111827] bg-[#FFB020] text-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
         >
           ▶ How it works
         </button>

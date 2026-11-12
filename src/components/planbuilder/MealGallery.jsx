@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 import { MEAL_LIBRARY, FALLBACK_MEALS } from "@/lib/mealLibrary";
 import { DISH_IMAGES } from "@/lib/dishImages";
@@ -9,10 +10,12 @@ function MealCard({ meal, onPick }) {
   const [broken, setBroken] = useState(false);
   const photo = DISH_IMAGES[meal.name] || meal.img;
   return (
-    <button
+    <motion.button
       type="button"
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.94 }}
       onClick={onPick}
-      className="group relative rounded-xl overflow-hidden border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all active:scale-95 hover:shadow-xl hover:border-primary/50 hover:-translate-y-0.5"
+      className="group relative rounded-2xl overflow-hidden border-[2.5px] border-[#111827] dark:border-[#78a71b] bg-card shadow-[3px_3px_0_#111827] focus:outline-none text-left"
     >
       <div className="relative aspect-[4/3]">
         {photo && !broken ? (
@@ -28,18 +31,18 @@ function MealCard({ meal, onPick }) {
             <span className="text-3xl drop-shadow-sm">{meal.emoji}</span>
           </div>
         )}
-        <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-        {/* Add badge */}
-        <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px] font-semibold opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all shadow-md">
+        <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+        {/* Arcade + Add sticker */}
+        <span className="absolute top-2 right-2 inline-flex items-center gap-0.5 rounded-full bg-[#78a71b] text-[#111827] border-2 border-[#111827] px-2 py-0.5 text-[10px] font-heading font-black shadow-[2px_2px_0_#111827] group-hover:bg-[#FFB020] transition-colors">
           <Plus className="h-2.5 w-2.5" /> {t("add") || "Add"}
         </span>
-        <span className="absolute left-2 right-2 bottom-1.5">
-          <span className="block text-xs font-medium text-white leading-tight line-clamp-2 drop-shadow-sm">
+        <span className="absolute left-2.5 right-2.5 bottom-2">
+          <span className="block text-xs font-heading font-extrabold text-white leading-tight line-clamp-2 drop-shadow">
             {meal.name}
           </span>
         </span>
       </div>
-    </button>
+    </motion.button>
   );
 }
 
@@ -59,37 +62,37 @@ export default function MealGallery({ diet, onPick, targetLabel, activeType }) {
   const slotLabel = activeType ? (t(activeType) || activeType) : "";
 
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-foreground">
-          {slotLabel ? `${slotLabel} ${t("meals") || "meals"}` : (t("addMealTitle") || "Tap a meal to add it")}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <p className="text-sm font-heading font-black text-foreground">
+          🃏 {slotLabel ? `${slotLabel} ${t("meals") || "meals"}` : (t("addMealTitle") || "Tap a meal card to deal it")}
         </p>
         {targetLabel && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 rounded-full px-2.5 py-1 whitespace-nowrap">
+          <span className="inline-flex items-center gap-1 text-[11px] font-heading font-black text-[#111827] bg-[#FFB020] border-2 border-[#111827] rounded-full px-2.5 py-0.5 shadow-[2px_2px_0_#111827] whitespace-nowrap">
             <ArrowRight className="h-3 w-3" /> {targetLabel}
           </span>
         )}
       </div>
 
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("searchMeals") || "Search meals…"}
-          className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow placeholder:text-muted-foreground/60"
+          className="w-full pl-9 pr-3 py-2.5 text-sm font-medium rounded-xl border-2 border-[#111827] dark:border-[#78a71b] bg-[#F3F8E6]/60 dark:bg-secondary focus:outline-none focus:bg-card transition-colors placeholder:text-muted-foreground/70"
         />
       </div>
 
       {meals.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {meals.map((m, i) => (
             <MealCard key={`${m.name}-${i}`} meal={m} onPick={() => onPick(m.name)} />
           ))}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground text-center py-4">
+        <p className="text-xs font-heading font-bold text-muted-foreground text-center py-5">
           {t("noMealsFound") || "No meals match your search."}
         </p>
       )}
