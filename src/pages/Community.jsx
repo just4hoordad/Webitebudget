@@ -6,7 +6,8 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import CommunityPlanCard from "@/components/community/CommunityPlanCard";
 import CommunityPlanDetail from "@/components/community/CommunityPlanDetail";
 import CommunityProLock from "@/components/community/CommunityProLock";
-import { Users, Loader2, LogIn, Search } from "lucide-react";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
+import { Users, Loader2, LogIn, Lock } from "lucide-react";
 
 export default function Community() {
   const { t } = useLanguage();
@@ -53,23 +54,41 @@ export default function Community() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-md mx-auto text-center py-16 space-y-4">
-        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-          <Users className="h-7 w-7 text-primary" />
+      <div className="max-w-md mx-auto py-8">
+        <div className="bba-t bba-locked-arcade border-[3px] border-[#111827] text-center space-y-4 py-8 px-6">
+          <div className="h-14 w-14 rounded-2xl bg-[#FFB020] border-[3px] border-[#111827] shadow-[3px_3px_0_#000] flex items-center justify-center mx-auto relative">
+            <Users className="h-7 w-7 text-[#111827]" />
+            <span className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-full bg-[#111827] border-2 border-[#FFB020] flex items-center justify-center">
+              <Lock className="h-3 w-3 text-[#FFB020]" />
+            </span>
+          </div>
+          <div>
+            <ProLockBadge label="PRO ARCADE STAGE" size="sm" onClick={openPricing} />
+          </div>
+          <h1 className="font-heading text-xl font-black text-[#F3F8E6]">
+            {t("communityLoginNeeded") || "Sign in to browse community plans"}
+          </h1>
+          <p className="text-sm text-[#F3F8E6]/75">
+            {t("communityLoginDesc") || "Discover grocery lists and meal plans shared by other BudgetBite users. Available on Premium."}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+            <button
+              onClick={navigateToLogin}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[3px_3px_0_#000] rounded-full px-6 py-2.5 font-heading font-black text-sm"
+            >
+              <LogIn className="h-4 w-4" />
+              {t("signInNav") || "Sign in"}
+            </button>
+            <button
+              type="button"
+              onClick={openPricing}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 bg-[#FFB020] text-[#111827] border-2 border-[#111827] shadow-[3px_3px_0_#FF3E7F] rounded-full px-5 py-2.5 font-heading font-black text-sm"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              View Pro
+            </button>
+          </div>
         </div>
-        <h1 className="font-heading text-xl font-bold">
-          {t("communityLoginNeeded") || "Sign in to browse community plans"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("communityLoginDesc") || "Discover grocery lists and meal plans shared by other BudgetBite users. Log in to start exploring."}
-        </p>
-        <button
-          onClick={navigateToLogin}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-3 font-semibold text-sm hover:opacity-95 transition-opacity"
-        >
-          <LogIn className="h-4 w-4" />
-          {t("signInNav") || "Sign in"}
-        </button>
       </div>
     );
   }

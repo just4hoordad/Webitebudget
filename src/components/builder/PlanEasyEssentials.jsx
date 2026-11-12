@@ -3,6 +3,8 @@ import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, SlidersHorizontal, Leaf, Beef, Fish, Wheat, Scale, Microwave, Store } from "lucide-react";
 import { GROCERY_STORES } from "@/lib/groceryStores";
+import { useMonetization } from "@/lib/MonetizationContext";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
 
 const DIETS = [
   { id: "balanced", nameKey: "balanced", Icon: Scale },
@@ -73,6 +75,7 @@ const PICK_HINT = {
 
 export default function PlanEasyEssentials({ diet, setDiet, days, setDays, people, setPeople, onBuild, canBuild, maxDays, onSwitchDetailed, stores, toggleStore, isPro }) {
   const { t, currentLanguage } = useLanguage();
+  const { openPricing } = useMonetization();
   const more = MORE[currentLanguage?.code] || MORE.en;
   const freeHint = FREE_HINT[currentLanguage?.code] || FREE_HINT.en;
   const proHint = PRO_HINT[currentLanguage?.code] || PRO_HINT.en;
@@ -122,30 +125,57 @@ export default function PlanEasyEssentials({ diet, setDiet, days, setDays, peopl
 
         {/* Stores */}
         <div className="space-y-3">
-          <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FF8FB5] text-[#111827] border-2 border-[#111827] text-xs">2</span>
-            <Store className="h-4 w-4 text-primary" />
-            {t("preferredStores") || "Preferred stores"}
-          </label>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FF8FB5] text-[#111827] border-2 border-[#111827] text-xs">2</span>
+              <Store className="h-4 w-4 text-primary" />
+              {t("preferredStores") || "Preferred stores"}
+            </label>
+            {!isPro && (
+              <ProLockBadge
+                label="2–4 STORES · PRO"
+                size="xs"
+                onClick={openPricing}
+              />
+            )}
+          </div>
           <div className="flex flex-wrap gap-2.5">
             {GROCERY_STORES.map((store) => {
               const isSelected = stores.includes(store.id);
+              const isExtraLockedSlot = !isPro && stores.length >= 1 && !isSelected;
               return (
                 <button
                   key={store.id}
                   type="button"
                   onClick={() => handleStoreClick(store.id)}
-                  className={`px-3.5 py-2 text-sm bba-chip ${isSelected ? "bba-chip-active" : ""}`}
+                  className={`px-3.5 py-2 text-sm bba-chip ${
+                    isSelected
+                      ? "bba-chip-active"
+                      : isExtraLockedSlot
+                      ? "!bg-[#161e2e] !text-[#F3F8E6]/70 hover:!text-white"
+                      : ""
+                  }`}
                 >
                   {store.name}
                 </button>
               );
             })}
           </div>
-          <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#FFB020] border border-[#111827] shrink-0" />
-            {isPro ? proHint : freeHint}
-          </p>
+          {isPro ? (
+            <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#FFB020] border border-[#111827] shrink-0" />
+              {proHint}
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={openPricing}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bba-locked-arcade border-2 border-[#111827] dark:border-[#FFB020]/60 shadow-[2px_2px_0_#111827] text-left hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+            >
+              <span className="text-xs font-bold text-[#F3F8E6]/85">{freeHint}</span>
+              <ProLockBadge label="UNLOCK" size="xs" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-3">

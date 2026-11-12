@@ -3,6 +3,8 @@ import BudgetInput from "@/components/BudgetInput";
 import DurationInput from "@/components/DurationInput";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, SlidersHorizontal, Store } from "lucide-react";
+import { useMonetization } from "@/lib/MonetizationContext";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
 
 const GROCERY_STORES = [
   { id: "aldi", name: "Aldi" },
@@ -79,6 +81,7 @@ export default function BudgetEasyEssentials({
   selectedStores, setSelectedStores, isPro,
 }) {
   const { t, currentLanguage } = useLanguage();
+  const { openPricing } = useMonetization();
   const more = MORE[currentLanguage?.code] || MORE.en;
   const freeHint = FREE_HINT[currentLanguage?.code] || FREE_HINT.en;
   const proHint = PRO_HINT[currentLanguage?.code] || PRO_HINT.en;
@@ -120,20 +123,33 @@ export default function BudgetEasyEssentials({
 
         {/* Stores */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Store className="h-4 w-4 text-primary" />
-            {t("preferredStores") || "Preferred stores"}
-          </label>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Store className="h-4 w-4 text-primary" />
+              {t("preferredStores") || "Preferred stores"}
+            </label>
+            {!isPro && (
+              <ProLockBadge
+                label="2–4 STORES · PRO"
+                size="xs"
+                onClick={openPricing}
+              />
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {GROCERY_STORES.map((store) => {
               const isSelected = selectedStores.includes(store.id);
+              const isExtraLockedSlot = !isPro && selectedStores.length >= 1 && !isSelected;
               return (
                 <button
                   key={store.id}
+                  type="button"
                   onClick={() => handleStoreClick(store.id)}
                   className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                     isSelected
                       ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : isExtraLockedSlot
+                      ? "bba-locked-arcade text-[#F3F8E6]/70 border-[#111827] hover:text-white"
                       : "bg-card text-muted-foreground border-border hover:border-primary/40"
                   }`}
                 >
@@ -142,10 +158,21 @@ export default function BudgetEasyEssentials({
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-            {isPro ? proHint : freeHint}
-          </p>
+          {isPro ? (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              {proHint}
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={openPricing}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bba-locked-arcade border border-[#111827] dark:border-[#FFB020]/60 text-left hover:opacity-95 transition-opacity"
+            >
+              <span className="text-xs font-medium text-[#F3F8E6]/85">{freeHint}</span>
+              <ProLockBadge label="UNLOCK" size="xs" />
+            </button>
+          )}
         </div>
 
         {/* Duration */}

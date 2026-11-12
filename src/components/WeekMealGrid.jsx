@@ -141,7 +141,7 @@ export default function WeekMealGrid({ week, weekIndex, t, onEdit, onSwap, onRec
                           <p className="text-[11px] font-medium leading-snug text-muted-foreground line-clamp-2 mt-0.5">{ingText}</p>
                         )}
                       </div>
-                      <div className="flex items-center sm:flex-row flex-wrap gap-1 shrink-0 max-w-[76px] sm:max-w-none justify-end">
+                      <div className="flex items-center sm:flex-row flex-wrap gap-1 shrink-0 max-w-[92px] sm:max-w-none justify-end">
                         {onToggleLock && (
                           <button
                             type="button"

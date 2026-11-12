@@ -15,13 +15,22 @@ function RecipeBtn({ onClick }) {
   const { isPro } = useMonetization();
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
+      className={`mt-1.5 inline-flex items-center gap-1 text-[10px] font-heading font-extrabold px-2 py-0.5 rounded-full transition-all ${
+        isPro
+          ? "text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30"
+          : "bba-locked-arcade text-[#F3F8E6]/85 hover:text-white border border-[#111827] dark:border-[#FFB020]/60 shadow-[1.5px_1.5px_0_#FFB020]"
+      }`}
       title={isPro ? t("recipe") : t("recipePro")}
     >
-      <ChefHat className="h-3 w-3" />
-      {t("recipe")}
-      {!isPro && <Lock className="h-2.5 w-2.5 text-foreground/70" />}
+      <ChefHat className="h-3 w-3 shrink-0" />
+      <span>{t("recipe")}</span>
+      {!isPro && (
+        <span className="inline-flex items-center gap-0.5 bg-[#FFB020] text-[#111827] rounded-full px-1.5 py-0.5 text-[8px] font-heading font-black leading-none">
+          <Lock className="h-2 w-2 stroke-[3]" /> PRO
+        </span>
+      )}
     </button>
   );
 }
@@ -420,15 +429,7 @@ export default function SavedMealPlans() {
                                 <span className="block text-[10px] text-primary mt-0.5">🍽 {dayPrep[type].portion}</span>
                               )}
                               {name && (
-                                <button
-                                  onClick={() => handleRecipe(plan, idx, type, name)}
-                                  className="relative mt-1 inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded-md transition-colors"
-                                  title={isPro ? t("recipe") : t("recipePro")}
-                                >
-                                  <ChefHat className="h-3 w-3" />
-                                  {t("recipe")}
-                                  {!isPro && <Lock className="h-2.5 w-2.5 text-foreground/70" />}
-                                </button>
+                                <RecipeBtn onClick={() => handleRecipe(plan, idx, type, name)} />
                               )}
                             </div>
                           );

@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/AuthContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import { base44 } from "@/api/base44Client";
 import CreditBar from "@/components/monetization/CreditBar";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
 import {
   Plus, Users, ArrowRight, Leaf, Wallet, Calendar, Flame, TrendingUp,
   Trophy, ChefHat, Package, Utensils, Sparkles,
@@ -24,6 +26,7 @@ function getPlayerRank(planCount) {
 export default function DashboardView() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { isPro } = useMonetization();
   const [plans, setPlans] = useState([]);
   const [stats, setStats] = useState({ count: 0, totalBudget: 0, dietCounts: [], budgetSeries: [] });
   const [loading, setLoading] = useState(true);
@@ -332,17 +335,38 @@ export default function DashboardView() {
 
         <Link
           to="/community"
-          className="bba-t bg-[#FFB020] text-[#111827] flex items-center gap-4"
+          className={`bba-t flex items-center gap-4 ${
+            isPro
+              ? "bg-[#FFB020] text-[#111827]"
+              : "bba-locked-arcade border-[#111827] dark:border-[#FFB020]/70"
+          }`}
         >
-          <div className="h-12 w-12 rounded-2xl bg-white border-[3px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center shrink-0">
-            <Users className="h-6 w-6 text-[#111827]" />
+          <div
+            className={`h-12 w-12 rounded-2xl border-[3px] flex items-center justify-center shrink-0 ${
+              isPro
+                ? "bg-white border-[#111827] shadow-[3px_3px_0_#111827] text-[#111827]"
+                : "bg-[#111827] border-[#FFB020] shadow-[3px_3px_0_#000] text-[#FFB020]"
+            }`}
+          >
+            <Users className="h-6 w-6" />
           </div>
-          <div className="min-w-0">
-            <span className="text-[10px] font-heading font-black uppercase tracking-wider bg-white/60 border border-[#111827] px-2 py-0.5 rounded-full">
-              Multiplayer
-            </span>
-            <h3 className="font-heading font-black text-lg text-[#111827] mt-0.5">{t("browseCommunityTitle") || "Browse community plans"}</h3>
-            <p className="text-xs sm:text-sm text-[#111827]/85 line-clamp-2 font-medium">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span
+                className={`text-[10px] font-heading font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  isPro
+                    ? "bg-white/60 border border-[#111827] text-[#111827]"
+                    : "bg-white/10 border border-white/20 text-[#F3F8E6]/80"
+                }`}
+              >
+                Multiplayer
+              </span>
+              {!isPro && <ProLockBadge label="PRO STAGE" size="xs" />}
+            </div>
+            <h3 className={`font-heading font-black text-lg mt-0.5 ${isPro ? "text-[#111827]" : "text-[#F3F8E6]"}`}>
+              {t("browseCommunityTitle") || "Browse community plans"}
+            </h3>
+            <p className={`text-xs sm:text-sm line-clamp-2 font-medium ${isPro ? "text-[#111827]/85" : "text-[#F3F8E6]/70"}`}>
               {t("browseCommunityDesc") || "Discover grocery lists and meal plans shared by others."}
             </p>
           </div>

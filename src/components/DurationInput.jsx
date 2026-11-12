@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { CalendarDays } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useMonetization } from "@/lib/MonetizationContext";
+import { FREE_GROCERY_DAY_CAP } from "@/lib/freeTier";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
 
 export default function DurationInput({ value, onChange, label, onCommit, max = 30 }) {
   const { t } = useLanguage();
+  const { isPro, openPricing } = useMonetization();
   const [draft, setDraft] = useState(String(value));
   useEffect(() => { setDraft(String(value)); }, [value]);
 
@@ -40,10 +44,33 @@ export default function DurationInput({ value, onChange, label, onCommit, max = 
         </div>
       </div>
       <Slider value={[Math.min(value, max)]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={max} step={1} className="w-full" />
-      <div className="flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between items-center text-xs text-muted-foreground">
         <span>1</span>
+        {!isPro && max > FREE_GROCERY_DAY_CAP && (
+          <span className="text-[10px] font-heading font-bold text-muted-foreground">
+            {FREE_GROCERY_DAY_CAP}d free list
+          </span>
+        )}
         <span>{max}</span>
       </div>
+      {!isPro && max > FREE_GROCERY_DAY_CAP && (
+        <button
+          type="button"
+          onClick={openPricing}
+          className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bba-locked-arcade border transition-all text-left ${
+            value > FREE_GROCERY_DAY_CAP
+              ? "border-[#FFB020] shadow-[2px_2px_0_#FFB020]"
+              : "border-[#111827] opacity-85 hover:opacity-100"
+          }`}
+        >
+          <span className="text-[11px] font-heading font-bold text-[#F3F8E6]/85 leading-snug">
+            {value > FREE_GROCERY_DAY_CAP
+              ? `${value}d meal plan · Grocery list capped at ${FREE_GROCERY_DAY_CAP}d`
+              : `8–${max}d full grocery lists unlock on Premium`}
+          </span>
+          <ProLockBadge label="PRO" size="xs" />
+        </button>
+      )}
     </div>
   );
 }

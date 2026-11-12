@@ -6,6 +6,7 @@ import CookieBanner from "./CookieBanner";
 import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, Users, LogIn, LogOut, Trash2, Wallet, Package, ChefHat, LayoutDashboard } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
+import ProLockBadge from "@/components/monetization/ProLockBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
 import UpgradeBanner from "@/components/monetization/UpgradeBanner";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -85,7 +86,7 @@ export default function Layout() {
 
   const secondaryNavItems = [
     { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard, badgeBg: "bg-[#78a71b]" },
-    { path: "/community", label: t("communityNav") || "Community", icon: Users, badgeBg: "bg-[#7DD3FC]" },
+    { path: "/community", label: t("communityNav") || "Community", icon: Users, badgeBg: "bg-[#7DD3FC]", proOnly: true },
     { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat, badgeBg: "bg-[#FF8FB5]" },
     { path: "/pantry", label: "Pantry", icon: Package, badgeBg: "bg-[#FFB020]" },
     { path: "/profile", label: t("profileNav") || "Profile", icon: User, badgeBg: "bg-[#C084FC]" },
@@ -150,6 +151,7 @@ export default function Layout() {
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
+              const isLocked = item.proOnly && !isPro;
               return (
                 <Link
                   key={item.path}
@@ -157,13 +159,22 @@ export default function Layout() {
                   className={`${navLinkBase} ${
                     isActive
                       ? "bg-[#FFB020] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827]"
+                      : isLocked
+                      ? "bba-locked-arcade text-[#F3F8E6]/80 hover:text-white border-[2px] border-[#111827] dark:border-[#FFB020]/50 shadow-[2px_2px_0_#111827]"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/70 border-[2.5px] border-transparent"
                   }`}
                 >
-                  <span className={`h-7 w-7 rounded-lg ${item.badgeBg} border-2 border-[#111827] flex items-center justify-center shrink-0 text-[#111827]`}>
+                  <span
+                    className={`h-7 w-7 rounded-lg border-2 flex items-center justify-center shrink-0 ${
+                      isLocked && !isActive
+                        ? "bg-[#111827] border-[#FFB020]/80 text-[#FFB020]"
+                        : `${item.badgeBg} border-[#111827] text-[#111827]`
+                    }`}
+                  >
                     <Icon className="h-3.5 w-3.5" />
                   </span>
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate flex-1">{item.label}</span>
+                  {isLocked && <ProLockBadge size="xs" />}
                 </Link>
               );
             })}
@@ -390,16 +401,30 @@ export default function Layout() {
                   {secondaryNavItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path;
+                    const isLocked = item.proOnly && !isPro;
                     return (
                       <Link
                         key={item.path}
                         to={item.path}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-2 p-3.5 rounded-2xl border-[2.5px] border-[#111827] dark:border-[#78a71b] shadow-[3px_3px_0_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${
-                          isActive ? "bg-[#78a71b] text-[#111827]" : "bg-card text-foreground"
+                        className={`relative flex flex-col items-center gap-2 p-3.5 rounded-2xl border-[2.5px] shadow-[3px_3px_0_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${
+                          isActive
+                            ? "bg-[#78a71b] text-[#111827] border-[#111827]"
+                            : isLocked
+                            ? "bba-locked-arcade text-[#F3F8E6]/85 border-[#111827] dark:border-[#FFB020]/70"
+                            : "bg-card text-foreground border-[#111827] dark:border-[#78a71b]"
                         }`}
                       >
-                        <span className={`h-9 w-9 rounded-xl ${item.badgeBg} border-2 border-[#111827] flex items-center justify-center text-[#111827]`}>
+                        {isLocked && (
+                          <ProLockBadge size="xs" className="absolute -top-2 -right-1.5" />
+                        )}
+                        <span
+                          className={`h-9 w-9 rounded-xl border-2 flex items-center justify-center ${
+                            isLocked && !isActive
+                              ? "bg-[#111827] border-[#FFB020] text-[#FFB020]"
+                              : `${item.badgeBg} border-[#111827] text-[#111827]`
+                          }`}
+                        >
                           <Icon className="h-5 w-5" />
                         </span>
                         <span className="text-[11px] font-heading font-extrabold text-center leading-tight">{item.label}</span>
