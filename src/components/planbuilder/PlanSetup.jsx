@@ -109,10 +109,14 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       <SetupDiet diet={diet} setDiet={setDiet} enabled={enabled.diet} onComplete={completePart} />
 
       <SetupPart part="people" icon={Users} label={t("numberOfPeople")}>
-        <div className={`flex gap-2 ${disabledCls("people")}`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 ${disabledCls("people")}`}>
           {[1, 2, 3, 4].map((number) => (
-            <button key={number} onClick={() => { setPeople(number); completePart("people"); }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${people === number ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
+            <button
+              key={number}
+              type="button"
+              onClick={() => { setPeople(number); completePart("people"); }}
+              className={`py-3 px-3 text-sm bba-chip ${people === number ? "bba-chip-active" : ""}`}
+            >
               {number} {number === 1 ? t("person") : t("people")}
             </button>
           ))}
@@ -120,7 +124,7 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
       </SetupPart>
 
       <SetupPart part="days" icon={CalendarDays} label={t("durationDays") || "Duration"}>
-        <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("days")}`}>
+        <div className={`rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4 ${disabledCls("days")}`}>
           <DurationInput value={days} onChange={setDays} onCommit={() => completePart("days")} max={maxDays} />
         </div>
       </SetupPart>
@@ -132,20 +136,22 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
       <SetupPart part="macros" icon={Scale} label={t("macroTitle")} active={enabled.macros}
         onToggle={() => { toggleSetting("macros"); completePart("macros"); }}>
-        <div className={`rounded-xl border border-border bg-card p-4 ${disabledCls("macros")}`}>
+        <div className={`rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4 ${disabledCls("macros")}`}>
           <MacroRatioControl value={macros} onChange={setMacros} unset={!macrosSet} onCommit={() => completePart("macros")} />
         </div>
       </SetupPart>
 
       {disabledReason && (
-        <p className="text-xs text-destructive text-center font-medium">{disabledReason}</p>
+        <div className="rounded-2xl bg-[#FF3E7F]/15 border-2 border-[#FF3E7F] px-4 py-2.5 text-xs text-destructive text-center font-heading font-extrabold">
+          ⚠️ {disabledReason}
+        </div>
       )}
       <button
         id="pb-build"
         ref={buildRef}
         onClick={onBuild}
         disabled={buildBtnDisabled}
-        className="scroll-mt-24 w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center text-primary-foreground disabled:opacity-60"
+        className="scroll-mt-24 w-full h-14 text-base bba-cta bg-[#FF3E7F] text-white flex items-center justify-center disabled:opacity-50"
       >
         <Sparkles className="h-5 w-5 mr-2" />
         {t("buildMyPlan")}

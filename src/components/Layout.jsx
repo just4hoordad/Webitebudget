@@ -99,7 +99,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex flex-col w-68 bg-sidebar border-r-[3px] border-[#111827] dark:border-[#78a71b] sticky top-0 h-screen shrink-0 z-50">
+      <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r-[3px] border-[#111827] dark:border-[#78a71b] sticky top-0 h-screen shrink-0 z-50">
         {/* Logo */}
         <div className="px-5 h-16 flex items-center border-b-[3px] border-[#111827] dark:border-[#78a71b] bg-[#F3F8E6] dark:bg-card shrink-0">
           <Link to="/" className="flex items-center gap-2.5 select-none group">

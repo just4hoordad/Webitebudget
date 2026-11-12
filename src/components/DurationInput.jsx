@@ -18,8 +18,8 @@ export default function DurationInput({ value, onChange, label, onCommit, max = 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         {label && <label className="text-sm font-medium text-foreground">{label}</label>}
-        <div className="ml-auto flex items-center gap-1 bg-primary/10 text-primary font-heading font-bold text-xl px-3 py-1 rounded-xl focus-within:ring-2 focus-within:ring-primary/40">
-          <CalendarDays className="h-5 w-5 shrink-0" />
+        <div className="ml-auto flex items-center gap-1.5 bg-[#7DD3FC] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827] font-heading font-black text-xl px-3 py-1 rounded-xl">
+          <CalendarDays className="h-4 w-4 shrink-0" />
           <input
             type="number"
             inputMode="numeric"
@@ -34,9 +34,9 @@ export default function DurationInput({ value, onChange, label, onCommit, max = 
             }}
             onBlur={() => { setDraft(String(value)); if (value >= 1) onCommit?.(); }}
             onKeyDown={e => { if (onCommit && e.key === "Enter") e.currentTarget.blur(); }}
-            className="w-12 bg-transparent text-primary font-heading font-bold text-xl focus:outline-none text-right"
+            className="w-12 bg-transparent text-[#111827] font-heading font-black text-xl focus:outline-none text-right"
           />
-          <span className="text-sm">{t("days") || "days"}</span>
+          <span className="text-xs font-extrabold uppercase">{t("days") || "days"}</span>
         </div>
       </div>
       <Slider value={[Math.min(value, max)]} onValueChange={([v]) => onChange(v)} onValueCommit={() => onCommit?.()} min={1} max={max} step={1} className="w-full" />
