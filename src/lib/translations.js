@@ -217,6 +217,16 @@ const translations = {
     browseCommunityTitle: "Browse community plans",
     browseCommunityDesc: "Discover grocery lists and meal plans shared by others.",
     viewAll: "View all",
+    totalPlanned: "Total planned",
+    planSingular: "plan",
+    planPlural: "plans",
+    mealPlans: "Meal plans",
+    avgBudget: "Avg budget",
+    perPlan: "Per plan",
+    allTime: "All time",
+    total: "TOTAL",
+    average: "AVG",
+    there: "there",
 
     // Community
     communityNav: "Community",
@@ -447,6 +457,16 @@ const translations = {
     browseCommunityTitle: "Community-Pläne entdecken",
     browseCommunityDesc: "Entdecke Einkaufslisten und Mahlzeitenpläne, die andere geteilt haben.",
     viewAll: "Alle anzeigen",
+    totalPlanned: "Geplant gesamt",
+    planSingular: "Plan",
+    planPlural: "Pläne",
+    mealPlans: "Mahlzeitenpläne",
+    avgBudget: "Ø Budget",
+    perPlan: "Pro Plan",
+    allTime: "Gesamtzeit",
+    total: "GESAMT",
+    average: "Ø",
+    there: "da",
 
     // Community
     communityNav: "Community",
