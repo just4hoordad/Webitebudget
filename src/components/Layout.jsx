@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, Users, LogIn, LogOut, Trash2, Wallet, Package, ChefHat } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, Users, LogIn, LogOut, Trash2, Wallet, Package, ChefHat, LayoutDashboard } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -84,6 +84,7 @@ export default function Layout() {
   ];
 
   const secondaryNavItems = [
+    { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard },
     { path: "/community", label: t("communityNav") || "Community", icon: Users },
     { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat },
     { path: "/pantry", label: "Pantry", icon: Package },

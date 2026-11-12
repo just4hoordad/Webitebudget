@@ -1,10 +1,6 @@
-import { useState } from "react";
-import OnboardingModal from "@/components/OnboardingModal";
 import PlanModeChooser from "@/components/PlanModeChooser";
 import HeroSection from "@/components/HeroSection";
-import DashboardView from "@/components/home/DashboardView";
 import { useLanguage } from "@/lib/LanguageContext";
-import { useAuth } from "@/lib/AuthContext";
 
 const BENTO_ARCADE_CSS = `
 @keyframes pop{0%{opacity:0;transform:translateY(26px) scale(.92)}70%{opacity:1;transform:translateY(-4px) scale(1.02)}100%{opacity:1;transform:none}}
@@ -64,24 +60,6 @@ a.bba-t:active{box-shadow:0 0 0 #111827;transform:translate(5px,5px)}
 
 export default function Home() {
   const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => !localStorage.getItem("onboarding_completed")
-  );
-
-  const closeOnboarding = () => {
-    localStorage.setItem("onboarding_completed", "true");
-    setShowOnboarding(false);
-  };
-
-  if (isAuthenticated) {
-    return (
-      <div className="space-y-6">
-        <DashboardView />
-        <OnboardingModal open={showOnboarding} onClose={closeOnboarding} />
-      </div>
-    );
-  }
 
   return (
     <>
