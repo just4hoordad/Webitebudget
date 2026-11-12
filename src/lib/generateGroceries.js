@@ -13,8 +13,9 @@ import { fetchBrandCatalog } from "@/lib/brandCatalog";
 import { consolidatePacks } from "@/lib/consolidatePacks";
 import { addProteinSupplements } from "@/lib/proteinSupplements";
 import { grocerySpending, normalizeGroceryTotal, spendingIssues, preferSpendingCandidate, spendingFailureMessage } from "@/lib/grocerySpending";
+import { GROCERY_MODEL } from "@/lib/groceryModel";
 
-const GROCERY_SCHEMA = {
+export const GROCERY_SCHEMA = {
   type: "object",
   properties: {
     total_estimated_cost: { type: "number" },
@@ -501,7 +502,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
     // trying to make the AI recalculate a sum it already got wrong.
     return normalizeGroceryTotal(withAlternatives);
   };
-  const call = (prompt, model = "google/gemini-2.5-flash") => invokeAI({
+  const call = (prompt, model = GROCERY_MODEL) => invokeAI({
     prompt,
     add_context_from_internet: false,
     model,
@@ -518,7 +519,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   // stuffing every constraint into the prompt up front.
   if (issues.length) {
     const prevList = JSON.stringify(result);
-    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, "google/gemini-2.5-flash");
+    const rawRetry = await call(`${basePrompt}\n\nYOUR PREVIOUS ATTEMPT:\n${prevList}\n\nIT HAD THESE PROBLEMS:\n- ${issues.join("\n- ")}\n\nFix these concrete problems. Preserve enough food and nutrition for the full duration. Use real product replacements to change spending, not invented prices or extra bulk food. Return the complete corrected list with alternatives.`, GROCERY_MODEL);
     savePriceObservations(rawRetry, p.postalCode, p.diet);
     const retry = prepare(rawRetry);
     const retryIssues = validateGroceries(retry, p);

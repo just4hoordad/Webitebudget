@@ -13,6 +13,7 @@ export interface OpenRouterOptions {
   response_json_schema?: Record<string, unknown>;
   model?: string;
   add_context_from_internet?: boolean;
+  captureUsage?: boolean;
 }
 
 export class OpenRouterUnavailableError extends Error {
@@ -66,6 +67,7 @@ export async function callOpenRouter({
   response_json_schema,
   model,
   add_context_from_internet,
+  captureUsage = false,
 }: OpenRouterOptions): Promise<any> {
   const apiKey = secrets.get("openrouter");
   if (!apiKey) {
@@ -135,7 +137,8 @@ export async function callOpenRouter({
   const parse = async (r: Response) => {
     const d = await r.json();
     const content = d.choices?.[0]?.message?.content || "";
-    return response_json_schema ? JSON.parse(sanitizeJson(content)) : content;
+    const result = response_json_schema ? JSON.parse(sanitizeJson(content)) : content;
+    return { result, usage: d.usage || null };
   };
 
   let res = await post(apiKey, payload);
@@ -151,5 +154,10 @@ export async function callOpenRouter({
     throw new OpenRouterUnavailableError(res.status, `OpenRouter returned HTTP ${res.status}: ${errText}`);
   }
 
-  return await parse(res);
+  const { result, usage } = await parse(res);
+  return captureUsage ? { result, usage } : result;
+}
+
+export async function callOpenRouterWithUsage(opts: OpenRouterOptions): Promise<{ result: any; usage: any }> {
+  return callOpenRouter({ ...opts, captureUsage: true }) as Promise<{ result: any; usage: any }>;
 }
