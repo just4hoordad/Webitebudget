@@ -22,9 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RecipeModal from "@/components/RecipeModal";
-import GroceryItemRow from "@/components/GroceryItemRow";
-import StoreBadge from "@/components/StoreBadge";
-import GrocerySortToggle from "@/components/GrocerySortToggle";
+import GroceryGroupedList from "@/components/GroceryGroupedList";
 import GrocerySwapModal from "@/components/GrocerySwapModal";
 import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
@@ -32,8 +30,7 @@ import ExtendableList from "@/components/ExtendableList";
 import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
 import GroceryCalorieWarning from "@/components/GroceryCalorieWarning";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { downloadGroceryListPDF } from "@/lib/groceryPdfExport";
 
 const allCategoryTranslations = { ...categoryTranslations, ...euCategoryTranslations };
 
@@ -49,14 +46,6 @@ const MEAL_SLOTS = [
   { key: "breakfast", labelKey: "breakfast", pillBg: "bg-[#FFB020]" },
   { key: "lunch", labelKey: "lunch", pillBg: "bg-[#78a71b]" },
   { key: "dinner", labelKey: "dinner", pillBg: "bg-[#C084FC]" },
-];
-
-const CAT_HEADER_BGS = [
-  "bg-[#78a71b]",
-  "bg-[#FFB020]",
-  "bg-[#7DD3FC]",
-  "bg-[#FF8FB5]",
-  "bg-[#C084FC]",
 ];
 
 export default function PlanGroceryResult({
@@ -276,173 +265,17 @@ export default function PlanGroceryResult({
     URL.revokeObjectURL(url);
   };
 
-  const exportPDF = async () => {
-    const items = getActiveItems();
-    const categories = {};
-    items.forEach((item) => {
-      if (!categories[item.category]) categories[item.category] = [];
-      categories[item.category].push(item);
+  const exportPDF = () =>
+    downloadGroceryListPDF({
+      items: getActiveItems(),
+      activeTotal,
+      titleText: t("yourGroceryList"),
+      subtitleText: `${dietLabel} · ${days} ${t("days")} · ${people} ${people === 1 ? t("person") : t("people")}`,
+      totalLabel: t("estimatedTotal") || "Estimated Total",
+      translateCategory: trCat,
+      langCode: currentLanguage?.code,
+      filename: `grocery-list-${diet}-${days}days.pdf`,
     });
-
-    const pageWidth = 794;
-    const pageHeight = 1123;
-    const pagePadding = 48;
-    const contentWidth = pageWidth - pagePadding * 2;
-
-    const esc = (s) =>
-      String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-    const headerHtml = `
-      <div style="margin:0 -48px 28px;padding:24px 48px 26px;background:#0f4c35;color:white;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;margin-bottom:12px;">
-          <span>BUDGETBITE</span>
-          <span>${new Date().toLocaleDateString(currentLanguage?.code || "en-DE", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}</span>
-        </div>
-        <h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:800;">${t("yourGroceryList")}</h1>
-        <p style="margin:0;font-size:14px;opacity:.9;">${esc(dietLabel)} · ${days} ${t("days")} · ${people} ${
-      people === 1 ? t("person") : t("people")
-    }</p>
-      </div>
-    `;
-
-    const itemHtml = (item) => `
-      <div style="display:flex;justify-content:space-between;gap:18px;padding:12px 16px;border-top:1px solid #f3f4f6;break-inside:avoid;">
-        <div>
-          <div style="font-size:14px;font-weight:700;color:#111827;">${esc(item.name || "")}</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:3px;">${esc(item.quantity || "")}</div>
-        </div>
-        <div style="text-align:right;min-width:90px;">
-          <div style="font-size:15px;font-weight:800;color:#0f4c35;">€${(item.price || 0).toFixed(2)}</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:3px;">${esc(item.store || "")}</div>
-        </div>
-      </div>
-    `;
-
-    const sectionHtml = (catName, catItems) => `
-      <section style="break-inside:avoid;margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
-        <h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${esc(
-          trCat(catName)
-        )}</h2>
-        ${catItems.map(itemHtml).join("")}
-      </section>
-    `;
-
-    const totalHtml = `
-      <div style="margin-top:24px;padding:16px 18px;background:#0f4c35;color:white;border-radius:14px;display:flex;justify-content:space-between;font-size:18px;font-weight:800;break-inside:avoid;">
-        <span>${t("estimatedTotal") || "Estimated Total"}</span>
-        <span>€${activeTotal.toFixed(2)}</span>
-      </div>
-    `;
-
-    const measureNode = document.createElement("div");
-    measureNode.style.position = "fixed";
-    measureNode.style.left = "-10000px";
-    measureNode.style.top = "0";
-    measureNode.style.width = `${contentWidth}px`;
-    measureNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
-    document.body.appendChild(measureNode);
-
-    const measure = (html) => {
-      measureNode.innerHTML = html;
-      return measureNode.offsetHeight;
-    };
-
-    const pages = [];
-    let currentBlocks = [headerHtml];
-    let currentHeight = measure(headerHtml);
-    const maxContentHeight = pageHeight - pagePadding * 2;
-
-    const pushPage = () => {
-      pages.push(currentBlocks.join(""));
-      currentBlocks = [];
-      currentHeight = 0;
-    };
-
-    Object.entries(categories).forEach(([catName, catItems]) => {
-      const fullSection = sectionHtml(catName, catItems);
-      const fullHeight = measure(fullSection);
-
-      if (currentHeight + fullHeight <= maxContentHeight) {
-        currentBlocks.push(fullSection);
-        currentHeight += fullHeight;
-        return;
-      }
-
-      if (currentHeight > 0) pushPage();
-
-      const heading = `<section style="margin-bottom:18px;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;"><h2 style="margin:0;padding:12px 16px;background:#f0fdf4;color:#0f4c35;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;">${esc(
-        trCat(catName)
-      )}</h2>`;
-      const close = `</section>`;
-      let sectionBlocks = [heading];
-      let sectionHeight = measure(heading + close);
-
-      catItems.forEach((item) => {
-        const block = itemHtml(item);
-        const blockHeight = measure(block);
-        if (sectionHeight + blockHeight > maxContentHeight && sectionBlocks.length > 1) {
-          currentBlocks.push(sectionBlocks.join("") + close);
-          currentHeight = measure(currentBlocks.join(""));
-          pushPage();
-          sectionBlocks = [heading];
-          sectionHeight = measure(heading + close);
-        }
-        sectionBlocks.push(block);
-        sectionHeight += blockHeight;
-      });
-
-      currentBlocks.push(sectionBlocks.join("") + close);
-      currentHeight = measure(currentBlocks.join(""));
-    });
-
-    const tHeight = measure(totalHtml);
-    if (currentHeight + tHeight > maxContentHeight) pushPage();
-    currentBlocks.push(totalHtml);
-    pages.push(currentBlocks.join(""));
-    document.body.removeChild(measureNode);
-
-    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-
-    for (let i = 0; i < pages.length; i += 1) {
-      const exportNode = document.createElement("div");
-      exportNode.style.position = "fixed";
-      exportNode.style.left = "-10000px";
-      exportNode.style.top = "0";
-      exportNode.style.width = `${pageWidth}px`;
-      exportNode.style.minHeight = `${pageHeight}px`;
-      exportNode.style.background = "#ffffff";
-      exportNode.style.color = "#111827";
-      exportNode.style.fontFamily = "'DM Sans', Arial, sans-serif";
-      exportNode.style.padding = `0 ${pagePadding}px ${pagePadding}px`;
-      exportNode.style.boxSizing = "border-box";
-      exportNode.innerHTML = pages[i];
-      document.body.appendChild(exportNode);
-
-      const canvas = await html2canvas(exportNode, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      document.body.removeChild(exportNode);
-
-      if (i > 0) pdf.addPage();
-      pdf.addImage(
-        canvas.toDataURL("image/png"),
-        "PNG",
-        0,
-        0,
-        pdf.internal.pageSize.getWidth(),
-        pdf.internal.pageSize.getHeight()
-      );
-    }
-
-    pdf.save(`grocery-list-${diet}-${days}days.pdf`);
-  };
 
   const activeItemsList = getActiveItems();
   const boughtCount = activeItemsList.filter((it) => boughtItems.has(`${it.category}::${it.name}`)).length;
@@ -643,100 +476,20 @@ export default function PlanGroceryResult({
           </div>
 
           {/* Sort toggle & Category / Store listings */}
-          <div className="space-y-4">
-            <GrocerySortToggle sortByStore={sortByStore} setSortByStore={setSortByStore} />
-            {!sortByStore ? (
-              (groceries?.categories || []).map((category, catIdx) => {
-                const visibleItems = (category.items || []).filter(
-                  (item) => !removedItems.has(`${category.name}::${item.name}`)
-                );
-                if (!visibleItems.length) return null;
-                const catTotal = visibleItems.reduce((s, it) => s + (Number(it.price) || 0), 0);
-                const headerBg = CAT_HEADER_BGS[catIdx % CAT_HEADER_BGS.length];
-                return (
-                  <div key={category.name} className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
-                    <div className={`${headerBg} text-[#111827] border-b-[3px] border-[#111827] px-4 sm:px-5 py-3 flex items-center justify-between gap-2`}>
-                      <h2 className="font-heading font-black text-sm uppercase tracking-wider text-[#111827]">
-                        {trCat(category.name)}
-                      </h2>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[11px] font-heading font-black bg-white/80 text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5">
-                          {visibleItems.length}
-                        </span>
-                        <span className="text-xs font-heading font-black bg-white text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5 shadow-[1.5px_1.5px_0_#111827] tabular-nums">
-                          €{catTotal.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
-                      {visibleItems.map((item, idx) => (
-                        <GroceryItemRow
-                          key={idx}
-                          item={item}
-                          categoryName={category.name}
-                          stores={storesStr}
-                          bought={boughtItems.has(`${category.name}::${item.name}`)}
-                          onToggleBought={() => toggleBought(`${category.name}::${item.name}`)}
-                          onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
-                          onRemove={removeItem}
-                          readOnly={readOnly}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              (() => {
-                const items = activeItemsList;
-                const groups = {};
-                items.forEach((it) => {
-                  const key = it.store || "__other__";
-                  (groups[key] = groups[key] || []).push(it);
-                });
-                return Object.keys(groups).sort().map((storeName, sIdx) => {
-                  const storeItems = groups[storeName];
-                  const storeTotal = storeItems.reduce((s, it) => s + (Number(it.price) || 0), 0);
-                  const headerBg = CAT_HEADER_BGS[sIdx % CAT_HEADER_BGS.length];
-                  return (
-                    <div key={storeName} className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
-                      <div className={`${headerBg} text-[#111827] border-b-[3px] border-[#111827] px-4 sm:px-5 py-3 flex items-center justify-between gap-2`}>
-                        <div className="flex items-center gap-2 min-w-0">
-                          {storeName !== "__other__" && <StoreBadge store={storeName} />}
-                          <span className="font-heading font-black text-sm uppercase tracking-wider text-[#111827] truncate">
-                            {storeName === "__other__" ? "Other" : storeName}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] font-heading font-black bg-white/80 text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5">
-                            {storeItems.length}
-                          </span>
-                          <span className="text-xs font-heading font-black bg-white text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5 shadow-[1.5px_1.5px_0_#111827] tabular-nums">
-                            €{storeTotal.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
-                        {storeItems.map((item, idx) => (
-                          <GroceryItemRow
-                            key={idx}
-                            item={item}
-                            categoryName={item.category}
-                            stores={storesStr}
-                            bought={boughtItems.has(`${item.category}::${item.name}`)}
-                            onToggleBought={() => toggleBought(`${item.category}::${item.name}`)}
-                            onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
-                            onRemove={removeItem}
-                            readOnly={readOnly}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                });
-              })()
-            )}
-          </div>
+          <GroceryGroupedList
+            categories={groceries?.categories || []}
+            activeItems={activeItemsList}
+            removedItems={removedItems}
+            sortByStore={sortByStore}
+            setSortByStore={setSortByStore}
+            translateCategory={trCat}
+            stores={storesStr}
+            boughtItems={boughtItems}
+            onToggleBought={toggleBought}
+            onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
+            onRemove={removeItem}
+            readOnly={readOnly}
+          />
 
           {/* Add item button */}
           {!readOnly && (

@@ -37,26 +37,26 @@ export default function GenerationBadge() {
   let label;
   let action;
   if (state.status === "generating") {
-    icon = <Loader2 className="h-4 w-4 animate-spin" />;
-    tone = "bg-card border-border text-foreground";
+    icon = <Loader2 className="h-4 w-4 animate-spin text-[#111827]" />;
+    tone = "bg-[#FFB020] text-[#111827]";
     label = l.generating;
     action = null;
   } else if (state.status === "ready") {
-    icon = <CheckCircle2 className="h-4 w-4 text-primary" />;
-    tone = "bg-primary/10 border-primary/30 text-foreground";
+    icon = <CheckCircle2 className="h-4 w-4 text-[#111827]" />;
+    tone = "bg-[#78a71b] text-[#111827]";
     label = l.ready;
     action = (
-      <Link to={to} className="ml-1 inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 shrink-0">
+      <Link to={to} className="ml-1 inline-flex items-center gap-1 rounded-full bg-white text-[#111827] border-2 border-[#111827] text-xs font-heading font-black px-3 py-1 shrink-0 shadow-[1.5px_1.5px_0_#111827]">
         <ShoppingBasket className="h-3.5 w-3.5" />
         {l.view}
       </Link>
     );
   } else {
-    icon = <AlertCircle className="h-4 w-4 text-destructive" />;
-    tone = "bg-destructive/10 border-destructive/30 text-foreground";
+    icon = <AlertCircle className="h-4 w-4 text-white" />;
+    tone = "bg-[#FF3E7F] text-white";
     label = l.error;
     action = (
-      <Link to={to} className="ml-1 inline-flex items-center rounded-full bg-destructive text-destructive-foreground text-xs font-semibold px-3 py-1 shrink-0">
+      <Link to={to} className="ml-1 inline-flex items-center rounded-full bg-white text-[#111827] border-2 border-[#111827] text-xs font-heading font-black px-3 py-1 shrink-0 shadow-[1.5px_1.5px_0_#111827]">
         {l.retry}
       </Link>
     );
@@ -64,13 +64,13 @@ export default function GenerationBadge() {
 
   return (
     <div className="fixed z-40 left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 md:left-auto md:right-6 md:translate-x-0 px-3 w-full max-w-[360px] md:w-auto pointer-events-none">
-      <div className={`pointer-events-auto flex items-center gap-2.5 rounded-full border shadow-lg shadow-black/10 px-3.5 py-2.5 ${tone}`}>
+      <div className={`pointer-events-auto flex items-center gap-2.5 rounded-full border-[2.5px] border-[#111827] shadow-[4px_4px_0_#111827] px-4 py-2.5 ${tone}`}>
         <span className="shrink-0">{icon}</span>
-        <span className="text-xs font-medium leading-tight min-w-0 truncate">{label}</span>
+        <span className="text-xs font-heading font-black leading-tight min-w-0 truncate">{label}</span>
         {action}
       </div>
       {state.status === "generating" && (
-        <p className="mt-1 text-center md:text-right text-[10px] text-muted-foreground px-1 truncate">{l.hint}</p>
+        <p className="mt-1.5 text-center md:text-right text-[10px] font-heading font-bold text-foreground bg-card border border-[#111827] rounded-full px-2.5 py-0.5 shadow-[1.5px_1.5px_0_#111827] truncate">{l.hint}</p>
       )}
     </div>
   );
