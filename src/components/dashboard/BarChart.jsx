@@ -21,7 +21,7 @@ export default function BarChart({ data = [], max }) {
             className="text-primary"
             initial={{ scaleY: 0 }}
             animate={{ scaleY: 1 }}
-            transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOutCubic" }}
+            transition={{ duration: 0.8, delay: i * 0.05, ease: [0.33, 1, 0.68, 1] }}
             style={{ transformBox: "fill-box", transformOrigin: "center bottom" }}
           />
         );
