@@ -56,6 +56,17 @@ a.bba-t:active{box-shadow:0 0 0 #111827;transform:translate(5px,5px)}
 .bba-pill:hover,.bba-pill:focus-visible{box-shadow:1px 1px 0 #111827;transform:translate(2px,2px)}
 .bba-pill:active{box-shadow:0 0 0 #111827;transform:translate(3px,3px)}
 .bba-pill svg{width:16px;height:16px}
+.dark .bba-pg{background:hsl(var(--background));color:hsl(var(--foreground))}
+.dark .bba-t{border-color:#000;box-shadow:5px 5px 0 #000}
+.dark .bba-hero,.dark .bba-fc,.dark .bba-dock{background:hsl(var(--card));color:hsl(var(--card-foreground));border-color:#A3E635;box-shadow:5px 5px 0 #A3E635}
+.dark .bba-pg h1{color:hsl(var(--foreground))}
+.dark .bba-lead{color:hsl(var(--muted-foreground))}
+.dark .bba-b2{background:hsl(var(--secondary));color:hsl(var(--foreground));border-color:#A3E635;box-shadow:3px 3px 0 #A3E635}
+.dark .bba-b2 svg{stroke: currentColor}
+.dark .bba-fa,.dark .bba-fb,.dark .bba-cr2{color:#111827}
+.dark .bba-h2{background:#A3E635;color:#111827;box-shadow:3px 3px 0 #FF3E7F}
+.dark .bba-pill{background:hsl(var(--secondary));color:hsl(var(--foreground));border-color:#A3E635;box-shadow:3px 3px 0 #A3E635}
+.dark .bba-pill svg{stroke:currentColor}
 `;
 
 export default function Home() {

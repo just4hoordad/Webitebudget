@@ -213,6 +213,21 @@
     height: 16px;
   }
 
+  .dark .bba-t {
+    border-color: #A3E635;
+    box-shadow: 5px 5px 0 #000000;
+  }
+
+  .dark .bba-pill {
+    background: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+    border-color: #A3E635;
+    box-shadow: 3px 3px 0 #A3E635;
+  }
+  .dark .bba-pill svg {
+    stroke: currentColor;
+  }
+
   .bba-sticker {
     display: inline-flex;
     align-items: center;
