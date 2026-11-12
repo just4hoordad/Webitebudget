@@ -25,7 +25,7 @@ export default function ExtendableList({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center justify-center gap-2 py-3 mt-1 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 border border-dashed border-primary/30 rounded-xl transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3 mt-1 text-sm font-heading font-black text-[#111827] bg-[#F3F8E6] hover:bg-[#FFB020] border-[2.5px] border-[#111827] rounded-2xl shadow-[3px_3px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#111827] transition-all"
         >
           <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
           {expanded

@@ -45,10 +45,10 @@ export default function PlanReview() {
   const L = (k, fb) => { const v = t(k); return v === k ? fb : v; };
 
   const headline = [
-    { icon: Wallet, value: `€${budget.toFixed(0)}`, label: L("yourBudget", "Budget") },
-    { icon: Flame, value: `${calories} kcal`, label: L("calorieGoal", "Calories") },
-    { icon: Users, value: `${people} ${t("personS")}`, label: L("numberOfPeople", "People") },
-    { icon: Target, value: goalLabel, label: L("goal", "Goal") },
+    { icon: Wallet, value: `€${budget.toFixed(0)}`, label: L("yourBudget", "Budget"), bg: "bg-[#78a71b]" },
+    { icon: Flame, value: `${calories} kcal`, label: L("calorieGoal", "Calories"), bg: "bg-[#FFB020]" },
+    { icon: Users, value: `${people} ${t("personS")}`, label: L("numberOfPeople", "People"), bg: "bg-[#7DD3FC]" },
+    { icon: Target, value: goalLabel, label: L("goal", "Goal"), bg: "bg-[#FF8FB5]" },
   ];
 
   const details = [
@@ -81,15 +81,21 @@ export default function PlanReview() {
   return (
     <div className="max-w-xl mx-auto space-y-5">
       <button
+        type="button"
         onClick={() => navigate("/budget")}
-        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors -ml-1"
+        className="inline-flex items-center gap-1.5 text-xs font-heading font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3.5 py-1.5 hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
       >
-        <ArrowLeft className="h-4 w-4" /> {t("reviewBack") || "Back to edit"}
+        <ArrowLeft className="h-3.5 w-3.5" /> {t("reviewBack") || "Back to edit"}
       </button>
 
-      <div className="space-y-1.5">
-        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">{t("reviewTitle") || "Confirm your plan"}</h1>
-        <p className="text-sm text-muted-foreground">{t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}</p>
+      <div className="bba-t bg-[#FF3E7F] text-white space-y-1.5">
+        <span className="bba-sticker">Ready Check</span>
+        <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-white">
+          {t("reviewTitle") || "Confirm your plan"}
+        </h1>
+        <p className="text-sm text-white/90 font-medium">
+          {t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}
+        </p>
       </div>
 
       {/* Headline params — 2x2 grid */}
@@ -97,13 +103,13 @@ export default function PlanReview() {
         {headline.map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3.5 bb-shadow">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="h-5 w-5 text-primary" />
+            <div key={i} className={`flex items-center gap-3 ${c.bg} text-[#111827] border-[2.5px] border-[#111827] rounded-2xl px-4 py-3.5 shadow-[3px_3px_0_#111827]`}>
+              <div className="h-10 w-10 rounded-2xl bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+                <Icon className="h-5 w-5 text-[#111827]" />
               </div>
               <div className="min-w-0">
-                <p className="font-heading font-semibold text-foreground text-base sm:text-lg leading-tight truncate">{c.value}</p>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{c.label}</p>
+                <p className="font-heading font-black text-[#111827] text-base sm:text-lg leading-tight truncate">{c.value}</p>
+                <p className="text-[10px] font-heading font-black text-[#111827]/75 uppercase tracking-wider">{c.label}</p>
               </div>
             </div>
           );
@@ -111,17 +117,17 @@ export default function PlanReview() {
       </div>
 
       {/* Everything you selected */}
-      <div className="bba-t bg-card overflow-hidden p-0">
-        <div className="bg-secondary border-b-3 border-[#111827] px-4 py-2.5">
-          <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
+      <div className="bba-t bg-card text-card-foreground overflow-hidden p-0">
+        <div className="bg-[#FFB020] border-b-[3px] border-[#111827] px-4 py-3">
+          <h3 className="font-heading font-black text-xs uppercase tracking-wider text-[#111827]">
             {t("reviewYourSelections") || "Your selections"}
           </h3>
         </div>
-        <div className="divide-y divide-border">
+        <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
           {details.map((d, i) => (
             <div key={i} className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-sm text-muted-foreground">{d.label}</span>
-              <span className="text-sm font-medium text-foreground text-right">{d.value}</span>
+              <span className="text-sm font-medium text-muted-foreground">{d.label}</span>
+              <span className="text-sm font-heading font-extrabold text-foreground text-right">{d.value}</span>
             </div>
           ))}
         </div>
@@ -129,48 +135,62 @@ export default function PlanReview() {
 
       {macros && <MacroBreakdown macros={macros} dailyKcal={calories / Math.max(people, 1)} L={L} />}
 
-      <p className="text-sm text-muted-foreground leading-relaxed">{recap.body}</p>
+      <div className="bba-t bg-[#F3F8E6] text-[#111827]">
+        <p className="text-sm font-medium text-[#111827] leading-relaxed">{recap.body}</p>
+      </div>
 
       {/* Plan style selection */}
-      <div className="pt-1">
-        <h2 className="font-heading text-xl font-bold text-foreground">{t("weeklyPlanTitle")}</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{t("weeklyPlanSubtitle")}</p>
+      <div className="bba-t bg-card text-card-foreground space-y-3">
+        <div>
+          <h2 className="font-heading text-xl font-black text-foreground">{t("weeklyPlanTitle")}</h2>
+          <p className="text-sm text-muted-foreground font-medium mt-0.5">{t("weeklyPlanSubtitle")}</p>
+        </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="space-y-3 pt-1">
           <button
+            type="button"
             onClick={() => setPlanStyle("repeat")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-[2.5px] text-left transition-all ${
               planStyle === "repeat"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
+                ? "border-[#111827] bg-[#78a71b] text-[#111827] shadow-[3px_3px_0_#111827]"
+                : "border-[#111827] dark:border-[#78a71b] bg-background text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "repeat" ? "bg-amber-500/10" : "bg-muted"}`}>
-              <RefreshCw className={`h-5 w-5 ${planStyle === "repeat" ? "text-amber-500" : "text-muted-foreground"}`} />
+            <div className="h-10 w-10 rounded-xl bg-white border-2 border-[#111827] flex items-center justify-center shrink-0">
+              <RefreshCw className="h-5 w-5 text-[#111827]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{t("repeatWeeklyPlan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("repeatWeeklyPlanDesc")}</p>
+              <p className="font-heading font-black">{t("repeatWeeklyPlan")}</p>
+              <p className={`text-xs font-medium mt-0.5 ${planStyle === "repeat" ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("repeatWeeklyPlanDesc")}</p>
             </div>
-            {planStyle === "repeat" && <Check className="h-5 w-5 text-primary shrink-0" />}
+            {planStyle === "repeat" && (
+              <span className="h-7 w-7 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center shrink-0">
+                <Check className="h-4 w-4 text-[#111827] stroke-[3]" />
+              </span>
+            )}
           </button>
 
           <button
+            type="button"
             onClick={() => setPlanStyle("unique")}
-            className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 text-left transition-all ${
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-[2.5px] text-left transition-all ${
               planStyle === "unique"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
+                ? "border-[#111827] bg-[#FFB020] text-[#111827] shadow-[3px_3px_0_#111827]"
+                : "border-[#111827] dark:border-[#78a71b] bg-background text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${planStyle === "unique" ? "bg-primary/10" : "bg-muted"}`}>
-              <CalendarDays className={`h-5 w-5 ${planStyle === "unique" ? "text-primary" : "text-muted-foreground"}`} />
+            <div className="h-10 w-10 rounded-xl bg-white border-2 border-[#111827] flex items-center justify-center shrink-0">
+              <CalendarDays className="h-5 w-5 text-[#111827]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold text-foreground">{t("uniqueMonthlyPlan")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("uniqueMonthlyPlanDesc")}</p>
+              <p className="font-heading font-black">{t("uniqueMonthlyPlan")}</p>
+              <p className={`text-xs font-medium mt-0.5 ${planStyle === "unique" ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("uniqueMonthlyPlanDesc")}</p>
             </div>
-            {planStyle === "unique" && <Check className="h-5 w-5 text-primary shrink-0" />}
+            {planStyle === "unique" && (
+              <span className="h-7 w-7 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center shrink-0">
+                <Check className="h-4 w-4 text-[#111827] stroke-[3]" />
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -178,7 +198,8 @@ export default function PlanReview() {
       <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+80px)] z-30 -mx-1 px-1 pt-3 pb-2 bg-gradient-to-t from-background via-background/95 to-background/0">
         <Button
           onClick={confirm}
-          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+          variant="destructive"
+          className="w-full h-14 text-base"
           size="lg"
         >
           {t("reviewConfirm") || "Confirm & generate"}

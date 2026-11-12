@@ -49,22 +49,23 @@ export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle })
   const goalLabel = t(GOAL_LABEL_KEYS[goal] || "maintain");
 
   const cards = [
-    { icon: Salad, value: dietLabel },
-    { icon: CalendarDays, value: `${days} ${t("days")}` },
-    { icon: Wallet, value: `€${parseFloat(budget).toFixed(0)}` },
-    { icon: Flame, value: `${calories} kcal` },
-    { icon: Users, value: `${people} ${t("personS")}` },
-    { icon: Target, value: goalLabel },
+    { icon: Salad, value: dietLabel, bg: "bg-[#78a71b]" },
+    { icon: CalendarDays, value: `${days} ${t("days")}`, bg: "bg-[#FFB020]" },
+    { icon: Wallet, value: `€${parseFloat(budget).toFixed(0)}`, bg: "bg-[#FF8FB5]" },
+    { icon: Flame, value: `${calories} kcal`, bg: "bg-[#7DD3FC]" },
+    { icon: Users, value: `${people} ${t("personS")}`, bg: "bg-[#C084FC]" },
+    { icon: Target, value: goalLabel, bg: "bg-[#F3F8E6]" },
   ];
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-5 py-4 border-b border-border flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+    <div className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
+      <div className="bg-[#7DD3FC] text-[#111827] px-5 py-4 border-b-[3px] border-[#111827] flex items-center gap-3.5">
+        <div className="h-10 w-10 rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+          <Sparkles className="h-5 w-5 text-[#111827]" />
         </div>
         <div>
-          <h2 className="font-heading font-bold text-lg text-foreground leading-tight">{s.title}</h2>
+          <span className="bba-sticker mb-1">Loadout Locked</span>
+          <h2 className="font-heading font-black text-lg text-[#111827] leading-tight">{s.title}</h2>
         </div>
       </div>
       <div className="px-5 py-4">
@@ -72,58 +73,63 @@ export default function ReassuranceRecap({ planStyle = "repeat", setPlanStyle })
           {cards.map((c, i) => {
             const Icon = c.icon;
             return (
-              <div key={i} className="flex items-center gap-2.5 bg-muted/40 rounded-xl px-3 py-2.5">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Icon className="h-4 w-4 text-primary" />
+              <div
+                key={i}
+                className={`flex items-center gap-2.5 ${c.bg} text-[#111827] border-2 border-[#111827] rounded-2xl px-3 py-2.5 shadow-[2px_2px_0_#111827]`}
+              >
+                <div className="h-8 w-8 rounded-xl bg-white border-[1.5px] border-[#111827] flex items-center justify-center shrink-0">
+                  <Icon className="h-4 w-4 text-[#111827]" />
                 </div>
-                <span className="text-sm font-heading font-semibold text-foreground truncate">{c.value}</span>
+                <span className="text-sm font-heading font-black text-[#111827] truncate">{c.value}</span>
               </div>
             );
           })}
         </div>
         {macros && (
-          <div className="mt-2.5 flex items-center gap-2.5 bg-muted/40 rounded-xl px-3 py-2.5">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-4 w-4 text-primary" />
+          <div className="mt-2.5 flex items-center gap-2.5 bg-[#F3F8E6] text-[#111827] border-2 border-[#111827] rounded-2xl px-3.5 py-2.5 shadow-[2px_2px_0_#111827]">
+            <div className="h-8 w-8 rounded-xl bg-white border-[1.5px] border-[#111827] flex items-center justify-center shrink-0">
+              <TrendingUp className="h-4 w-4 text-[#111827]" />
             </div>
             <div className="grid grid-cols-3 gap-2 flex-1 min-w-0">
               {[["protein", "Protein", macros.protein], ["carbs", "Carbs", macros.carbs], ["fats", "Fat", macros.fats]].map(([key, fallback, val]) => (
                 <div key={key} className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">{t(key) === key ? fallback : t(key)}</p>
-                  <p className="text-sm font-heading font-semibold text-foreground">{val}%</p>
+                  <p className="text-[10px] font-heading font-black uppercase tracking-wider text-[#111827]/70 truncate">{t(key) === key ? fallback : t(key)}</p>
+                  <p className="text-sm font-heading font-black text-[#111827]">{val}%</p>
                 </div>
               ))}
             </div>
           </div>
         )}
-        <p className="text-sm text-muted-foreground leading-relaxed mt-4">
+        <p className="text-sm text-muted-foreground font-medium leading-relaxed mt-4">
           {s.body}
         </p>
-        <div className="mt-5 pt-4 border-t border-border">
-          <h3 className="font-heading font-semibold text-foreground">{t("weeklyPlanTitle")}</h3>
-          <p className="text-xs text-muted-foreground mb-3">{t("weeklyPlanSubtitle")}</p>
+        <div className="mt-5 pt-4 border-t-2 border-[#111827]/15 dark:border-white/15">
+          <h3 className="font-heading font-black text-foreground">{t("weeklyPlanTitle")}</h3>
+          <p className="text-xs text-muted-foreground font-medium mb-3">{t("weeklyPlanSubtitle")}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
+              type="button"
               onClick={() => setPlanStyle && setPlanStyle("repeat")}
-              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-xl border text-left transition-all ${
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-2xl border-2 text-left transition-all ${
                 planStyle === "repeat"
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-background hover:border-primary/40"
+                  ? "border-[#111827] bg-[#78a71b] text-[#111827] shadow-[3px_3px_0_#111827]"
+                  : "border-[#111827] dark:border-[#78a71b] bg-background text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
               }`}
             >
-              <span className="text-sm font-heading font-semibold text-foreground">{t("repeatWeeklyPlan")}</span>
-              <span className="text-xs text-muted-foreground">{t("repeatWeeklyPlanDesc")}</span>
+              <span className="text-sm font-heading font-black">{t("repeatWeeklyPlan")}</span>
+              <span className={`text-xs font-medium ${planStyle === "repeat" ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("repeatWeeklyPlanDesc")}</span>
             </button>
             <button
+              type="button"
               onClick={() => setPlanStyle && setPlanStyle("unique")}
-              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-xl border text-left transition-all ${
+              className={`flex flex-col items-start gap-1 px-4 py-3 rounded-2xl border-2 text-left transition-all ${
                 planStyle === "unique"
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-background hover:border-primary/40"
+                  ? "border-[#111827] bg-[#FFB020] text-[#111827] shadow-[3px_3px_0_#111827]"
+                  : "border-[#111827] dark:border-[#78a71b] bg-background text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
               }`}
             >
-              <span className="text-sm font-heading font-semibold text-foreground">{t("uniqueMonthlyPlan")}</span>
-              <span className="text-xs text-muted-foreground">{t("uniqueMonthlyPlanDesc")}</span>
+              <span className="text-sm font-heading font-black">{t("uniqueMonthlyPlan")}</span>
+              <span className={`text-xs font-medium ${planStyle === "unique" ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("uniqueMonthlyPlanDesc")}</span>
             </button>
           </div>
         </div>

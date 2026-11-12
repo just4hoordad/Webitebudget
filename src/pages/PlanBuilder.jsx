@@ -395,15 +395,44 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
+  const questStages = [
+    { id: "setup", num: "01", label: "Loadout", done: phase !== "setup", active: phase === "setup", bg: "bg-[#78a71b]" },
+    { id: "grid", num: "02", label: "Meal Deck", done: phase === "confirm" || phase === "result", active: phase === "grid", bg: "bg-[#FFB020]" },
+    { id: "confirm", num: "03", label: "Loot List", done: phase === "result", active: phase === "confirm", bg: "bg-[#FF3E7F] text-white" },
+  ];
+
+  const QuestBar = () => (
+    <div className="grid grid-cols-3 gap-2">
+      {questStages.map((st) => (
+        <div
+          key={st.id}
+          className={`flex items-center gap-2 px-3 py-2 rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] text-xs font-heading font-black transition-all ${
+            st.active
+              ? `${st.bg} text-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5`
+              : st.done
+              ? "bg-[#78a71b] text-[#111827] border-[#111827] shadow-[2px_2px_0_#111827]"
+              : "bg-card text-muted-foreground opacity-75"
+          }`}
+        >
+          <span className="h-5 w-5 rounded-full bg-white text-[#111827] border-[1.5px] border-[#111827] flex items-center justify-center text-[10px] shrink-0">
+            {st.done ? "✓" : st.num}
+          </span>
+          <span className="truncate">{st.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   if (phase === "result" && grocery) {
     const resultGroceryDays = groceryDaysForUser(plan.length, isPro);
     const shareFooter = savedPlanId.current ? (
-      <Button onClick={() => setShowShare(true)} variant="outline" className="w-full h-12">
+      <Button onClick={() => setShowShare(true)} variant="secondary" className="w-full h-12">
         <Share2 className="h-4 w-4" /> {t("sharePlan") || "Share plan"}
       </Button>
     ) : null;
     return (
-      <>
+      <div className="space-y-4">
+        <QuestBar />
         <PlanGroceryResult
           grocery={grocery}
           prep={prep}
@@ -421,37 +450,9 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           open={showShare}
           onClose={() => setShowShare(false)}
         />
-      </>
+      </div>
     );
   }
-
-  const questStages = [
-    { id: "setup", num: "01", label: "Loadout", done: phase !== "setup", active: phase === "setup", bg: "bg-[#78a71b]" },
-    { id: "grid", num: "02", label: "Meal Deck", done: phase === "confirm" || phase === "result", active: phase === "grid", bg: "bg-[#FFB020]" },
-    { id: "confirm", num: "03", label: "Loot List", done: phase === "result", active: phase === "confirm", bg: "bg-[#FF3E7F] text-white" },
-  ];
-
-  const QuestBar = () => (
-    <div className="grid grid-cols-3 gap-2">
-      {questStages.map((st) => (
-        <div
-          key={st.id}
-          className={`flex items-center gap-2 px-3 py-2 rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] text-xs font-heading font-black transition-all ${
-            st.active
-              ? `${st.bg} text-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5`
-              : st.done
-              ? "bg-[#78a71b]/25 text-foreground border-[#111827]"
-              : "bg-card text-muted-foreground opacity-75"
-          }`}
-        >
-          <span className="h-5 w-5 rounded-full bg-white text-[#111827] border-[1.5px] border-[#111827] flex items-center justify-center text-[10px] shrink-0">
-            {st.done ? "✓" : st.num}
-          </span>
-          <span className="truncate">{st.label}</span>
-        </div>
-      ))}
-    </div>
-  );
 
   if (phase === "confirm" && !loadingGrocery) {
     return (

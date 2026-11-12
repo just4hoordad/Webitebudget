@@ -86,22 +86,28 @@ export default function GeneratingLoader({ type = "grocery", stores }) {
   const subtitle = isPlan ? t("gen_sub_plan") : t("gen_sub_grocery");
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+    <div className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b border-border px-5 py-4 flex items-center gap-3">
-        <div className="relative h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
-          <ShoppingCart className="h-5 w-5 text-primary-foreground" />
+      <div
+        className={`${
+          isPlan ? "bg-[#FFB020]" : "bg-[#78a71b]"
+        } text-[#111827] border-b-[3px] border-[#111827] px-5 py-4 flex items-center gap-3.5`}
+      >
+        <div className="relative h-11 w-11 rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+          <ShoppingCart className="h-5 w-5 text-[#111827]" />
           <motion.span
-            className="absolute inset-0 rounded-xl border-2 border-primary"
-            animate={{ opacity: [0.6, 0, 0.6], scale: [1, 1.25, 1] }}
+            className="absolute inset-0 rounded-2xl border-2 border-[#111827]"
+            animate={{ opacity: [0.6, 0, 0.6], scale: [1, 1.2, 1] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-heading font-bold text-sm text-foreground leading-tight">{title}</p>
-          <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+          <p className="font-heading font-black text-base text-[#111827] leading-tight">{title}</p>
+          <p className="text-xs font-semibold text-[#111827]/80 truncate">{subtitle}</p>
         </div>
-        <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />
+        <div className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center shrink-0">
+          <Loader2 className="h-4 w-4 text-[#111827] animate-spin" />
+        </div>
       </div>
 
       {/* Live feed */}
@@ -118,14 +124,24 @@ export default function GeneratingLoader({ type = "grocery", stores }) {
                 transition={{ duration: 0.3 }}
                 className="flex items-start gap-3"
               >
-                <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${isLast ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                <div
+                  className={`h-8 w-8 rounded-xl border-2 border-[#111827] flex items-center justify-center shrink-0 ${
+                    isLast
+                      ? "bg-[#FFB020] text-[#111827] shadow-[2px_2px_0_#111827]"
+                      : "bg-[#F3F8E6] text-[#111827]"
+                  }`}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
-                <p className={`text-sm leading-snug pt-1 ${isLast ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                <p className={`text-sm leading-snug pt-1 ${isLast ? "text-foreground font-heading font-extrabold" : "text-muted-foreground font-medium"}`}>
                   {step.text}
-                  {isLast && <span className="inline-block ml-1 text-primary font-bold animate-pulse">▍</span>}
+                  {isLast && <span className="inline-block ml-1 text-[#FF3E7F] font-black animate-pulse">▍</span>}
                 </p>
-                {!isLast && <CheckCircle2 className="ml-auto h-4 w-4 text-primary shrink-0 mt-1.5" />}
+                {!isLast && (
+                  <span className="ml-auto h-5 w-5 rounded-full bg-[#78a71b] border-[1.5px] border-[#111827] flex items-center justify-center shrink-0 mt-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[#111827]" />
+                  </span>
+                )}
               </motion.div>
             );
           })}
@@ -133,14 +149,18 @@ export default function GeneratingLoader({ type = "grocery", stores }) {
       </div>
 
       {/* Progress bar */}
-      <div className="px-5 pb-5 pt-3 border-t border-border">
+      <div className="px-5 pb-5 pt-3.5 border-t-[2.5px] border-[#111827] dark:border-[#78a71b] bg-[#F3F8E6] dark:bg-secondary">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground">{isPlan ? t("gen_progress_plan") : t("gen_progress_grocery")}</p>
-          <p className="text-xs font-heading font-bold text-primary">{Math.round(progress)}%</p>
+          <p className="text-xs font-heading font-black uppercase tracking-wider text-[#111827] dark:text-foreground">
+            ⚡ {isPlan ? t("gen_progress_plan") : t("gen_progress_grocery")}
+          </p>
+          <span className="text-xs font-heading font-black bg-white text-[#111827] border-2 border-[#111827] px-2.5 py-0.5 rounded-full shadow-[1.5px_1.5px_0_#111827]">
+            {Math.round(progress)}%
+          </span>
         </div>
-        <div className="relative w-full h-2 bg-muted rounded-full overflow-hidden">
+        <div className="relative w-full h-3.5 bg-white border-2 border-[#111827] rounded-full overflow-hidden">
           <motion.div
-            className="absolute inset-y-0 left-0 bg-primary rounded-full"
+            className="absolute inset-y-0 left-0 bg-[#78a71b] bba-progress-stripes rounded-full"
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
           />

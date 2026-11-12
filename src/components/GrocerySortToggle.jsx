@@ -31,19 +31,29 @@ export default function GrocerySortToggle({ sortByStore, setSortByStore }) {
   const { currentLanguage } = useLanguage();
   const s = L[currentLanguage.code] || L.en;
   return (
-    <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1">
+    <div className="flex items-center gap-2 bg-card border-[2.5px] border-[#111827] dark:border-[#78a71b] rounded-2xl p-1.5 shadow-[3px_3px_0_#111827] dark:shadow-[3px_3px_0_#000000]">
       <button
+        type="button"
         onClick={() => setSortByStore(false)}
-        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${!sortByStore ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-heading font-black uppercase tracking-wide transition-all ${
+          !sortByStore
+            ? "bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
       >
-        <LayoutGrid className="h-3.5 w-3.5" />
+        <LayoutGrid className="h-4 w-4" />
         {s.category}
       </button>
       <button
+        type="button"
         onClick={() => setSortByStore(true)}
-        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${sortByStore ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-heading font-black uppercase tracking-wide transition-all ${
+          sortByStore
+            ? "bg-[#FFB020] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
       >
-        <Store className="h-3.5 w-3.5" />
+        <Store className="h-4 w-4" />
         {s.store}
       </button>
     </div>

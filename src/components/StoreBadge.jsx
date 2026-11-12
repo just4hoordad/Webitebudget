@@ -27,7 +27,7 @@ export default function StoreBadge({ store }) {
 
   return (
     <span
-      className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-heading font-bold uppercase tracking-wide leading-none shrink-0"
+      className="inline-flex items-center rounded-lg border-[1.5px] border-[#111827] px-2 py-0.5 text-[10px] font-heading font-black uppercase tracking-wider leading-none shrink-0 shadow-[1.5px_1.5px_0_#111827]"
       style={{ backgroundColor: style.bg, color: style.text }}
     >
       {style.label}

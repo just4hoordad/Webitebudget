@@ -46,9 +46,17 @@ const SHARE_L = {
 };
 
 const MEAL_SLOTS = [
-  { key: "breakfast", labelKey: "breakfast" },
-  { key: "lunch", labelKey: "lunch" },
-  { key: "dinner", labelKey: "dinner" },
+  { key: "breakfast", labelKey: "breakfast", pillBg: "bg-[#FFB020]" },
+  { key: "lunch", labelKey: "lunch", pillBg: "bg-[#78a71b]" },
+  { key: "dinner", labelKey: "dinner", pillBg: "bg-[#C084FC]" },
+];
+
+const CAT_HEADER_BGS = [
+  "bg-[#78a71b]",
+  "bg-[#FFB020]",
+  "bg-[#7DD3FC]",
+  "bg-[#FF8FB5]",
+  "bg-[#C084FC]",
 ];
 
 export default function PlanGroceryResult({
@@ -436,49 +444,98 @@ export default function PlanGroceryResult({
     pdf.save(`grocery-list-${diet}-${days}days.pdf`);
   };
 
+  const activeItemsList = getActiveItems();
+  const boughtCount = activeItemsList.filter((it) => boughtItems.has(`${it.category}::${it.name}`)).length;
+  const boughtPct = activeItemsList.length > 0 ? Math.round((boughtCount / activeItemsList.length) * 100) : 0;
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header navigation & title */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          {!readOnly && (
-            <button
-              onClick={onReset}
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-2"
-            >
-              <ArrowLeft className="h-4 w-4" /> {t("back")}
-            </button>
-          )}
-          <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {dietLabel} · {days} {t("days")} · {people} {people === 1 ? t("person") : t("people")}
-          </p>
+    <div className="max-w-3xl mx-auto space-y-5">
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex items-center gap-1.5 text-xs font-heading font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3.5 py-1.5 hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("back")}
+        </button>
+      )}
+
+      {/* Bento Arcade Hero Header */}
+      <div className="bba-t bg-[#78a71b] text-[#111827] space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1.5">
+            <span className="bba-sticker">
+              <Sparkles className="h-3.5 w-3.5 text-[#FFB020]" /> Loot List Ready
+            </span>
+            <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-[#111827]">
+              {t("yourGroceryList")}
+            </h1>
+          </div>
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl px-3.5 py-2 shadow-[3px_3px_0_#111827] text-right shrink-0">
+            <span className="block text-[10px] font-heading font-black uppercase tracking-wider text-[#111827]/70">
+              {activeItemsList.length} {t("items") || "items"}
+            </span>
+            <span className="font-heading text-2xl font-black tabular-nums text-[#111827]">
+              €{activeTotal.toFixed(2)}
+            </span>
+          </div>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center bg-white text-[#111827] border-2 border-[#111827] rounded-full px-3 py-0.5 text-xs font-heading font-extrabold shadow-[1.5px_1.5px_0_#111827]">
+            🥗 {dietLabel}
+          </span>
+          <span className="inline-flex items-center bg-[#FFB020] text-[#111827] border-2 border-[#111827] rounded-full px-3 py-0.5 text-xs font-heading font-extrabold shadow-[1.5px_1.5px_0_#111827]">
+            📅 {days} {t("days")}
+          </span>
+          <span className="inline-flex items-center bg-[#7DD3FC] text-[#111827] border-2 border-[#111827] rounded-full px-3 py-0.5 text-xs font-heading font-extrabold shadow-[1.5px_1.5px_0_#111827]">
+            👥 {people} {people === 1 ? t("person") : t("people")}
+          </span>
+        </div>
+
+        {!readOnly && activeItemsList.length > 0 && (
+          <div className="rounded-2xl bg-[#F3F8E6] border-2 border-[#111827] p-2.5 flex items-center gap-3 shadow-[2px_2px_0_#111827]">
+            <span className="text-xs font-heading font-black uppercase tracking-wider text-[#111827] shrink-0">
+              🛒 {boughtCount}/{activeItemsList.length}
+            </span>
+            <div className="h-3 flex-1 rounded-full bg-white border-2 border-[#111827] overflow-hidden">
+              <div
+                style={{ width: `${boughtCount > 0 ? Math.max(boughtPct, 6) : 0}%` }}
+                className="h-full bg-[#FF3E7F] bba-progress-stripes rounded-full transition-all duration-300"
+              />
+            </div>
+            <span className="text-xs font-heading font-black tabular-nums text-[#111827] shrink-0">
+              {boughtPct}%
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Tabs if prep guide is enabled */}
       {prep && (
-        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl">
+        <div className="flex items-center gap-2 bg-card border-[2.5px] border-[#111827] dark:border-[#78a71b] p-1.5 rounded-2xl shadow-[3px_3px_0_#111827] dark:shadow-[3px_3px_0_#000]">
           <button
+            type="button"
             onClick={() => setActiveTab("grocery")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-heading font-black uppercase tracking-wide transition-all ${
               activeTab === "grocery"
-                ? "bg-card text-foreground shadow-sm"
+                ? "bg-[#FFB020] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <ShoppingBasket className="h-4 w-4 text-primary" />
+            <ShoppingBasket className="h-4 w-4" />
             <span>{t("planGroceryTitle") || "Grocery List"}</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("prep")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-heading font-black uppercase tracking-wide transition-all ${
               activeTab === "prep"
-                ? "bg-card text-foreground shadow-sm"
+                ? "bg-[#C084FC] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <ChefHat className="h-4 w-4 text-primary" />
+            <ChefHat className="h-4 w-4" />
             <span>{t("planPrepTitle") || "Meal Prep Guide"}</span>
           </button>
         </div>
@@ -498,68 +555,71 @@ export default function PlanGroceryResult({
           ) : null}
 
           {/* List intro notice */}
-          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {t("groceryListIntro", { diet: dietLabel, days, goal: t("balanced") })}
+          <div className="bba-t bg-[#F3F8E6] text-[#111827] space-y-2">
+            <div className="flex items-start gap-3">
+              <div className="h-9 w-9 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+                <Sparkles className="h-4 w-4 text-[#111827]" />
+              </div>
+              <p className="text-sm font-semibold text-[#111827] leading-relaxed">
+                {t("groceryListIntro", { diet: dietLabel, days, goal: t("balanced") })}
+              </p>
+            </div>
+            <p className="text-xs font-medium text-[#111827]/75 flex items-start gap-1.5 pt-1 border-t border-[#111827]/15">
+              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span>{t("priceEstimateNote")}</span>
             </p>
           </div>
 
-          <p className="text-xs text-muted-foreground px-1 -mt-2 flex items-start gap-1.5">
-            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            <span>{t("priceEstimateNote")}</span>
-          </p>
-
           {/* Budget & Savings Summary Cards */}
-          <div className="space-y-3">
-            <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShoppingBasket className="h-5 w-5 text-primary" />
-                <span className="font-heading font-semibold text-foreground">
+          <div className="space-y-4">
+            <div className="bba-t bg-[#FFB020] text-[#111827] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+                  <ShoppingBasket className="h-5 w-5 text-[#111827]" />
+                </div>
+                <span className="font-heading font-black text-base sm:text-lg text-[#111827]">
                   {t("estimatedTotalForDays", { days })}
                 </span>
               </div>
-              <span className="font-heading text-2xl font-bold text-primary">
+              <span className="font-heading text-2xl sm:text-3xl font-black tabular-nums bg-white text-[#111827] border-[2.5px] border-[#111827] px-3.5 py-1 rounded-2xl shadow-[2px_2px_0_#111827]">
                 €{activeTotal.toFixed(2)}
               </span>
             </div>
 
             {totalSaved > 0 && (
-              <div className="relative overflow-hidden rounded-2xl p-5 text-primary-foreground bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
-                <div className="absolute -right-2 top-10 h-16 w-16 rounded-full bg-white/10" />
+              <div className="bba-t bg-[#FF3E7F] text-white relative overflow-hidden">
                 <div className="relative flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+                  <div className="h-12 w-12 rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center shrink-0 text-[#111827]">
                     <PiggyBank className="h-6 w-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">
+                    <span className="inline-block text-[10px] font-heading font-black uppercase tracking-wider bg-[#111827] text-[#F3F8E6] px-2.5 py-0.5 rounded-full">
                       {t("savedVsRegular")}
-                    </p>
-                    <p className="font-heading text-4xl font-extrabold leading-none mt-1">
+                    </span>
+                    <p className="font-heading text-3xl sm:text-4xl font-black leading-none mt-1.5 text-white tabular-nums">
                       €{totalSaved.toFixed(2)}
                     </p>
-                    <p className="text-sm opacity-90 mt-2 leading-relaxed">
+                    <p className="text-sm font-semibold text-white/95 mt-2 leading-relaxed">
                       {t("savedCelebration", { amount: `€${totalSaved.toFixed(2)}`, pct })}
                     </p>
                     {showProUpsell && (
                       <button
                         type="button"
                         onClick={() => openPricing?.()}
-                        className="mt-3 flex w-full items-center gap-2 rounded-xl bg-foreground/10 px-3 py-2 text-left backdrop-blur-sm transition-colors hover:bg-foreground/15"
+                        className="mt-3 flex w-full items-center gap-2.5 rounded-2xl bg-white text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] px-3.5 py-2.5 text-left hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
                       >
-                        <span className="text-sm opacity-95 leading-snug">
+                        <span className="text-xs sm:text-sm font-heading font-bold text-[#111827] leading-snug">
                           {t("proUpsellSavings", { price: PRO_PRICE.toFixed(2), saved: `€${stillSaved.toFixed(2)}` })}
                         </span>
-                        <span className="ml-auto shrink-0 rounded-lg bg-foreground px-3 py-1.5 text-xs font-heading font-bold text-background">
+                        <span className="ml-auto shrink-0 rounded-full bg-[#78a71b] border-2 border-[#111827] px-3 py-1 text-xs font-heading font-black text-[#111827]">
                           {t("proUpsellCta")}
                         </span>
                       </button>
                     )}
                   </div>
-                  <div className="hidden sm:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-3 py-2 backdrop-blur-sm shrink-0">
+                  <div className="hidden sm:flex flex-col items-center justify-center bg-[#FFB020] text-[#111827] border-[2.5px] border-[#111827] rounded-2xl px-3.5 py-2 shadow-[3px_3px_0_#111827] shrink-0">
                     <TrendingDown className="h-5 w-5" />
-                    <span className="font-heading text-2xl font-bold leading-none mt-0.5">{pct}%</span>
+                    <span className="font-heading text-2xl font-black leading-none mt-0.5">-{pct}%</span>
                   </div>
                 </div>
               </div>
@@ -567,7 +627,7 @@ export default function PlanGroceryResult({
           </div>
 
           {/* Export and Share Actions */}
-          <div className="flex flex-wrap gap-2 justify-end">
+          <div className="flex flex-wrap gap-2.5 justify-end">
             <Button onClick={shareGroceryList} size="sm" className="gap-2">
               <Share2 className="h-4 w-4" />
               {(SHARE_L[currentLanguage?.code] || SHARE_L.en).share}
@@ -583,22 +643,32 @@ export default function PlanGroceryResult({
           </div>
 
           {/* Sort toggle & Category / Store listings */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <GrocerySortToggle sortByStore={sortByStore} setSortByStore={setSortByStore} />
             {!sortByStore ? (
-              (groceries?.categories || []).map((category) => {
+              (groceries?.categories || []).map((category, catIdx) => {
                 const visibleItems = (category.items || []).filter(
                   (item) => !removedItems.has(`${category.name}::${item.name}`)
                 );
                 if (!visibleItems.length) return null;
+                const catTotal = visibleItems.reduce((s, it) => s + (Number(it.price) || 0), 0);
+                const headerBg = CAT_HEADER_BGS[catIdx % CAT_HEADER_BGS.length];
                 return (
-                  <div key={category.name} className="bg-card border border-border rounded-xl overflow-hidden mb-3">
-                    <div className="bg-secondary px-5 py-3">
-                      <h2 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
+                  <div key={category.name} className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
+                    <div className={`${headerBg} text-[#111827] border-b-[3px] border-[#111827] px-4 sm:px-5 py-3 flex items-center justify-between gap-2`}>
+                      <h2 className="font-heading font-black text-sm uppercase tracking-wider text-[#111827]">
                         {trCat(category.name)}
                       </h2>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[11px] font-heading font-black bg-white/80 text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5">
+                          {visibleItems.length}
+                        </span>
+                        <span className="text-xs font-heading font-black bg-white text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5 shadow-[1.5px_1.5px_0_#111827] tabular-nums">
+                          €{catTotal.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="divide-y divide-border">
+                    <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
                       {visibleItems.map((item, idx) => (
                         <GroceryItemRow
                           key={idx}
@@ -618,37 +688,52 @@ export default function PlanGroceryResult({
               })
             ) : (
               (() => {
-                const items = getActiveItems();
+                const items = activeItemsList;
                 const groups = {};
                 items.forEach((it) => {
                   const key = it.store || "__other__";
                   (groups[key] = groups[key] || []).push(it);
                 });
-                return Object.keys(groups).sort().map((storeName) => (
-                  <div key={storeName} className="bg-card border border-border rounded-xl overflow-hidden mb-3">
-                    <div className="bg-secondary px-5 py-3 flex items-center gap-2">
-                      {storeName !== "__other__" && <StoreBadge store={storeName} />}
-                      <span className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
-                        {storeName === "__other__" ? "Other" : storeName}
-                      </span>
+                return Object.keys(groups).sort().map((storeName, sIdx) => {
+                  const storeItems = groups[storeName];
+                  const storeTotal = storeItems.reduce((s, it) => s + (Number(it.price) || 0), 0);
+                  const headerBg = CAT_HEADER_BGS[sIdx % CAT_HEADER_BGS.length];
+                  return (
+                    <div key={storeName} className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
+                      <div className={`${headerBg} text-[#111827] border-b-[3px] border-[#111827] px-4 sm:px-5 py-3 flex items-center justify-between gap-2`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {storeName !== "__other__" && <StoreBadge store={storeName} />}
+                          <span className="font-heading font-black text-sm uppercase tracking-wider text-[#111827] truncate">
+                            {storeName === "__other__" ? "Other" : storeName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[11px] font-heading font-black bg-white/80 text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5">
+                            {storeItems.length}
+                          </span>
+                          <span className="text-xs font-heading font-black bg-white text-[#111827] border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5 shadow-[1.5px_1.5px_0_#111827] tabular-nums">
+                            €{storeTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
+                        {storeItems.map((item, idx) => (
+                          <GroceryItemRow
+                            key={idx}
+                            item={item}
+                            categoryName={item.category}
+                            stores={storesStr}
+                            bought={boughtItems.has(`${item.category}::${item.name}`)}
+                            onToggleBought={() => toggleBought(`${item.category}::${item.name}`)}
+                            onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
+                            onRemove={removeItem}
+                            readOnly={readOnly}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="divide-y divide-border">
-                      {groups[storeName].map((item, idx) => (
-                        <GroceryItemRow
-                          key={idx}
-                          item={item}
-                          categoryName={item.category}
-                          stores={storesStr}
-                          bought={boughtItems.has(`${item.category}::${item.name}`)}
-                          onToggleBought={() => toggleBought(`${item.category}::${item.name}`)}
-                          onSwap={(it, cat) => setGrocerySwapTarget({ item: it, category: cat })}
-                          onRemove={removeItem}
-                          readOnly={readOnly}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ));
+                  );
+                });
               })()
             )}
           </div>
@@ -656,29 +741,36 @@ export default function PlanGroceryResult({
           {/* Add item button */}
           {!readOnly && (
             <button
+              type="button"
               onClick={() => setShowAddModal(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-card border border-dashed border-primary/40 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-[#F3F8E6] hover:bg-[#78a71b] text-[#111827] border-[2.5px] border-dashed hover:border-solid border-[#111827] rounded-2xl text-sm font-heading font-black shadow-[3px_3px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[3]" />
               {t("addItemWithAI")}
             </button>
           )}
 
           {/* Active summary footer */}
-          <div className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-3">
+          <div className="bba-t bg-[#78a71b] text-[#111827] flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <ShoppingBasket className="h-5 w-5 text-primary" />
+              <div className="h-11 w-11 rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0">
+                <ShoppingBasket className="h-5 w-5 text-[#111827]" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("estimatedTotalForDays", { days })}</p>
-                <p className="font-heading text-2xl font-bold text-primary">€{activeTotal.toFixed(2)}</p>
+                <p className="text-xs font-heading font-extrabold uppercase tracking-wider text-[#111827]/75">
+                  {t("estimatedTotalForDays", { days })}
+                </p>
+                <p className="font-heading text-2xl sm:text-3xl font-black text-[#111827] tabular-nums">
+                  €{activeTotal.toFixed(2)}
+                </p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">
-                {getActiveItems().length} {t("items") || "items"}
-              </p>
+            <div className="text-right space-y-1">
+              <span className="inline-block text-xs font-heading font-black bg-white text-[#111827] border-2 border-[#111827] px-2.5 py-0.5 rounded-full shadow-[1.5px_1.5px_0_#111827]">
+                {activeItemsList.length} {t("items") || "items"}
+              </span>
               {totalSaved > 0 && (
-                <p className="text-sm font-semibold text-green-600">
+                <p className="text-xs sm:text-sm font-heading font-black text-[#111827]">
                   {t("savingsAmount", { amount: totalSaved.toFixed(2) })}
                 </p>
               )}
@@ -687,8 +779,8 @@ export default function PlanGroceryResult({
 
           {/* Regenerate button */}
           {!readOnly && (
-            <div className="pt-2">
-              <Button onClick={onReset} variant="outline" className="w-full gap-2">
+            <div className="pt-1">
+              <Button onClick={onReset} variant="outline" className="w-full h-12 gap-2">
                 <RefreshCw className="h-4 w-4" />
                 {t("regenerate")}
               </Button>
@@ -702,12 +794,15 @@ export default function PlanGroceryResult({
       {/* TAB 2: PREP GUIDE */}
       {activeTab === "prep" && prep && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary text-sm font-medium">
-            <ChefHat className="h-4 w-4" /> {t("planPrepTitle")}
+          <div className="bba-t bg-[#C084FC] text-[#111827] space-y-1">
+            <span className="bba-sticker">
+              <ChefHat className="h-3.5 w-3.5" /> Kitchen Mode
+            </span>
+            <h3 className="font-heading text-xl font-black text-[#111827]">{t("planPrepTitle")}</h3>
+            <p className="text-xs sm:text-sm font-medium text-[#111827]/85">{t("planPrepSubtitle")}</p>
           </div>
-          <p className="text-xs text-muted-foreground">{t("planPrepSubtitle")}</p>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <ExtendableList
               items={prep.days || []}
               limit={7}
@@ -717,38 +812,41 @@ export default function PlanGroceryResult({
               );
               if (!meals.length) return null;
               return (
-                <div key={i} className="border border-border rounded-2xl bg-card p-4">
-                  <h4 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    {t("day") || "Day"} {i + 1}
-                  </h4>
-                  <div className="space-y-3">
+                <div key={i} className="bba-t bg-card text-card-foreground p-0 overflow-hidden">
+                  <div className="bg-[#F3F8E6] dark:bg-secondary border-b-[2.5px] border-[#111827] dark:border-[#78a71b] px-4 py-2.5 flex items-center justify-between">
+                    <span className="inline-flex items-center font-heading font-black text-xs uppercase tracking-wider bg-[#FFB020] text-[#111827] border-2 border-[#111827] px-3 py-0.5 rounded-full shadow-[1.5px_1.5px_0_#111827]">
+                      {t("day") || "Day"} {i + 1}
+                    </span>
+                  </div>
+                  <div className="divide-y-2 divide-[#111827]/12 dark:divide-white/15">
                     {meals.map((s) => (
-                      <div key={s.key} className="border-t border-border pt-2 first:border-0 first:pt-0">
+                      <div key={s.key} className="p-4 space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-medium text-foreground flex-1 min-w-0">
+                          <p className="text-sm font-heading font-extrabold text-foreground flex-1 min-w-0">
                             {s.data.meal}
                           </p>
-                          <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded px-1.5 py-0.5 shrink-0">
+                          <span className={`text-[10px] font-heading font-black uppercase tracking-wider text-[#111827] ${s.pillBg} border-[1.5px] border-[#111827] rounded-full px-2.5 py-0.5 shrink-0`}>
                             {t(s.labelKey)}
                           </span>
                           <button
+                            type="button"
                             onClick={() => handleRecipe(i, s.key, s.data.meal)}
-                            className="relative text-muted-foreground hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10 shrink-0"
+                            className="relative h-7 w-7 rounded-lg bg-white dark:bg-secondary text-foreground border-[1.5px] border-[#111827] dark:border-[#78a71b] hover:bg-[#FF8FB5] hover:text-[#111827] flex items-center justify-center transition-all shrink-0"
                             title={isPro ? t("recipe") || "Recipe" : t("recipePro") || "Recipe — Pro"}
                           >
                             <ChefHat className="h-3.5 w-3.5" />
                             {!isPro && (
-                              <Lock className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-foreground bg-card rounded-full p-0.5" />
+                              <Lock className="absolute -bottom-1 -right-1 h-3 w-3 text-[#111827] bg-[#FFB020] border border-[#111827] rounded-full p-0.5" />
                             )}
                           </button>
                         </div>
                         {s.data.portion && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <span className="font-medium text-foreground">{t("portionLabel")}:</span>{" "}
+                          <p className="text-xs text-muted-foreground font-medium">
+                            <span className="font-heading font-black text-foreground">{t("portionLabel")}:</span>{" "}
                             {s.data.portion}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{s.data.prep}</p>
+                        <p className="text-xs text-muted-foreground font-medium leading-relaxed whitespace-pre-line">{s.data.prep}</p>
                       </div>
                     ))}
                   </div>

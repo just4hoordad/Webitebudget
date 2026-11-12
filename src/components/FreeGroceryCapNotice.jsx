@@ -28,22 +28,20 @@ export default function FreeGroceryCapNotice({ planDays }) {
   const fill = (s) => s.replace(/\{cap\}/g, cap).replace(/\{planDays\}/g, planDays);
 
   return (
-    <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 px-4 py-3.5 flex items-start gap-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-        <Lock className="h-4.5 w-4.5" />
+    <div className="bba-t bg-[#FFB020] text-[#111827] flex items-start gap-3.5">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827] text-[#111827]">
+        <Lock className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <span className="inline-block text-[10px] font-heading font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full mb-1">
-          {c.badge}
-        </span>
-        <p className="font-heading font-bold text-sm text-foreground leading-snug">{fill(c.title)}</p>
-        <p className="text-xs text-muted-foreground leading-relaxed mt-1">{fill(c.desc)}</p>
+        <span className="bba-sticker mb-1.5">{c.badge}</span>
+        <p className="font-heading font-black text-base text-[#111827] leading-snug">{fill(c.title)}</p>
+        <p className="text-xs font-medium text-[#111827]/85 leading-relaxed mt-1">{fill(c.desc)}</p>
         <button
           type="button"
           onClick={() => openPricing?.()}
-          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3.5 py-1.5 text-xs font-heading font-bold hover:opacity-90 transition-opacity"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#111827] text-white border-2 border-[#111827] px-4 py-1.5 text-xs font-heading font-black shadow-[2px_2px_0_#FF3E7F] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
         >
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5 text-[#FFB020]" />
           {c.cta}
         </button>
       </div>
