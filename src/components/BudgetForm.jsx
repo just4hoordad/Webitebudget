@@ -22,6 +22,7 @@ import StickyGenerateBar from "@/components/StickyGenerateBar";
 import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 import EasyModeToggle from "@/components/EasyModeToggle";
 import BudgetEasyEssentials from "@/components/builder/BudgetEasyEssentials";
+import { MAX_PLAN_DAYS } from "@/lib/freeTier";
 
 
 const GROCERY_STORES = [
@@ -57,7 +58,7 @@ const DIET_KEYS = [
 function SectionHeader({ icon: Icon, label, summary }) {
   return (
     <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
         <Icon className="h-[18px] w-[18px] text-primary" />
       </div>
       <div className="flex-1 min-w-0 text-left">
@@ -85,7 +86,7 @@ export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { isPro } = useMonetization();
-  const maxDays = isPro ? 30 : 7;
+  const maxDays = MAX_PLAN_DAYS;
   const [budget, setBudget] = useState([0]);
   const [selectedStores, setSelectedStores] = useState([]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
@@ -306,7 +307,7 @@ export default function BudgetForm() {
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Basics ── */}
-        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -399,7 +400,7 @@ export default function BudgetForm() {
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
-        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -509,7 +510,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Stores ── */}
-        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -660,7 +661,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Pantry ── */}
-        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader

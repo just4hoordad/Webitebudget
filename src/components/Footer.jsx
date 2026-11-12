@@ -5,46 +5,49 @@ import { useLanguage } from "@/lib/LanguageContext";
 export default function Footer() {
   const { t } = useLanguage();
   return (
-    <footer className="mt-10 border-t border-border pt-8 pb-2">
-      <div className="space-y-6">
+    <footer className="mt-14 border-t border-border pt-10 pb-4">
+      <div className="space-y-8">
         <div className="flex items-start gap-3">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/30">
-            <ShoppingCart className="h-4 w-4 text-primary-foreground" />
+          <div className="h-10 w-10 rounded-xl bg-primary border-2 border-[#111827] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#111827]">
+            <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
           </div>
           <div className="min-w-0">
-            <p className="font-heading font-bold text-base text-foreground">
+            <p className="font-heading font-bold text-lg text-foreground tracking-tight">
               Budget<span className="text-primary">Bite</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("planSubtitle")}</p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-xs">{t("planSubtitle")}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 text-xs">
-          <div className="space-y-2">
-            <p className="font-heading font-semibold text-foreground uppercase tracking-wide text-[11px]">
+          <div className="space-y-2.5">
+            <p className="font-heading font-semibold text-foreground uppercase tracking-[0.14em] text-[11px]">
               {t("footerProduct") || "Product"}
             </p>
             <Link to="/plan-builder" className="block text-muted-foreground hover:text-primary transition-colors">{t("planBuilderNav")}</Link>
             <Link to="/saved-plans" className="block text-muted-foreground hover:text-primary transition-colors">{t("savedPlans")}</Link>
             <Link to="/nutrition" className="block text-muted-foreground hover:text-primary transition-colors">{t("nutritionNav") || "Nutrition"}</Link>
           </div>
-          <div className="space-y-2">
-            <p className="font-heading font-semibold text-foreground uppercase tracking-wide text-[11px]">
+          <div className="space-y-2.5">
+            <p className="font-heading font-semibold text-foreground uppercase tracking-[0.14em] text-[11px]">
               {t("footerResources") || "Resources"}
             </p>
             <Link to="/about" className="block text-muted-foreground hover:text-primary transition-colors">{t("aboutNav")}</Link>
             <Link to="/contact" className="block text-muted-foreground hover:text-primary transition-colors">{t("contactNav")}</Link>
             <Link to="/repo-stats" className="block text-muted-foreground hover:text-primary transition-colors">{t("repoStatsNav") || "Repo Stats"}</Link>
           </div>
-          <div className="space-y-2">
-            <p className="font-heading font-semibold text-foreground uppercase tracking-wide text-[11px]">
+          <div className="space-y-2.5">
+            <p className="font-heading font-semibold text-foreground uppercase tracking-[0.14em] text-[11px]">
               {t("footerLegal") || "Legal"}
             </p>
             <Link to="/datenschutz" className="block text-muted-foreground hover:text-primary transition-colors">{t("privacyNav")}</Link>
           </div>
         </div>
 
-        <p className="text-[11px] text-muted-foreground">© {new Date().getFullYear()} BudgetBite</p>
+        <div className="pt-6 border-t border-border flex items-center justify-between gap-4">
+          <p className="text-[11px] text-muted-foreground">© {new Date().getFullYear()} BudgetBite</p>
+          <p className="text-[11px] text-muted-foreground/70">Made with care for budget-conscious foodies</p>
+        </div>
       </div>
     </footer>
   );

@@ -1,4 +1,4 @@
-import { Leaf, Wallet, Calendar, Users, ShoppingBasket, ArrowRight } from "lucide-react";
+import { Leaf, Wallet, Calendar, Users, ShoppingBasket, ChefHat, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function CommunityPlanCard({ plan, onOpen }) {
@@ -6,7 +6,7 @@ export default function CommunityPlanCard({ plan, onOpen }) {
   return (
     <button
       onClick={() => onOpen(plan)}
-      className="text-left bg-card border border-border rounded-2xl p-5 space-y-3 hover:border-primary transition-colors group w-full"
+      className="bba-t text-left bg-card p-5 space-y-3 group w-full"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -26,6 +26,7 @@ export default function CommunityPlanCard({ plan, onOpen }) {
         )}
         {plan.days != null && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{plan.days} {t("days") || "days"}</span>}
         {plan.itemCount > 0 && <span className="flex items-center gap-1"><ShoppingBasket className="h-3 w-3" />{plan.itemCount} {t("items") || "items"}</span>}
+        {plan.recipeCount > 0 && <span className="flex items-center gap-1"><ChefHat className="h-3 w-3" />{plan.recipeCount} {t("recipesTitle") || "recipes"}</span>}
       </div>
       <div className="flex items-center justify-between gap-2 pt-1">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">

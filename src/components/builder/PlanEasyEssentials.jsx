@@ -93,7 +93,7 @@ export default function PlanEasyEssentials({ diet, setDiet, days, setDays, peopl
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-6">
+      <div className="bba-t bg-card p-5 space-y-6">
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">{t("dietPreference") || "Diet"}</label>
           <div className="grid grid-cols-2 gap-2.5">

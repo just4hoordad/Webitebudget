@@ -15,35 +15,41 @@ export default function About() {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground mb-4">{p.aboutTitle}</h1>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP1}</p>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP2}</p>
-        <p className="text-muted-foreground text-base leading-relaxed mb-4">{p.aboutP3}</p>
-        <p className="text-muted-foreground text-base leading-relaxed">
-          {p.aboutP4}
-        </p>
-        <p className="text-muted-foreground text-sm mt-3">
-          📧 <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary hover:underline">Hoordad.sedaghat@gmail.com</a>
+    <div className="max-w-2xl mx-auto space-y-10 py-2">
+      <div className="bba-t bg-white space-y-4">
+        <span className="bba-sticker">
+          {p.aboutTitle}
+        </span>
+        <h1 className="font-heading text-3xl sm:text-4xl font-black text-foreground leading-tight tracking-tight">
+          {p.aboutP1?.split(".")[0] || p.aboutTitle}
+        </h1>
+        <div className="space-y-4 text-muted-foreground text-base leading-relaxed">
+          <p>{p.aboutP1}</p>
+          <p>{p.aboutP2}</p>
+          <p>{p.aboutP3}</p>
+          <p>{p.aboutP4}</p>
+        </div>
+        <p className="text-sm text-muted-foreground flex items-center gap-2">
+          <span className="text-base">📧</span>
+          <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary font-medium hover:underline">Hoordad.sedaghat@gmail.com</a>
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {features.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="bg-card border border-border rounded-xl p-4">
-            <div className="bg-primary/10 w-9 h-9 rounded-lg flex items-center justify-center mb-3">
-              <Icon className="h-4 w-4 text-primary" />
+          <div key={title} className="bba-t bg-card p-5 group hover:-translate-y-1">
+            <div className="bg-primary/20 border-2 border-[#111827] w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 shadow-[2px_2px_0_#111827]">
+              <Icon className="h-5 w-5 text-primary" />
             </div>
-            <p className="font-heading font-semibold text-sm text-foreground mb-1">{title}</p>
+            <p className="font-heading font-semibold text-foreground mb-1">{title}</p>
             <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-primary/5 border border-primary/20 rounded-xl px-5 py-4 text-center">
-        <p className="text-sm text-muted-foreground mb-3">{p.aboutCta}</p>
-        <Link to="/" className="inline-block bg-primary text-primary-foreground font-heading font-semibold text-sm px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors">
+      <div className="bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/20 rounded-3xl px-6 py-6 text-center">
+        <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{p.aboutCta}</p>
+        <Link to="/" className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-heading font-semibold text-sm px-6 py-3 rounded-xl hover:bg-primary/90 transition-all active:scale-[0.98] bb-shadow-glow">
           {p.aboutCtaBtn}
         </Link>
       </div>

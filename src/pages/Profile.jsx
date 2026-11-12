@@ -100,11 +100,15 @@ export default function Profile() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-bold">
+      <div className="bba-t bg-white text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
+          <User className="h-3.5 w-3.5" />
+          {t("profileNav") || "Profile"}
+        </span>
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("profileTitle") || "Profile settings"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/80">
           {t("profileSubtitle") || "Manage how you appear in the BudgetBite community."}
         </p>
       </div>
@@ -116,8 +120,8 @@ export default function Profile() {
       ) : (
         <>
           {/* Display name */}
-          <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-            <label className="block text-sm font-semibold text-foreground">
+          <div className="bba-t bg-[#78a71b] p-5 space-y-3">
+            <label className="block text-sm font-bold text-[#111827]">
               {t("profileDisplayName") || "Display name"}
             </label>
             <input
@@ -133,7 +137,7 @@ export default function Profile() {
           </div>
 
           {/* Visibility toggle */}
-          <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
+          <div className="bba-t bg-[#FFB020] p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center gap-2">

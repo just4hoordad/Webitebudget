@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/AuthContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import CommunityPlanCard from "@/components/community/CommunityPlanCard";
 import CommunityPlanDetail from "@/components/community/CommunityPlanDetail";
+import CommunityProLock from "@/components/community/CommunityProLock";
 import { Users, Loader2, LogIn, Search } from "lucide-react";
 
 export default function Community() {
   const { t } = useLanguage();
   const { isAuthenticated, isLoadingAuth, navigateToLogin } = useAuth();
+  const { isPro, openPricing } = useMonetization();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,6 +35,13 @@ export default function Community() {
     if (isAuthenticated) loadPlans("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  // Free users see a locked paywall (subscription bait) — still load plans for the blurred preview.
+  if (isAuthenticated && !isPro) {
+    return (
+      <CommunityProLock plans={plans} onUpgrade={openPricing} />
+    );
+  }
 
   if (isLoadingAuth) {
     return (
@@ -67,12 +77,15 @@ export default function Community() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
+      <div className="bba-t bg-[#7DD3FC] text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
+          <Users className="h-3.5 w-3.5" />
+          {t("communityNav") || "Community"}
+        </span>
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("communityTitle") || "Community plans"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/85">
           {t("communitySubtitle") || "Browse grocery lists and meal plans shared by other users."}
         </p>
       </div>
@@ -107,8 +120,10 @@ export default function Community() {
       ) : error ? (
         <div className="text-center py-12 text-sm text-destructive">{error}</div>
       ) : plans.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-3">
-          <Users className="h-10 w-10 text-muted-foreground mx-auto opacity-50" />
+        <div className="bba-t bg-[#78a71b] p-8 text-center space-y-3">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-white border-3 border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
+            <Users className="h-7 w-7 text-[#111827]" />
+          </div>
           <p className="text-muted-foreground text-sm">
             {t("communityEmpty") || "No community plans yet. Be the first to share!"}
           </p>

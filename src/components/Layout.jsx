@@ -3,7 +3,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import CookieBanner from "./CookieBanner";
-import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, Users, LogIn, LogOut, Trash2, Wallet, Package, ChefHat } from "lucide-react";
+import { ShoppingCart, Home, BookMarked, ArrowLeft, Download, Utensils, Info, Mail, Lock, MoreHorizontal, User, Users, LogIn, LogOut, Trash2, Wallet, Package, ChefHat, LayoutDashboard } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import ProBadge from "@/components/monetization/ProBadge";
 import SupportUsButton from "@/components/monetization/SupportUsButton";
@@ -17,9 +17,17 @@ import BudgetPlannerPage from "@/pages/BudgetPlanner";
 import { modeText } from "@/lib/translations_modes";
 import SavedMealPlansPage from "../pages/SavedMealPlans";
 import MealPlanPage from "../pages/MealPlan";
-import PlanBuilderPage from "../pages/PlanBuilder";
+import PlanBuilderPage from "@/pages/PlanBuilder";
 import GenerationBadge from "@/components/GenerationBadge";
 import { useState, useEffect } from "react";
+
+function LogoMark({ className = "" }) {
+  return (
+    <div className={`h-9 w-9 rounded-xl bg-[#78a71b] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center ${className}`}>
+      <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
+    </div>
+  );
+}
 
 export default function Layout() {
   const location = useLocation();
@@ -76,6 +84,7 @@ export default function Layout() {
   ];
 
   const secondaryNavItems = [
+    { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard },
     { path: "/community", label: t("communityNav") || "Community", icon: Users },
     { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat },
     { path: "/pantry", label: "Pantry", icon: Package },
@@ -85,16 +94,16 @@ export default function Layout() {
     { path: "/profile", label: t("profileNav") || "Profile", icon: User },
   ];
 
+  const navLinkBase = "relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors select-none";
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex flex-col w-64 bg-card border-r border-border sticky top-0 h-screen shrink-0 z-50">
+      <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border sticky top-0 h-screen shrink-0 z-50">
         {/* Logo */}
-        <div className="px-5 h-14 flex items-center border-b border-border shrink-0">
+        <div className="px-5 h-16 flex items-center border-b border-sidebar-border shrink-0">
           <Link to="/" className="flex items-center gap-2.5 select-none">
-            <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-              <ShoppingCart className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <LogoMark />
             <span className="font-heading font-bold text-lg tracking-tight text-foreground">
               Budget<span className="text-primary">Bite</span>
             </span>
@@ -111,12 +120,9 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors select-none ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
+                className={`${navLinkBase} ${isActive ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
+                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary" />}
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </Link>
@@ -125,13 +131,13 @@ export default function Layout() {
           {!isAuthenticated && (
             <button
               onClick={navigateToLogin}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors select-none w-full"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium bg-primary/10 text-primary hover:bg-primary/15 transition-colors select-none w-full"
             >
               <LogIn className="h-5 w-5 shrink-0" />
               <span className="truncate">{t("signInNav")}</span>
             </button>
           )}
-          <div className="pt-4 mt-4 border-t border-border space-y-1">
+          <div className="pt-4 mt-4 border-t border-sidebar-border space-y-1">
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -139,12 +145,9 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors select-none ${
-                    isActive
-                      ? "bg-muted text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
+                  className={`${navLinkBase} ${isActive ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                 >
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-primary" />}
                   <Icon className="h-5 w-5 shrink-0" />
                   <span className="truncate">{item.label}</span>
                 </Link>
@@ -154,18 +157,18 @@ export default function Layout() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border shrink-0 space-y-3">
+        <div className="p-4 border-t border-sidebar-border shrink-0 space-y-3">
           {isAuthenticated && (
             <>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary">
-                <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-secondary/70">
+                <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                   <User className="h-4 w-4 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
                 </div>
-                <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
+                <button onClick={logout} className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors" title={t("logoutNav")} aria-label={t("logoutNav")}>
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
@@ -202,26 +205,24 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header — mobile only */}
         <header
-          className="md:hidden sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border"
+          className="md:hidden sticky top-0 z-50 bg-[#F3F8E6]/95 dark:bg-background/95 backdrop-blur-md border-b-[3px] border-[#111827]"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="px-4 h-14 flex items-center justify-between">
             {isRoot ? (
               <Link to="/" className="flex items-center gap-2.5 select-none">
-                <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-                  <ShoppingCart className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="font-heading font-bold text-lg tracking-tight text-foreground">
-                  Budget<span className="text-primary">Bite</span>
+                <LogoMark className="h-8 w-8" />
+                <span className="font-heading font-black text-lg tracking-tight text-foreground">
+                  Budget<span className="bg-[#FF3E7F] text-white px-1.5 py-0.5 rounded-md border-2 border-[#111827] ml-0.5">Bite</span>
                 </span>
                 {isPro && <ProBadge className="ml-1" />}
               </Link>
             ) : (
               <button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors select-none -ml-2 px-2 min-h-[44px] py-2"
+                className="flex items-center gap-1.5 text-xs font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3 py-1.5 select-none"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
                 {t("back")}
               </button>
             )}
@@ -229,11 +230,11 @@ export default function Layout() {
               {!isAuthenticated && (
                 <button
                   onClick={navigateToLogin}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-foreground bg-secondary hover:bg-secondary/80 transition-colors shrink-0"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-extrabold text-[#111827] bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0"
                   aria-label={t("signInNav")}
                 >
-                  <LogIn className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-[11px] font-semibold">{t("signInNav")}</span>
+                  <LogIn className="h-3.5 w-3.5" />
+                  <span className="text-[11px]">{t("signInNav")}</span>
                 </button>
               )}
               <ThemeToggle />
@@ -265,10 +266,10 @@ export default function Layout() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.33, 1, 0.68, 1] }}
               >
                 <Outlet />
               </motion.div>
@@ -285,7 +286,7 @@ export default function Layout() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-card/95 backdrop-blur-md border border-border shadow-2xl shadow-black/30 p-1.5">
+          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-white dark:bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[5px_5px_0_#111827] dark:shadow-[5px_5px_0_#000] p-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -294,10 +295,10 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-semibold uppercase tracking-tight transition-colors select-none ${
+                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-black uppercase tracking-tight transition-all select-none ${
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
+                      : "text-[#111827]/75 dark:text-foreground/75 hover:text-[#111827] dark:hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -307,7 +308,7 @@ export default function Layout() {
             })}
             <button
               onClick={() => setMoreOpen(true)}
-              className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-0.5"
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-[#FF3E7F] text-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0 ml-0.5"
               title={t("more") || "More"}
               aria-label={t("more") || "More"}
             >
@@ -325,31 +326,31 @@ export default function Layout() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMoreOpen(false)}
-                className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+                className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
               />
               <motion.div
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-border p-4"
+                transition={{ type: "spring", damping: 30, stiffness: 320 }}
+                className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card border-t border-border p-5"
                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
               >
-                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted" />
+                <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-muted" />
                 {!isAuthenticated ? (
                   <button
                     onClick={() => { setMoreOpen(false); navigateToLogin(); }}
-                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md shadow-primary/20 w-full"
+                    className="flex items-center justify-between gap-3 mb-3 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm bb-shadow-glow w-full"
                   >
                     <span className="flex items-center gap-2.5">
                       <LogIn className="h-5 w-5" />
                       {t("signInNav")}
                     </span>
-                    <span className="text-xs opacity-90">&rarr;</span>
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
                   </button>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary">
+                    <div className="flex items-center gap-3 mb-3 px-3 py-3 rounded-2xl bg-secondary/70">
                       <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                         <User className="h-5 w-5 text-primary" />
                       </div>
@@ -357,7 +358,7 @@ export default function Layout() {
                         <p className="text-sm font-semibold text-foreground truncate">{user?.full_name || user?.email || t("accountNav")}</p>
                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
-                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors text-xs font-medium">
+                      <button onClick={logout} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors text-xs font-medium">
                         <LogOut className="h-4 w-4" />
                         {t("logoutNav")}
                       </button>
@@ -380,8 +381,8 @@ export default function Layout() {
                         key={item.path}
                         to={item.path}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors ${
-                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary border-border text-foreground"
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
+                          isActive ? "bg-primary/10 border-primary/30 text-primary" : "bg-secondary/60 border-border text-foreground hover:border-primary/30 hover:text-primary"
                         }`}
                       >
                         <Icon className="h-6 w-6" />
@@ -390,14 +391,14 @@ export default function Layout() {
                     );
                   })}
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-4 space-y-2">
                   {showUpgrade && <UpgradeBanner onClick={() => { setMoreOpen(false); openPricing(); }} variant="sheet" />}
                   <SupportUsButton onClick={() => { setMoreOpen(false); openDonation(); }} variant="sheet" />
                 </div>
                 {installPrompt && !isInstalled && (
                   <button
                     onClick={() => { handleInstall(); setMoreOpen(false); }}
-                    className="mt-3 w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm"
+                    className="mt-3 w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm bb-shadow-glow"
                   >
                     <Download className="h-5 w-5" />
                     {t("installApp")}

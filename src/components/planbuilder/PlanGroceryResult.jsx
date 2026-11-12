@@ -29,6 +29,8 @@ import GrocerySwapModal from "@/components/GrocerySwapModal";
 import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
 import ExtendableList from "@/components/ExtendableList";
+import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
+import GroceryCalorieWarning from "@/components/GroceryCalorieWarning";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -53,9 +55,11 @@ export default function PlanGroceryResult({
   grocery,
   prep,
   days = 7,
+  planDays,
   people = 1,
   diet = "balanced",
   stores = [],
+  calories,
   onReset,
   readOnly = false,
   footer,
@@ -119,6 +123,7 @@ export default function PlanGroceryResult({
     );
 
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  const activeKcal = getActiveItems().reduce((sum, item) => sum + (Number(item.total_kcal) || 0), 0);
   const totalSaved = getActiveItems().reduce((sum, item) => {
     if (item.normal_price != null && item.normal_price > item.price) {
       return sum + (item.normal_price - item.price);
@@ -482,6 +487,16 @@ export default function PlanGroceryResult({
       {/* TAB 1: GROCERY LIST */}
       {activeTab === "grocery" && (
         <>
+          {/* Free-tier grocery cap notice */}
+          {planDays != null && Number(planDays) > Number(days) && (
+            <FreeGroceryCapNotice planDays={planDays} />
+          )}
+
+          {/* Calorie mismatch warning vs daily intake target */}
+          {calories ? (
+            <GroceryCalorieWarning dailyTarget={calories} generatedKcal={activeKcal} days={days} />
+          ) : null}
+
           {/* List intro notice */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />

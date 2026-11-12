@@ -133,17 +133,19 @@ export default function PantryDashboard() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold flex items-center gap-2">
-          <Package className="h-6 w-6 text-primary" />
+      <div className="bba-t bg-[#FFB020] text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
+          <Package className="h-3.5 w-3.5" /> Pantry Stash
+        </span>
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("pantryDashboard") || "Pantry Dashboard"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/85">
           {t("pantryDashboardDesc") || "What you rely on most, grouped by category"}
         </p>
       </div>
 
-      <div className="bg-card border border-border rounded-xl p-4">
+      <div className="bba-t bg-card p-4">
         <PantryManager onPantryChange={(list) => { setItems(list); setLoading(false); }} />
       </div>
 
@@ -152,7 +154,7 @@ export default function PantryDashboard() {
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : total === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground">
+        <div className="bba-t bg-card p-8 text-center text-muted-foreground">
           {t("pantryEmptyDashboard") ||
             "Your pantry is empty. Add staples from the home page to see your breakdown."}
         </div>
@@ -165,21 +167,21 @@ export default function PantryDashboard() {
             loadingPlans={loadingPlans}
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-card border border-border rounded-xl p-4">
+            <div className="bg-card border border-border rounded-xl bb-shadow p-4">
               <p className="text-xs uppercase text-muted-foreground">{t("totalItems") || "Total items"}</p>
               <p className="font-heading text-2xl font-bold">{total}</p>
             </div>
-            <div className="bg-card border border-border rounded-xl p-4">
+            <div className="bg-card border border-border rounded-xl bb-shadow p-4">
               <p className="text-xs uppercase text-muted-foreground">{t("categories") || "Categories"}</p>
               <p className="font-heading text-2xl font-bold">{chartData.length}</p>
             </div>
-            <div className="bg-card border border-border rounded-xl p-4 col-span-2 sm:col-span-1">
+            <div className="bg-card border border-border rounded-xl bb-shadow p-4 col-span-2 sm:col-span-1">
               <p className="text-xs uppercase text-muted-foreground">{t("topCategory") || "Top category"}</p>
               <p className="font-heading text-lg font-bold truncate">{topCat ? translateCategory(topCat.name) : ""}</p>
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl p-5">
+          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-4 w-4 text-primary" />
               <h3 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
@@ -224,7 +226,7 @@ export default function PantryDashboard() {
 
           <div className="space-y-3">
             {chartData.map((cat, i) => (
-              <div key={cat.name} className="bg-card border border-border rounded-xl p-4">
+              <div key={cat.name} className="bg-card border border-border rounded-xl bb-shadow p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="h-3 w-3 rounded-sm shrink-0" style={{ background: COLORS[i % COLORS.length] }} />

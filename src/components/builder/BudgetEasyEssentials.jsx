@@ -98,7 +98,7 @@ export default function BudgetEasyEssentials({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-6">
+      <div className="bba-t bg-card p-5 space-y-6">
         {/* Budget */}
         <div className="space-y-3">
           <BudgetInput value={budget[0]} onChange={(v) => setBudget([v])} label={t("monthlyBudget")} />

@@ -87,9 +87,9 @@ export default function PlanReview() {
         <ArrowLeft className="h-4 w-4" /> {t("reviewBack") || "Back to edit"}
       </button>
 
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">{t("reviewTitle") || "Confirm your plan"}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}</p>
+      <div className="space-y-1.5">
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">{t("reviewTitle") || "Confirm your plan"}</h1>
+        <p className="text-sm text-muted-foreground">{t("reviewSubtitle") || "Review everything you selected, then we'll generate your grocery list."}</p>
       </div>
 
       {/* Headline params — 2x2 grid */}
@@ -97,8 +97,8 @@ export default function PlanReview() {
         {headline.map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="flex items-center gap-3 bg-muted/40 rounded-2xl px-4 py-3.5">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <div key={i} className="flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3.5 bb-shadow">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
                 <Icon className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0">
@@ -111,8 +111,8 @@ export default function PlanReview() {
       </div>
 
       {/* Everything you selected */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="bg-secondary px-4 py-2.5">
+      <div className="bba-t bg-card overflow-hidden p-0">
+        <div className="bg-secondary border-b-3 border-[#111827] px-4 py-2.5">
           <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
             {t("reviewYourSelections") || "Your selections"}
           </h3>

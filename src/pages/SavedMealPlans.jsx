@@ -151,10 +151,11 @@ export default function SavedMealPlans() {
   return (
     <PullToRefresh onRefresh={loadPlans}>
       <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="font-heading text-2xl font-bold">{t("savedMealPlans")}</h1>
-            <p className="text-sm text-muted-foreground">{t("viewManage")}</p>
+        <div className="bba-t bg-[#FFB020] text-[#111827] flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <span className="bba-sticker">Saved Library</span>
+            <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">{t("savedMealPlans")}</h1>
+            <p className="text-sm font-medium text-[#111827]/85">{t("viewManage")}</p>
           </div>
           {plans.length > 0 && (
             <Button
@@ -201,7 +202,7 @@ export default function SavedMealPlans() {
         {/* Google Calendar sync */}
         <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
               <CalendarPlus className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
@@ -239,7 +240,7 @@ export default function SavedMealPlans() {
         ) : (
           <div className="grid grid-cols-1 gap-4 min-w-0">
             {plans.map((plan) => (
-              <div key={plan.id} className="bg-card border border-border rounded-xl p-5 space-y-3 min-w-0 overflow-hidden">
+              <div key={plan.id} className="bba-t bg-card p-5 space-y-3 min-w-0 overflow-hidden">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-heading font-semibold text-foreground break-words">{plan.name}</h3>
