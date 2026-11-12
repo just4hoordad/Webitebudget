@@ -64,12 +64,12 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
 
   return (
     <div ref={formRef} className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
-          <ShoppingCart className="h-4 w-4" /> {t("planBuilderBadge")}
-        </div>
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-balance">{t("planBuilderTitle")}</h1>
-        <p className="text-muted-foreground text-sm mt-1.5 text-balance">{t("planBuilderSubtitle")}</p>
+      <div className="bba-t bg-[#A3E635] text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
+          <ShoppingCart className="h-3.5 w-3.5" /> {t("planBuilderBadge")}
+        </span>
+        <h1 className="font-heading font-black text-2xl sm:text-3xl text-balance text-[#111827]">{t("planBuilderTitle")}</h1>
+        <p className="text-[#111827]/85 font-medium text-sm text-balance">{t("planBuilderSubtitle")}</p>
       </div>
 
       <div className="flex justify-center">

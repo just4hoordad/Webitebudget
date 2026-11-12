@@ -118,17 +118,17 @@ export default function Recipes() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="bba-t bg-[#A3E635] text-[#111827] flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight flex items-center gap-2.5">
-            <span className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center">
-              <ChefHat className="h-5 w-5 text-primary" />
-            </span>
+          <span className="bba-sticker mb-1.5">
+            <ChefHat className="h-3.5 w-3.5" /> Kitchen Arcade
+          </span>
+          <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
             {L("recipesTitle")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">{L("recipesSubtitle")}</p>
+          <p className="text-sm font-medium text-[#111827]/85 mt-1">{L("recipesSubtitle")}</p>
         </div>
-        <Button onClick={() => { setEditingRecipe(null); setShowEditor(true); }} size="sm" className="gap-2 shrink-0">
+        <Button onClick={() => { setEditingRecipe(null); setShowEditor(true); }} variant="outline" size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">{L("addRecipe")}</span>
         </Button>

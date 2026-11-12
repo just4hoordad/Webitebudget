@@ -306,7 +306,7 @@ export default function BudgetForm() {
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Basics ── */}
-        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -399,7 +399,7 @@ export default function BudgetForm() {
           <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
-        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -509,7 +509,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Stores ── */}
-        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-stores" value="stores" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
@@ -660,7 +660,7 @@ export default function BudgetForm() {
         </AccordionItem>
 
         {/* ── Pantry ── */}
-        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 border border-border rounded-2xl px-5 bg-card">
+        <AccordionItem id="step-pantry" value="pantry" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
           <div className="flex items-center gap-2 py-4">
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader

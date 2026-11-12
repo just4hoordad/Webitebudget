@@ -67,15 +67,15 @@ export default function Community() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <span className="inline-flex items-center gap-2 text-xs font-heading font-semibold tracking-[0.18em] uppercase text-primary bg-primary/10 px-3 py-1 rounded-full">
+      <div className="bba-t bg-[#7DD3FC] text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
           <Users className="h-3.5 w-3.5" />
           {t("communityNav") || "Community"}
         </span>
-        <h1 className="font-heading text-3xl font-bold tracking-tight">
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("communityTitle") || "Community plans"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/85">
           {t("communitySubtitle") || "Browse grocery lists and meal plans shared by other users."}
         </p>
       </div>

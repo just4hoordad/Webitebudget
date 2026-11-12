@@ -40,12 +40,12 @@ export default function Contact() {
 
   return (
     <div className="max-w-xl mx-auto space-y-8 py-2">
-      <div className="space-y-2">
-        <span className="inline-block text-xs font-heading font-semibold tracking-[0.18em] uppercase text-primary bg-primary/10 px-3 py-1 rounded-full">
+      <div className="bba-t bg-[#FF8FB5] text-[#111827] space-y-2">
+        <span className="bba-sticker">
           {p.contactSubtitle?.split(",")[0] || "Contact"}
         </span>
-        <h1 className="font-heading text-4xl font-bold text-foreground leading-tight tracking-tight">{p.contactTitle}</h1>
-        <p className="text-muted-foreground text-base leading-relaxed">{p.contactSubtitle}</p>
+        <h1 className="font-heading text-3xl sm:text-4xl font-black text-[#111827] leading-tight tracking-tight">{p.contactTitle}</h1>
+        <p className="text-[#111827]/85 font-medium text-sm sm:text-base leading-relaxed">{p.contactSubtitle}</p>
       </div>
 
       {/* Email */}

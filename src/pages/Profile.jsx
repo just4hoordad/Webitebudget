@@ -100,15 +100,15 @@ export default function Profile() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <div className="space-y-2">
-        <span className="inline-flex items-center gap-2 text-xs font-heading font-semibold tracking-[0.18em] uppercase text-primary bg-primary/10 px-3 py-1 rounded-full">
+      <div className="bba-t bg-white text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
           <User className="h-3.5 w-3.5" />
           {t("profileNav") || "Profile"}
         </span>
-        <h1 className="font-heading text-3xl font-bold tracking-tight">
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("profileTitle") || "Profile settings"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/80">
           {t("profileSubtitle") || "Manage how you appear in the BudgetBite community."}
         </p>
       </div>

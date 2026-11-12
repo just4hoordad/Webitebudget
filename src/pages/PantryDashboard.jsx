@@ -133,14 +133,14 @@ export default function PantryDashboard() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="space-y-2">
-        <h1 className="font-heading text-3xl font-bold tracking-tight flex items-center gap-2.5">
-          <span className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center">
-            <Package className="h-5 w-5 text-primary" />
-          </span>
+      <div className="bba-t bg-[#FFB020] text-[#111827] space-y-1.5">
+        <span className="bba-sticker">
+          <Package className="h-3.5 w-3.5" /> Pantry Stash
+        </span>
+        <h1 className="font-heading text-3xl font-black tracking-tight text-[#111827]">
           {t("pantryDashboard") || "Pantry Dashboard"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-[#111827]/85">
           {t("pantryDashboardDesc") || "What you rely on most, grouped by category"}
         </p>
       </div>
