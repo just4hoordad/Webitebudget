@@ -6,6 +6,7 @@ import { invokeAI } from "@/lib/aiClient";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 import { isAllowedStoreItem } from "@/lib/generateGroceries";
+import { sanitizeItemCalories } from "@/lib/calorieSanity";
 
 export default function GrocerySwapModal({ item, category, diet, budget, stores, onSwap, onClose }) {
   const { t } = useLanguage();
@@ -33,9 +34,10 @@ export default function GrocerySwapModal({ item, category, diet, budget, stores,
     setLoading(true);
     setAlternatives(null);
     setSelected(null);
+    const targetSwapKcal = Number(item.total_kcal) || 0;
     const result = await invokeAI({
-      prompt: `Suggest 3 alternatives for "${item.name}" (${item.quantity}, €${item.price?.toFixed(2)}, ${item.store || "unknown"}) at German supermarkets.
-Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${stores ? `Only products from: ${stores}.` : "Any German supermarket."} Use real branded names (e.g. "Milbona Naturjoghurt 500g") with 2024-2025 prices. Each: name, quantity, price (for ${item.quantity}), store, reason (one line).`,
+      prompt: `Suggest 3 alternatives for "${item.name}" (${item.quantity}${targetSwapKcal ? `, ~${Math.round(targetSwapKcal)} kcal` : ""}, €${item.price?.toFixed(2)}, ${item.store || "unknown"}) at German supermarkets.
+Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${stores ? `Only products from: ${stores}.` : "Any German supermarket."} Use real branded names with pack sizes (e.g. "Milbona Naturjoghurt 500g") and 2024-2025 prices. Match a similar total energy${targetSwapKcal ? ` (~${Math.round(targetSwapKcal)} kcal)` : ""}. Set calories_info as kcal/100g or kcal/100ml, plus accurate total_kcal, protein_g, carb_g, fat_g for the full quantity.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -48,16 +50,21 @@ Category: ${category}. Diet: ${diet}. Price ≤ €${item.price?.toFixed(2)}. ${
                 quantity: { type: "string" },
                 price: { type: "number" },
                 unit_price: { type: "number" },
+                normal_price: { type: "number" },
                 store: { type: "string" },
                 reason: { type: "string" },
-                calories_info: { type: "string" }
+                calories_info: { type: "string" },
+                total_kcal: { type: "number" },
+                protein_g: { type: "number" },
+                carb_g: { type: "number" },
+                fat_g: { type: "number" }
               }
             }
           }
         }
       }
     });
-    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores));
+    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores)).map(sanitizeItemCalories);
     setAlternatives(alts);
     try {
       const raw = localStorage.getItem("bb_grocery_swaps");

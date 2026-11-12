@@ -51,11 +51,9 @@ const PREMIUM_PRODUCTS = [
 // Filter products to those available at the selected stores, then greedily
 // add them (largest first to fill the gap efficiently) until the total is close
 // to the target. Avoids duplicating products already in the list.
-export function padToBudget(result, targetBudget, selectedStores) {
-  const existingNames = new Set(
-    (result?.categories || []).flatMap((c) => c.items || [])
-      .map((i) => i.name.toLowerCase())
-  );
+export function padToBudget(result, targetBudget, selectedStores, maxTotalKcal = Infinity) {
+  const allExisting = (result?.categories || []).flatMap((c) => c.items || []);
+  const existingNames = new Set(allExisting.map((i) => i.name.toLowerCase()));
 
   const allowed = (selectedStores || []).map((s) => s.toLowerCase().split(" ")[0]);
   const pool = PREMIUM_PRODUCTS.filter((p) => {
@@ -64,36 +62,35 @@ export function padToBudget(result, targetBudget, selectedStores) {
     return allowed.some((a) => p.store.toLowerCase().includes(a));
   });
 
-  // Sort by price descending so we fill the gap with fewer items.
-  pool.sort((a, b) => b.price - a.price);
+  let currentCost = allExisting.reduce((s, i) => s + (Number(i.price) || 0), 0);
+  let currentKcal = allExisting.reduce((s, i) => s + (Number(i.total_kcal) || 0), 0);
+  const kcalTight = Number.isFinite(maxTotalKcal) && currentKcal >= maxTotalKcal * 0.92;
 
-  let currentCost = (result?.categories || []).flatMap((c) => c.items || [])
-    .reduce((s, i) => s + (Number(i.price) || 0), 0);
+  // When calories are already near target, prefer high-value / low-calorie upgrades
+  // (e.g. berries, figs, salmon, beef fillet, coffee, rucola) instead of oil/pasta bulk.
+  pool.sort((a, b) => {
+    if (kcalTight) {
+      const aScore = a.price / Math.max(150, a.total_kcal);
+      const bScore = b.price / Math.max(150, b.total_kcal);
+      return bScore - aScore;
+    }
+    return b.price - a.price;
+  });
+
   const target = Number(targetBudget) * 0.97; // get within 3% of budget
   if (currentCost >= target) return result;
 
   const toAdd = [];
   const used = new Set();
-  // First pass: add the most expensive items that fit
   for (const p of pool) {
     if (currentCost + p.price > Number(targetBudget)) continue;
+    if (Number.isFinite(maxTotalKcal) && p.total_kcal > 0 && currentKcal + p.total_kcal > maxTotalKcal * 1.06) continue;
     if (used.has(p.name)) continue;
     toAdd.push(p);
     used.add(p.name);
     currentCost += p.price;
+    currentKcal += p.total_kcal || 0;
     if (currentCost >= target) break;
-  }
-
-  // Second pass: if still under, add smaller items
-  if (currentCost < target) {
-    for (const p of pool) {
-      if (used.has(p.name)) continue;
-      if (currentCost + p.price > Number(targetBudget)) continue;
-      toAdd.push(p);
-      used.add(p.name);
-      currentCost += p.price;
-      if (currentCost >= target) break;
-    }
   }
 
   if (!toAdd.length) return result;

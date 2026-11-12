@@ -37,6 +37,7 @@ import { downloadGroceryListPDF, downloadWeeklyMealPlanPDF } from "@/lib/grocery
 import { base44 } from "@/api/base44Client";
 import { setGenerationStatus } from "@/lib/generationStatus";
 import { groceryParamsFromSearch, grocerySignature, runGroceryGeneration, dropUnselectedStores } from "@/lib/generateGroceries";
+import { sanitizeItemCalories, normalizePlanDaysCalories } from "@/lib/calorieSanity";
 import GroceryGenerationError from "@/components/GroceryGenerationError";
 import { invokeAI } from "@/lib/aiClient";
 import { toast } from "sonner";
@@ -52,7 +53,7 @@ import GroceryCalorieWarning from "@/components/GroceryCalorieWarning";
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
 
-const PLAN_PREFIX = "bb_plan_v4_"; // v4: ingredient filter — strips invented ingredients not in grocery list
+const PLAN_PREFIX = "bb_plan_v5_"; // v5: exact daily meal calorie + portion normalization
 const getPlanCache = (sig) => {
   try { const raw = sessionStorage.getItem(PLAN_PREFIX + sig); return raw ? JSON.parse(raw) : null; } catch { return null; }
 };
@@ -324,21 +325,8 @@ export default function MealPlan() {
   };
 
   const totalDays = days;
-  // Deterministic correction: scale each day's meal calories proportionally
-  // so the daily total matches the target. The AI model rarely hits the exact
-  // target, and a single retry is insufficient — this guarantees it in code.
-  const scaleDayCalories = (days, target) => (days || []).map((d) => {
-    if (!d) return d;
-    const total = (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0);
-    if (total <= 0 || Math.abs(total - target) < target * 0.05) return d;
-    const scale = target / total;
-    return {
-      ...d,
-      breakfast_calories: Math.round((d.breakfast_calories || 0) * scale),
-      lunch_calories: Math.round((d.lunch_calories || 0) * scale),
-      dinner_calories: Math.round((d.dinner_calories || 0) * scale),
-    };
-  });
+  const scaleDayCalories = (planDays, target, getLockedForDay = null) =>
+    normalizePlanDaysCalories(planDays, target, getLockedForDay);
   // --- Ingredient filter: strip meal-plan ingredients not in the grocery list ---
   // The meal-plan AI sometimes invents ingredients (e.g. "1 egg", "toast") that
   // were never bought. This filter removes them so the plan only references real
@@ -386,12 +374,18 @@ export default function MealPlan() {
     });
   };
 
-  // True when the plan's average daily kcal misses the target by more than 10%.
-  const calorieOff = (planDays) => {
+  const calorieRetryHint = (planDays) => {
     const list = (planDays || []).filter(Boolean);
-    if (!list.length) return false;
-    // Every single day must be within 10% of the goal, not just the average.
-    return list.some((d) => Math.abs((d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0) - Number(calories)) > Number(calories) * 0.25);
+    if (!list.length) return "";
+    const target = Number(calories);
+    const bad = list.filter((d) => {
+      const sum = (Number(d.breakfast_calories) || 0) + (Number(d.lunch_calories) || 0) + (Number(d.dinner_calories) || 0);
+      return Math.abs(sum - target) > target * 0.12;
+    });
+    if (!bad.length) return "";
+    const avg = Math.round(list.reduce((s, d) => s + (Number(d.breakfast_calories) || 0) + (Number(d.lunch_calories) || 0) + (Number(d.dinner_calories) || 0), 0) / list.length);
+    const direction = avg > target ? "too high — reduce portion sizes" : "too low — increase portion sizes";
+    return `Your previous attempt averaged ~${avg} kcal/day (${direction}). Adjust meal portions so EVERY single day's breakfast_calories + lunch_calories + dinner_calories adds up to ~${target} kcal.`;
   };
   const totalWeeks = Math.ceil(totalDays / 7);
 
@@ -475,8 +469,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
       // to vary meals across weeks.
       const multiPrompt = buildMultiWeekPrompt(availableItems);
       let result = await invokeAI({ prompt: multiPrompt, response_json_schema: multiWeekPlanSchema });
-      if (calorieOff((result.weeks || []).flatMap((w) => w.days || []))) {
-        result = await invokeAI({ prompt: `${multiPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: multiWeekPlanSchema });
+      const multiHint = calorieRetryHint((result.weeks || []).flatMap((w) => w.days || []));
+      if (multiHint) {
+        result = await invokeAI({ prompt: `${multiPrompt}\n\n${multiHint}`, response_json_schema: multiWeekPlanSchema });
       }
       const weeks = (result.weeks || []).map((w, i) => ({
         week: w.week || i + 1,
@@ -508,8 +503,9 @@ Return a "weeks" array with exactly ${totalWeeks} objects. Each week object has 
     setLoadingPlan(true);
     const weekPrompt = buildWeekPrompt(availableItems, 1, totalWeeks, daysInWeek);
     let result = await invokeAI({ prompt: weekPrompt, response_json_schema: weeklyPlanSchema });
-    if (calorieOff(result.days)) {
-      result = await invokeAI({ prompt: `${weekPrompt}\n\nYour previous attempt had daily totals far from ${calories} kcal. Increase portions so each day totals ~${calories} kcal.`, response_json_schema: weeklyPlanSchema });
+    const weekHint = calorieRetryHint(result.days);
+    if (weekHint) {
+      result = await invokeAI({ prompt: `${weekPrompt}\n\n${weekHint}`, response_json_schema: weeklyPlanSchema });
     }
     const days = filterPlanIngredients(scaleDayCalories(result.days || [], Number(calories)));
     setPlanCache(wkSig, days);
@@ -574,7 +570,16 @@ Return only the days that have meals to regenerate.`;
             newDays[targetIdx] = updated;
           }
         });
-        return { ...wk, days: newDays };
+        const normalizedDays = filterPlanIngredients(
+          scaleDayCalories(newDays, Number(calories), (di) => {
+            const set = new Set();
+            ["breakfast", "lunch", "dinner"].forEach((mt) => {
+              if (lockedMeals.has(`${wi}:${di}:${mt}`)) set.add(mt);
+            });
+            return set;
+          })
+        );
+        return { ...wk, days: normalizedDays };
       }));
 
       setWeeklyPlan(prev => ({ ...prev, weeks: newWeeks }));
@@ -699,7 +704,8 @@ Return only the days that have meals to regenerate.`;
     });
   };
 
-  const handleAddItem = (item) => {
+  const handleAddItem = (rawItem) => {
+    const item = sanitizeItemCalories(rawItem);
     const targetCat = item.category || "Custom";
     setGroceries(prev => {
       let newCategories = prev.categories;
@@ -733,7 +739,8 @@ Return only the days that have meals to regenerate.`;
         .map(item => item.name)
     ) || [];
 
-  const handleGrocerySwap = (categoryName, oldItem, newItem) => {
+  const handleGrocerySwap = (categoryName, oldItem, rawNewItem) => {
+    const newItem = sanitizeItemCalories(rawNewItem);
     setGroceries(prev => {
       const newCategories = prev.categories.map(cat => {
         if (cat.name !== categoryName) return cat;
@@ -1173,7 +1180,7 @@ Return only the days that have meals to regenerate.`;
              })()}
 
              {/* Macro breakdown chart */}
-             <MacroChart calories={parseFloat(calories)} macros={macros} totalGrams={actualMacroGrams} days={days} />
+             <MacroChart calories={parseFloat(calories)} macros={macros} totalGrams={actualMacroGrams} days={groceryDays} />
 
              {/* Nutrition CTA */}
              <Link to={`/nutrition?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`} className="block">

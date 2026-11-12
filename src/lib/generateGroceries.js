@@ -2,6 +2,7 @@ import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { padToBudget } from "@/lib/premiumProducts";
 import { sanitizePrices } from "@/lib/priceSanity";
+import { sanitizeGroceryCalories } from "@/lib/calorieSanity";
 import { verifyPrices } from "@/lib/verifyPrices";
 import { fetchKnownPrices } from "@/lib/knownPrices";
 export { fetchKnownPrices } from "@/lib/knownPrices";
@@ -86,7 +87,7 @@ export function groceryParamsFromSearch(search) {
 // it invalidates both the server-side GroceryCache and the per-user
 // sessionStorage cache so users get the improved output on their next visit
 // instead of waiting up to 14 days for stale entries to expire.
-const PROMPT_VERSION = 25; // v25: switched to gemini-2.5-flash for stronger reasoning // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
+const PROMPT_VERSION = 26; // v26: deterministic per-item calorie math + bidirectional calorie calibration // v23: invalidate all stale caches so the store filter safety-net applies to fresh generation // v22: strict store match (exact/first-word), final filter pass // v20: live-verified store prices // v19: verified prices always win // v18: balanced upgrades whole list, no premium padding // v17: deterministic price correction // v16: drop items from unselected stores; // v15: enforce Save/Balanced with actual product swaps, separate allowances and validated totals
 
 export function grocerySignature(p, langCode) {
   return JSON.stringify({
@@ -152,9 +153,9 @@ function spendModeRule(p) {
     return `4. SAVE MODE: Spend as little as possible, not a minimum percentage of the budget. Aim for main groceries at or below €${(Math.floor(budget * 80) / 100).toFixed(2)} (80% of the user's €${budget} maximum). If the cheapest suitable foods genuinely require more to cover the full nutrition, use the minimum necessary up to the absolute €${budget} maximum, never drop meals just to hit a percentage. Use low-cost house brands and seasonal essentials from the selected stores. Buy enough for ${p.days} days at ~${p.calories} kcal/day, but no surplus, premium upgrades or luxury filler. Never cut needed calories or distort prices to meet the saving target. Protein snacks have their own separate €${snacks} allowance and cannot fund main groceries. total_estimated_cost MUST EXACTLY equal the sum of all item prices — never report a higher total than the real item sum.`;
   }
   if (mode === "maximize") {
-    return `4. CRITICAL BUDGET RULE — MAXIMIZE VALUE MODE: The user wants to SPEND THE FULL BUDGET on higher-value groceries. The main grocery budget (excluding Protein Snacks) should be as close to €${budget} as possible — ideally between €${Math.round(budget * 0.95)} and €${budget}, and never over. Use the full budget to UPGRADE quality and variety, NOT to pile up cheap bulk staples: prefer better cuts of meat, fresh fish, organic produce, branded quality goods, nuts, cheese, fresh fruit, and nicer treats. The list should feel like a noticeable step up in quality and variety compared to a budget list, while still covering ${p.days} days at ~${p.calories} kcal/day. If you are well under budget, add more premium / higher-value items (not more of the same cheap staple) until the total is close to €${budget}. The total_estimated_cost MUST reflect the real sum of ALL item prices including protein snacks, and it too must be below the total budget (€${totalCap}).`;
+    return `4. CRITICAL BUDGET RULE — MAXIMIZE VALUE MODE: The user wants to SPEND THE FULL BUDGET on higher-value groceries while keeping total calories strictly around ${Number(p.calories) * Number(p.days)} kcal (${p.calories} kcal/day × ${p.days} days). Main groceries (excluding Protein Snacks) should be €${Math.round(budget * 0.95)}–€${budget}, never over. Spend the budget by UPGRADING quality (fresh salmon, beef fillet, organic berries, fresh vegetables, branded dairy, artisan bread) rather than adding extra bulk calories. Never exceed ${Math.round(Number(p.calories) * Number(p.days) * 1.04)} kcal total. total_estimated_cost MUST equal the exact sum of all item prices (≤ €${totalCap}).`;
   }
-  return `4. BALANCED MODE: The SUM of all item prices (NOT the total_estimated_cost field) must be €${(Math.ceil(budget * 92) / 100).toFixed(2)}–€${budget}, targeting about €${(budget * 0.96).toFixed(2)}. Choose a sensible mix of everyday staples, fresh foods and variety — not exclusively the cheapest products and not luxury groceries. If your item prices sum to less than €${(Math.ceil(budget * 92) / 100).toFixed(2)}, you need MORE FOOD: add additional items (fresh vegetables, fruit, dairy, meat, fish, cheese, nuts — not just more cheap staples like rice or oil) or increase pack counts until the real item prices naturally reach the target. Never inflate total_estimated_cost to compensate for cheap items. Protein snacks have a separate €${snacks} allowance; do not count them toward the main spending target.`;
+  return `4. BALANCED MODE: The SUM of main item prices must be €${(Math.ceil(budget * 92) / 100).toFixed(2)}–€${budget} (targeting ~€${(budget * 0.96).toFixed(2)}) while keeping total calories strictly near ${Number(p.calories) * Number(p.days)} kcal. Choose everyday staples plus fresh foods. If item prices sum below €${(Math.ceil(budget * 92) / 100).toFixed(2)}, swap cheap staples for higher-tier fresh items (berries, fresh vegetables, fish, lean meat, branded dairy) — NEVER stack extra packs of calorie-dense staples that push total_kcal above ${Math.round(Number(p.calories) * Number(p.days) * 1.04)} kcal, and never inflate total_estimated_cost. Protein snacks have a separate €${snacks} allowance.`;
 }
 
 export function buildGroceryPrompt(p, langLabel, knownPricesText = "") {
@@ -176,7 +177,7 @@ Rules:
 ${spendModeRule(p)}
  5. All text in ${langLabel}, EXCEPT category names which MUST always be in English (e.g. "Dairy", "Vegetables", "Meat", "Bread & Bakery", "Snacks", etc.).
 6. For each item, also provide normal_price: the realistic price for the SAME product (or its closest mid-range equivalent, e.g. the REWE Best Bucks / Edeka Eigenmarke version of the same product) at a mid-range German supermarket (REWE or Edeka) for the SAME quantity. This is a genuine price comparison against the budget store, NOT the same store's price. As a realistic guideline, mid-range supermarkets in Germany are typically 10–20% more expensive than hard-discounters (Aldi/Lidl) on the same or equivalent products — so normal_price should usually be HIGHER than price (typically by 10–20% for discounters, closer to 0% for mid-range chains like REWE/Edeka themselves), and should never be lower than price. Many branded goods (e.g. branded chocolate, Coca-Cola, Nutella) cost nearly the same everywhere — for those, normal_price should be at most a few cents above price. Compute each normal_price independently from a realistic mid-range price; do NOT copy the price field. The savings shown to the user is the sum of (normal_price − price), so accurate, honestly-higher normal_prices are essential.
-7. CRITICAL: The item name MUST include the full real product name with the brand name as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g", "Tandil Waschmittel Pulver 1,5kg"). Never use generic names like "Milk" or "Oats" — always use the actual branded product name. Set calories_info to the energy density (e.g. "370 kcal/100g"), total_kcal to the total kilocalories of the full purchased quantity, and protein_g/carb_g/fat_g to the total grams of each macronutrient in that same full quantity.\nCALORIE MATHEMATICS (MANDATORY): The sum of every item's total_kcal MUST be between ${Math.round(calories * days * 0.95)} and ${Math.round(calories * days * 1.08)} kcal. Before returning, VERIFY: add up every item's total_kcal and check the sum. If the sum is below ${Math.round(calories * days * 0.95)} kcal, increase the pack count (N) of main staples — grains, bread, pasta, rice, oats, dairy, oils — until the total reaches this range. A list that provides less than ${Math.round(calories * days * 0.95)} kcal for ${days} days at ${calories} kcal/day is STARVATION and will be rejected.
+7. CRITICAL: The item name MUST include the full real product name with the brand name and pack size as sold in the store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g"). Never use generic names like "Milk" or "Oats". Set calories_info to the exact energy density per 100g/100ml (e.g. "370 kcal/100g" or "64 kcal/100ml"). Set total_kcal to the EXACT total kilocalories of ALL purchased packs combined: for example, "2 × 500g" (= 1000g) at "370 kcal/100g" MUST have total_kcal = 3700 (never 370 or 1850). Set protein_g, carb_g and fat_g to the total grams across ALL purchased packs combined.\nCALORIE TARGET LOCK (MANDATORY): The sum of every item's total_kcal MUST be between ${Math.round(calories * days * 0.97)} and ${Math.round(calories * days * 1.03)} kcal (exact target: ${Math.round(calories * days)} kcal = ${calories} kcal/day × ${days} days). No single item (especially cooking oil or butter) may exceed 18% of the total period's calories (${Math.round(calories * days * 0.18)} kcal) — pick smaller bottles/packs (e.g. 250ml or 500ml oil) for shorter plans. Before returning, sum all total_kcal values: if below ${Math.round(calories * days * 0.97)}, increase staple packs; if above ${Math.round(calories * days * 1.03)}, reduce staple pack counts or pack sizes so you hit the target accurately.
 TOTAL COST VERIFICATION (MANDATORY): total_estimated_cost MUST EXACTLY equal the sum of every item's price field. Before returning, add up every item's price and set total_estimated_cost to that exact sum — do NOT round up, do NOT report a higher number to appear closer to the spending target. If the sum of item prices is below the spending target in rule 4, add more items or larger pack sizes until the real prices naturally reach the target. A mismatch between total_estimated_cost and the actual item sum will be REJECTED.
 ${junkPercent > 0 ? `8. JUNK FOOD ALLOWANCE: Up to ${junkPercent}% of daily calories (${Math.round((junkPercent / 100) * calories)} kcal/day) can come from junk food / treats (e.g. chips, chocolate, fast food, sweets, sodas). Include appropriate junk food items in the grocery list that cover this allowance.` : "8. Keep the grocery list clean and healthy — no junk food or treats."}
 ${saleHunt ? `9. SALE HUNT MODE IS ON: Actively look for items that are currently on sale or promotion at the listed stores. ONLY include a sale item if its sale price is genuinely lower than what you would normally pay elsewhere — never include items just because they are "on sale" if the discounted price is still higher than the cheapest regular alternative. Prioritize items where the sale price represents a real saving versus normal market prices.` : ""}
@@ -313,10 +314,10 @@ function validateGroceries(result, p, includeSpending = true) {
   const target = Number(p.calories) * p.days;
   if (target && withKcal.length >= items.length / 2) {
     const kcal = withKcal.reduce((s, i) => s + Number(i.total_kcal), 0);
-    if (kcal < target * 0.9) {
-      issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed. Scale up quantities of main staples (oats, rice, pasta, bread, legumes, oil, meat, dairy) so the total reaches at least ${Math.round(target * 0.95)} kcal while staying within budget.`);
-    } else if (kcal > target * 1.15) {
-      issues.push(`The list contains ~${Math.round(kcal)} kcal, ${Math.round((kcal / target) * 100)}% of the ${target} kcal needed — far too much food. Reduce quantities so the total is close to ${target} kcal, keeping the variety of products.`);
+    if (kcal < target * 0.95) {
+      issues.push(`The list contains ~${Math.round(kcal)} kcal, only ${Math.round((kcal / target) * 100)}% of the ${target} kcal goal (${p.calories} kcal/day × ${p.days} days). Increase pack counts of main staples (oats, rice, pasta, bread, potatoes, legumes, dairy) so total_kcal lands between ${Math.round(target * 0.97)} and ${Math.round(target * 1.03)} kcal while staying within budget.`);
+    } else if (kcal > target * 1.06) {
+      issues.push(`The list contains ~${Math.round(kcal)} kcal (${Math.round((kcal / target) * 100)}% of the ${target} kcal goal) — too high. Reduce pack counts or choose smaller pack sizes on calorie-dense staples (oil, pasta, rice, oats, nuts) so total_kcal lands between ${Math.round(target * 0.97)} and ${Math.round(target * 1.03)} kcal.`);
     }
   }
   // Total mismatch: the AI often reports a fake total_estimated_cost near the
@@ -485,7 +486,7 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   const prepare = (raw) => {
     const result = dropUnselectedStores(dropJunkItems(raw), p);
     const branded = brandifyNames(fixHouseBrandStores(result, p), known, brandCatalog);
-    const corrected = sanitizePrices(branded, known);
+    const corrected = sanitizeGroceryCalories(sanitizePrices(branded, known));
     if (managedSpending) {
       for (const category of corrected.categories || []) {
         for (const item of category.items || []) {
@@ -493,14 +494,8 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
         }
       }
     }
-    const consolidated = consolidatePacks(corrected, p);
-    const withAlternatives = managedSpending ? applySpendingAlternatives(consolidated, p, qualityIssues) : consolidated;
-    // Always normalize the total to the real item sum BEFORE validation.
-    // The AI can't do exact arithmetic on 20+ items, so it reports a fake total
-    // near the budget target. Correcting it here means validation and retries
-    // focus on real issues (calories, spending) instead of wasting credits
-    // trying to make the AI recalculate a sum it already got wrong.
-    return normalizeGroceryTotal(withAlternatives);
+    const withAlternatives = managedSpending ? applySpendingAlternatives(corrected, p, qualityIssues) : corrected;
+    return normalizeGroceryTotal(sanitizeGroceryCalories(withAlternatives));
   };
   const call = (prompt, model = GROCERY_MODEL) => invokeAI({
     prompt,
@@ -556,49 +551,44 @@ export async function runGroceryGeneration(p, langLabel, langCode, { force = fal
   result = await verifyPrices(result, known);
   issues = validateGroceries(result, p);
 
+  const targetKcal = Number(p.calories) * Number(p.days);
   if (p.spendMode === "maximize" && listCost(result) < Number(p.budget) * 0.92) {
     const selected = allowedStoreNames(p.stores);
-    result = padToBudget(result, Number(p.budget), selected);
-    issues = validateGroceries(result, p);
+    result = padToBudget(result, Number(p.budget), selected, targetKcal);
   }
 
-  // Save/Balanced must preserve needed nutrition, not silently delete food to fit.
-  // Retain the existing Maximize behavior.
-  // Last resort for every mode: a list over the hard budget gets surplus packs
-  // trimmed instead of failing with an error.
   if (grocerySpending(result).main > Number(p.budget) || (!managedSpending && listCost(result) > budgetCap(p))) {
     result = trimToBudget(result, budgetCap(p));
-    issues = validateGroceries(result, p);
   }
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
-  // Deterministic macro rebalance FIRST: if the protein/carb/fat split is
-  // still >8pp off target after all retries, scale protein-rich items up and
-  // carb-heavy items down (or reverse) without another AI call. Runs before
-  // topUpCalories so the proportional calorie scaling preserves the improved
-  // macro split rather than re-skewing it.
-  // Bodybuilder protein target (>=35%): add whey protein powder / bars to
-  // help close the protein gap that groceries alone can't reach.
+
   if (p.macros) {
     result = normalizeGroceryTotal(balanceMacros(result, p));
     result = addProteinSupplements(result, p);
   }
-  if (listKcal(result) < Number(p.calories) * p.days * 0.98) {
+
+  // Bidirectional calorie calibration: scales up under-target lists AND trims
+  // over-target lists into ~97%–103% of targetKcal while respecting main budget.
+  if (targetKcal > 0 && (listKcal(result) < targetKcal * 0.97 || listKcal(result) > targetKcal * 1.04)) {
     result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
   }
-  // Final guarantee: no items from unselected stores survive to the user.
+
+  // Consolidate high pack counts (e.g. 7 × 500g → 4 × 1kg) AFTER calorie calibration
+  // so calibration always has fine single-pack granularity first.
+  result = consolidatePacks(result, p);
   result = normalizeGroceryTotal(dropUnselectedStores(result, p));
-  // Last pass: brandify any generic names introduced by top-up / padding.
   result = brandifyNames(result, known, brandCatalog);
+
   if (managedSpending) {
-    // If post-processing (calorie top-up, protein supplements, macro balancing)
-    // pushed the cost back over budget after the earlier trim, do a final trim
-    // instead of failing with a blank error — a slightly under-calorie list is
-    // far better UX than no list at all. The UI already shows an "over budget"
-    // indicator if the trim can't fully reconcile.
     if (grocerySpending(result).main > Number(p.budget)) {
       result = normalizeGroceryTotal(trimToBudget(result, budgetCap(p)));
+      if (targetKcal > 0 && listKcal(result) < targetKcal * 0.97) {
+        result = normalizeGroceryTotal(topUpCalories(result, p, Number(p.budget)));
+      }
     }
     issues = [...qualityIssues(result), ...spendingIssues(result, p, false)];
+  } else {
+    issues = validateGroceries(result, p);
   }
 
   // Only persist lists that pass validation, so bad output never gets

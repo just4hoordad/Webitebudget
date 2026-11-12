@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { invokeAI } from "@/lib/aiClient";
 import { useLanguage } from "@/lib/LanguageContext";
 import { isAllowedStoreItem } from "@/lib/generateGroceries";
+import { sanitizeItemCalories } from "@/lib/calorieSanity";
 
 export default function AddItemModal({ stores, diet, onAdd, onClose }) {
   const { t } = useLanguage();
@@ -33,7 +34,7 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
     setAlternatives([]);
     setSelected(null);
     const result = await invokeAI({
-      prompt: `Find 3-4 real branded products for "${trimmed}" at these German stores: ${stores}. Diet: ${diet}. Use exact in-store product names (e.g. "Ja! Vollmilch 3,5% 1L") with 2024-2025 prices. Category names in English.`,
+      prompt: `Find 3-4 real branded products for "${trimmed}" at these German stores: ${stores}. Diet: ${diet}. Use exact in-store product names with pack size (e.g. "Ja! Vollmilch 3,5% 1L") and 2024-2025 prices. Set calories_info to kcal/100g or kcal/100ml, total_kcal to total calories of the full quantity, and protein_g/carb_g/fat_g for that quantity. Category names in English.`,
       add_context_from_internet: true,
       model: "gemini_3_flash",
       response_json_schema: {
@@ -51,6 +52,10 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
                 normal_price: { type: "number" },
                 store: { type: "string" },
                 calories_info: { type: "string" },
+                total_kcal: { type: "number" },
+                protein_g: { type: "number" },
+                carb_g: { type: "number" },
+                fat_g: { type: "number" },
                 category: { type: "string" }
               }
             }
@@ -58,7 +63,7 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
         }
       }
     });
-    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores));
+    const alts = (result.alternatives || []).filter((a) => isAllowedStoreItem(a, stores)).map(sanitizeItemCalories);
     setAlternatives(alts);
     try {
       const raw = localStorage.getItem("bb_additem_swaps");

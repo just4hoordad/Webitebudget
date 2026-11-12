@@ -253,7 +253,7 @@ ${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact 
 - quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${planForGrocery.length} day(s).
 - For each item, also provide normal_price: the typical regular/mid-range supermarket price (e.g. REWE, Edeka) for the same quantity, to demonstrate savings compared to discount prices.
 - Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").
-- Set calories_info to the energy density (e.g. "370 kcal/100g") or item total calories.
+- Set calories_info to the exact energy density per 100g/100ml (e.g. "370 kcal/100g") and total_kcal to the total kilocalories of all purchased packs combined.
 - All item names in ${currentLanguage.label}, category names in English.
 ${effEnabled.diet && diet === "frozen" ? "- FROZEN MODE: only frozen ready-to-heat products." : ""}${prepEnabled ? `
 
@@ -276,7 +276,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
                       properties: {
                         name: { type: "string" }, quantity: { type: "string" },
                         unit_price: { type: "number" }, price: { type: "number" },
-                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" },
+                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" }, total_kcal: { type: "number" },
                       },
                     },
                   },
@@ -317,7 +317,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
                       properties: {
                         name: { type: "string" }, quantity: { type: "string" },
                         unit_price: { type: "number" }, price: { type: "number" },
-                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" },
+                        normal_price: { type: "number" }, store: storeField, calories_info: { type: "string" }, total_kcal: { type: "number" },
                       },
                     },
                   },
@@ -330,8 +330,8 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
 
       const filtered = dropUnselectedStores({ categories: res.categories }, { stores: allowedStores });
       const grocery = await verifyPrices({ categories: filtered.categories }, knownMap);
-      // Final guarantee: no items from unselected stores
-      const cleanGrocery = dropUnselectedStores(grocery, { stores: allowedStores });
+      // Final guarantee: no items from unselected stores + verified per-item calorie math
+      const cleanGrocery = sanitizeGroceryCalories(dropUnselectedStores(grocery, { stores: allowedStores }));
       const prep = res.prep || null;
       setGrocery(cleanGrocery);
       setPrep(prep);

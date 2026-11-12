@@ -45,6 +45,7 @@ export function consolidatePacks(result, p) {
       const m = Math.ceil(parsed.packs / maxPacks);
       const newPacks = Math.ceil(parsed.packs / m);
       const newVal = ps.val * m;
+      const ratio = (newPacks * m) / parsed.packs;
       const newUnitPrice = Math.round(Number(item.unit_price) * m * 100) / 100;
       const newPrice = Math.round(newUnitPrice * newPacks * 100) / 100;
       return {
@@ -52,6 +53,11 @@ export function consolidatePacks(result, p) {
         quantity: `${newPacks} \u00d7 ${formatPackSize(newVal, ps.unit)}`,
         unit_price: newUnitPrice,
         price: newPrice,
+        ...(item.normal_price != null ? { normal_price: Math.round(Number(item.normal_price) * ratio * 100) / 100 } : {}),
+        ...(item.total_kcal != null ? { total_kcal: Math.round(Number(item.total_kcal) * ratio) } : {}),
+        ...(item.protein_g != null ? { protein_g: Math.round(Number(item.protein_g) * ratio) } : {}),
+        ...(item.carb_g != null ? { carb_g: Math.round(Number(item.carb_g) * ratio) } : {}),
+        ...(item.fat_g != null ? { fat_g: Math.round(Number(item.fat_g) * ratio) } : {}),
       };
     }),
   }));

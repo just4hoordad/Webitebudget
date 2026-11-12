@@ -257,8 +257,44 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
         },
       },
     });
-    setNutrition(result);
-    try { localStorage.setItem("bb_nutrition_cache", JSON.stringify({ key: nKey, data: result })); } catch { /* ignore */ }
+    const targetCal = Number(calories) || 2000;
+    const rawDailyCal = Number(result?.daily_totals?.calories) || 0;
+    const calScale = rawDailyCal > 0 ? targetCal / rawDailyCal : 1;
+    const pDay = Math.round((Number(result?.daily_totals?.protein_g) || 0) * calScale);
+    const fDay = Math.round((Number(result?.daily_totals?.fat_g) || 0) * calScale);
+    const cDay = Math.round((Number(result?.daily_totals?.carbs_g) || 0) * calScale);
+    const macroSum = pDay * 4 + fDay * 9 + cDay * 4 || 1;
+    const rawMeals = Array.isArray(result?.per_meal) ? result.per_meal : [];
+    const mealSum = rawMeals.reduce((s, m) => s + (Number(m.calories) || 0), 0);
+    const mealScale = mealSum > 0 ? targetCal / mealSum : calScale;
+    const normalized = {
+      ...result,
+      daily_totals: {
+        calories: targetCal,
+        protein_g: pDay,
+        fat_g: fDay,
+        carbs_g: cDay,
+      },
+      macro_calorie_pct: {
+        protein_pct: Math.round((pDay * 4 / macroSum) * 1000) / 10,
+        fat_pct: Math.round((fDay * 9 / macroSum) * 1000) / 10,
+        carbs_pct: Math.round((cDay * 4 / macroSum) * 1000) / 10,
+      },
+      per_meal: rawMeals.map((m) => ({
+        ...m,
+        calories: Math.round((Number(m.calories) || 0) * mealScale),
+        protein_g: Math.round((Number(m.protein_g) || 0) * mealScale),
+        fat_g: Math.round((Number(m.fat_g) || 0) * mealScale),
+        carbs_g: Math.round((Number(m.carbs_g) || 0) * mealScale),
+      })),
+      monthly_totals: {
+        protein_g: pDay * 28,
+        fat_g: fDay * 28,
+        carbs_g: cDay * 28,
+      },
+    };
+    setNutrition(normalized);
+    try { localStorage.setItem("bb_nutrition_cache", JSON.stringify({ key: nKey, data: normalized })); } catch { /* ignore */ }
     setLoading(false);
   };
 
