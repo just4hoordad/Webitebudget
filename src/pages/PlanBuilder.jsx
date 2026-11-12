@@ -16,6 +16,8 @@ import { verifyPrices } from "@/lib/verifyPrices";
 import { invokeAI } from "@/lib/aiClient";
 import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
+import { groceryDaysForUser, isGroceryCapped } from "@/lib/freeTier";
+import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
 import { ArrowLeft, Share2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LastResultButton from "@/components/LastResultButton";
@@ -34,7 +36,7 @@ function loadRecent() {
 
 export default function PlanBuilder() {
   const { t, currentLanguage } = useLanguage();
-  const { guarded } = useMonetization();
+  const { guarded, isPro } = useMonetization();
   const [phase, setPhase] = useState("setup");
   const [diet, setDiet] = useState(() => loadPrefs().diet || "");
   const [days, setDays] = useState(() => loadPrefs().days || 0);
@@ -207,7 +209,11 @@ export default function PlanBuilder() {
       const allowedStores = effEnabled.stores ? activeStoreNames : [];
       const { text: knownPricesText, known: knownMap } = await fetchKnownPrices(postalCode, allowedStores);
       const storeField = allowedStores.length ? { type: "string", enum: allowedStores } : { type: "string" };
-      const lines = plan
+      // Free-tier grocery list is capped at 7 days — only the first `groceryDays`
+      // of the user's plan are used to build the shopping list.
+      const groceryDays = groceryDaysForUser(plan.length, isPro);
+      const planForGrocery = plan.slice(0, groceryDays);
+      const lines = planForGrocery
         .map((day, d) => {
           const parts = [];
           ["breakfast", "lunch", "dinner"].forEach((type) => {
@@ -224,17 +230,17 @@ export default function PlanBuilder() {
 
       // Single merged call: grocery list + (optional) prep guide in one response — halves credit use vs two parallel calls.
       const res = await invokeAI({
-        prompt: `Here is a user's meal plan for ${effEnabled.people ? people : 1} person(s) over ${plan.length} day(s)${effEnabled.diet ? ` on a ${diet} diet` : ""}:
+        prompt: `Here is a user's meal plan for ${effEnabled.people ? people : 1} person(s) over ${planForGrocery.length} day(s)${effEnabled.diet ? ` on a ${diet} diet` : ""}:
 ${lines}
 ${effEnabled.macros ? `\nThe user's target macronutrient split is protein ${macros.protein}%, carbs ${macros.carbs}%, fats ${macros.fats}%.` : ""}
 
-For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) over the whole plan.
+For each meal, determine the realistic ingredients and quantities needed for 1 person, then generate a consolidated grocery list for ${enabled.people ? people : 1} person(s) covering these ${planForGrocery.length} day(s).
 ${effEnabled.macros ? "- Adjust ingredient quantities so the overall list delivers the target macro split as closely as possible (scale protein/carb/fat sources up or down accordingly)." : "- No specific macro target; use realistic balanced quantities."}
 - Consolidate ingredients that repeat across days/meals into a single line with the TOTAL quantity needed for ${enabled.people ? people : 1} person(s).
 - Use real 2024-2025 German supermarket branded product names from these stores: ${effEnabled.stores ? promptStoreList : "any German supermarket (Aldi, Lidl, REWE, Edeka, Penny, Netto)"}. Pick the cheapest store per item.${allowedStores.length ? `\n- STRICT: every item's "store" MUST be exactly one of: ${allowedStores.join(", ")}. Never use any other store, even if it is cheaper. Only use products actually sold at these stores.` : ""}
 - Region: postal code ${postalCode || "unknown"} — use regional prices for that area when available.
 ${knownPricesText ? `- PRE-CHECKED PRICE CATALOG (per retail pack; prefer exact matching shelf names and pack sizes, without changing the user's dishes):\n${knownPricesText}` : ""}
-- quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${plan.length} day(s).
+- quantity MUST be written as "N × pack size" (e.g. "2 × 500g", "1 × 1L"). unit_price = price of ONE pack. price = unit_price × N needed for ${enabled.people ? people : 1} person(s) over ${planForGrocery.length} day(s).
 - For each item, also provide normal_price: the typical regular/mid-range supermarket price (e.g. REWE, Edeka) for the same quantity, to demonstrate savings compared to discount prices.
 - Never use generic names like "Milk" or "Oats" — always use the actual branded product name as sold in store (e.g. "Ja! Vollmilch 3,5% 1L", "Milbona Naturjoghurt 500g", "Gut & Günstig Haferflocken 500g").
 - Set calories_info to the energy density (e.g. "370 kcal/100g") or item total calories.
@@ -380,6 +386,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
   }, [location.pathname, location.search]);
 
   if (phase === "result" && grocery) {
+    const resultGroceryDays = groceryDaysForUser(plan.length, isPro);
     const shareFooter = savedPlanId.current ? (
       <Button onClick={() => setShowShare(true)} variant="outline" className="w-full h-12">
         <Share2 className="h-4 w-4" /> {t("sharePlan") || "Share plan"}
@@ -390,7 +397,8 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
         <PlanGroceryResult
           grocery={grocery}
           prep={prep}
-          days={plan.length}
+          days={resultGroceryDays}
+          planDays={plan.length}
           people={people}
           diet={diet}
           stores={activeStoreNames}

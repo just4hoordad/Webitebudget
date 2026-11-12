@@ -29,6 +29,7 @@ import GrocerySwapModal from "@/components/GrocerySwapModal";
 import AddItemModal from "@/components/AddItemModal";
 import { AnimatePresence } from "framer-motion";
 import ExtendableList from "@/components/ExtendableList";
+import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -53,6 +54,7 @@ export default function PlanGroceryResult({
   grocery,
   prep,
   days = 7,
+  planDays,
   people = 1,
   diet = "balanced",
   stores = [],
@@ -482,6 +484,11 @@ export default function PlanGroceryResult({
       {/* TAB 1: GROCERY LIST */}
       {activeTab === "grocery" && (
         <>
+          {/* Free-tier grocery cap notice */}
+          {planDays != null && Number(planDays) > Number(days) && (
+            <FreeGroceryCapNotice planDays={planDays} />
+          )}
+
           {/* List intro notice */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />

@@ -47,6 +47,8 @@ import { saveLastBudget } from "@/lib/lastResult";
 import CreditPill from "@/components/monetization/CreditPill";
 import AdSlot from "@/components/ads/AdSlot";
 import { useMonetization } from "@/lib/MonetizationContext";
+import { groceryDaysForUser, isGroceryCapped } from "@/lib/freeTier";
+import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
 
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
@@ -69,6 +71,9 @@ export default function MealPlan() {
   const people = params.get("people") || 1;
   const calories = params.get("calories") || 2000;
   const days = parseInt(params.get("days") || "30", 10);
+  // Free users get the full meal plan for `days` but the grocery list is capped.
+  const groceryDays = groceryDaysForUser(days, isPro);
+  const groceryIsCapped = isGroceryCapped(days, isPro);
   const saleHunt = params.get("saleHunt") === "true";
   const bio = params.get("bio") === "true";
   const junkPercent = parseInt(params.get("junkPercent") || "0", 10);
@@ -122,7 +127,8 @@ export default function MealPlan() {
     // the new language first — a previously generated list in that language
     // is used if available, avoiding a fresh generation.
     const gparams = groceryParamsFromSearch(searchKey);
-    const newSig = grocerySignature(gparams, currentLanguage.code);
+    const groceryGparams = { ...gparams, days: groceryDays };
+    const newSig = grocerySignature(groceryGparams, currentLanguage.code);
     const cached = genCache.current[newSig];
     const groceriesForPlan = cached || groceries;
     if (cached) {
@@ -139,11 +145,13 @@ export default function MealPlan() {
     setWeeklyPlan(null);
     setGenerationError("");
     const gparams = groceryParamsFromSearch(searchKey);
-    const langKey = grocerySignature(gparams, currentLanguage.code);
+    // Cap the grocery list duration for free users — the meal plan still uses the full `days`.
+    const groceryGparams = { ...gparams, days: groceryDays };
+    const langKey = grocerySignature(groceryGparams, currentLanguage.code);
     const cached = genCache.current[langKey];
     if (cached && retryCount === 0 && !force) {
       setRemovedItems(new Set());
-      const result = dropUnselectedStores(cached, gparams);
+      const result = dropUnselectedStores(cached, groceryGparams);
       setGroceries(result);
       setLoading(false);
       autoStartMealPlan(result);
@@ -152,7 +160,7 @@ export default function MealPlan() {
     setRemovedItems(new Set());
     setLoading(true);
     try {
-      const result = await runGroceryGeneration(gparams, currentLanguage.label, currentLanguage.code, { force });
+      const result = await runGroceryGeneration(groceryGparams, currentLanguage.label, currentLanguage.code, { force });
       setGroceries(result);
       genCache.current[langKey] = result;
       autoStartMealPlan(result);
@@ -240,7 +248,7 @@ export default function MealPlan() {
       });
       lines.push("");
     });
-    lines.push(`💰 ${t("estimatedTotalForDays", { days })}: €${activeTotal.toFixed(2)}`);
+    lines.push(`💰 ${t("estimatedTotalForDays", { days: groceryDays })}: €${activeTotal.toFixed(2)}`);
     const text = lines.join("\n");
     const s = SHARE_L[currentLanguage.code] || SHARE_L.en;
     if (navigator.share) {
@@ -1124,7 +1132,7 @@ Return only the days that have meals to regenerate.`;
         <div>
           <h1 className="font-heading text-2xl font-bold">{t("yourGroceryList")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("tx_dietLabel", { diet })} · €{budget}/{days} {t("days")} · {calories} kcal{t("tx_perDay")} · {people} {t("personS")}
+            {t("tx_dietLabel", { diet })} · €{budget}/{groceryDays} {t("days")} · {calories} kcal{t("tx_perDay")} · {people} {t("personS")}
           </p>
         </div>
         <CreditPill credits={credits} isPro={isPro} />
@@ -1167,11 +1175,14 @@ Return only the days that have meals to regenerate.`;
             );
           })()}
 
+          {/* Free-tier grocery cap notice */}
+          {groceryIsCapped && <FreeGroceryCapNotice planDays={days} />}
+
           {/* List intro */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {t("groceryListIntro", { diet: dietLabel, days, goal: goalLabel })}
+              {t("groceryListIntro", { diet: dietLabel, days: groceryDays, goal: goalLabel })}
             </p>
           </div>
 
@@ -1185,7 +1196,7 @@ Return only the days that have meals to regenerate.`;
             <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBasket className="h-5 w-5 text-primary" />
-                <span className="font-heading font-semibold text-foreground">{t("estimatedTotalForDays", { days })}</span>
+                <span className="font-heading font-semibold text-foreground">{t("estimatedTotalForDays", { days: groceryDays })}</span>
               </div>
               <span className="font-heading text-2xl font-bold text-primary">
                 €{activeTotal.toFixed(2)}
@@ -1451,7 +1462,7 @@ Return only the days that have meals to regenerate.`;
                const totalCal = allDays.reduce((sum, d) =>
                  sum + (d.breakfast_calories || 0) + (d.lunch_calories || 0) + (d.dinner_calories || 0), 0);
                const avgCal = allDays.length > 0 ? Math.round(totalCal / allDays.length) : 0;
-               const costPerDay = activeTotal / days;
+               const costPerDay = activeTotal / groceryDays;
                const planDays = allDays.length;
                const planCost = costPerDay * planDays;
                return (
@@ -1549,7 +1560,7 @@ Return only the days that have meals to regenerate.`;
             <div className="flex items-center gap-3">
               <ShoppingBasket className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">{t("estimatedTotalForDays", { days })}</p>
+                <p className="text-xs text-muted-foreground">{t("estimatedTotalForDays", { days: groceryDays })}</p>
                 <p className="font-heading text-2xl font-bold text-primary">€{activeTotal.toFixed(2)}</p>
               </div>
             </div>

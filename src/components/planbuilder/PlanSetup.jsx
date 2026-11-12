@@ -12,11 +12,12 @@ import usePlanSetupGuidance from "@/components/planbuilder/usePlanSetupGuidance"
 import { Users, CalendarDays, Scale, ArrowRight, Sparkles, ShoppingCart } from "lucide-react";
 import EasyModeToggle from "@/components/EasyModeToggle";
 import PlanEasyEssentials from "@/components/builder/PlanEasyEssentials";
+import { MAX_PLAN_DAYS } from "@/lib/freeTier";
 
 export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed, easyMode, onEasyModeChange }) {
   const { t } = useLanguage();
   const { isPro } = useMonetization();
-  const maxDays = isPro ? 30 : 7;
+  const maxDays = MAX_PLAN_DAYS;
   const disabledCls = (key) => (enabled[key] ? "" : "opacity-40 pointer-events-none");
   const macroTotal = macros.protein + macros.carbs + macros.fats;
   const hasStores = stores.length > 0 || (selectedStoreLocations && selectedStoreLocations.length > 0);

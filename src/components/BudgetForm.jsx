@@ -22,6 +22,7 @@ import StickyGenerateBar from "@/components/StickyGenerateBar";
 import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 import EasyModeToggle from "@/components/EasyModeToggle";
 import BudgetEasyEssentials from "@/components/builder/BudgetEasyEssentials";
+import { MAX_PLAN_DAYS } from "@/lib/freeTier";
 
 
 const GROCERY_STORES = [
@@ -85,7 +86,7 @@ export default function BudgetForm() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { isPro } = useMonetization();
-  const maxDays = isPro ? 30 : 7;
+  const maxDays = MAX_PLAN_DAYS;
   const [budget, setBudget] = useState([0]);
   const [selectedStores, setSelectedStores] = useState([]);
   const [selectedStoreLocations, setSelectedStoreLocations] = useState([]); // specific pinned store objects
