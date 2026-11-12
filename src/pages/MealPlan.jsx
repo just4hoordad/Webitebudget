@@ -49,6 +49,7 @@ import AdSlot from "@/components/ads/AdSlot";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { groceryDaysForUser, isGroceryCapped } from "@/lib/freeTier";
 import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
+import GroceryCalorieWarning from "@/components/GroceryCalorieWarning";
 
 // sessionStorage-backed meal-plan cache — survives refresh/back-navigation so
 // revisiting a plan costs zero credits instead of regenerating from scratch.
@@ -219,6 +220,7 @@ export default function MealPlan() {
     ) || [];
 
   const activeTotal = getActiveItems().reduce((sum, item) => sum + (item.price || 0), 0);
+  const activeGroceryKcal = getActiveItems().reduce((sum, item) => sum + (Number(item.total_kcal) || 0), 0);
   const actualMacroGrams = getActiveItems().reduce((acc, item) => {
     acc.protein_g += Number(item.protein_g) || 0;
     acc.carb_g += Number(item.carb_g) || 0;
@@ -1177,6 +1179,9 @@ Return only the days that have meals to regenerate.`;
 
           {/* Free-tier grocery cap notice */}
           {groceryIsCapped && <FreeGroceryCapNotice planDays={days} />}
+
+          {/* Calorie mismatch warning vs daily intake target */}
+          <GroceryCalorieWarning dailyTarget={calories} generatedKcal={activeGroceryKcal} days={groceryDays} />
 
           {/* List intro */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-start gap-3">

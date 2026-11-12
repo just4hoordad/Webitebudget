@@ -118,6 +118,7 @@ export default function SharedPlan() {
           prep={plan.prep}
           days={days}
           people={plan.people || 1}
+          calories={plan.calories}
           onReset={() => {}}
           readOnly
           footer={footer}
