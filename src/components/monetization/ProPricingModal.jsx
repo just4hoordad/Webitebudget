@@ -72,50 +72,52 @@ export default function ProPricingModal({ open, onClose }) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border rounded-3xl p-6 space-y-5"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[6px_6px_0_#111827] dark:shadow-[6px_6px_0_#000] rounded-3xl p-6 space-y-5"
           >
             <button
+              type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827] z-10"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
             <div className="text-center space-y-2 pt-2">
-              <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/15 flex items-center justify-center">
-                <Crown className="h-7 w-7 text-primary" />
+              <div className="mx-auto h-14 w-14 rounded-2xl bg-[#FFB020] border-[3px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
+                <Crown className="h-7 w-7 text-[#111827]" />
               </div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">Choose your plan</h2>
-              <p className="text-sm text-muted-foreground">
+              <span className="bba-sticker">Power-Up Shop</span>
+              <h2 className="font-heading text-2xl font-black text-foreground">Choose your plan</h2>
+              <p className="text-sm font-medium text-muted-foreground">
                 Pick the plan that fits your meal planning needs. Cancel anytime.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Pro tier */}
-              <div className={`relative rounded-2xl border-2 p-5 space-y-4 ${
-                currentTier === "pro" ? "border-primary bg-primary/5" : "border-border"
+              <div className={`relative rounded-2xl border-[2.5px] border-[#111827] dark:border-[#78a71b] shadow-[4px_4px_0_#111827] p-5 space-y-4 ${
+                currentTier === "pro" ? "bg-[#F3F8E6] dark:bg-secondary" : "bg-card"
               }`}>
                 {currentTier === "pro" && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-heading font-bold bg-primary text-primary-foreground whitespace-nowrap">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-heading font-black bg-[#78a71b] text-[#111827] border-2 border-[#111827] whitespace-nowrap">
                     CURRENT
                   </span>
                 )}
                 <div className="text-center space-y-1">
-                  <div className="mx-auto h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <Crown className="h-5 w-5 text-primary" />
+                  <div className="mx-auto h-10 w-10 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center">
+                    <Crown className="h-5 w-5 text-[#111827]" />
                   </div>
-                  <h3 className="font-heading text-lg font-bold text-foreground">Pro</h3>
+                  <h3 className="font-heading text-lg font-black text-foreground">Pro</h3>
                   <div className="flex items-baseline justify-center gap-0.5">
-                    <span className="font-heading text-3xl font-bold text-foreground">€3.99</span>
-                    <span className="text-sm text-muted-foreground">/mo</span>
+                    <span className="font-heading text-3xl font-black text-foreground">€3.99</span>
+                    <span className="text-sm font-bold text-muted-foreground">/mo</span>
                   </div>
                 </div>
                 <ul className="space-y-2">
                   {PRO_BENEFITS.map((b) => (
-                    <li key={b} className="flex items-start gap-2 text-xs text-foreground">
-                      <span className="h-4 w-4 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="h-2.5 w-2.5 text-primary" />
+                    <li key={b} className="flex items-start gap-2 text-xs font-medium text-foreground">
+                      <span className="h-4 w-4 rounded-full bg-[#78a71b] border border-[#111827] flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="h-2.5 w-2.5 text-[#111827] stroke-[3]" />
                       </span>
                       {b}
                     </li>
@@ -125,7 +127,7 @@ export default function ProPricingModal({ open, onClose }) {
                   onClick={() => handleSubscribe("pro")}
                   disabled={loading !== null || currentTier === "pro"}
                   className="w-full gap-2"
-                  variant={currentTier === "pro" ? "secondary" : "default"}
+                  variant={currentTier === "pro" ? "outline" : "default"}
                 >
                   {loading === "pro" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />}
                   {currentTier === "pro" ? "Current Plan" : "Get Pro"}
@@ -133,33 +135,25 @@ export default function ProPricingModal({ open, onClose }) {
               </div>
 
               {/* Pro+ tier */}
-              <div className={`relative rounded-2xl border-2 p-5 space-y-4 ${
-                currentTier === "pro_plus" ? "border-primary bg-primary/5" : "border-primary/40 bg-primary/5"
-              }`}>
-                {currentTier === "pro_plus" ? (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-heading font-bold bg-primary text-primary-foreground whitespace-nowrap">
-                    CURRENT
-                  </span>
-                ) : (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-heading font-bold bg-primary text-primary-foreground whitespace-nowrap">
-                    BEST VALUE
-                  </span>
-                )}
+              <div className="relative rounded-2xl border-[2.5px] border-[#111827] shadow-[4px_4px_0_#111827] p-5 space-y-4 bg-[#FFB020] text-[#111827]">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-heading font-black bg-[#FF3E7F] text-white border-2 border-[#111827] whitespace-nowrap">
+                  {currentTier === "pro_plus" ? "CURRENT" : "BEST VALUE"}
+                </span>
                 <div className="text-center space-y-1">
-                  <div className="mx-auto h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-primary" />
+                  <div className="mx-auto h-10 w-10 rounded-xl bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-[#111827]" />
                   </div>
-                  <h3 className="font-heading text-lg font-bold text-foreground">Pro+</h3>
+                  <h3 className="font-heading text-lg font-black text-[#111827]">Pro+</h3>
                   <div className="flex items-baseline justify-center gap-0.5">
-                    <span className="font-heading text-3xl font-bold text-foreground">€9.99</span>
-                    <span className="text-sm text-muted-foreground">/mo</span>
+                    <span className="font-heading text-3xl font-black text-[#111827]">€9.99</span>
+                    <span className="text-sm font-bold text-[#111827]/75">/mo</span>
                   </div>
                 </div>
                 <ul className="space-y-2">
                   {PRO_PLUS_BENEFITS.map((b) => (
-                    <li key={b} className="flex items-start gap-2 text-xs text-foreground">
-                      <span className="h-4 w-4 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="h-2.5 w-2.5 text-primary" />
+                    <li key={b} className="flex items-start gap-2 text-xs font-semibold text-[#111827]">
+                      <span className="h-4 w-4 rounded-full bg-white border border-[#111827] flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="h-2.5 w-2.5 text-[#111827] stroke-[3]" />
                       </span>
                       {b}
                     </li>
@@ -169,7 +163,7 @@ export default function ProPricingModal({ open, onClose }) {
                   onClick={() => handleSubscribe("pro_plus")}
                   disabled={loading !== null || currentTier === "pro_plus"}
                   className="w-full gap-2"
-                  variant={currentTier === "pro_plus" ? "secondary" : "default"}
+                  variant={currentTier === "pro_plus" ? "outline" : "destructive"}
                 >
                   {loading === "pro_plus" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {currentTier === "pro_plus" ? "Current Plan" : "Get Pro+"}

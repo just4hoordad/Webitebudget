@@ -19,7 +19,7 @@ const CATEGORY_RULES = [
   { name: "Beverages", keywords: ["water", "juice", "tea", "coffee", "wasser", "saft", "tee", "kaffee", "eau", "jus", "thé", "café", "agua", "jugo"] },
 ];
 
-const COLORS = ["#d4f880", "#38bdf8", "#fb7185", "#fbbf24", "#a78bfa", "#34d399", "#f472b6", "#60a5fa", "#94a3b8"];
+const COLORS = ["#78a71b", "#7DD3FC", "#FF3E7F", "#FFB020", "#C084FC", "#FF8FB5", "#34d399", "#60a5fa", "#94a3b8"];
 
 function categorize(name) {
   const n = (name || "").toLowerCase();
@@ -167,24 +167,26 @@ export default function PantryDashboard() {
             loadingPlans={loadingPlans}
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-card border border-border rounded-xl bb-shadow p-4">
-              <p className="text-xs uppercase text-muted-foreground">{t("totalItems") || "Total items"}</p>
-              <p className="font-heading text-2xl font-bold">{total}</p>
+            <div className="bba-t bg-[#78a71b] text-[#111827] p-4">
+              <p className="text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/75">{t("totalItems") || "Total items"}</p>
+              <p className="font-heading text-3xl font-black text-[#111827] mt-1">{total}</p>
             </div>
-            <div className="bg-card border border-border rounded-xl bb-shadow p-4">
-              <p className="text-xs uppercase text-muted-foreground">{t("categories") || "Categories"}</p>
-              <p className="font-heading text-2xl font-bold">{chartData.length}</p>
+            <div className="bba-t bg-[#7DD3FC] text-[#111827] p-4">
+              <p className="text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/75">{t("categories") || "Categories"}</p>
+              <p className="font-heading text-3xl font-black text-[#111827] mt-1">{chartData.length}</p>
             </div>
-            <div className="bg-card border border-border rounded-xl bb-shadow p-4 col-span-2 sm:col-span-1">
-              <p className="text-xs uppercase text-muted-foreground">{t("topCategory") || "Top category"}</p>
-              <p className="font-heading text-lg font-bold truncate">{topCat ? translateCategory(topCat.name) : ""}</p>
+            <div className="bba-t bg-[#FF8FB5] text-[#111827] p-4 col-span-2 sm:col-span-1">
+              <p className="text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/75">{t("topCategory") || "Top category"}</p>
+              <p className="font-heading text-xl font-black text-[#111827] truncate mt-1">{topCat ? translateCategory(topCat.name) : ""}</p>
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="h-4 w-4 text-primary" />
-              <h3 className="font-heading font-semibold text-sm uppercase tracking-wide text-secondary-foreground">
+          <div className="bba-t bg-card p-5">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="h-8 w-8 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] flex items-center justify-center text-[#111827]">
+                <BarChart3 className="h-4 w-4" />
+              </div>
+              <h3 className="font-heading font-black text-sm uppercase tracking-wider text-foreground">
                 {t("itemsPerCategory") || "Items per category"}
               </h3>
             </div>
@@ -196,13 +198,13 @@ export default function PantryDashboard() {
                   dataKey="name"
                   width={110}
                   tickFormatter={(name) => translateCategory(name)}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, fontFamily: "var(--font-body)" }}
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12, fontFamily: "var(--font-heading)", fontWeight: 700 }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
+                <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={20}>
                   {chartData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="#111827" strokeWidth={1.5} />
                   ))}
                 </Bar>
                 <Tooltip
@@ -211,9 +213,9 @@ export default function PantryDashboard() {
                     if (!active || !payload?.length) return null;
                     const p = payload[0].payload;
                     return (
-                      <div className="bg-popover border border-border rounded-lg px-3 py-2 text-xs">
-                        <p className="font-semibold text-foreground">{translateCategory(p.name)}</p>
-                        <p className="text-muted-foreground">
+                      <div className="bg-popover border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-xl px-3 py-2 text-xs">
+                        <p className="font-heading font-black text-foreground">{translateCategory(p.name)}</p>
+                        <p className="font-medium text-muted-foreground">
                           {p.count} {itemCount(p.count)}
                         </p>
                       </div>
@@ -226,18 +228,18 @@ export default function PantryDashboard() {
 
           <div className="space-y-3">
             {chartData.map((cat, i) => (
-              <div key={cat.name} className="bg-card border border-border rounded-xl bb-shadow p-4">
-                <div className="flex items-center justify-between mb-2">
+              <div key={cat.name} className="bba-t bg-card p-4">
+                <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="h-3 w-3 rounded-sm shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span className="font-heading font-semibold text-sm text-foreground truncate">{translateCategory(cat.name)}</span>
+                    <span className="h-4 w-4 rounded-md border-[1.5px] border-[#111827] shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="font-heading font-black text-sm text-foreground truncate">{translateCategory(cat.name)}</span>
                     {i === 0 && (
-                      <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                      <span className="text-[10px] uppercase font-heading font-black text-[#111827] bg-[#FFB020] border border-[#111827] px-2 py-0.5 rounded-full shrink-0">
                         {t("top") || "Top"}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground font-medium shrink-0 ml-2">
+                  <span className="text-xs text-muted-foreground font-heading font-bold shrink-0 ml-2">
                     {cat.count} {itemCount(cat.count)} · {Math.round((cat.count / total) * 100)}%
                   </span>
                 </div>
@@ -245,7 +247,7 @@ export default function PantryDashboard() {
                   {cat.items.map((it) => (
                     <span
                       key={it.id}
-                      className="bg-secondary text-secondary-foreground text-xs font-medium px-2.5 py-1 rounded-full"
+                      className="bg-[#F3F8E6] dark:bg-secondary text-[#111827] dark:text-foreground border-[1.5px] border-[#111827] dark:border-[#78a71b] text-xs font-heading font-bold px-2.5 py-1 rounded-full"
                     >
                       {it.name}
                       {it.amount && it.amount !== "some" ? ` (${it.amount})` : ""}

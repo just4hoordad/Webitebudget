@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ArrowRight, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Package, TrendingDown } from "lucide-react";
+import { ArrowRight, Leaf, Beef, Fish, Wheat, Tag, X, Scale, Microwave, Search, Wallet, MapPin, Package, TrendingDown, Check, Sparkles } from "lucide-react";
 import StoreMapPicker from "@/components/StoreMapPicker";
 import { getStoreDiscount } from "@/lib/storeDiscounts";
 import StoreSpeedHint from "@/components/StoreSpeedHint";
@@ -45,25 +45,25 @@ const DRUGSTORES = [
 ];
 
 const DIET_KEYS = [
-  { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc" },
-  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, descKey: "vegetarianDesc" },
-  { id: "vegan", nameKey: "vegan", icon: Leaf, descKey: "veganDesc" },
-  { id: "high-protein", nameKey: "highProtein", icon: Beef, descKey: "highProteinDesc" },
-  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, descKey: "pescatarianDesc" },
-  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, descKey: "glutenFreeDesc" },
-  { id: "halal", nameKey: "halal", icon: null, descKey: "halalDesc" },
-  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, descKey: "frozenFoodsDesc" },
+  { id: "balanced", nameKey: "balanced", icon: Scale, descKey: "balancedDesc", badge: "bg-[#78a71b]" },
+  { id: "vegetarian", nameKey: "vegetarian", icon: Leaf, descKey: "vegetarianDesc", badge: "bg-[#34D399]" },
+  { id: "vegan", nameKey: "vegan", icon: Leaf, descKey: "veganDesc", badge: "bg-[#A3E635]" },
+  { id: "high-protein", nameKey: "highProtein", icon: Beef, descKey: "highProteinDesc", badge: "bg-[#FF8FB5]" },
+  { id: "pescatarian", nameKey: "pescatarian", icon: Fish, descKey: "pescatarianDesc", badge: "bg-[#7DD3FC]" },
+  { id: "gluten-free", nameKey: "glutenFree", icon: Wheat, descKey: "glutenFreeDesc", badge: "bg-[#FFB020]" },
+  { id: "halal", nameKey: "halal", icon: null, descKey: "halalDesc", badge: "bg-[#C084FC]" },
+  { id: "frozen", nameKey: "frozenFoods", icon: Microwave, descKey: "frozenFoodsDesc", badge: "bg-[#60A5FA]" },
 ];
 
-function SectionHeader({ icon: Icon, label, summary }) {
+function SectionHeader({ icon: Icon, label, summary, badgeBg = "bg-[#78a71b]" }) {
   return (
     <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="h-[18px] w-[18px] text-primary" />
+      <div className={`h-9 w-9 rounded-xl ${badgeBg} border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0 text-[#111827]`}>
+        <Icon className="h-[18px] w-[18px]" />
       </div>
       <div className="flex-1 min-w-0 text-left">
-        <p className="font-heading font-semibold text-sm text-foreground leading-tight">{label}</p>
-        {summary && <p className="text-xs text-muted-foreground truncate mt-0.5 group-data-[state=open]:hidden">{summary}</p>}
+        <p className="font-heading font-black text-base text-foreground leading-tight">{label}</p>
+        {summary && <p className="text-xs font-medium text-muted-foreground truncate mt-0.5 group-data-[state=open]:hidden">{summary}</p>}
       </div>
     </div>
   );
@@ -304,7 +304,7 @@ export default function BudgetForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Left column - Plan Your Meals */}
         <div className="space-y-3">
-          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("planYourMeals")}</h3>
+          <h3 className="font-heading font-black text-lg text-foreground px-1">{t("planYourMeals")}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Basics ── */}
         <AccordionItem id="step-basics" value="basics" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
@@ -312,15 +312,16 @@ export default function BudgetForm() {
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Wallet}
+                badgeBg="bg-[#FFB020]"
                 label={t("basicsSection") || "Basics"}
                 summary={`€${budget[0]} · ${days} ${t("days") || "days"} · ${t("headcountLabel") || "People"} ${people}${saleHunt ? " · 🏷️" : ""}`}
               />
             </AccordionTrigger>
           </div>
           <AccordionContent>
-            <div className={`space-y-7 pt-1 ${dimCls("basics")}`}>
+            <div className={`space-y-6 pt-1 ${dimCls("basics")}`}>
               {/* Budget Slider */}
-              <div className="space-y-4">
+              <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4 space-y-4">
                 <BudgetInput value={budget[0]} onChange={withStepInput("basics", (value) => setBudget([value]))} label={t("monthlyBudget")} />
                 <Slider
                   value={[budget[0]]}
@@ -330,7 +331,7 @@ export default function BudgetForm() {
                   step={5}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs font-heading font-bold text-muted-foreground">
                   <span>€10</span>
                   <span>{t("avgStudent")}</span>
                   <span>€2400</span>
@@ -341,21 +342,20 @@ export default function BudgetForm() {
               <SpendModeSelector value={spendMode} onChange={setSpendMode} />
 
               {/* Duration */}
-              <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} max={maxDays} />
+              <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4">
+                <DurationInput value={Number(days) || 1} onChange={setDays} label={t("durationDays") || "Duration"} max={maxDays} />
+              </div>
 
               {/* People */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("numberOfPeople")}</label>
-                <div className="flex gap-2">
+              <div className="space-y-2.5">
+                <label className="text-sm font-heading font-black text-foreground">{t("numberOfPeople")}</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((n) => (
                     <button
                       key={n}
+                      type="button"
                       onClick={() => setPeople(n)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                        people === n
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card text-foreground border-border hover:border-primary/40"
-                      }`}
+                      className={`py-2.5 px-2 text-xs sm:text-sm bba-chip ${people === n ? "bba-chip-active" : ""}`}
                     >
                       {n} {n === 1 ? t("person") : t("people")}
                     </button>
@@ -364,27 +364,25 @@ export default function BudgetForm() {
               </div>
 
               {/* Sale Hunt — savings toggle that belongs with the budget */}
-              <div className="pt-2 mt-2 border-t border-border">
+              <div className="pt-2 border-t-2 border-dashed border-[#111827]/20 dark:border-white/20">
                 <button
                   type="button"
                   onClick={() => setSaleHunt(!saleHunt)}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] transition-all text-left ${
                     saleHunt
-                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
-                      : "bg-card border-border hover:border-primary/40"
+                      ? "bg-[#FFB020] text-[#111827]"
+                      : "bg-card text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
                   }`}
                 >
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    saleHunt ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                  }`}>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] text-[#111827]">
                     <Tag className="h-5 w-5" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <p className="text-sm font-heading font-black flex items-center gap-1.5">
                       {t("saleHunt")}
-                      {saleHunt && <TrendingDown className="h-3.5 w-3.5 text-primary" />}
+                      {saleHunt && <TrendingDown className="h-3.5 w-3.5" />}
                     </p>
-                    <p className="text-xs text-muted-foreground leading-snug">{t("saleHuntDesc")}</p>
+                    <p className={`text-xs font-medium leading-snug ${saleHunt ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("saleHuntDesc")}</p>
                   </div>
                   <Switch checked={saleHunt} onCheckedChange={setSaleHunt} aria-label={t("saleHunt")} onClick={(e) => e.stopPropagation()} />
                 </button>
@@ -397,7 +395,7 @@ export default function BudgetForm() {
 
         {/* Right column - Configure Preferences */}
         <div className="space-y-3">
-          <h3 className="font-heading font-bold text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
+          <h3 className="font-heading font-black text-lg text-foreground px-1">{t("configurePreferences") || "Configure Preferences"}</h3>
           <Accordion type="single" collapsible value={openSection} onValueChange={selectSection} className="space-y-3">
         {/* ── Diet & Nutrition ── */}
         <AccordionItem id="step-diet" value="diet" className="scroll-mt-24 bba-t px-5 py-0 bg-card">
@@ -405,13 +403,14 @@ export default function BudgetForm() {
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Leaf}
+                badgeBg="bg-[#78a71b]"
                 label={t("dietSection") || "Diet"}
                 summary={`${dietLabel} · ${computeDailyCalories(calorieMetrics) || 0} kcal · P${macros.protein}/C${macros.carbs}/F${macros.fats}${bio ? " · Bio" : ""}${allergies.length > 0 ? ` · ${allergies.length} ${t("allergiesTitle") || "allergies"}` : ""}`}
               />
             </AccordionTrigger>
           </div>
           <AccordionContent>
-            <div className={`space-y-7 pt-1 ${dimCls("diet")}`}>
+            <div className={`space-y-6 pt-1 ${dimCls("diet")}`}>
               {/* Diet Type */}
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -421,25 +420,33 @@ export default function BudgetForm() {
                     return (
                       <button
                         key={diet.id}
+                        type="button"
                         onClick={() => setSelectedDiet(diet.id)}
-                        className={`flex flex-col items-start gap-1 p-4 rounded-xl text-left transition-all duration-200 border min-w-0 overflow-hidden ${
+                        className={`relative flex flex-col items-start gap-1.5 p-3.5 rounded-2xl text-left border-[2.5px] border-[#111827] dark:border-[#78a71b] min-w-0 overflow-hidden transition-all ${
                           isSelected
-                            ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                            : "bg-card text-foreground border-border shadow-sm hover:border-primary/40 hover:shadow-md"
+                            ? "bg-[#78a71b] text-[#111827] shadow-[4px_4px_0_#111827] -translate-y-0.5"
+                            : "bg-card text-foreground shadow-[2.5px_2.5px_0_#111827] hover:-translate-y-0.5"
                         }`}
                       >
-                        <div className={`mb-1 ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
-                          {diet.id === "halal" ? (
-                            <span className="text-xl font-bold leading-none">حلال</span>
-                          ) : Icon ? (
-                            <Icon className="h-6 w-6" />
-                          ) : null}
+                        <div className="flex items-center justify-between w-full">
+                          <div className={`h-9 w-9 rounded-xl ${isSelected ? "bg-white" : diet.badge} border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] flex items-center justify-center text-[#111827]`}>
+                            {diet.id === "halal" ? (
+                              <span className="text-sm font-black leading-none">حلال</span>
+                            ) : Icon ? (
+                              <Icon className="h-4 w-4" />
+                            ) : null}
+                          </div>
+                          {isSelected && (
+                            <span className="h-5 w-5 rounded-full bg-[#111827] text-white flex items-center justify-center shrink-0">
+                              <Check className="h-3 w-3" />
+                            </span>
+                          )}
                         </div>
-                        <span className={`font-heading font-semibold text-sm leading-tight break-words ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                        <span className={`font-heading font-black text-sm leading-tight break-words mt-1 ${isSelected ? "text-[#111827]" : "text-foreground"}`}>
                           {t(diet.nameKey)}
                         </span>
-                        <span className={`text-xs leading-tight break-words ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                           {t(diet.descKey)}
+                        <span className={`text-xs font-medium leading-tight break-words ${isSelected ? "text-[#111827]/80" : "text-muted-foreground"}`}>
+                          {t(diet.descKey)}
                         </span>
                       </button>
                     );
@@ -450,58 +457,60 @@ export default function BudgetForm() {
                 <button
                   type="button"
                   onClick={() => setBio(!bio)}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left ${
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] transition-all text-left ${
                     bio
-                      ? "bg-primary/10 dark:bg-primary/15 border-primary/50"
-                      : "bg-card border-border hover:border-primary/40"
+                      ? "bg-[#78a71b] text-[#111827]"
+                      : "bg-card text-foreground hover:bg-[#F3F8E6] hover:text-[#111827]"
                   }`}
                 >
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    bio ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                  }`}>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] text-[#111827]">
                     <Leaf className="h-5 w-5" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{t("bioTitle")}</p>
-                    <p className="text-xs text-muted-foreground leading-snug">{t("bioDesc")}</p>
+                    <p className="text-sm font-heading font-black">{t("bioTitle")}</p>
+                    <p className={`text-xs font-medium leading-snug ${bio ? "text-[#111827]/80" : "text-muted-foreground"}`}>{t("bioDesc")}</p>
                   </div>
                   <Switch checked={bio} onCheckedChange={setBio} aria-label={t("bioTitle")} onClick={(e) => e.stopPropagation()} />
                 </button>
               </div>
 
               {/* Calorie Goal — computed from body metrics */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">{t("calorieGoal")}</label>
+              <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4 space-y-3">
+                <label className="text-sm font-heading font-black text-foreground">{t("calorieGoal")}</label>
                 <CalorieCalculator value={calorieMetrics} onChange={withStepInput("diet", setCalorieMetrics)} />
               </div>
 
               {/* Macronutrient Ratios */}
-              <MacroRatioControl value={macros} onChange={setMacros} />
+              <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4">
+                <MacroRatioControl value={macros} onChange={setMacros} />
+              </div>
 
               {/* Allergies */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">{t("allergiesTitle")}</label>
-                <p className="text-xs text-muted-foreground">{t("allergiesDesc")}</p>
+                <label className="text-sm font-heading font-black text-foreground">{t("allergiesTitle")}</label>
+                <p className="text-xs font-medium text-muted-foreground">{t("allergiesDesc")}</p>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {allergies.map(tag => (
-                    <span key={tag} className="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <span key={tag} className="flex items-center gap-1.5 bg-[#FF8FB5] text-[#111827] border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] text-xs font-heading font-extrabold px-3 py-1 rounded-full">
                       {tag}
-                      <button onClick={() => removeTag(tag, allergies, setAllergies)}><X className="h-3 w-3" /></button>
+                      <button type="button" onClick={() => removeTag(tag, allergies, setAllergies)}><X className="h-3 w-3" /></button>
                     </span>
                   ))}
                 </div>
                 <div className="flex gap-2">
                   <input
-                    className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="flex-1 min-w-0 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-3 py-2 text-sm font-semibold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
                     placeholder={t("allergiesPlaceholder")}
                     value={allergyInput}
                     onChange={e => setAllergyInput(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
                   />
-                  <button
+                  <Button
+                    type="button"
+                    size="sm"
                     onClick={() => addTag(allergyInput, allergies, setAllergies, setAllergyInput)}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-                  >{t("add")}</button>
+                    className="h-10 px-4"
+                  >{t("add")}</Button>
                 </div>
               </div>
 
@@ -515,15 +524,16 @@ export default function BudgetForm() {
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={MapPin}
+                badgeBg="bg-[#FF8FB5]"
                 label={t("storesSection") || "Stores"}
                 summary={storeNamesSummary || t("noStoresSelected")}
               />
             </AccordionTrigger>
           </div>
           <AccordionContent>
-            <div className={`space-y-3 pt-1 ${dimCls("stores")}`}>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">{t("preferredStores")}</label>
+            <div className={`space-y-3.5 pt-1 ${dimCls("stores")}`}>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-sm font-heading font-black text-foreground">{t("preferredStores")}</label>
                 <StoreMapPicker
                   selectedStoreLocations={selectedStoreLocations}
                   onChangeStoreLocations={setSelectedStoreLocations}
@@ -533,14 +543,14 @@ export default function BudgetForm() {
                   onCityCoordsUsed={() => setCityCoords(null)}
                 />
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <p className="text-xs font-medium text-muted-foreground leading-relaxed">{t("mapPickerHelper")}</p>
+              <p className="text-xs font-heading font-bold text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#FFB020] border border-[#111827] shrink-0" />
                 {t("maxStoresHint") || "Up to 4 stores"}
               </p>
               <StoreSpeedHint />
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" /> {t("plzLabel") || "Postal code (PLZ) or city"}
                 </label>
                 <div className="flex gap-2">
@@ -554,30 +564,33 @@ export default function BudgetForm() {
                     }}
                     onKeyDown={(e) => e.key === "Enter" && handleLocationSubmit()}
                     placeholder={t("plzPlaceholder") || "e.g. 10115 or Berlin"}
-                    className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="flex-1 min-w-0 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-4 py-2 text-sm font-semibold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
                   />
-                  <button
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={handleLocationSubmit}
-                    className="flex shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-sm font-medium transition-all duration-200"
+                    className="h-10 px-3.5 shrink-0 gap-1.5"
                   >
                     <Search className="h-4 w-4" />
                     {t("search")}
-                  </button>
+                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
+                <p className="text-xs font-medium text-muted-foreground leading-relaxed">{t("plzHelper")}</p>
               </div>
               {selectedStoreLocations.length > 0 ? (
-                <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-primary mb-2">📍 {t("pinnedStores")}</p>
+                <div className="bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] rounded-2xl px-4 py-3 shadow-[2px_2px_0_#111827]">
+                  <p className="text-xs font-heading font-black text-foreground mb-2">📍 {t("pinnedStores")}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedStoreLocations.map((s) => (
-                      <span key={s.id} className="flex items-center gap-1 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium">
+                      <span key={s.id} className="flex items-center gap-1 text-xs bg-[#78a71b] text-[#111827] border-2 border-[#111827] px-3 py-1 rounded-full font-heading font-extrabold">
                         {s.name}
-                        {s.address && <span className="opacity-70 text-xs">· {s.address}</span>}
+                        {s.address && <span className="opacity-75 text-xs">· {s.address}</span>}
                       </span>
                     ))}
                   </div>
-                  <button onClick={() => setSelectedStoreLocations([])} className="text-xs text-muted-foreground hover:text-destructive mt-2 underline">
+                  <button type="button" onClick={() => setSelectedStoreLocations([])} className="text-xs font-heading font-bold text-muted-foreground hover:text-destructive mt-2 underline">
                     {t("clearPinnedStores")}
                   </button>
                 </div>
@@ -590,20 +603,19 @@ export default function BudgetForm() {
                       return (
                         <button
                           key={store.id}
+                          type="button"
                           onClick={() => toggleStore(store.id)}
-                          className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
-                            isSelected
-                              ? store.color + " border-current shadow-sm"
-                              : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                          className={`px-3.5 py-2 text-sm inline-flex items-center gap-1.5 bba-chip ${
+                            isSelected ? "bba-chip-active" : ""
                           }`}
                         >
                           <span>{store.name}</span>
                           {discount > 0 && (
                             <span
-                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                              className={`text-[10px] font-heading font-black px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 border border-[#111827] ${
                                 isSelected
-                                  ? "bg-current/15 text-current"
-                                  : "bg-primary/10 text-primary border border-primary/30"
+                                  ? "bg-[#FFB020] text-[#111827]"
+                                  : "bg-[#F3F8E6] text-[#111827]"
                               }`}
                               title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
                             >
@@ -614,7 +626,7 @@ export default function BudgetForm() {
                       );
                      })}
                    </div>
-                   <p className="text-xs font-medium text-muted-foreground">{t("drugstores") || "Drugstores"}</p>
+                   <p className="text-xs font-heading font-extrabold uppercase tracking-wider text-muted-foreground pt-1">{t("drugstores") || "Drugstores"}</p>
                    <div className="flex flex-wrap gap-2">
                      {DRUGSTORES.map((store) => {
                        const discount = getStoreDiscount(store.id, selectedDiet, macros);
@@ -622,20 +634,19 @@ export default function BudgetForm() {
                        return (
                          <button
                            key={store.id}
+                           type="button"
                            onClick={() => toggleStore(store.id)}
-                           className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 inline-flex items-center gap-1.5 ${
-                             isSelected
-                               ? store.color + " border-current shadow-sm"
-                               : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                           className={`px-3.5 py-2 text-sm inline-flex items-center gap-1.5 bba-chip ${
+                             isSelected ? "bba-chip-active" : ""
                            }`}
                          >
                            <span>{store.name}</span>
                            {discount > 0 && (
                              <span
-                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                               className={`text-[10px] font-heading font-black px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 border border-[#111827] ${
                                  isSelected
-                                   ? "bg-current/15 text-current"
-                                   : "bg-primary/10 text-primary border border-primary/30"
+                                   ? "bg-[#FFB020] text-[#111827]"
+                                   : "bg-[#F3F8E6] text-[#111827]"
                                }`}
                                title={`Estimated ~${discount}% cheaper than mid-range supermarkets (REWE/Edeka) on ${selectedDiet || "staple"} essentials`}
                              >
@@ -646,7 +657,7 @@ export default function BudgetForm() {
                        );
                      })}
                    </div>
-                   <p className="text-xs text-muted-foreground flex items-center gap-1 px-1">
+                   <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 px-1">
                      <TrendingDown className="h-3.5 w-3.5 text-primary shrink-0" />
                      <span>
                        {t("storeDiscountExplanation") || "Estimated % cheaper than mid-range supermarkets (REWE/Edeka) on a typical basket — actual savings depend on the specific items in your generated list"}
@@ -666,6 +677,7 @@ export default function BudgetForm() {
             <AccordionTrigger className="group flex-1 hover:no-underline py-0">
               <SectionHeader
                 icon={Package}
+                badgeBg="bg-[#7DD3FC]"
                 label={t("pantrySection") || "Pantry"}
                 summary={pantryItems.length > 0 ? `${pantryItems.length} ${t("items") || "items"}` : (t("pantryEmptySummary") || "Add staples you already have")}
               />
@@ -683,25 +695,26 @@ export default function BudgetForm() {
       </div>
 
       {/* Generate Button */}
-      <div ref={generateRef} className="space-y-2">
+      <div ref={generateRef} className="space-y-2.5">
         {!canGenerate && (
-          <p className="text-xs text-destructive text-center font-medium">
-            {!(budget[0] > 0)
+          <div className="rounded-2xl bg-[#FF3E7F]/15 border-2 border-[#FF3E7F] px-4 py-2.5 text-xs text-destructive text-center font-heading font-extrabold">
+            ⚠️ {!(budget[0] > 0)
               ? "Please enter your monthly budget"
               : enabled.diet && !metricsFilled
               ? "Please enter your height, weight and age in the Diet section"
               : "Please select at least one store"}
-          </p>
+          </div>
         )}
-        <Button
+        <button
+          type="button"
           onClick={handleGenerate}
           disabled={!canGenerate}
-          className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-          size="lg"
+          className="w-full h-14 text-base bba-cta bg-[#FF3E7F] text-white flex items-center justify-center disabled:opacity-50"
         >
+          <Sparkles className="h-5 w-5 mr-2" />
           {t("generateBtn")}
           <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        </button>
       </div>
 
       {/* Sticky generate bar — mobile only, shown while the inline button is off-screen */}

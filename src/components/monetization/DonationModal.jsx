@@ -55,20 +55,21 @@ export default function DonationModal({ open, onClose }) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="relative w-full max-w-md bg-card border border-border rounded-3xl p-6 space-y-5"
+            className="relative w-full max-w-md bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[6px_6px_0_#111827] rounded-3xl p-6 space-y-5"
           >
             <button
+              type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827]"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
             <div className="text-center space-y-2 pt-2">
-              <div className="mx-auto h-14 w-14 rounded-2xl bg-rose-100 flex items-center justify-center">
-                <Heart className="h-7 w-7 text-rose-500" />
+              <div className="mx-auto h-14 w-14 rounded-2xl bg-[#FF8FB5] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center text-[#111827]">
+                <Heart className="h-7 w-7 fill-[#FF3E7F] text-[#111827]" />
               </div>
-              <h2 className="font-heading text-2xl font-bold text-foreground">{t("supportTitle")}</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="font-heading text-2xl font-black text-foreground">{t("supportTitle")}</h2>
+              <p className="text-sm font-medium text-muted-foreground">
                 {t("supportBody")}
               </p>
             </div>
@@ -76,22 +77,19 @@ export default function DonationModal({ open, onClose }) {
               {presets.map((p) => (
                 <button
                   key={p}
+                  type="button"
                   onClick={() => {
                     setSelected(p);
                     setCustom("");
                   }}
-                  className={`py-3 rounded-xl border font-heading font-bold text-lg transition-colors ${
-                    !custom && selected === p
-                      ? "bg-rose-500 text-white border-rose-500"
-                      : "bg-secondary border-border text-foreground hover:bg-muted"
-                  }`}
+                  className={`py-3 text-lg bba-chip ${!custom && selected === p ? "bba-chip-active" : ""}`}
                 >
                   €{p}
                 </button>
               ))}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">{t("customAmount")}</label>
+              <label className="text-xs font-heading font-bold text-muted-foreground">{t("customAmount")}</label>
               <input
                 type="number"
                 min="1"
@@ -100,13 +98,14 @@ export default function DonationModal({ open, onClose }) {
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
                 placeholder="e.g. 10"
-                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827] font-heading font-bold text-foreground focus:outline-none"
               />
             </div>
             <Button
               onClick={handleDonate}
               disabled={loading}
-              className="w-full bg-rose-500 hover:bg-rose-600 text-white border-0 gap-2"
+              variant="destructive"
+              className="w-full gap-2"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
               {loading ? "Redirecting…" : "Donate"}

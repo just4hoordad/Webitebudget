@@ -134,44 +134,47 @@ export default function PantryManager({ onPantryChange }) {
   };
 
   return (
-    <div className={`rounded-xl border-2 transition-all duration-200 ${items.length > 0 ? "bg-primary/10 border-primary" : "bg-card border-border"}`}>
+    <div className="rounded-2xl border-2 border-[#111827] dark:border-[#78a71b] bg-[#F3F8E6] dark:bg-secondary shadow-[3px_3px_0_#111827] overflow-hidden">
       {/* Header toggle */}
       <button
+        type="button"
         onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between px-5 py-4"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-left"
       >
-        <div className="flex items-center gap-3">
-          <Package className={`h-5 w-5 ${items.length > 0 ? "text-primary" : "text-muted-foreground"}`} />
-          <div className="text-left">
-            <p className={`text-sm font-semibold ${items.length > 0 ? "text-primary" : "text-foreground"}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-9 w-9 rounded-xl bg-[#FFB020] border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] flex items-center justify-center shrink-0 text-[#111827]">
+            <Package className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-heading font-black text-foreground">
               {s.title}
             </p>
-            <p className={`text-xs ${items.length > 0 ? "text-primary/70" : "text-muted-foreground"}`}>
+            <p className="text-xs font-medium text-muted-foreground truncate">
               {items.length > 0
                 ? `${items.length} ${s.descItems}`
                 : s.desc}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {items.length > 0 && (
-            <span className="bg-primary/20 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
-              -{items.length} items
+            <span className="bg-[#78a71b] text-[#111827] border-[1.5px] border-[#111827] text-xs font-heading font-black px-2.5 py-0.5 rounded-full">
+              -{items.length}
             </span>
           )}
-          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          {expanded ? <ChevronUp className="h-4 w-4 text-foreground" /> : <ChevronDown className="h-4 w-4 text-foreground" />}
         </div>
       </button>
 
       {expanded && (
-        <div className="px-5 pb-5 space-y-4">
+        <div className="px-4 pb-4 pt-1 space-y-4 border-t-2 border-[#111827]/15 dark:border-white/15">
           {/* Current pantry items */}
           {items.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pt-2">
               {items.map(item => (
-                <span key={item.id} className="flex items-center gap-1 bg-primary/15 text-primary border border-primary/30 text-xs font-medium px-2.5 py-1 rounded-full">
+                <span key={item.id} className="flex items-center gap-1.5 bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] text-xs font-heading font-extrabold px-2.5 py-1 rounded-full">
                   {item.name}{item.amount && item.amount !== "some" ? ` (${item.amount})` : ""}
-                  <button onClick={() => removeItem(item)}><X className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => removeItem(item)}><X className="h-3 w-3" /></button>
                 </span>
               ))}
             </div>
@@ -179,13 +182,14 @@ export default function PantryManager({ onPantryChange }) {
 
           {/* Quick add suggestions */}
           <div>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">{s.quickAdd}</p>
+            <p className="text-xs font-heading font-bold text-muted-foreground mb-2">{s.quickAdd}</p>
             <div className="flex flex-wrap gap-1.5">
               {quickAdds.filter(q => !items.some(i => i.name.toLowerCase() === q.toLowerCase())).map(q => (
                 <button
                   key={q}
+                  type="button"
                   onClick={() => addQuick(q)}
-                  className="text-xs px-2.5 py-1 rounded-full border border-border bg-card hover:bg-primary/5 hover:border-primary/40 text-muted-foreground transition-colors"
+                  className="text-xs px-2.5 py-1 bba-chip"
                 >
                   + {q}
                 </button>
@@ -197,14 +201,14 @@ export default function PantryManager({ onPantryChange }) {
           <div className="flex flex-col gap-2">
             <div className="flex gap-2 min-w-0">
               <input
-                className="min-w-0 flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="min-w-0 flex-1 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-3 py-2 text-sm font-semibold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
                 placeholder={s.placeholder}
                 value={nameInput}
                 onChange={e => setNameInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addItem()}
               />
               <input
-                className="w-20 shrink-0 border border-border rounded-xl px-3 py-2 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="w-24 shrink-0 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-3 py-2 text-sm font-semibold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
                 placeholder={s.amount}
                 value={amountInput}
                 onChange={e => setAmountInput(e.target.value)}
@@ -212,11 +216,12 @@ export default function PantryManager({ onPantryChange }) {
               />
             </div>
             <button
+              type="button"
               onClick={addItem}
               disabled={!nameInput.trim() || loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78a71b] text-[#111827] border-2 border-[#111827] shadow-[2.5px_2.5px_0_#111827] rounded-full text-sm font-heading font-black hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-40"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[3]" />
               {s.addBtn}
             </button>
           </div>

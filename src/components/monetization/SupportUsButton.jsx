@@ -4,19 +4,21 @@ export default function SupportUsButton({ onClick, variant = "sidebar" }) {
   if (variant === "sheet") {
     return (
       <button
+        type="button"
         onClick={onClick}
-        className="w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 font-semibold text-sm hover:bg-rose-100 transition-colors"
+        className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-[#FF8FB5] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] font-heading font-black text-xs active:translate-x-[1px] active:translate-y-[1px] transition-transform"
       >
-        <Heart className="h-5 w-5" /> Support Us ❤️
+        <Heart className="h-4 w-4 fill-[#FF3E7F]" /> Support Us ❤️
       </button>
     );
   }
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50 transition-colors w-full"
+      className="flex items-center justify-center gap-2 px-3 py-2 rounded-2xl text-xs font-heading font-black bg-[#FF8FB5] text-[#111827] border-2 border-[#111827] shadow-[2.5px_2.5px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform w-full"
     >
-      <Heart className="h-4 w-4" /> Support Us ❤️
+      <Heart className="h-3.5 w-3.5 fill-[#FF3E7F]" /> Support Us ❤️
     </button>
   );
 }

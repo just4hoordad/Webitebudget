@@ -5,50 +5,49 @@ export default function CreditBar({ variant = "onLight", className = "" }) {
   const { credits, isPro, openWatchAd, openPricing } = useMonetization();
   const onGlass = variant === "onGlass";
 
-  const numColor = onGlass
-    ? "text-white"
-    : credits <= 0 && !isPro
-    ? "text-destructive"
-    : isPro
-    ? "text-primary"
-    : "text-foreground";
-  const labelColor = onGlass ? "text-white/70" : "text-muted-foreground";
   const wrapClass = onGlass
     ? "flex items-center justify-between gap-2 flex-wrap"
-    : "flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-xl px-4 py-3";
-
-  const btnBase = "h-7 inline-flex items-center px-2.5 rounded-full text-[11px] font-medium leading-none transition-colors";
-  const adBtn = onGlass
-    ? `${btnBase} border border-white/40 text-white hover:bg-white/15`
-    : `${btnBase} border border-amber-500/50 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10`;
-  const proBtn = onGlass
-    ? `${btnBase} border border-white/40 text-white hover:bg-white/15`
-    : `${btnBase} border border-border text-muted-foreground hover:text-primary hover:border-primary/40`;
-  const proLabel = onGlass ? "text-white/80" : "text-muted-foreground";
+    : "flex items-center justify-between gap-2 flex-wrap bg-white dark:bg-card text-[#111827] dark:text-foreground border-[2.5px] border-[#111827] dark:border-[#78a71b] shadow-[3px_3px_0_#111827] dark:shadow-[3px_3px_0_#000] rounded-2xl px-4 py-2.5";
 
   return (
     <div className={`${wrapClass} ${className}`}>
-      <div className="flex items-center gap-1.5 min-w-0">
-        {isPro ? (
-          <Crown className="h-4 w-4 text-primary shrink-0" />
-        ) : (
-          <Leaf className="h-4 w-4 text-primary shrink-0" />
-        )}
-        <span className={`font-heading ${onGlass ? "text-xl" : "text-2xl"} font-bold leading-none ${numColor}`}>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FFB020] border-[1.5px] border-[#111827] text-[#111827] shrink-0">
+          {isPro ? <Crown className="h-4 w-4" /> : <Leaf className="h-4 w-4" />}
+        </span>
+        <span
+          className={`font-heading ${onGlass ? "text-xl text-white" : "text-2xl"} font-black leading-none ${
+            !onGlass && credits <= 0 && !isPro ? "text-[#FF3E7F]" : ""
+          }`}
+        >
           {credits}
         </span>
-        <span className={`text-[10px] font-heading font-bold uppercase tracking-wide ${labelColor} truncate`}>
+        <span
+          className={`text-[10px] font-heading font-black uppercase tracking-wider truncate ${
+            onGlass ? "text-white/80" : "text-[#111827]/75 dark:text-muted-foreground"
+          }`}
+        >
           {isPro ? "PRO LEFT" : "FREE GEN"}
         </span>
       </div>
       {isPro ? (
-        <span className={`text-[11px] font-medium ${proLabel}`}>Ad-free 👑</span>
+        <span className="text-[11px] font-heading font-black bg-[#FFB020] text-[#111827] border-[1.5px] border-[#111827] px-2.5 py-0.5 rounded-full">
+          Ad-free 👑
+        </span>
       ) : (
-        <div className="flex items-center gap-2 shrink-0">
-          <button type="button" onClick={openWatchAd} className={adBtn}>
-            +1
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={openWatchAd}
+            className="h-7 inline-flex items-center px-2.5 rounded-full text-[11px] font-heading font-black bg-[#FFB020] text-[#111827] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          >
+            +1 Free
           </button>
-          <button type="button" onClick={openPricing} className={proBtn}>
+          <button
+            type="button"
+            onClick={openPricing}
+            className="h-7 inline-flex items-center px-3 rounded-full text-[11px] font-heading font-black bg-[#78a71b] text-[#111827] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          >
             Pro →
           </button>
         </div>

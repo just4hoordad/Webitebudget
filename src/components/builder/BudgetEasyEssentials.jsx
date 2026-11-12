@@ -1,6 +1,7 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import BudgetInput from "@/components/BudgetInput";
 import DurationInput from "@/components/DurationInput";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, SlidersHorizontal, Store } from "lucide-react";
 import { useMonetization } from "@/lib/MonetizationContext";
@@ -101,30 +102,36 @@ export default function BudgetEasyEssentials({
 
   return (
     <div className="space-y-5">
-      <div className="bba-t bg-card p-5 space-y-6">
+      <div className="bba-t bg-card p-5 sm:p-6 space-y-6">
         {/* Budget */}
         <div className="space-y-3">
-          <BudgetInput value={budget[0]} onChange={(v) => setBudget([v])} label={t("monthlyBudget")} />
-          <input
-            type="range"
-            min={10}
-            max={2400}
-            step={5}
-            value={budget[0] || 0}
-            onChange={(e) => setBudget([Number(e.target.value)])}
-            className="w-full accent-primary"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>€10</span>
-            <span>{t("avgStudent")}</span>
-            <span>€2400</span>
+          <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FFB020] text-[#111827] border-2 border-[#111827] text-xs">1</span>
+            {t("monthlyBudget")}
+          </label>
+          <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4 space-y-4">
+            <BudgetInput value={budget[0]} onChange={(v) => setBudget([v])} label={t("monthlyBudget")} />
+            <Slider
+              min={0}
+              max={2400}
+              step={5}
+              value={[budget[0] || 0]}
+              onValueChange={([v]) => setBudget([v])}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs font-heading font-bold text-muted-foreground">
+              <span>€10</span>
+              <span>{t("avgStudent")}</span>
+              <span>€2400</span>
+            </div>
           </div>
         </div>
 
         {/* Stores */}
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FF8FB5] text-[#111827] border-2 border-[#111827] text-xs">2</span>
               <Store className="h-4 w-4 text-primary" />
               {t("preferredStores") || "Preferred stores"}
             </label>
@@ -136,7 +143,7 @@ export default function BudgetEasyEssentials({
               />
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {GROCERY_STORES.map((store) => {
               const isSelected = selectedStores.includes(store.id);
               const isExtraLockedSlot = !isPro && selectedStores.length >= 1 && !isSelected;
@@ -145,12 +152,12 @@ export default function BudgetEasyEssentials({
                   key={store.id}
                   type="button"
                   onClick={() => handleStoreClick(store.id)}
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                  className={`px-3.5 py-2 text-sm bba-chip ${
                     isSelected
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      ? "bba-chip-active"
                       : isExtraLockedSlot
-                      ? "bba-locked-arcade text-[#F3F8E6]/70 border-[#111827] hover:text-white"
-                      : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                      ? "!bg-[#161e2e] !text-[#F3F8E6]/70 hover:!text-white"
+                      : ""
                   }`}
                 >
                   {store.name}
@@ -159,17 +166,17 @@ export default function BudgetEasyEssentials({
             })}
           </div>
           {isPro ? (
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#FFB020] border border-[#111827] shrink-0" />
               {proHint}
             </p>
           ) : (
             <button
               type="button"
               onClick={openPricing}
-              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bba-locked-arcade border border-[#111827] dark:border-[#FFB020]/60 text-left hover:opacity-95 transition-opacity"
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bba-locked-arcade border-2 border-[#111827] dark:border-[#FFB020]/60 shadow-[2px_2px_0_#111827] text-left hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
             >
-              <span className="text-xs font-medium text-[#F3F8E6]/85">{freeHint}</span>
+              <span className="text-xs font-bold text-[#F3F8E6]/85">{freeHint}</span>
               <ProLockBadge label="UNLOCK" size="xs" />
             </button>
           )}
@@ -177,21 +184,28 @@ export default function BudgetEasyEssentials({
 
         {/* Duration */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">{t("durationDays") || "Duration"}</label>
-          <DurationInput value={Number(days) || 1} onChange={setDays} max={maxDays} />
+          <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#7DD3FC] text-[#111827] border-2 border-[#111827] text-xs">3</span>
+            {t("durationDays") || "Duration"}
+          </label>
+          <div className="rounded-2xl bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] p-4">
+            <DurationInput value={Number(days) || 1} onChange={setDays} max={maxDays} />
+          </div>
         </div>
 
         {/* People */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">{t("numberOfPeople")}</label>
-          <div className="flex gap-2">
+          <label className="text-sm font-heading font-black text-foreground flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#78a71b] text-[#111827] border-2 border-[#111827] text-xs">4</span>
+            {t("numberOfPeople")}
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {[1, 2, 3, 4].map((n) => (
               <button
                 key={n}
+                type="button"
                 onClick={() => setPeople(n)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-                  people === n ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:border-primary/40"
-                }`}
+                className={`py-2.5 px-3 text-sm bba-chip ${people === n ? "bba-chip-active" : ""}`}
               >
                 {n} {n === 1 ? t("person") : t("people")}
               </button>
@@ -201,13 +215,14 @@ export default function BudgetEasyEssentials({
       </div>
 
       {budget[0] > 0 && selectedStores.length === 0 && (
-        <p className="text-xs text-destructive text-center font-medium -mt-2">{pickHint}</p>
+        <p className="text-xs text-destructive text-center font-heading font-bold -mt-2">⚠️ {pickHint}</p>
       )}
 
       <Button
         onClick={onGenerate}
         disabled={!canGenerate}
-        className="w-full h-14 text-base font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300"
+        variant="destructive"
+        className="w-full h-14 text-base"
         size="lg"
       >
         {t("generateBtn")}
@@ -215,8 +230,9 @@ export default function BudgetEasyEssentials({
       </Button>
 
       <button
+        type="button"
         onClick={onSwitchDetailed}
-        className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 text-xs font-heading font-extrabold text-muted-foreground hover:text-foreground transition-colors"
       >
         <SlidersHorizontal className="h-3.5 w-3.5" />
         {more}

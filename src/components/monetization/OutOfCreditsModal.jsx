@@ -24,28 +24,29 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0.6 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="relative w-full sm:max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl p-6 space-y-4"
+            className="relative w-full sm:max-w-md bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[6px_6px_0_#111827] rounded-t-3xl sm:rounded-3xl p-6 space-y-4"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
           >
             <button
+              type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827]"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
             {isPro ? (
               <div className="text-center space-y-3 pt-2">
-                <div className="mx-auto h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center">
-                  <CalendarClock className="h-6 w-6 text-primary" />
+                <div className="mx-auto h-12 w-12 rounded-2xl bg-[#FFB020] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center text-[#111827]">
+                  <CalendarClock className="h-6 w-6" />
                 </div>
-                <h2 className="font-heading text-xl font-bold text-foreground">{t("monthlyLimitTitle")}</h2>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="font-heading text-xl font-black text-foreground">{t("monthlyLimitTitle")}</h2>
+                <p className="text-sm font-medium text-muted-foreground">
                   {t("monthlyLimitBody")}{" "}
-                  <span className="font-semibold text-foreground">{periodLabel}</span>.
+                  <span className="font-bold text-foreground">{periodLabel}</span>.
                 </p>
                 {tier !== "pro_plus" && (
-                  <Button onClick={onGoPro} variant="outline" className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10">
+                  <Button onClick={onGoPro} variant="secondary" className="w-full gap-2">
                     <Crown className="h-4 w-4" /> Upgrade to Pro+
                   </Button>
                 )}
@@ -54,26 +55,27 @@ export default function OutOfCreditsModal({ open, onClose, onWatchAd, onGoPro, i
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="mx-auto h-12 w-12 rounded-2xl bg-amber-100 flex items-center justify-center">
-                  <PlayCircle className="h-6 w-6 text-amber-600" />
+              <div className="space-y-4 pt-1">
+                <div className="mx-auto h-12 w-12 rounded-2xl bg-[#FFB020] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center text-[#111827]">
+                  <PlayCircle className="h-6 w-6" />
                 </div>
                 <div className="text-center space-y-1.5">
-                  <h2 className="font-heading text-xl font-bold text-foreground">{t("outOfCreditsTitle")}</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <span className="bba-sticker">Insert Coin</span>
+                  <h2 className="font-heading text-xl font-black text-foreground pt-1">{t("outOfCreditsTitle")}</h2>
+                  <p className="text-sm font-medium text-muted-foreground">
                     {t("outOfCreditsBody")}
                   </p>
                 </div>
                 <Button
                   onClick={onWatchAd}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white border-0 gap-2"
+                  variant="secondary"
+                  className="w-full gap-2"
                 >
                   <PlayCircle className="h-4 w-4" /> {t("watchAdGenerate")}
                 </Button>
                 <Button
                   onClick={onGoPro}
-                  variant="outline"
-                  className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                  className="w-full gap-2"
                 >
                   <Crown className="h-4 w-4" /> {t("goProMonthly")}
                 </Button>
