@@ -141,6 +141,36 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Bold playful dashboard — deep green gradient panel with film grain */
+  .bb-dash-panel {
+    background-color: #0c1e12;
+    background-image:
+      radial-gradient(30% 70% at 38% 112%, #78a71b 0%, rgba(120, 167, 27, 0.25) 40%, rgba(120, 167, 27, 0) 75%),
+      radial-gradient(26% 60% at 90% 116%, #5a8a14 0%, rgba(90, 138, 20, 0.18) 45%, rgba(90, 138, 20, 0) 80%),
+      radial-gradient(24% 58% at 4% 118%, #5a8a14 0%, rgba(90, 138, 20, 0.15) 45%, rgba(90, 138, 20, 0) 80%),
+      radial-gradient(30% 55% at 25% 60%, rgba(120, 167, 27, 0.18) 0%, rgba(120, 167, 27, 0) 70%),
+      radial-gradient(30% 58% at 85% 62%, rgba(120, 167, 27, 0.14) 0%, rgba(120, 167, 27, 0) 70%),
+      linear-gradient(165deg, #1a2e1a 0%, #0f1f12 35%, #0a160c 65%, #0c1e12 100%);
+    background-repeat: no-repeat;
+    position: relative;
+    isolation: isolate;
+  }
+  .bb-dash-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.2126 0.7152 0.0722 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='gamma' exponent='3' amplitude='1' offset='0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 190px 190px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .bb-dash-panel > * {
+    position: relative;
+    z-index: 1;
+  }
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
