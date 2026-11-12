@@ -17,7 +17,8 @@ export default function StickyGenerateBar({ visible, onClick, disabled, label, i
       <Button
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-12 text-sm font-heading font-semibold rounded-xl bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30"
+        variant="destructive"
+        className="w-full h-12 text-sm"
         size="lg"
       >
         {label}

@@ -38,13 +38,9 @@ export default function CalorieCalculator({ value, onChange }) {
   const update = (patch) => onChange({ ...value, ...patch });
 
   const inputCls =
-    "flex-1 min-w-0 border border-border rounded-xl px-3 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40";
+    "flex-1 min-w-0 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-3 py-2 text-sm font-heading font-bold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]";
   const segCls = (active) =>
-    `flex-1 px-3 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
-      active
-        ? "bg-primary text-primary-foreground border-primary"
-        : "bg-card text-foreground border-border hover:border-primary/40"
-    }`;
+    `flex-1 px-3 py-2.5 text-xs sm:text-sm bba-chip ${active ? "bba-chip-active" : ""}`;
 
   return (
     <div className="space-y-4">
@@ -163,9 +159,9 @@ export default function CalorieCalculator({ value, onChange }) {
       </div>
 
       {/* Result */}
-      <div className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3">
-        <span className="text-sm font-medium text-foreground">{t("dailyCaloriesLabel")}</span>
-        <span className="font-heading font-bold text-lg text-primary">
+      <div className="flex items-center justify-between rounded-2xl bg-[#FFB020] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827] px-4 py-3">
+        <span className="text-sm font-heading font-extrabold text-[#111827]">{t("dailyCaloriesLabel")}</span>
+        <span className="font-heading font-black text-lg text-[#111827]">
           {daily ? `${daily.toLocaleString()} ${t("kcalDay")}` : "—"}
         </span>
       </div>

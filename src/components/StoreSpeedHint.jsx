@@ -31,9 +31,9 @@ export default function StoreSpeedHint() {
   const { currentLanguage } = useLanguage();
   const text = HINT[currentLanguage.code] || HINT.en;
   return (
-    <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
-      <Zap className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-      <p className="text-xs text-muted-foreground leading-snug">{text}</p>
+    <div className="flex items-start gap-2 bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-3 py-2 shadow-[2px_2px_0_#111827]">
+      <Zap className="h-4 w-4 text-[#111827] dark:text-[#FFB020] shrink-0 mt-0.5" />
+      <p className="text-xs font-semibold text-[#111827] dark:text-foreground leading-snug">{text}</p>
     </div>
   );
 }

@@ -262,8 +262,9 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 px-3 py-1.5 rounded-lg transition-all duration-200 border border-primary/20"
+        className="flex items-center gap-1.5 text-xs font-heading font-extrabold text-[#111827] bg-[#7DD3FC] hover:bg-[#38bdf8] px-3 py-1.5 rounded-full border-2 border-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
       >
         <MapPin className="h-3.5 w-3.5" />
         {selectedStoreLocations.length > 0 ? `${selectedStoreLocations.length} ${t("mapPinned")}` : t("mapPickOnMap")}
@@ -271,13 +272,13 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pb-24 bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border flex flex-col" style={{ maxHeight: "80vh" }}>
+          <div className="bg-card rounded-3xl shadow-[6px_6px_0_#111827] w-full max-w-2xl overflow-hidden border-[3px] border-[#111827] dark:border-[#78a71b] flex flex-col" style={{ maxHeight: "80vh" }}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 bg-[#7DD3FC] text-[#111827] border-b-[3px] border-[#111827] shrink-0">
               <div>
-                <h2 className="font-heading font-bold text-base">{t("mapSelectSpecificStores")}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <h2 className="font-heading font-black text-base text-[#111827]">{t("mapSelectSpecificStores")}</h2>
+                <p className="text-xs font-medium text-[#111827]/80 mt-0.5">
                   {loadingStores
                     ? t("mapFindingStores")
                     : stores.length > 0
@@ -285,8 +286,8 @@ export default function StoreMapPicker({ selectedStoreLocations, onChangeStoreLo
                     : t("mapClickToLoad")}
                 </p>
               </div>
-              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted">
-                <X className="h-5 w-5" />
+              <button type="button" onClick={() => setOpen(false)} className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827]">
+                <X className="h-4 w-4" />
               </button>
             </div>
 

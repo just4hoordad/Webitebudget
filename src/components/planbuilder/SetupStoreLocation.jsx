@@ -16,7 +16,7 @@ export default function SetupStoreLocation({ postalCode, setPostalCode, selected
           onBlur={() => { if (/^\d{5}$/.test(postalCode || "")) onComplete("stores"); }}
           onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
           placeholder={t("plzPlaceholder") || "e.g. 10115"}
-          className="flex-1 min-w-0 border border-border rounded-xl px-4 py-2.5 text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          className="flex-1 min-w-0 border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-4 py-2 text-sm font-heading font-bold bg-card shadow-[2px_2px_0_#111827] focus:outline-none focus:ring-2 focus:ring-[#78a71b]" />
         <div className="shrink-0 py-1">
           <StoreMapPicker selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={onChangeStoreLocations}
             selectedChains={stores} onToggleChain={toggleStore} cityCoords={cityCoords} onCityCoordsUsed={onCityCoordsUsed}

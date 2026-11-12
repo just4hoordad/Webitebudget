@@ -31,7 +31,7 @@ export default function EasyModeToggle({ mode, onChange }) {
     </button>
   );
   return (
-    <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-white border-[3px] border-[#111827] shadow-[4px_4px_0_#111827]">
+    <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[4px_4px_0_#111827] dark:shadow-[4px_4px_0_#000]">
       {item("easy", Sparkles, l.easy)}
       {item("detailed", SlidersHorizontal, l.detailed)}
     </div>
