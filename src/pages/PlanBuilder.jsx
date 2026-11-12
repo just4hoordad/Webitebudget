@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useMonetization } from "@/lib/MonetizationContext";
 import { groceryDaysForUser, isGroceryCapped } from "@/lib/freeTier";
 import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
+import PlanBuilderIntro from "@/components/PlanBuilderIntro";
 import { ArrowLeft, Share2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LastResultButton from "@/components/LastResultButton";
@@ -27,6 +28,7 @@ import { GROCERY_MODEL } from "@/lib/groceryModel";
 
 const PREFS_KEY = "bb_planbuilder_prefs";
 const RECENT_KEY = "bb_recent_meals";
+const INTRO_STORAGE_KEY = "bb_planbuilder_intro_seen_v1";
 function loadPrefs() {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
 }
@@ -86,8 +88,16 @@ export default function PlanBuilder() {
   const [suggesting, setSuggesting] = useState({});
   const [recentMeals, setRecentMeals] = useState(loadRecent);
   const [showShare, setShowShare] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => {
+    try { return !localStorage.getItem(INTRO_STORAGE_KEY); } catch { return false; }
+  });
   const savedPlanId = useRef(null);
   const savedPlanName = useRef(null);
+
+  const handleCompleteIntro = () => {
+    try { localStorage.setItem(INTRO_STORAGE_KEY, "1"); } catch { /* ignore */ }
+    setShowIntro(false);
+  };
 
   const CACHE_KEY = "bb_plan_grocery_cache_v2";
 
@@ -449,7 +459,17 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
 
   return (
     <div className="space-y-4">
-      <CreditBar variant="onLight" />
+      <PlanBuilderIntro open={showIntro} onComplete={handleCompleteIntro} />
+      <div className="flex items-center justify-between">
+        <CreditBar variant="onLight" />
+        <button
+          type="button"
+          onClick={() => setShowIntro(true)}
+          className="text-[11px] font-heading font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border-2 border-[#111827] bg-[#FFB020] text-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+        >
+          ▶ How it works
+        </button>
+      </div>
       <LastResultButton kind="plan" className="w-full" />
       <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} easyMode={easyMode} onEasyModeChange={handleEasyChange} />
     </div>
