@@ -9,13 +9,14 @@ export default function BudgetPlanner() {
   const { currentLanguage } = useLanguage();
   const m = modeText(currentLanguage?.code);
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight">{m.budgetTitle}</h1>
-        <p className="text-sm text-muted-foreground">{m.budgetDesc}</p>
+    <div className="space-y-5">
+      <div className="bba-t bg-[#FF3E7F] text-white space-y-2">
+        <span className="bba-sticker">Budget Mode</span>
+        <h1 className="font-heading text-3xl sm:text-4xl font-black tracking-tight text-white">{m.budgetTitle}</h1>
+        <p className="text-sm text-white/90 font-medium">{m.budgetDesc}</p>
         <CreditBar className="mt-3" />
-        <LastResultButton kind="budget" className="mt-3 w-full" />
       </div>
+      <LastResultButton kind="budget" className="w-full" />
       <div id="plan-form">
         <BudgetForm />
       </div>

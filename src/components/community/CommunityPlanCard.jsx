@@ -6,7 +6,7 @@ export default function CommunityPlanCard({ plan, onOpen }) {
   return (
     <button
       onClick={() => onOpen(plan)}
-      className="text-left bg-card border border-border rounded-2xl p-5 space-y-3 hover:border-primary transition-colors group w-full"
+      className="bba-t text-left bg-card p-5 space-y-3 group w-full"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">

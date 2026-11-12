@@ -111,8 +111,8 @@ export default function PlanReview() {
       </div>
 
       {/* Everything you selected */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden bb-shadow">
-        <div className="bg-secondary px-4 py-2.5">
+      <div className="bba-t bg-card overflow-hidden p-0">
+        <div className="bg-secondary border-b-3 border-[#111827] px-4 py-2.5">
           <h3 className="font-heading font-semibold text-xs uppercase tracking-wide text-secondary-foreground">
             {t("reviewYourSelections") || "Your selections"}
           </h3>

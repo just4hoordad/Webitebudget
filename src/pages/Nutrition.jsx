@@ -311,7 +311,7 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
         <>
           {/* Daily Macro Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-card border border-border rounded-xl bb-shadow px-4 py-3 flex flex-col gap-1">
+            <div className="bba-t bg-[#F3F8E6] px-4 py-3 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Flame className="h-3.5 w-3.5" /> Calories
               </div>

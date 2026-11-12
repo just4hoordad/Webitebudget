@@ -22,8 +22,8 @@ export default function EasyModeToggle({ mode, onChange }) {
     <button
       type="button"
       onClick={() => onChange(val)}
-      className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-        mode === val ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+      className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-full text-sm font-heading font-extrabold transition-all ${
+        mode === val ? "bg-[#A3E635] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       <Icon className="h-4 w-4" />
@@ -31,7 +31,7 @@ export default function EasyModeToggle({ mode, onChange }) {
     </button>
   );
   return (
-    <div className="inline-flex items-center gap-1 p-1 rounded-full bg-secondary border border-border">
+    <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-white border-[3px] border-[#111827] shadow-[4px_4px_0_#111827]">
       {item("easy", Sparkles, l.easy)}
       {item("detailed", SlidersHorizontal, l.detailed)}
     </div>

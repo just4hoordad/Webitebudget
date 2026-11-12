@@ -13,7 +13,7 @@ export default function RecipeCard({ recipe, onEdit, onRemix, onDelete, onCook, 
   const isQuick = totalTime > 0 && totalTime <= 30;
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 space-y-3 hover:border-primary/30 transition-colors group">
+    <div className="bba-t bg-card p-4 space-y-3 group">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">

@@ -49,8 +49,8 @@ export default function Contact() {
       </div>
 
       {/* Email */}
-      <div className="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 bb-shadow">
-        <div className="bg-gradient-to-br from-primary/15 to-primary/5 w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-primary/10">
+      <div className="flex items-center gap-4 bba-t bg-[#7DD3FC] px-5 py-4">
+        <div className="bg-white border-2 border-[#111827] w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-[2px_2px_0_#111827]">
           <Mail className="h-5 w-5 text-primary" />
         </div>
         <div>

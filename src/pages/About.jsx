@@ -37,8 +37,8 @@ export default function About() {
 
       <div className="grid grid-cols-2 gap-4">
         {features.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="group bg-card border border-border rounded-2xl p-5 bb-shadow hover:bb-shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-            <div className="bg-gradient-to-br from-primary/15 to-primary/5 w-11 h-11 rounded-2xl flex items-center justify-center mb-3 ring-1 ring-primary/10 transition-transform duration-300 group-hover:scale-105">
+          <div key={title} className="bba-t bg-card p-5 group hover:-translate-y-1">
+            <div className="bg-primary/20 border-2 border-[#111827] w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 shadow-[2px_2px_0_#111827]">
               <Icon className="h-5 w-5 text-primary" />
             </div>
             <p className="font-heading font-semibold text-foreground mb-1">{title}</p>

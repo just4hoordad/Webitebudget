@@ -178,9 +178,9 @@ export default function Recipes() {
           <p className="text-sm text-muted-foreground">{L("recipesTitle")}…</p>
         </div>
       ) : recipes.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-10 text-center space-y-4 bb-shadow">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center">
-            <BookOpen className="h-8 w-8 text-primary" />
+        <div className="bba-t bg-[#FF3E7F] text-white p-10 text-center space-y-4">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-white flex items-center justify-center border-3 border-[#111827] shadow-[3px_3px_0_#111827]">
+            <BookOpen className="h-8 w-8 text-[#111827]" />
           </div>
           <p className="text-muted-foreground">{search || dietFilter || typeFilter ? L("libraryEmpty") : L("noRecipes")}</p>
           {!search && !dietFilter && !typeFilter && (
@@ -191,7 +191,7 @@ export default function Recipes() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {recipes.map(recipe => (
             <RecipeCard
               key={recipe.id}

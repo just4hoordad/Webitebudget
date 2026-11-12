@@ -23,8 +23,8 @@ import { useState, useEffect } from "react";
 
 function LogoMark({ className = "" }) {
   return (
-    <div className={`h-9 w-9 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center bb-shadow-glow ${className}`}>
-      <ShoppingCart className="h-[18px] w-[18px] text-primary-foreground" />
+    <div className={`h-9 w-9 rounded-xl bg-[#A3E635] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center ${className}`}>
+      <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
     </div>
   );
 }
@@ -205,24 +205,24 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header — mobile only */}
         <header
-          className="md:hidden sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border"
+          className="md:hidden sticky top-0 z-50 bg-[#F3F8E6]/95 dark:bg-background/95 backdrop-blur-md border-b-[3px] border-[#111827]"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="px-4 h-14 flex items-center justify-between">
             {isRoot ? (
               <Link to="/" className="flex items-center gap-2.5 select-none">
                 <LogoMark className="h-8 w-8" />
-                <span className="font-heading font-bold text-lg tracking-tight text-foreground">
-                  Budget<span className="text-primary">Bite</span>
+                <span className="font-heading font-black text-lg tracking-tight text-foreground">
+                  Budget<span className="bg-[#FF3E7F] text-white px-1.5 py-0.5 rounded-md border-2 border-[#111827] ml-0.5">Bite</span>
                 </span>
                 {isPro && <ProBadge className="ml-1" />}
               </Link>
             ) : (
               <button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors select-none -ml-2 px-2 min-h-[44px] py-2"
+                className="flex items-center gap-1.5 text-xs font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3 py-1.5 select-none"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
                 {t("back")}
               </button>
             )}
@@ -230,7 +230,7 @@ export default function Layout() {
               {!isAuthenticated && (
                 <button
                   onClick={navigateToLogin}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors shrink-0"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-extrabold text-[#111827] bg-[#A3E635] border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0"
                   aria-label={t("signInNav")}
                 >
                   <LogIn className="h-3.5 w-3.5" />
@@ -286,7 +286,7 @@ export default function Layout() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 pointer-events-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
         >
-          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-card/90 backdrop-blur-xl border border-border bb-shadow-lg p-1.5">
+          <div className="pointer-events-auto flex items-center gap-1 w-full max-w-[390px] rounded-full bg-white border-[3px] border-[#111827] shadow-[5px_5px_0_#111827] p-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -295,10 +295,10 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => { if (isActive) navigate(item.path, { replace: true }); }}
-                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-semibold uppercase tracking-tight transition-all select-none ${
+                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-full text-[9px] font-heading font-black uppercase tracking-tight transition-all select-none ${
                     isActive
-                      ? "bg-primary text-primary-foreground bb-shadow-glow"
-                      : "text-foreground/70 hover:text-foreground"
+                      ? "bg-[#A3E635] text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827]"
+                      : "text-[#111827]/75 hover:text-[#111827]"
                   }`}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -308,7 +308,7 @@ export default function Layout() {
             })}
             <button
               onClick={() => setMoreOpen(true)}
-              className="flex items-center justify-center h-9 w-9 rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 ml-0.5"
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-[#FF3E7F] text-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] shrink-0 ml-0.5"
               title={t("more") || "More"}
               aria-label={t("more") || "More"}
             >

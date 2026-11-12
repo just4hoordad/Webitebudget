@@ -8,8 +8,8 @@ export default function Footer() {
     <footer className="mt-14 border-t border-border pt-10 pb-4">
       <div className="space-y-8">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/75 flex items-center justify-center shrink-0 bb-shadow-glow">
-            <ShoppingCart className="h-[18px] w-[18px] text-primary-foreground" />
+          <div className="h-10 w-10 rounded-xl bg-primary border-2 border-[#111827] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#111827]">
+            <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
           </div>
           <div className="min-w-0">
             <p className="font-heading font-bold text-lg text-foreground tracking-tight">

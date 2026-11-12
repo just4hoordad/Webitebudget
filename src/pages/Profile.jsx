@@ -120,8 +120,8 @@ export default function Profile() {
       ) : (
         <>
           {/* Display name */}
-          <div className="bg-card border border-border rounded-2xl p-5 bb-shadow space-y-3">
-            <label className="block text-sm font-semibold text-foreground">
+          <div className="bba-t bg-[#A3E635] p-5 space-y-3">
+            <label className="block text-sm font-bold text-[#111827]">
               {t("profileDisplayName") || "Display name"}
             </label>
             <input
@@ -137,7 +137,7 @@ export default function Profile() {
           </div>
 
           {/* Visibility toggle */}
-          <div className="bg-card border border-border rounded-2xl p-5 bb-shadow space-y-4">
+          <div className="bba-t bg-[#FFB020] p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center gap-2">

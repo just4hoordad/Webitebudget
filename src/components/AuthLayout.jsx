@@ -36,7 +36,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
           {subtitle && <p className="text-muted-foreground mt-2 text-sm leading-relaxed max-w-xs mx-auto">{subtitle}</p>}
         </div>
 
-        <div className="bg-card rounded-3xl bb-shadow-lg border border-border p-8">
+        <div className="bba-t bg-card p-8">
           {children}
         </div>
 

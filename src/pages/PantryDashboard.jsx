@@ -145,7 +145,7 @@ export default function PantryDashboard() {
         </p>
       </div>
 
-      <div className="bg-card border border-border rounded-xl bb-shadow p-4">
+      <div className="bba-t bg-card p-4">
         <PantryManager onPantryChange={(list) => { setItems(list); setLoading(false); }} />
       </div>
 
@@ -154,7 +154,7 @@ export default function PantryDashboard() {
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : total === 0 ? (
-        <div className="bg-card border border-border rounded-xl bb-shadow p-8 text-center text-muted-foreground">
+        <div className="bba-t bg-card p-8 text-center text-muted-foreground">
           {t("pantryEmptyDashboard") ||
             "Your pantry is empty. Add staples from the home page to see your breakdown."}
         </div>
