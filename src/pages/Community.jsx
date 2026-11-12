@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/AuthContext";
+import { useMonetization } from "@/lib/MonetizationContext";
 import CommunityPlanCard from "@/components/community/CommunityPlanCard";
 import CommunityPlanDetail from "@/components/community/CommunityPlanDetail";
+import CommunityProLock from "@/components/community/CommunityProLock";
 import { Users, Loader2, LogIn, Search } from "lucide-react";
 
 export default function Community() {
   const { t } = useLanguage();
   const { isAuthenticated, isLoadingAuth, navigateToLogin } = useAuth();
+  const { isPro, openPricing } = useMonetization();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,6 +35,13 @@ export default function Community() {
     if (isAuthenticated) loadPlans("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  // Free users see a locked paywall (subscription bait) — still load plans for the blurred preview.
+  if (isAuthenticated && !isPro) {
+    return (
+      <CommunityProLock plans={plans} onUpgrade={openPricing} />
+    );
+  }
 
   if (isLoadingAuth) {
     return (
