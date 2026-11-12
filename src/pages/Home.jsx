@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import PlanModeChooser from "@/components/PlanModeChooser";
 import HeroSection from "@/components/HeroSection";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -78,7 +79,13 @@ export default function Home() {
       <div className="bba-pg -mx-4 -mt-6 md:mx-0 md:mt-0">
         <HeroSection />
 
-        <div className="bba-t bba-f bba-fa">
+        <motion.div
+          initial={{ opacity: 0, y: 28, scale: 0.94 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          className="bba-t bba-f bba-fa"
+        >
           <div className="bba-ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h12" />
@@ -89,9 +96,15 @@ export default function Home() {
             <h3>{t("feature1Title") || "Real German prices"}</h3>
             <p>{t("feature1Desc") || "Compare prices across Aldi, Lidl, REWE, Edeka, Penny & Netto"}</p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bba-t bba-f bba-fb">
+        <motion.div
+          initial={{ opacity: 0, y: 28, rotate: -3, scale: 0.94 }}
+          whileInView={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.05 }}
+          className="bba-t bba-f bba-fb"
+        >
           <div className="bba-ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M20 4C9 4 4 9 4 15a5 5 0 005 5c6 0 11-5 11-16zM4 20c3-6 6-9 11-12" />
@@ -101,9 +114,15 @@ export default function Home() {
             <h3>{t("feature2Title") || "Personalized diets"}</h3>
             <p>{t("feature2Desc") || "Meal plans tailored to your diet, budget, and preferences"}</p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bba-t bba-f bba-fc">
+        <motion.div
+          initial={{ opacity: 0, y: 28, rotate: 3, scale: 0.94 }}
+          whileInView={{ opacity: 1, y: 0, rotate: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.1 }}
+          className="bba-t bba-f bba-fc"
+        >
           <div className="bba-ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 10h18l-2 10H5zM8 10l3-6M16 10l-3-6" />
@@ -113,7 +132,7 @@ export default function Home() {
             <h3>{t("feature3Title") || "Smart shopping list"}</h3>
             <p>{t("feature3Desc") || "Weekly shopping lists with the best store for each item"}</p>
           </div>
-        </div>
+        </motion.div>
 
         <PlanModeChooser />
       </div>
