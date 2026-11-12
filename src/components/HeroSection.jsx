@@ -26,7 +26,7 @@ const itemVariants = {
   },
 };
 
-export default function HeroSection() {
+export default function HeroSection({ onOpenIntro }) {
   const { t } = useLanguage();
   const heroRef = useRef(null);
 
@@ -71,12 +71,15 @@ export default function HeroSection() {
           <span className="inline-block h-2 w-2 rounded-full bg-[#A3E635] animate-pulse" />
           Smart Grocery Arcade
         </span>
-        <motion.span
-          style={{ opacity: scrollHintOpacity }}
-          className="text-[11px] font-heading font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border-2 border-[#111827] bg-[#F3F8E6] text-[#111827] shadow-[2px_2px_0_#111827]"
-        >
-          ↓ Scroll
-        </motion.span>
+        {onOpenIntro && (
+          <button
+            type="button"
+            onClick={onOpenIntro}
+            className="text-[11px] font-heading font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border-2 border-[#111827] bg-[#FFB020] text-[#111827] shadow-[2px_2px_0_#111827] hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
+          >
+            ▶ How it works
+          </button>
+        )}
       </motion.div>
 
       {/* Scroll-reactive headline */}

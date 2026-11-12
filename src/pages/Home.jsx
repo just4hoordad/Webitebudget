@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import PlanModeChooser from "@/components/PlanModeChooser";
 import HeroSection from "@/components/HeroSection";
+import ScrollIntro from "@/components/ScrollIntro";
 import { useLanguage } from "@/lib/LanguageContext";
+
+const INTRO_STORAGE_KEY = "bb_scroll_intro_seen_v1";
 
 const BENTO_ARCADE_CSS = `
 @keyframes pop{0%{opacity:0;transform:translateY(26px) scale(.92)}70%{opacity:1;transform:translateY(-4px) scale(1.02)}100%{opacity:1;transform:none}}
@@ -72,12 +76,29 @@ a.bba-t:active{box-shadow:0 0 0 #111827;transform:translate(5px,5px)}
 
 export default function Home() {
   const { t } = useLanguage();
+  const [showIntro, setShowIntro] = useState(() => {
+    try {
+      return !localStorage.getItem(INTRO_STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  });
+
+  const handleCompleteIntro = () => {
+    try {
+      localStorage.setItem(INTRO_STORAGE_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setShowIntro(false);
+  };
 
   return (
     <>
       <style>{BENTO_ARCADE_CSS}</style>
+      <ScrollIntro open={showIntro} onComplete={handleCompleteIntro} />
       <div className="bba-pg -mx-4 -mt-6 md:mx-0 md:mt-0">
-        <HeroSection />
+        <HeroSection onOpenIntro={() => setShowIntro(true)} />
 
         <motion.div
           initial={{ opacity: 0, y: 28, scale: 0.94 }}
