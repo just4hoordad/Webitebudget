@@ -13,12 +13,12 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const MACRO_COLORS = {
-  protein: "#22c55e",
-  fat: "#f59e0b",
-  carbs: "#3b82f6",
+  protein: "#78a71b",
+  fat: "#FFB020",
+  carbs: "#7DD3FC",
 };
 
-const PIE_COLORS = ["#22c55e", "#f59e0b", "#3b82f6"];
+const PIE_COLORS = ["#78a71b", "#FFB020", "#7DD3FC"];
 
 export default function Nutrition() {
   const { t } = useLanguage();
@@ -314,22 +314,23 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
   })) || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-10">
+    <div className="max-w-3xl mx-auto space-y-5 pb-10">
       {/* Back link */}
-      <div className="flex items-center gap-2">
+      <div>
         <Link
           to={`/meal-plan?budget=${budget}&stores=${encodeURIComponent(stores)}&diet=${diet}&people=${people}&calories=${calories}&junkPercent=${junkPercent}`}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-heading font-extrabold text-[#111827] bg-white border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-full px-3.5 py-1.5 hover:translate-x-[1px] hover:translate-y-[1px] transition-transform"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Back to meal plan
         </Link>
       </div>
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="bba-t bg-[#78a71b] text-[#111827] flex items-start justify-between gap-3 flex-wrap">
         <div className="space-y-1.5">
-          <h1 className="font-heading text-3xl font-bold tracking-tight">{t("nutritionBreakdown")}</h1>
-          <p className="text-sm text-muted-foreground">
+          <span className="bba-sticker">Nutrition Stats</span>
+          <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-[#111827]">{t("nutritionBreakdown")}</h1>
+          <p className="text-xs sm:text-sm font-semibold text-[#111827]/85">
             {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
           </p>
         </div>
@@ -347,47 +348,47 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
         <>
           {/* Daily Macro Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bba-t bg-[#F3F8E6] px-4 py-3 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="bba-t bg-[#F3F8E6] text-[#111827] px-4 py-3.5 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/75">
                 <Flame className="h-3.5 w-3.5" /> Calories
               </div>
-              <p className="font-heading text-xl font-bold text-foreground">
+              <p className="font-heading text-2xl font-black text-[#111827]">
                 {Math.round(nutrition?.daily_totals?.calories || 0)}
               </p>
-              <p className="text-xs text-muted-foreground">kcal / day</p>
+              <p className="text-xs font-semibold text-[#111827]/75">kcal / day</p>
             </div>
-            <div className="bg-card border border-green-200 rounded-xl px-4 py-3 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-green-600">
+            <div className="bba-t bg-[#78a71b] text-[#111827] px-4 py-3.5 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/80">
                 <Beef className="h-3.5 w-3.5" /> Protein
               </div>
-              <p className="font-heading text-xl font-bold text-green-600">
+              <p className="font-heading text-2xl font-black text-[#111827]">
                 {Math.round(nutrition?.daily_totals?.protein_g || 0)}g
               </p>
-              <p className="text-xs text-muted-foreground">per day</p>
+              <p className="text-xs font-semibold text-[#111827]/80">per day</p>
             </div>
-            <div className="bg-card border border-amber-200 rounded-xl px-4 py-3 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-amber-600">
+            <div className="bba-t bg-[#FFB020] text-[#111827] px-4 py-3.5 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/80">
                 <Droplets className="h-3.5 w-3.5" /> Fat
               </div>
-              <p className="font-heading text-xl font-bold text-amber-600">
+              <p className="font-heading text-2xl font-black text-[#111827]">
                 {Math.round(nutrition?.daily_totals?.fat_g || 0)}g
               </p>
-              <p className="text-xs text-muted-foreground">per day</p>
+              <p className="text-xs font-semibold text-[#111827]/80">per day</p>
             </div>
-            <div className="bg-card border border-blue-200 rounded-xl px-4 py-3 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-blue-600">
+            <div className="bba-t bg-[#7DD3FC] text-[#111827] px-4 py-3.5 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-heading font-black uppercase tracking-wider text-[#111827]/80">
                 <Wheat className="h-3.5 w-3.5" /> Carbs
               </div>
-              <p className="font-heading text-xl font-bold text-blue-600">
+              <p className="font-heading text-2xl font-black text-[#111827]">
                 {Math.round(nutrition?.daily_totals?.carbs_g || 0)}g
               </p>
-              <p className="text-xs text-muted-foreground">per day</p>
+              <p className="text-xs font-semibold text-[#111827]/80">per day</p>
             </div>
           </div>
 
           {/* Macro Split Pie Chart */}
-          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
-            <h2 className="font-heading font-semibold mb-4">{t("calorieSplitTitle")}</h2>
+          <div className="bba-t bg-card p-5">
+            <h2 className="font-heading font-black text-base mb-4">{t("calorieSplitTitle")}</h2>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <ResponsiveContainer width={220} height={220}>
                 <PieChart>
@@ -395,10 +396,12 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
                     data={pieMacroData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
+                    innerRadius={58}
                     outerRadius={90}
                     paddingAngle={3}
                     dataKey="value"
+                    stroke="#111827"
+                    strokeWidth={2}
                   >
                     {pieMacroData.map((_, i) => (
                       <Cell key={i} fill={PIE_COLORS[i]} />
@@ -409,16 +412,16 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
               </ResponsiveContainer>
               <div className="flex flex-col gap-3 w-full">
                 {[
-                  { label: "Protein", pct: nutrition?.macro_calorie_pct?.protein_pct, color: "bg-green-500", text: "text-green-600" },
-                  { label: "Fat", pct: nutrition?.macro_calorie_pct?.fat_pct, color: "bg-amber-500", text: "text-amber-600" },
-                  { label: "Carbs", pct: nutrition?.macro_calorie_pct?.carbs_pct, color: "bg-blue-500", text: "text-blue-600" },
-                ].map(({ label, pct, color, text }) => (
+                  { label: "Protein", pct: nutrition?.macro_calorie_pct?.protein_pct, color: "bg-[#78a71b]" },
+                  { label: "Fat", pct: nutrition?.macro_calorie_pct?.fat_pct, color: "bg-[#FFB020]" },
+                  { label: "Carbs", pct: nutrition?.macro_calorie_pct?.carbs_pct, color: "bg-[#7DD3FC]" },
+                ].map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className={`font-medium ${text}`}>{label}</span>
-                      <span className="text-muted-foreground">{(pct || 0).toFixed(1)}%</span>
+                      <span className="font-heading font-extrabold text-foreground">{label}</span>
+                      <span className="font-heading font-black text-foreground">{(pct || 0).toFixed(1)}%</span>
                     </div>
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="w-full h-3 bg-muted border-2 border-[#111827] dark:border-[#78a71b] rounded-full overflow-hidden">
                       <div className={`h-full ${color} rounded-full`} style={{ width: `${pct || 0}%` }} />
                     </div>
                   </div>
@@ -429,37 +432,37 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
 
           {/* Per Meal Bar Chart */}
           {barData.length > 0 && (
-            <div className="bg-card border border-border rounded-xl bb-shadow p-5">
-              <h2 className="font-heading font-semibold mb-4">Macros per Meal (grams)</h2>
+            <div className="bba-t bg-card p-5">
+              <h2 className="font-heading font-black text-base mb-4">Macros per Meal (grams)</h2>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={barData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="meal" tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(17,24,39,0.12)" />
+                  <XAxis dataKey="meal" tick={{ fontSize: 12, fontWeight: 700 }} />
                   <YAxis tick={{ fontSize: 12 }} unit="g" />
                   <Tooltip formatter={(v) => `${v}g`} />
                   <Legend />
-                  <Bar dataKey="Protein" fill={MACRO_COLORS.protein} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Fat" fill={MACRO_COLORS.fat} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Carbs" fill={MACRO_COLORS.carbs} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Protein" fill={MACRO_COLORS.protein} stroke="#111827" strokeWidth={1.5} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Fat" fill={MACRO_COLORS.fat} stroke="#111827" strokeWidth={1.5} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Carbs" fill={MACRO_COLORS.carbs} stroke="#111827" strokeWidth={1.5} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
 
           {/* Monthly totals */}
-          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
-            <h2 className="font-heading font-semibold mb-3">Monthly Totals (4 weeks)</h2>
+          <div className="bba-t bg-card p-5">
+            <h2 className="font-heading font-black text-base mb-3">Monthly Totals (4 weeks)</h2>
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
-                { label: "Protein", value: nutrition?.monthly_totals?.protein_g, unit: "g", color: "text-green-600", border: "border-green-200" },
-                { label: "Fat", value: nutrition?.monthly_totals?.fat_g, unit: "g", color: "text-amber-600", border: "border-amber-200" },
-                { label: "Carbs", value: nutrition?.monthly_totals?.carbs_g, unit: "g", color: "text-blue-600", border: "border-blue-200" },
-              ].map(({ label, value, unit, color, border }) => (
-                <div key={label} className={`bg-card border ${border} rounded-xl px-3 py-4`}>
-                  <p className={`font-heading text-2xl font-bold ${color}`}>
+                { label: "Protein", value: nutrition?.monthly_totals?.protein_g, bg: "bg-[#78a71b]" },
+                { label: "Fat", value: nutrition?.monthly_totals?.fat_g, bg: "bg-[#FFB020]" },
+                { label: "Carbs", value: nutrition?.monthly_totals?.carbs_g, bg: "bg-[#7DD3FC]" },
+              ].map(({ label, value, bg }) => (
+                <div key={label} className={`${bg} text-[#111827] border-2 border-[#111827] shadow-[2px_2px_0_#111827] rounded-2xl px-2.5 py-4`}>
+                  <p className="font-heading text-xl sm:text-2xl font-black text-[#111827]">
                     {value ? (value / 1000).toFixed(1) + "kg" : "—"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">{label} / month</p>
+                  <p className="text-[11px] font-heading font-extrabold uppercase text-[#111827]/75 mt-1">{label} / mo</p>
                 </div>
               ))}
             </div>
@@ -467,8 +470,8 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
 
           {/* Notes */}
           {nutrition?.notes && (
-            <div className="bg-muted/50 border border-border rounded-xl px-5 py-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">💡 {nutrition.notes}</p>
+            <div className="bba-t bg-[#F3F8E6] text-[#111827] px-5 py-4">
+              <p className="text-sm font-medium text-[#111827] leading-relaxed">💡 {nutrition.notes}</p>
             </div>
           )}
         </>

@@ -175,9 +175,9 @@ export default function SavedMealPlans() {
           {plans.length > 0 && (
             <Button
               onClick={deleteAllPlans}
-              variant="outline"
+              variant="destructive"
               size="sm"
-              className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 shrink-0"
+              className="gap-1.5 shrink-0"
             >
               <Trash2 className="h-4 w-4" />
               {t("deleteAllPlans")}
@@ -186,21 +186,21 @@ export default function SavedMealPlans() {
         </div>
 
         {/* Search + Filter */}
-        <div className="space-y-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("searchPlans") || "Search plans…"}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
             />
           </div>
           <select
             value={dietFilter}
             onChange={(e) => setDietFilter(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="sm:w-48 px-3.5 py-2.5 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] text-sm font-heading font-bold focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
           >
             <option value="">{t("allDiets") || "All diets"}</option>
             <option value="balanced">{t("balanced") || "Balanced"}</option>
@@ -215,14 +215,14 @@ export default function SavedMealPlans() {
         </div>
 
         {/* Google Calendar sync */}
-        <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="bba-t bg-[#F3F8E6] dark:bg-card text-[#111827] dark:text-foreground flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
-              <CalendarPlus className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-2xl bg-[#7DD3FC] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0 text-[#111827]">
+              <CalendarPlus className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="font-heading font-semibold text-sm text-foreground">{t("calendarSync") || "Google Calendar sync"}</p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="font-heading font-black text-sm">{t("calendarSync") || "Google Calendar sync"}</p>
+              <p className="text-xs font-medium text-[#111827]/75 dark:text-muted-foreground truncate">
                 {cal.status === "loading" ? (t("loading") || "Loading…") :
                  cal.status === "unauthenticated" ? (t("calLoginNeeded") || "Log in to sync your meal plan to your calendar") :
                  cal.status === "connected" ? (t("calConnected") || "Connected — sync a plan to see what you're cooking each day") :
@@ -244,10 +244,10 @@ export default function SavedMealPlans() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>
+          <div className="text-center py-12 font-heading font-bold text-muted-foreground">{t("loading")}</div>
         ) : plans.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-8 text-center space-y-4">
-            <p className="text-muted-foreground">{t("noPlans")}</p>
+          <div className="bba-t bg-card p-8 text-center space-y-4">
+            <p className="font-semibold text-muted-foreground">{t("noPlans")}</p>
             <Link to="/">
               <Button>{t("createFirst")}</Button>
             </Link>
@@ -286,13 +286,14 @@ export default function SavedMealPlans() {
                       {new Date(plan.created_date).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <button
+                      type="button"
                       onClick={() => toggleCommunityPublish(plan)}
-                      className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors ${
+                      className={`flex items-center gap-1 text-xs font-heading font-extrabold px-2.5 py-1 rounded-full border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] transition-all ${
                         plan.communityPublic
-                          ? "bg-primary text-primary-foreground"
-                          : "text-primary bg-primary/10 hover:bg-primary/20"
+                          ? "bg-[#78a71b] text-[#111827]"
+                          : "bg-[#7DD3FC] text-[#111827] hover:translate-x-[1px] hover:translate-y-[1px]"
                       }`}
                       title={plan.communityPublic ? "Published to Community (click to hide)" : "Publish to Community (requires public profile)"}
                     >
@@ -300,16 +301,18 @@ export default function SavedMealPlans() {
                       {plan.communityPublic ? (t("communityPublished") || "In Community") : (t("publishCommunity") || "Community")}
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSharePlan(plan)}
-                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
+                      className="flex items-center gap-1 text-xs font-heading font-extrabold text-[#111827] bg-[#FFB020] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] px-2.5 py-1 rounded-full hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
                       title={t("sharePlan") || "Share plan"}
                     >
                       <Share2 className="h-3.5 w-3.5" />
                       {t("share") || "Share"}
                     </button>
                     <button
+                      type="button"
                       onClick={() => exportToSheets(plan)}
-                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"
+                      className="flex items-center gap-1 text-xs font-heading font-extrabold text-[#111827] bg-white border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] px-2.5 py-1 rounded-full hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
                       title={t("exportToSheets") || "Export to Google Sheets"}
                     >
                       <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -317,7 +320,7 @@ export default function SavedMealPlans() {
                     </button>
                     {plan.budget != null && (
                       <Link to={`/nutrition?budget=${plan.budget}&stores=${encodeURIComponent(plan.stores || "")}&diet=${plan.diet}&people=${plan.people}&calories=${plan.calories}`}>
-                        <button className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors" title={t("viewNutrition")}>
+                        <button type="button" className="flex items-center gap-1 text-xs font-heading font-extrabold text-[#111827] bg-[#FF8FB5] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] px-2.5 py-1 rounded-full hover:translate-x-[1px] hover:translate-y-[1px] transition-all" title={t("viewNutrition")}>
                           <BarChart2 className="h-3.5 w-3.5" />
                           {t("nutrition")}
                         </button>
@@ -325,9 +328,10 @@ export default function SavedMealPlans() {
                     )}
                     {cal.status === "connected" && (
                       <button
+                        type="button"
                         onClick={() => { cal.sync(plan.id).catch(() => {}); }}
                         disabled={cal.syncingId === plan.id}
-                        className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1 text-xs font-heading font-extrabold text-[#111827] bg-[#C084FC] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] px-2.5 py-1 rounded-full disabled:opacity-50"
                         title={t("syncToCalendar") || "Sync to Google Calendar"}
                       >
                         {cal.syncingId === plan.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
@@ -339,8 +343,9 @@ export default function SavedMealPlans() {
                       </button>
                     )}
                     <button
+                      type="button"
                       onClick={() => deletePlan(plan.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-2"
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1.5"
                       title={t("deletePlan")}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -349,17 +354,18 @@ export default function SavedMealPlans() {
                 </div>
                 {/* Grocery List */}
                 {plan.groceryList?.categories && (
-                  <div className="border border-border rounded-xl overflow-hidden">
+                  <div className="border-2 border-[#111827] dark:border-[#78a71b] rounded-2xl overflow-hidden shadow-[2.5px_2.5px_0_#111827]">
                     <button
+                      type="button"
                       onClick={() => setExpandedGrocery(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}
-                      className="w-full flex items-center justify-between bg-secondary px-4 py-3 hover:bg-secondary/80 transition-colors"
+                      className="w-full flex items-center justify-between bg-[#F3F8E6] dark:bg-secondary px-4 py-3 text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <ShoppingBasket className="h-4 w-4 text-primary" />
-                        <span className="font-heading font-semibold text-sm text-secondary-foreground">{t("yourGroceryList")}</span>
-                        <span className="text-xs text-muted-foreground">· €{plan.groceryList.total_estimated_cost?.toFixed(2)}</span>
+                        <ShoppingBasket className="h-4 w-4 text-[#111827] dark:text-primary" />
+                        <span className="font-heading font-black text-sm text-[#111827] dark:text-foreground">{t("yourGroceryList")}</span>
+                        <span className="text-xs font-heading font-bold text-[#111827]/75 dark:text-muted-foreground">· €{plan.groceryList.total_estimated_cost?.toFixed(2)}</span>
                       </div>
-                      {expandedGrocery[plan.id] ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                      {expandedGrocery[plan.id] ? <ChevronUp className="h-4 w-4 text-foreground" /> : <ChevronDown className="h-4 w-4 text-foreground" />}
                     </button>
                     {expandedGrocery[plan.id] && (
                       <div className="divide-y divide-border">
@@ -406,9 +412,9 @@ export default function SavedMealPlans() {
                 )}
 
                 {Array.isArray(plan.plan) ? (
-                  <div className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="bg-primary px-5 py-3">
-                      <h3 className="font-heading font-semibold text-primary-foreground">{plan.plan.length}-{t("days")}</h3>
+                  <div className="bg-card border-2 border-[#111827] dark:border-[#78a71b] rounded-2xl overflow-hidden shadow-[2.5px_2.5px_0_#111827]">
+                    <div className="bg-[#78a71b] border-b-2 border-[#111827] px-5 py-3">
+                      <h3 className="font-heading font-black text-[#111827]">{plan.plan.length}-{t("days")}</h3>
                     </div>
                     <div className="divide-y divide-border">
                       {plan.plan.map((day, idx) => {
@@ -461,9 +467,9 @@ export default function SavedMealPlans() {
                     </div>
                   </div>
                 ) : plan.plan?.weeks && plan.plan.weeks.map((week, weekIdx) => (
-                  <div key={weekIdx} className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="bg-primary px-5 py-3">
-                      <h3 className="font-heading font-semibold text-primary-foreground">
+                  <div key={weekIdx} className="bg-card border-2 border-[#111827] dark:border-[#78a71b] rounded-2xl overflow-hidden shadow-[2.5px_2.5px_0_#111827]">
+                    <div className="bg-[#78a71b] border-b-2 border-[#111827] px-5 py-3">
+                      <h3 className="font-heading font-black text-[#111827]">
                         {plan.plan.weeks.length > 1 ? `Week ${week.week}` : t("sevenDayPlan")}
                       </h3>
                     </div>

@@ -25,19 +25,19 @@ export default function CookModeView({ recipe, onClose, L }) {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="relative bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
+        className="relative bg-card border-[3px] border-[#111827] dark:border-[#78a71b] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg flex flex-col shadow-[6px_6px_0_#111827] overflow-hidden"
         style={{ maxHeight: "90vh" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between shrink-0">
+        <div className="sticky top-0 bg-[#FFB020] text-[#111827] border-b-[3px] border-[#111827] px-5 py-4 flex items-center justify-between shrink-0">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wide flex items-center gap-1">
+            <span className="bba-sticker mb-1">
               <ChefHat className="h-3.5 w-3.5" /> {L("cookMode")}
-            </p>
-            <h2 className="font-heading font-bold text-foreground mt-0.5 line-clamp-1">{recipe.title}</h2>
+            </span>
+            <h2 className="font-heading font-black text-lg text-[#111827] mt-0.5 line-clamp-1">{recipe.title}</h2>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-3">
-            <X className="h-5 w-5" />
+          <button type="button" onClick={onClose} className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827] shrink-0 ml-3">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -92,13 +92,13 @@ export default function CookModeView({ recipe, onClose, L }) {
                 </div>
               </div>
               <div
-                className="bg-primary/5 border border-primary/20 rounded-2xl p-5 cursor-pointer"
+                className="bg-[#F3F8E6] dark:bg-secondary border-2 border-[#111827] dark:border-[#78a71b] shadow-[3px_3px_0_#111827] rounded-2xl p-5 cursor-pointer"
                 onClick={() => toggleCheck(step)}
               >
-                <p className="text-sm leading-relaxed text-foreground">{recipe.steps[step]}</p>
+                <p className="text-sm font-medium leading-relaxed text-[#111827] dark:text-foreground">{recipe.steps[step]}</p>
                 {checkedSteps.has(step) && (
-                  <div className="mt-3 flex items-center gap-1.5 text-xs text-primary font-semibold">
-                    <Check className="h-4 w-4" /> ✓
+                  <div className="mt-3 inline-flex items-center gap-1.5 text-xs bg-[#78a71b] text-[#111827] border border-[#111827] px-2.5 py-0.5 rounded-full font-heading font-black">
+                    <Check className="h-3.5 w-3.5" /> Done
                   </div>
                 )}
               </div>

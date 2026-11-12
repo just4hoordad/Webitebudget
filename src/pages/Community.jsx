@@ -117,7 +117,7 @@ export default function Community() {
             setDietFilter(e.target.value);
             loadPlans(e.target.value);
           }}
-          className="flex-1 px-3 py-2.5 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="flex-1 px-3.5 py-2.5 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] text-sm font-heading font-bold focus:outline-none"
         >
           <option value="">{t("allDiets") || "All diets"}</option>
           <option value="balanced">{t("balanced") || "Balanced"}</option>
@@ -139,11 +139,11 @@ export default function Community() {
       ) : error ? (
         <div className="text-center py-12 text-sm text-destructive">{error}</div>
       ) : plans.length === 0 ? (
-        <div className="bba-t bg-[#78a71b] p-8 text-center space-y-3">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-white border-3 border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
+        <div className="bba-t bg-[#78a71b] text-[#111827] p-8 text-center space-y-3">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-white border-[3px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
             <Users className="h-7 w-7 text-[#111827]" />
           </div>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-[#111827] font-semibold text-sm">
             {t("communityEmpty") || "No community plans yet. Be the first to share!"}
           </p>
         </div>

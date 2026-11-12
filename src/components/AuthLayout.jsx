@@ -20,20 +20,20 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
       <div className="w-full max-w-md">
         {/* Brand lockup */}
         <Link to="/" className="flex items-center justify-center gap-2.5 mb-8 select-none">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center bb-shadow-glow">
-            <ShoppingCart className="h-5 w-5 text-primary-foreground" />
+          <div className="h-10 w-10 rounded-xl bg-[#78a71b] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827] flex items-center justify-center">
+            <ShoppingCart className="h-5 w-5 text-[#111827]" />
           </div>
-          <span className="font-heading font-bold text-xl tracking-tight text-foreground">
-            Budget<span className="text-primary">Bite</span>
+          <span className="font-heading font-black text-xl tracking-tight text-foreground">
+            Budget<span className="bg-[#FF3E7F] text-white px-1.5 py-0.5 rounded-lg border-2 border-[#111827] shadow-[2px_2px_0_#111827] ml-0.5 inline-block -rotate-2">Bite</span>
           </span>
         </Link>
 
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 mb-4">
-            {Icon && <Icon className="w-7 h-7 text-primary" aria-hidden="true" />}
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#FFB020] border-[3px] border-[#111827] shadow-[3px_3px_0_#111827] mb-4">
+            {Icon && <Icon className="w-7 h-7 text-[#111827]" aria-hidden="true" />}
           </div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-          {subtitle && <p className="text-muted-foreground mt-2 text-sm leading-relaxed max-w-xs mx-auto">{subtitle}</p>}
+          <h1 className="font-heading text-3xl font-black tracking-tight text-foreground">{title}</h1>
+          {subtitle && <p className="text-muted-foreground font-medium mt-2 text-sm leading-relaxed max-w-xs mx-auto">{subtitle}</p>}
         </div>
 
         <div className="bba-t bg-card p-8">

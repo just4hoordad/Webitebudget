@@ -69,17 +69,17 @@ export default function RecipeEditor({ recipe, onSave, onClose, L }) {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="relative bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
+        className="relative bg-card border-[3px] border-[#111827] dark:border-[#78a71b] rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg flex flex-col shadow-[6px_6px_0_#111827] overflow-hidden"
         style={{ maxHeight: "90vh" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between shrink-0">
-          <h2 className="font-heading font-bold text-foreground flex items-center gap-2">
-            <ChefHat className="h-5 w-5 text-primary" />
+        <div className="sticky top-0 bg-[#78a71b] text-[#111827] border-b-[3px] border-[#111827] px-5 py-4 flex items-center justify-between shrink-0">
+          <h2 className="font-heading font-black text-lg text-[#111827] flex items-center gap-2">
+            <ChefHat className="h-5 w-5" />
             {recipe?.id ? L("editRecipe") : L("addRecipe")}
           </h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-5 w-5" />
+          <button type="button" onClick={onClose} className="h-8 w-8 rounded-full bg-white border-2 border-[#111827] flex items-center justify-center text-[#111827]">
+            <X className="h-4 w-4" />
           </button>
         </div>
 

@@ -76,12 +76,16 @@ export default function SharedPlan() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <Leaf className="h-10 w-10 text-muted-foreground" />
-        <p className="font-heading text-lg font-semibold">
-          {t("sharedPlanNotFound") || "This shared plan is no longer available"}
-        </p>
-        <Button onClick={() => navigate("/")}>{t("goHome") || "Go home"}</Button>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bba-t bg-card max-w-md w-full text-center space-y-4 py-8 px-6">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-[#FF8FB5] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center text-[#111827]">
+            <Leaf className="h-7 w-7" />
+          </div>
+          <p className="font-heading text-lg font-black text-foreground">
+            {t("sharedPlanNotFound") || "This shared plan is no longer available"}
+          </p>
+          <Button onClick={() => navigate("/")}>{t("goHome") || "Go home"}</Button>
+        </div>
       </div>
     );
   }

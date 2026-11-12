@@ -137,34 +137,34 @@ export default function Recipes() {
       {/* Search + Filters */}
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={L("searchRecipes")}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2.5px_2.5px_0_#111827] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#78a71b]"
           />
         </div>
         <div className="flex flex-wrap gap-2">
           <select
             value={dietFilter}
             onChange={(e) => setDietFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="px-3.5 py-2 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827] text-xs sm:text-sm font-heading font-bold focus:outline-none"
           >
             {DIET_OPTIONS.map(o => <option key={o.value} value={o.value}>{L(o.labelKey)}</option>)}
           </select>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="px-3.5 py-2 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827] text-xs sm:text-sm font-heading font-bold focus:outline-none"
           >
             {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{L(o.labelKey)}</option>)}
           </select>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ml-auto"
+            className="px-3.5 py-2 rounded-2xl bg-card border-2 border-[#111827] dark:border-[#78a71b] shadow-[2px_2px_0_#111827] text-xs sm:text-sm font-heading font-bold focus:outline-none ml-auto"
           >
             {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{L(o.labelKey)}</option>)}
           </select>
@@ -175,16 +175,16 @@ export default function Recipes() {
       {loading ? (
         <div className="flex flex-col items-center py-16 gap-3">
           <div className="h-10 w-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">{L("recipesTitle")}…</p>
+          <p className="text-sm font-heading font-bold text-muted-foreground">{L("recipesTitle")}…</p>
         </div>
       ) : recipes.length === 0 ? (
-        <div className="bba-t bg-[#FF3E7F] text-white p-10 text-center space-y-4">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-white flex items-center justify-center border-3 border-[#111827] shadow-[3px_3px_0_#111827]">
+        <div className="bba-t bg-[#FF3E7F] text-white p-8 sm:p-10 text-center space-y-4">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-white flex items-center justify-center border-[3px] border-[#111827] shadow-[3px_3px_0_#111827]">
             <BookOpen className="h-8 w-8 text-[#111827]" />
           </div>
-          <p className="text-muted-foreground">{search || dietFilter || typeFilter ? L("libraryEmpty") : L("noRecipes")}</p>
+          <p className="text-white/95 font-medium text-sm">{search || dietFilter || typeFilter ? L("libraryEmpty") : L("noRecipes")}</p>
           {!search && !dietFilter && !typeFilter && (
-            <Button onClick={() => { setEditingRecipe(null); setShowEditor(true); }} className="gap-2">
+            <Button onClick={() => { setEditingRecipe(null); setShowEditor(true); }} variant="secondary" className="gap-2">
               <Plus className="h-4 w-4" />
               {L("createFirst")}
             </Button>

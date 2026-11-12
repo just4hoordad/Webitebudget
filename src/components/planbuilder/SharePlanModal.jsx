@@ -79,16 +79,16 @@ export default function SharePlanModal({ plan, open, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4"
+        className="bg-card border-[3px] border-[#111827] dark:border-[#78a71b] shadow-[6px_6px_0_#111827] rounded-3xl p-6 w-full max-w-md space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Share2 className="h-5 w-5 text-primary" />
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-[#7DD3FC] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center shrink-0 text-[#111827]">
+            <Share2 className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-heading font-semibold">{t("sharePlan") || "Share plan"}</h3>
-            <p className="text-xs text-muted-foreground truncate">{plan?.name}</p>
+            <h3 className="font-heading font-black text-base">{t("sharePlan") || "Share plan"}</h3>
+            <p className="text-xs font-medium text-muted-foreground truncate">{plan?.name}</p>
           </div>
         </div>
 

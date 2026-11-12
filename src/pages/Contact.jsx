@@ -36,10 +36,10 @@ export default function Contact() {
     }
   };
 
-  const inputClass = "w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background transition-colors focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25";
+  const inputClass = "w-full border-2 border-[#111827] dark:border-[#78a71b] rounded-xl px-4 py-2.5 text-sm font-semibold bg-card shadow-[2px_2px_0_#111827] transition-colors focus:outline-none focus:ring-2 focus:ring-[#78a71b]";
 
   return (
-    <div className="max-w-xl mx-auto space-y-8 py-2">
+    <div className="max-w-xl mx-auto space-y-5 py-2">
       <div className="bba-t bg-[#FF8FB5] text-[#111827] space-y-2">
         <span className="bba-sticker">
           {p.contactSubtitle?.split(",")[0] || "Contact"}
@@ -49,23 +49,25 @@ export default function Contact() {
       </div>
 
       {/* Email */}
-      <div className="flex items-center gap-4 bba-t bg-[#7DD3FC] px-5 py-4">
+      <div className="flex items-center gap-4 bba-t bg-[#7DD3FC] text-[#111827] px-5 py-4">
         <div className="bg-white border-2 border-[#111827] w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-[2px_2px_0_#111827]">
-          <Mail className="h-5 w-5 text-primary" />
+          <Mail className="h-5 w-5 text-[#111827]" />
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-0.5">{p.contactOwnerLabel}</p>
-          <a href="mailto:Hoordad.sedaghat@gmail.com" className="font-heading font-semibold text-primary hover:underline">
+        <div className="min-w-0">
+          <p className="text-xs font-heading font-bold text-[#111827]/75 mb-0.5">{p.contactOwnerLabel}</p>
+          <a href="mailto:Hoordad.sedaghat@gmail.com" className="font-heading font-black text-[#111827] hover:underline break-all">
             Hoordad.sedaghat@gmail.com
           </a>
         </div>
       </div>
 
       {/* Contact Form */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-5 bb-shadow">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-primary" />
-          <span className="font-heading font-semibold text-sm">{p.contactSendMessage}</span>
+      <div className="bba-t bg-card p-6 space-y-5">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[1.5px_1.5px_0_#111827] flex items-center justify-center text-[#111827]">
+            <MessageSquare className="h-4 w-4" />
+          </div>
+          <span className="font-heading font-black text-sm">{p.contactSendMessage}</span>
         </div>
         {sent ? (
           <div className="text-center py-8">

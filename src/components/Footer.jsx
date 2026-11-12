@@ -5,17 +5,17 @@ import { useLanguage } from "@/lib/LanguageContext";
 export default function Footer() {
   const { t } = useLanguage();
   return (
-    <footer className="mt-14 border-t border-border pt-10 pb-4">
+    <footer className="mt-14 border-t-[3px] border-[#111827] dark:border-[#78a71b] pt-10 pb-4">
       <div className="space-y-8">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary border-2 border-[#111827] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#111827]">
+          <div className="h-10 w-10 rounded-xl bg-[#78a71b] border-[2.5px] border-[#111827] flex items-center justify-center shrink-0 shadow-[3px_3px_0_#111827]">
             <ShoppingCart className="h-[18px] w-[18px] text-[#111827]" />
           </div>
           <div className="min-w-0">
-            <p className="font-heading font-bold text-lg text-foreground tracking-tight">
-              Budget<span className="text-primary">Bite</span>
+            <p className="font-heading font-black text-lg text-foreground tracking-tight">
+              Budget<span className="bg-[#FF3E7F] text-white px-1.5 py-0.5 rounded-lg border-2 border-[#111827] shadow-[2px_2px_0_#111827] ml-0.5 inline-block -rotate-2">Bite</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-xs">{t("planSubtitle")}</p>
+            <p className="text-xs font-medium text-muted-foreground mt-1.5 leading-relaxed max-w-xs">{t("planSubtitle")}</p>
           </div>
         </div>
 
