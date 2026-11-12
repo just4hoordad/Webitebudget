@@ -8,7 +8,21 @@
     },
     "postal_code": {
       "type": "string",
-      "description": "5-digit German PLZ for region-local pricing; empty string means national/general"
+      "description": "5-digit German PLZ for region-local pricing; empty string means national/general",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "store": {
       "type": "string"

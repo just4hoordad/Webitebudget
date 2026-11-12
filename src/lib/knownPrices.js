@@ -21,14 +21,10 @@ async function loadPrices(postalCode, stores) {
     query.$or = stores.map((store) => ({ store: { $regex: `^${String(store).split(/[\s(]/)[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s|$)`, $options: 'i' } }));
   }
   const options = { sort: '-fetched_date', limit: 100 };
-  const pages = await Promise.all([
-    base44.entities.PriceEstimate.filter({ ...query, postal_code: '' }, options),
-    ...(postalCode ? [base44.entities.PriceEstimate.filter({ ...query, postal_code: postalCode }, options)] : []),
-  ]);
-  // Background upserts maintain one catalog entry per product/store/region.
-  // Regional references take precedence; this map is an exact price lookup.
-  const references = pages.flatMap((page) => page.items);
+  const page = await base44.entities.PriceEstimate.filter(query, options);
+  // Background upserts maintain one catalog entry per product/store.
+  const references = page.items || [];
   const known = new Map(references.map((ref) => [priceKey(ref), ref]));
-  const text = references.map((ref) => `- ${ref.product_name} — €${Number(ref.unit_price).toFixed(2)} per pack @ ${ref.store} (pack: ${ref.quantity}, checked: ${ref.fetched_date}${ref.postal_code ? `, PLZ: ${ref.postal_code}` : ''})`).join('\n');
+  const text = references.map((ref) => `- ${ref.product_name} — €${Number(ref.unit_price).toFixed(2)} per pack @ ${ref.store} (pack: ${ref.quantity}, checked: ${ref.fetched_date})`).join('\n');
   return { text, known };
 }

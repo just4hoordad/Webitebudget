@@ -98,6 +98,9 @@ export async function invokeAI({ prompt, response_json_schema, model, add_contex
 
     const data = res?.data;
     if (data && !data.error && !data.openrouter_unavailable) {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("bb:ai-used"));
+      }
       if (response_json_schema) return data;
       return typeof data.text === "string" ? data.text : data;
     }

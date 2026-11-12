@@ -1,5 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { callOpenRouter, OpenRouterUnavailableError } from "../../shared/openrouter.ts";
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { callOpenRouter } from "../../shared/openrouter.ts";
+import { consumeAIQuota } from "../../shared/aiQuota.ts";
 
 // Allowlist of safe, low-cost models — default route is Gemini 2.5 Flash
 const GEMINI_25_FLASH = "google/gemini-2.5-flash";
@@ -146,21 +147,12 @@ function release() {
 
 export default async function (req: Request): Promise<Response> {
   const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me().catch(() => null);
+  const user = await base44.auth.me().catch((e) => (e?.status === 401 ? null : null));
 
-  // Extract trusted client IP:
-  // Edge proxies (Cloudflare, AWS, etc.) append the connecting client IP to the end of X-Forwarded-For,
-  // or set trusted headers like cf-connecting-ip or x-real-ip.
-  // The first element of XFF is client-supplied and spoofable; taking the last element ensures we read
-  // the hop appended by the reverse proxy.
-  const xff = req.headers.get("x-forwarded-for");
-  const xffHops = xff ? xff.split(",").map((s) => s.trim()).filter(Boolean) : [];
-  const trustedEdgeIp = req.headers.get("cf-connecting-ip")?.trim()
-    || req.headers.get("x-real-ip")?.trim()
-    || (xffHops.length > 0 ? xffHops[xffHops.length - 1] : null)
-    || "anonymous";
-
-  const rateLimitKey = user?.id ? `user:${user.id}` : `ip:${trustedEdgeIp}`;
+  // Only read Cloudflare's edge-set cf-connecting-ip header; never trust
+  // client-spoofable x-real-ip or x-forwarded-for headers.
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim() || "";
+  const rateLimitKey = user?.id ? `user:${user.id}` : (cfIp ? `ip:${cfIp}` : "ip:unidentified");
   if (!checkRateLimit(rateLimitKey)) {
     return Response.json({ error: "Rate limit exceeded. Please wait a moment before trying again." }, { status: 429 });
   }
@@ -175,6 +167,18 @@ export default async function (req: Request): Promise<Response> {
   // Prevent excessive token cost from oversized prompts
   if (prompt.length > 35000) {
     return Response.json({ error: "Prompt exceeds maximum allowed length" }, { status: 400 });
+  }
+
+  // Server-side quota & cross-isolate global cap check + decrement against
+  // ProSubscription and AIUsage BEFORE invoking OpenRouter or Core.InvokeLLM.
+  try {
+    const quota = await consumeAIQuota(base44, req, user);
+    if (!quota.allowed) {
+      return Response.json({ error: quota.error }, { status: quota.status || 429 });
+    }
+  } catch (quotaErr: any) {
+    console.error("invokeAI quota check failed:", quotaErr?.message || quotaErr);
+    return Response.json({ error: "Unable to verify AI quota. Please try again." }, { status: 503 });
   }
 
   // Enforce strict low-cost model allowlist

@@ -11,7 +11,7 @@ const PRO_MONTHLY = 15;
 const PRO_PLUS_MONTHLY = 30;
 const FREE_KEY = "bb_free_credits";
 const FREE_PERIOD_KEY = "bb_free_period_start";
-const PRO_KEY = "bb_pro_status";
+const LEGACY_PRO_KEY = "bb_pro_status";
 
 const FREE_RESET_DAYS = 30;
 
@@ -23,8 +23,6 @@ function writeFreePeriodStart(ts) {
   localStorage.setItem(FREE_PERIOD_KEY, String(ts));
 }
 function readFree() {
-  // Monthly reset: if 30 days have passed since the free period started,
-  // reset the free credits to the monthly allowance.
   const periodStart = readFreePeriodStart();
   const now = Date.now();
   if (!periodStart || now - periodStart >= FREE_RESET_DAYS * 86400000) {
@@ -38,23 +36,14 @@ function readFree() {
 function writeFree(n) {
   localStorage.setItem(FREE_KEY, String(Math.max(0, n)));
 }
-function readPro() {
-  try {
-    return JSON.parse(localStorage.getItem(PRO_KEY)) || null;
-  } catch {
-    return null;
-  }
-}
-function writePro(s) {
-  if (s) localStorage.setItem(PRO_KEY, JSON.stringify(s));
-  else localStorage.removeItem(PRO_KEY);
-}
 
 const MonetizationContext = createContext(null);
 
 export function MonetizationProvider({ children }) {
   const [freeCredits, setFreeCredits] = useState(readFree);
-  const [proStatus, setProStatus] = useState(readPro);
+  // Pro entitlement is NEVER initialized from or persisted to localStorage or URL params;
+  // it comes exclusively from server-verified ProSubscription via getProStatus.
+  const [proStatus, setProStatus] = useState(null);
   const [showOutOfCredits, setShowOutOfCredits] = useState(false);
   const [showAd, setShowAd] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
@@ -62,9 +51,8 @@ export function MonetizationProvider({ children }) {
   const pending = useRef(null);
   const syncedRef = useRef(false);
 
-  // Refs keep the latest values for mutations (avoids stale closures across rapid calls).
   const freeRef = useRef(readFree());
-  const proRef = useRef(readPro());
+  const proRef = useRef(null);
 
   const isPro = !!(proStatus?.active);
   const tier = isPro ? (proStatus?.tier || "pro") : "free";
@@ -77,7 +65,7 @@ export function MonetizationProvider({ children }) {
   const syncProStatus = useCallback(async () => {
     try {
       const res = await base44.functions.invoke("getProStatus", {});
-      const data = res.data;
+      const data = res?.data;
       if (data?.active) {
         const ns = {
           active: true,
@@ -87,52 +75,36 @@ export function MonetizationProvider({ children }) {
           email: data.email,
         };
         proRef.current = ns;
-        writePro(ns);
         setProStatus(ns);
-      } else if (data && data.active === false && proRef.current) {
-        proRef.current = null;
-        writePro(null);
-        setProStatus(null);
+        return ns;
       }
+      proRef.current = null;
+      setProStatus(null);
+      if (typeof data?.freeCreditsRemaining === "number") {
+        freeRef.current = data.freeCreditsRemaining;
+        writeFree(data.freeCreditsRemaining);
+        setFreeCredits(data.freeCreditsRemaining);
+      }
+      return null;
     } catch {
-      // getProStatus throws when the user is not authenticated (public app).
-      // A stale cached Pro status must not survive logout — clear it.
-      try {
-        const authed = await base44.auth.isAuthenticated();
-        if (!authed && proRef.current) {
-          proRef.current = null;
-          writePro(null);
-          setProStatus(null);
-        }
-      } catch {
-        /* keep cache */
-      }
+      proRef.current = null;
+      setProStatus(null);
+      return null;
     }
   }, []);
 
   useEffect(() => {
+    // Purge any legacy client-side Pro cache from older versions.
+    try { localStorage.removeItem(LEGACY_PRO_KEY); } catch { /* ignore */ }
+
     if (syncedRef.current) return;
     syncedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const justSubscribed = params.get("pro") === "success";
     const justDonated = params.get("donation") === "success";
 
-    if (justSubscribed) {
-      const subscribedTier = params.get("tier") || "pro";
-      const monthly = subscribedTier === "pro_plus" ? PRO_PLUS_MONTHLY : PRO_MONTHLY;
-      const ns = {
-        active: true,
-        tier: subscribedTier,
-        creditsRemaining: monthly,
-        periodEnd: new Date(Date.now() + 30 * 86400000).toISOString(),
-      };
-      proRef.current = ns;
-      writePro(ns);
-      setProStatus(ns);
-      toast.success(subscribedTier === "pro_plus" ? "Welcome to BudgetBite Pro+! 👑" : "Welcome to BudgetBite Pro! 👑");
-    }
     if (justDonated) {
-      toast.success("Thank you for supporting BudgetBite! 🎉");
+      toast.success("Thank you for supporting BudgetBite!");
     }
     if (justSubscribed || justDonated) {
       params.delete("pro");
@@ -142,7 +114,32 @@ export function MonetizationProvider({ children }) {
       window.history.replaceState({}, "", window.location.pathname + (clean ? `?${clean}` : ""));
     }
 
-    if (!justSubscribed) syncProStatus();
+    (async () => {
+      let verified = await syncProStatus();
+      // If returning from Stripe Checkout, webhook delivery can take 1-3 seconds.
+      // Poll server-side getProStatus briefly and only unlock Pro once verified.
+      if (justSubscribed && !verified) {
+        toast.info("Verifying your subscription…");
+        for (let i = 0; i < 3 && !verified; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          verified = await syncProStatus();
+        }
+      }
+      if (justSubscribed && verified?.active) {
+        toast.success(
+          verified.tier === "pro_plus"
+            ? "Welcome to BudgetBite Pro+!"
+            : "Welcome to BudgetBite Pro!"
+        );
+      }
+    })();
+  }, [syncProStatus]);
+
+  // Keep UI credit balance aligned with server-side AIUsage / ProSubscription after AI calls.
+  useEffect(() => {
+    const onAiUsed = () => { syncProStatus(); };
+    window.addEventListener("bb:ai-used", onAiUsed);
+    return () => window.removeEventListener("bb:ai-used", onAiUsed);
   }, [syncProStatus]);
 
   const spend = useCallback(() => {
@@ -151,7 +148,6 @@ export function MonetizationProvider({ children }) {
       if (rem < 0) return false;
       const ns = { ...proRef.current, creditsRemaining: rem };
       proRef.current = ns;
-      writePro(ns);
       setProStatus(ns);
       return true;
     }
@@ -193,7 +189,7 @@ export function MonetizationProvider({ children }) {
     const fn = pending.current;
     pending.current = null;
     if (fn && spend()) fn();
-    else if (!fn) toast.success("+1 free generation added 🎬");
+    else if (!fn) toast.success("+1 free generation added");
   };
   const handleGoPro = () => {
     setShowOutOfCredits(false);
@@ -205,7 +201,6 @@ export function MonetizationProvider({ children }) {
   const openWatchAd = useCallback(() => setShowAd(true), []);
   const clearProStatus = useCallback(() => {
     proRef.current = null;
-    writePro(null);
     setProStatus(null);
   }, []);
 

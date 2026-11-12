@@ -1,17 +1,27 @@
-import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
+import { createClientFromRequest } from "npm:@base44/sdk@0.8.54";
 import { TIER_CREDITS } from "../../shared/stripe.ts";
+import { getFreeUserCredits } from "../../shared/aiQuota.ts";
 
-export default async function (req) {
+export default async function (req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch((e) =>
+      e?.status === 401 ? null : Promise.reject(e)
+    );
     if (!user) return Response.json({ active: false });
+
     const email = user.email;
-    if (!email) return Response.json({ active: false });
+    if (!email) {
+      const freeCreditsRemaining = await getFreeUserCredits(base44, user.id);
+      return Response.json({ active: false, freeCreditsRemaining });
+    }
 
     const records = await base44.asServiceRole.entities.ProSubscription.filter({ email });
-    const rec = records?.[0];
-    if (!rec) return Response.json({ active: false });
+    const rec = Array.isArray(records) ? records[0] : records?.items?.[0];
+    if (!rec || !rec.active) {
+      const freeCreditsRemaining = await getFreeUserCredits(base44, user.id);
+      return Response.json({ active: false, freeCreditsRemaining });
+    }
 
     // Auto-reset monthly credits if the billing period has ended.
     let creditsRemaining = rec.creditsRemaining;
@@ -27,14 +37,14 @@ export default async function (req) {
     }
 
     return Response.json({
-      active: rec.active,
+      active: Boolean(rec.active),
       tier,
       creditsRemaining,
       periodEnd,
       email,
     });
-  } catch (error) {
-    console.error("getProStatus error:", error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+  } catch (error: any) {
+    console.error("getProStatus error:", error?.message || error);
+    return Response.json({ error: error?.message || "Failed to fetch subscription status" }, { status: 500 });
   }
 }

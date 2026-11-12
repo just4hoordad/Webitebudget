@@ -8,8 +8,19 @@ export async function refreshBackgroundPrices(base44, { previewOnly = false, lim
   const svc = base44.asServiceRole;
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
   const since = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-  const fresh = await svc.entities.PriceEstimate.aggregate({ query: { source: { $regex: '^catalog-verified https://' }, postal_code: '', fetched_date: { $gte: since } }, groupBy: ['store', 'product_name'], limit: 1000 });
-  const ready = new Set(fresh.rows.map((row) => productKey(row.product_name, row.store)));
+  const ready = new Set();
+  let cursor = undefined;
+  while (true) {
+    const page = await svc.entities.PriceEstimate.filter(
+      { source: { $regex: '^catalog-verified https://' }, postal_code: '', fetched_date: { $gte: since } },
+      { limit: 500, ...(cursor ? { cursor } : {}) }
+    );
+    for (const row of page.items || []) {
+      ready.add(productKey(row.product_name, row.store));
+    }
+    if (!page.has_more || !page.next_cursor) break;
+    cursor = page.next_cursor;
+  }
   // Proactively seed the 100 most commonly bought items across every chain —
   // builds a vast catalog-verified price pool even before users generate them.
   const queues = new Map(STORES.map((store) => [store, []]));

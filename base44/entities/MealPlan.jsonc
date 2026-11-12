@@ -72,6 +72,11 @@
       },
       "description": "Day signatures (weekIndex:dayIndex) the user marked as cook days (vs. rest/leftover days)."
     },
+    "communityPublic": {
+      "type": "boolean",
+      "default": false,
+      "description": "Explicit opt-in flag set by the plan owner to publish this meal plan in community browsing."
+    },
     "shareToken": {
       "type": "string",
       "description": "Unique public share token. When set, the plan is readable via the public share route (getSharedPlan). Empty/absent means not shared."

@@ -4,7 +4,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock, Search } from "lucide-react";
+import { Trash2, Calendar, Leaf, BarChart2, ShoppingBasket, ChevronDown, ChevronUp, CalendarPlus, Check, Loader2, LogIn, Link2, Unlink, FileSpreadsheet, Share2, CheckCircle2, Circle, ChefHat, Lock, Search, Users } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useGoogleCalendarSync } from "@/hooks/useGoogleCalendarSync";
 import SharePlanModal from "@/components/planbuilder/SharePlanModal";
@@ -78,6 +78,12 @@ export default function SavedMealPlans() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleCommunityPublish = async (plan) => {
+    const nextVal = !plan.communityPublic;
+    setPlans((prev) => prev.map((p) => (p.id === plan.id ? { ...p, communityPublic: nextVal } : p)));
+    await base44.entities.MealPlan.update(plan.id, { communityPublic: nextVal });
   };
 
   const deletePlan = async (id) => {
@@ -272,6 +278,18 @@ export default function SavedMealPlans() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-wrap">
+                    <button
+                      onClick={() => toggleCommunityPublish(plan)}
+                      className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors ${
+                        plan.communityPublic
+                          ? "bg-primary text-primary-foreground"
+                          : "text-primary bg-primary/10 hover:bg-primary/20"
+                      }`}
+                      title={plan.communityPublic ? "Published to Community (click to hide)" : "Publish to Community (requires public profile)"}
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      {plan.communityPublic ? (t("communityPublished") || "In Community") : (t("publishCommunity") || "Community")}
+                    </button>
                     <button
                       onClick={() => setSharePlan(plan)}
                       className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors"

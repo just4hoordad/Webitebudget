@@ -12,7 +12,21 @@
     },
     "postalCode": {
       "type": "string",
-      "description": "Postal code used for the generation (for analytics/debugging)"
+      "description": "Postal code used for the generation (for analytics/debugging)",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "diet": {
       "type": "string"

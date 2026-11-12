@@ -1,0 +1,50 @@
+{
+  "name": "AIUsage",
+  "type": "object",
+  "properties": {
+    "scopeKey": {
+      "type": "string",
+      "description": "Server-side quota bucket identifier (user:<id>, anon:<ip>, global:<date>, global-anon:<date>)"
+    },
+    "periodKey": {
+      "type": "string",
+      "description": "Active period marker (YYYY-MM-DD for daily buckets or ISO period timestamp for 30-day user buckets)"
+    },
+    "callCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of invokeAI requests consumed in the active period"
+    },
+    "creditsRemaining": {
+      "type": "number",
+      "default": 2,
+      "description": "Remaining free generation credits for signed-in non-Pro users"
+    }
+  },
+  "required": [
+    "scopeKey",
+    "periodKey"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

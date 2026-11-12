@@ -11,7 +11,7 @@ export default function Profile() {
   const { isAuthenticated, isLoadingAuth, user, navigateToLogin } = useAuth();
   const [profile, setProfile] = useState(null);
   const [displayName, setDisplayName] = useState("");
-  const [profilePublic, setProfilePublic] = useState(true);
+  const [profilePublic, setProfilePublic] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -27,18 +27,18 @@ export default function Profile() {
         const existing = (page.items || [])[0];
         if (existing) {
           setProfile(existing);
-          setDisplayName(existing.displayName || user.full_name || user.email || "");
-          setProfilePublic(existing.profilePublic !== false);
+          setDisplayName(existing.displayName || user.full_name || "");
+          setProfilePublic(existing.profilePublic === true);
         } else {
-          // Auto-create with defaults: public on, display name from user
+          // Opt-in by default: private until the user explicitly enables community sharing
           const created = await base44.entities.Profile.create({
             userId: user.id,
-            displayName: user.full_name || user.email || "",
-            profilePublic: true,
+            displayName: user.full_name || "",
+            profilePublic: false,
           });
           setProfile(created);
           setDisplayName(created.displayName || "");
-          setProfilePublic(true);
+          setProfilePublic(false);
         }
       } catch {
         /* non-critical */
