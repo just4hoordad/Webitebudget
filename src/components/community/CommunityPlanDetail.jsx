@@ -2,7 +2,36 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Leaf, Wallet, Calendar, Users, ShoppingBasket, Loader2, X } from "lucide-react";
+import { Leaf, Wallet, Calendar, Users, ShoppingBasket, Loader2, ChefHat, Utensils } from "lucide-react";
+import CommunityRecipeCard from "@/components/community/CommunityRecipeCard";
+
+const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
+
+function mealName(val) {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (Array.isArray(val)) return val.join(", ");
+  return val.name || "";
+}
+
+function mealCal(day, type) {
+  return day[`${type}_calories`] ?? (day[type] && typeof day[type] === "object" ? day[type].calories : null);
+}
+
+function mealIngs(day, type) {
+  const ings = day[`${type}_ingredients`];
+  if (Array.isArray(ings)) return ings;
+  if (day[type] && Array.isArray(day[type].ingredients)) return day[type].ingredients;
+  return [];
+}
+
+function getDays(plan) {
+  if (Array.isArray(plan)) return plan;
+  if (plan?.weeks && Array.isArray(plan.weeks)) {
+    return plan.weeks.flatMap((w) => w.days || []);
+  }
+  return [];
+}
 
 export default function CommunityPlanDetail({ planId, open, onClose }) {
   const { t } = useLanguage();
@@ -26,6 +55,9 @@ export default function CommunityPlanDetail({ planId, open, onClose }) {
   }, [open, planId]);
 
   const plan = detail?.plan;
+  const days = plan ? getDays(plan.plan) : [];
+  const recipes = (plan && plan.recipes && typeof plan.recipes === "object" && !Array.isArray(plan.recipes)) ? plan.recipes : {};
+  const recipeEntries = Object.entries(recipes).filter(([, v]) => v && (v.mealName || v.recipe));
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -89,24 +121,74 @@ export default function CommunityPlanDetail({ planId, open, onClose }) {
               </div>
             )}
 
-            {/* Meal plan overview */}
-            {Array.isArray(plan.plan) && plan.plan.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-heading font-bold text-sm">{t("yourWeeklyMealPlan") || "Meal plan"}</h3>
-                <div className="border border-border rounded-xl overflow-hidden divide-y divide-border">
-                  {plan.plan.slice(0, 7).map((day, di) => {
-                    const meals = ["breakfast", "lunch", "dinner"]
-                      .map((m) => (typeof day[m] === "string" ? day[m] : Array.isArray(day[m]) ? day[m].join(", ") : day[m]?.name || ""))
-                      .filter(Boolean);
+            {/* Meal plan — full days with meals, calories and ingredients */}
+            {days.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-heading font-bold text-sm flex items-center gap-2">
+                  <Utensils className="h-4 w-4 text-primary" />
+                  {t("yourWeeklyMealPlan") || "Meal plan"}
+                </h3>
+                <div className="space-y-2">
+                  {days.map((day, di) => {
+                    const meals = MEAL_TYPES.map((type) => ({
+                      type,
+                      name: mealName(day[type]),
+                      cal: mealCal(day, type),
+                      ings: mealIngs(day, type),
+                    })).filter((m) => m.name);
+                    if (meals.length === 0) return null;
                     return (
-                      <div key={di} className="px-3 py-2 text-sm">
-                        <span className="font-semibold text-xs text-muted-foreground">{t("day") || "Day"} {di + 1}</span>
-                        {meals.length > 0 && <p className="text-foreground text-xs mt-0.5">{meals.join(" · ")}</p>}
+                      <div key={di} className="bba-t bg-card p-3 space-y-2">
+                        <span className="text-[11px] font-heading font-bold uppercase tracking-wide text-muted-foreground">
+                          {t("day") || "Day"} {di + 1}
+                        </span>
+                        {meals.map((m, mi) => (
+                          <div key={mi} className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase text-primary bg-primary/15 rounded px-1.5 py-0.5 leading-none shrink-0">
+                                {t(m.type) || m.type}
+                              </span>
+                              <p className="text-sm font-medium text-foreground leading-tight flex-1 min-w-0">{m.name}</p>
+                              {m.cal != null && (
+                                <span className="text-[10px] font-semibold text-primary bg-primary/15 rounded px-1.5 py-0.5 leading-none shrink-0">
+                                  {m.cal} kcal
+                                </span>
+                              )}
+                            </div>
+                            {m.ings.length > 0 && (
+                              <p className="text-[11px] text-muted-foreground leading-snug pl-1">
+                                {m.ings.map((i) => `${i.name}${i.quantity ? ` (${i.quantity})` : ""}`).join(" · ")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     );
                   })}
                 </div>
               </div>
+            )}
+
+            {/* Cooking recipes */}
+            {recipeEntries.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-heading font-bold text-sm flex items-center gap-2">
+                  <ChefHat className="h-4 w-4 text-primary" />
+                  {t("recipesTitle") || "Recipes"}
+                  <span className="text-xs text-muted-foreground font-normal">· {recipeEntries.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {recipeEntries.map(([key, entry]) => (
+                    <CommunityRecipeCard key={key} entry={entry} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {days.length === 0 && recipeEntries.length === 0 && !plan.groceryList?.categories?.length && (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                {t("communityEmptyDetail") || "No plan details available."}
+              </p>
             )}
           </div>
         ) : null}

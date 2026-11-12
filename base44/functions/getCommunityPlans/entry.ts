@@ -80,6 +80,9 @@ export default async function (req: Request): Promise<Response> {
         (s: number, c: any) => s + (c.items || []).length,
         0
       );
+      const recipeCount = (p.recipes && typeof p.recipes === "object" && !Array.isArray(p.recipes))
+        ? Object.keys(p.recipes).length
+        : 0;
       return {
         id: p.id,
         name: p.name,
@@ -93,6 +96,7 @@ export default async function (req: Request): Promise<Response> {
         ownerDisplayName: nameMap[p.created_by_id] || p.created_by || "Anonymous",
         totalCost: p.groceryList?.total_estimated_cost,
         itemCount,
+        recipeCount,
       };
     });
 
