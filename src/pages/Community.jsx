@@ -67,9 +67,12 @@ export default function Community() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
+      <div className="space-y-2">
+        <span className="inline-flex items-center gap-2 text-xs font-heading font-semibold tracking-[0.18em] uppercase text-primary bg-primary/10 px-3 py-1 rounded-full">
+          <Users className="h-3.5 w-3.5" />
+          {t("communityNav") || "Community"}
+        </span>
+        <h1 className="font-heading text-3xl font-bold tracking-tight">
           {t("communityTitle") || "Community plans"}
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -107,8 +110,10 @@ export default function Community() {
       ) : error ? (
         <div className="text-center py-12 text-sm text-destructive">{error}</div>
       ) : plans.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-3">
-          <Users className="h-10 w-10 text-muted-foreground mx-auto opacity-50" />
+        <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-3 bb-shadow">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/12 to-primary/4 ring-1 ring-primary/10 flex items-center justify-center">
+            <Users className="h-7 w-7 text-primary" />
+          </div>
           <p className="text-muted-foreground text-sm">
             {t("communityEmpty") || "No community plans yet. Be the first to share!"}
           </p>

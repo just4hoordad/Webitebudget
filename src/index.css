@@ -9,120 +9,134 @@
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
 
-    /* Sage Mist — default light theme */
-    --background: 83 21% 92%;
-    --foreground: 0 0% 10%;
+    /* Fresh Market — warm paper light theme */
+    --background: 44 28% 96%;
+    --foreground: 150 16% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 150 16% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 150 16% 13%;
 
     --primary: 80 72% 38%;
-    --primary-foreground: 0 0% 10%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 83 15% 88%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 44 20% 92%;
+    --secondary-foreground: 150 16% 13%;
 
-    --muted: 83 15% 88%;
-    --muted-foreground: 83 8% 40%;
+    --muted: 44 18% 93%;
+    --muted-foreground: 150 8% 40%;
 
-    --accent: 80 72% 38%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 78 28% 90%;
+    --accent-foreground: 80 64% 26%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 216 12% 84%;
-    --input: 216 12% 84%;
+    --border: 42 18% 87%;
+    --input: 42 18% 87%;
     --ring: 80 72% 38%;
 
     /* retained dark surface for auth / legacy chrome */
-    --dark: 220 24% 11%;
+    --dark: 150 20% 12%;
     --dark-foreground: 0 0% 100%;
-    --dark-muted: 214 20% 60%;
+    --dark-muted: 150 8% 50%;
 
     --chart-1: 80 72% 38%;
-    --chart-2: 200 80% 50%;
-    --chart-3: 280 60% 58%;
-    --chart-4: 340 70% 55%;
-    --chart-5: 45 96% 51%;
+    --chart-2: 38 88% 52%;
+    --chart-3: 14 70% 55%;
+    --chart-4: 330 60% 58%;
+    --chart-5: 188 60% 44%;
 
-    --radius: 0.875rem;
+    --radius: 1rem;
 
-    --sidebar-background: 83 18% 93%;
-    --sidebar-foreground: 0 0% 10%;
+    --sidebar-background: 44 24% 95%;
+    --sidebar-foreground: 150 16% 13%;
     --sidebar-primary: 80 72% 38%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 83 15% 88%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 216 12% 84%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 78 26% 90%;
+    --sidebar-accent-foreground: 80 64% 26%;
+    --sidebar-border: 42 18% 88%;
     --sidebar-ring: 80 72% 38%;
   }
 
   .soft {
-    /* Sage Mist — gray light variant with a faint sage-green undertone */
-    --background: 83 21% 92%;
-    --foreground: 0 0% 10%;
+    /* Fresh Market — light variant */
+    --background: 44 28% 96%;
+    --foreground: 150 16% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 150 16% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 150 16% 13%;
     --primary: 80 72% 38%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 83 15% 88%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 83 15% 88%;
-    --muted-foreground: 83 8% 40%;
-    --accent: 80 72% 38%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 84% 60%;
+    --primary-foreground: 0 0% 8%;
+    --secondary: 44 20% 92%;
+    --secondary-foreground: 150 16% 13%;
+    --muted: 44 18% 93%;
+    --muted-foreground: 150 8% 40%;
+    --accent: 78 28% 90%;
+    --accent-foreground: 80 64% 26%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 216 12% 84%;
-    --input: 216 12% 84%;
+    --border: 42 18% 87%;
+    --input: 42 18% 87%;
     --ring: 80 72% 38%;
-    --dark: 220 24% 11%;
+    --dark: 150 20% 12%;
     --dark-foreground: 0 0% 100%;
-    --dark-muted: 214 20% 60%;
+    --dark-muted: 150 8% 50%;
     --chart-1: 80 72% 38%;
-    --chart-2: 200 80% 50%;
-    --chart-3: 280 60% 58%;
-    --chart-4: 340 70% 55%;
-    --chart-5: 45 96% 51%;
-    --radius: 0.875rem;
-    --sidebar-background: 83 18% 93%;
-    --sidebar-foreground: 0 0% 10%;
+    --chart-2: 38 88% 52%;
+    --chart-3: 14 70% 55%;
+    --chart-4: 330 60% 58%;
+    --chart-5: 188 60% 44%;
+    --radius: 1rem;
+    --sidebar-background: 44 24% 95%;
+    --sidebar-foreground: 150 16% 13%;
     --sidebar-primary: 80 72% 38%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 83 15% 88%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 216 12% 84%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 78 26% 90%;
+    --sidebar-accent-foreground: 80 64% 26%;
+    --sidebar-border: 42 18% 88%;
     --sidebar-ring: 80 72% 38%;
   }
 
   .dark {
-    --background: 222 24% 11%;
-    --foreground: 210 20% 96%;
-    --card: 222 20% 14%;
-    --card-foreground: 210 20% 96%;
-    --popover: 222 20% 14%;
-    --popover-foreground: 210 20% 96%;
-    --primary: 83 78% 55%;
-    --primary-foreground: 222 24% 11%;
-    --secondary: 222 18% 18%;
-    --secondary-foreground: 210 20% 96%;
-    --muted: 222 18% 18%;
-    --muted-foreground: 220 9% 64%;
-    --accent: 83 78% 55%;
-    --accent-foreground: 222 24% 11%;
-    --destructive: 0 72% 51%;
+    /* Forest Night — rich green-charcoal dark theme */
+    --background: 152 20% 9%;
+    --foreground: 80 14% 92%;
+    --card: 150 18% 12%;
+    --card-foreground: 80 14% 92%;
+    --popover: 150 18% 12%;
+    --popover-foreground: 80 14% 92%;
+    --primary: 84 68% 52%;
+    --primary-foreground: 150 30% 9%;
+    --secondary: 150 14% 17%;
+    --secondary-foreground: 80 14% 92%;
+    --muted: 150 14% 17%;
+    --muted-foreground: 80 8% 62%;
+    --accent: 84 28% 18%;
+    --accent-foreground: 84 60% 62%;
+    --destructive: 0 60% 52%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 16% 22%;
-    --input: 222 16% 22%;
-    --ring: 83 78% 55%;
-    --dark: 220 24% 11%;
+    --border: 150 12% 21%;
+    --input: 150 12% 21%;
+    --ring: 84 68% 52%;
+    --dark: 150 20% 9%;
     --dark-foreground: 0 0% 100%;
-    --dark-muted: 214 20% 60%;
+    --dark-muted: 80 8% 55%;
+    --chart-1: 84 68% 52%;
+    --chart-2: 38 88% 55%;
+    --chart-3: 14 70% 58%;
+    --chart-4: 330 60% 62%;
+    --chart-5: 188 60% 50%;
+    --sidebar-background: 150 20% 11%;
+    --sidebar-foreground: 80 14% 92%;
+    --sidebar-primary: 84 68% 52%;
+    --sidebar-primary-foreground: 150 30% 9%;
+    --sidebar-accent: 84 24% 17%;
+    --sidebar-accent-foreground: 84 60% 62%;
+    --sidebar-border: 150 12% 20%;
+    --sidebar-ring: 84 68% 52%;
   }
 }
 
@@ -131,15 +145,48 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
     overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-heading;
+    letter-spacing: -0.018em;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.7);
+    outline-offset: 2px;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Layered, soft elevation that reads on both light and dark themes */
+  .bb-shadow {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.10);
+  }
+  .bb-shadow-lg {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05), 0 20px 44px -18px rgba(0, 0, 0, 0.18);
+  }
+  .bb-shadow-glow {
+    box-shadow: 0 8px 30px -10px hsl(var(--primary) / 0.35);
   }
 
   /* Bold playful dashboard — deep green gradient panel with film grain */

@@ -10,9 +10,9 @@ export default function BudgetPlanner() {
   const m = modeText(currentLanguage?.code);
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold">{m.budgetTitle}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{m.budgetDesc}</p>
+      <div className="space-y-2">
+        <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight">{m.budgetTitle}</h1>
+        <p className="text-sm text-muted-foreground">{m.budgetDesc}</p>
         <CreditBar className="mt-3" />
         <LastResultButton kind="budget" className="mt-3 w-full" />
       </div>

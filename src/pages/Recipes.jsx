@@ -120,11 +120,13 @@ export default function Recipes() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold flex items-center gap-2">
-            <ChefHat className="h-6 w-6 text-primary" />
+          <h1 className="font-heading text-3xl font-bold tracking-tight flex items-center gap-2.5">
+            <span className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center">
+              <ChefHat className="h-5 w-5 text-primary" />
+            </span>
             {L("recipesTitle")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{L("recipesSubtitle")}</p>
+          <p className="text-sm text-muted-foreground mt-2">{L("recipesSubtitle")}</p>
         </div>
         <Button onClick={() => { setEditingRecipe(null); setShowEditor(true); }} size="sm" className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
@@ -176,8 +178,8 @@ export default function Recipes() {
           <p className="text-sm text-muted-foreground">{L("recipesTitle")}…</p>
         </div>
       ) : recipes.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-10 text-center space-y-4">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+        <div className="bg-card border border-border rounded-2xl p-10 text-center space-y-4 bb-shadow">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center">
             <BookOpen className="h-8 w-8 text-primary" />
           </div>
           <p className="text-muted-foreground">{search || dietFilter || typeFilter ? L("libraryEmpty") : L("noRecipes")}</p>

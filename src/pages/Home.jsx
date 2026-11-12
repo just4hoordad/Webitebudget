@@ -30,7 +30,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <HeroSection />
 
       {/* Feature highlights */}
@@ -61,12 +61,14 @@ export default function Home() {
 
 function FeatureCard({ icon: Icon, title, desc }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
-      <div className="h-11 w-11 rounded-2xl bg-primary/15 flex items-center justify-center">
+    <div className="group bg-card border border-border rounded-2xl p-6 flex flex-col gap-4 bb-shadow hover:bb-shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center ring-1 ring-primary/10 transition-transform duration-300 group-hover:scale-105">
         <Icon className="h-5 w-5 text-primary" />
       </div>
-      <h3 className="font-heading font-bold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+      <div className="space-y-1.5">
+        <h3 className="font-heading font-bold text-foreground text-lg">{title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+      </div>
     </div>
   );
 }

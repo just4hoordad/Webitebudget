@@ -291,8 +291,8 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
       </div>
 
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-bold">{t("nutritionBreakdown")}</h1>
+        <div className="space-y-1.5">
+          <h1 className="font-heading text-3xl font-bold tracking-tight">{t("nutritionBreakdown")}</h1>
           <p className="text-sm text-muted-foreground">
             {diet} diet · €{budget}/month · {calories} kcal/day · {people} person(s)
           </p>
@@ -311,7 +311,7 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
         <>
           {/* Daily Macro Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-card border border-border rounded-xl px-4 py-3 flex flex-col gap-1">
+            <div className="bg-card border border-border rounded-xl bb-shadow px-4 py-3 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Flame className="h-3.5 w-3.5" /> Calories
               </div>
@@ -350,7 +350,7 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
           </div>
 
           {/* Macro Split Pie Chart */}
-          <div className="bg-card border border-border rounded-xl p-5">
+          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
             <h2 className="font-heading font-semibold mb-4">{t("calorieSplitTitle")}</h2>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <ResponsiveContainer width={220} height={220}>
@@ -393,7 +393,7 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
 
           {/* Per Meal Bar Chart */}
           {barData.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-5">
+            <div className="bg-card border border-border rounded-xl bb-shadow p-5">
               <h2 className="font-heading font-semibold mb-4">Macros per Meal (grams)</h2>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={barData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
@@ -411,7 +411,7 @@ Return daily_totals (calories, protein_g, fat_g, carbs_g), macro_calorie_pct (pr
           )}
 
           {/* Monthly totals */}
-          <div className="bg-card border border-border rounded-xl p-5">
+          <div className="bg-card border border-border rounded-xl bb-shadow p-5">
             <h2 className="font-heading font-semibold mb-3">Monthly Totals (4 weeks)</h2>
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
