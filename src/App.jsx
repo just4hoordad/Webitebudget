@@ -16,6 +16,8 @@ import Datenschutz from './pages/Datenschutz';
 import RepoStats from './pages/RepoStats';
 import Recipes from '@/pages/Recipes';
 import ABTest from '@/pages/ABTest';
+import Community from '@/pages/Community';
+import Profile from '@/pages/Profile';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -54,6 +56,8 @@ function App() {
                 <Route path="/repo-stats" element={<RepoStats />} />
                 <Route path="/recipes" element={<Recipes />} />
                 <Route path="/ab-test" element={<ABTest />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
               <Route path="/share/:token" element={<SharedPlan />} />
               <Route path="*" element={<PageNotFound />} />
