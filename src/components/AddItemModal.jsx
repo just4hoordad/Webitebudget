@@ -36,7 +36,7 @@ export default function AddItemModal({ stores, diet, onAdd, onClose }) {
     const result = await invokeAI({
       prompt: `Find 3-4 real branded products for "${trimmed}" at these German stores: ${stores}. Diet: ${diet}. Use exact in-store product names with pack size (e.g. "Ja! Vollmilch 3,5% 1L") and 2024-2025 prices. Set calories_info to kcal/100g or kcal/100ml, total_kcal to total calories of the full quantity, and protein_g/carb_g/fat_g for that quantity. Category names in English.`,
       add_context_from_internet: true,
-      model: "gemini_3_flash",
+      model: "deepseek/deepseek-v4.1-flash",
       response_json_schema: {
         type: "object",
         properties: {

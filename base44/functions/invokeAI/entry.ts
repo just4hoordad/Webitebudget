@@ -2,8 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { callOpenRouter } from "../../shared/openrouter.ts";
 import { consumeAIQuota } from "../../shared/aiQuota.ts";
 
-// Allowlist of safe, low-cost models — default route is Gemini 2.5 Flash
+// Allowlist of safe, low-cost models — default route is DeepSeek V4.1 Flash,
+// the live-benchmark winner across grocery-list, meal-plan, recipe and
+// grocery-assistance tasks. Gemini 2.5 Flash stays available for the
+// OpenRouter recovery probe and as an explicit-model option.
 const GEMINI_25_FLASH = "google/gemini-2.5-flash";
+const DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash";
 const ALLOWED_MODELS: Record<string, string> = {
   [GEMINI_25_FLASH]: GEMINI_25_FLASH,
   "deepseek/deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
@@ -14,7 +18,7 @@ const ALLOWED_MODELS: Record<string, string> = {
   "openai/gpt-5-nano": "openai/gpt-5-nano",
   "gemini_3_flash": GEMINI_25_FLASH,
   "gemini_3_1_pro": GEMINI_25_FLASH,
-  "automatic": GEMINI_25_FLASH,
+  "automatic": DEFAULT_MODEL,
 };
 
 // In-memory sliding-window rate limiter with per-client and global ceilings
@@ -182,8 +186,8 @@ export default async function (req: Request): Promise<Response> {
     return Response.json({ error: "Unable to verify AI quota. Please try again." }, { status: 503 });
   }
 
-  // Enforce strict low-cost model allowlist
-  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : GEMINI_25_FLASH;
+  // Enforce strict low-cost model allowlist — default to DeepSeek V4.1 Flash
+  const safeModel = (typeof model === "string" && ALLOWED_MODELS[model]) ? ALLOWED_MODELS[model] : DEFAULT_MODEL;
 
   const safeSchema = response_json_schema && typeof response_json_schema === "object"
     ? response_json_schema
