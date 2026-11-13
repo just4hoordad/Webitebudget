@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import ExtendableList from "@/components/ExtendableList";
-import "@/components/WeekMealGrid.css";
+import WeekMealRow from "@/components/WeekMealRow";
 
-// Timeline Agenda Panel: consolidates all weekdays into one rounded linen panel
-// with hairline dividers, a continuous vertical timeline rail, right-aligned
-// cook/rest chips beside calorie totals, and indented meal rows when expanded.
+// Bento Arcade Timeline Agenda Panel:
+// Consolidates all weekdays into one tactile arcade panel with a continuous
+// vertical timeline rail, electric-lime active nodes, Cook/Rest & kcal pills,
+// smooth animated accordion expansion, and a responsive 3-column bento layout on desktop.
 const MEAL_TYPES = [
   { type: "breakfast", labelKey: "breakfast" },
   { type: "lunch", labelKey: "lunch" },
@@ -43,8 +45,8 @@ export default function WeekMealGrid({
   const isCookingDay = (dayIdx) => !cookingDays || cookingDays.has(`${weekIndex}:${dayIdx}`);
 
   return (
-    <div className="wmg-week">
-      <div className="wmg-days">
+    <div className="wmg-week bba-t bg-card text-card-foreground px-3.5 py-2.5 sm:px-5 sm:py-3.5 overflow-hidden">
+      <div className="flex flex-col">
         <ExtendableList
           items={days}
           limit={7}
@@ -55,42 +57,105 @@ export default function WeekMealGrid({
               (day.dinner_calories || 0);
             const isOpen = expanded.has(dayIdx);
             const cooking = isCookingDay(dayIdx);
+            const dayPreview = MEAL_TYPES.map(({ type }) => day[type])
+              .filter(Boolean)
+              .join(" · ");
+
+            const railPositionCls = isOpen
+              ? "[&:first-of-type>.wmg-rail]:top-[23px] [&:last-of-type>.wmg-rail]:bottom-3 [&:only-of-type>.wmg-rail]:top-[23px]"
+              : "[&:first-of-type>.wmg-rail]:top-[23px] [&:last-of-type>.wmg-rail]:bottom-auto [&:last-of-type>.wmg-rail]:h-[23px] [&:only-of-type>.wmg-rail]:hidden";
 
             return (
-              <details
+              <motion.article
                 key={dayIdx}
-                className={`wmg-day${cooking ? "" : " wmg-rest"}`}
-                open={isOpen}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.28,
+                  delay: Math.min(dayIdx * 0.04, 0.24),
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className={`relative border-b-2 border-[#111827]/12 dark:border-white/12 last-of-type:border-b-0 ${railPositionCls}`}
               >
-                <summary
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggle(dayIdx);
+                {/* Base Timeline Rail */}
+                <span
+                  aria-hidden="true"
+                  className="wmg-rail pointer-events-none absolute left-[11px] top-0 bottom-0 w-[2.5px] bg-[#111827]/18 dark:bg-white/20 z-0"
+                />
+
+                {/* Animated Active Lime Rail */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.span
+                      aria-hidden="true"
+                      initial={{ scaleY: 0, opacity: 0 }}
+                      animate={{ scaleY: 1, opacity: 1 }}
+                      exit={{ scaleY: 0, opacity: 0 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ transformOrigin: "top" }}
+                      className="wmg-rail pointer-events-none absolute left-[11px] top-0 bottom-0 w-[2.5px] bg-[#78a71b] z-[1]"
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Day Summary Row */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isOpen}
+                  onClick={() => toggle(dayIdx)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggle(dayIdx);
+                    }
                   }}
+                  className="relative z-[2] grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 py-2.5 sm:py-3 min-h-[46px] cursor-pointer select-none rounded-xl hover:bg-[#F3F8E6]/55 dark:hover:bg-secondary/45 transition-colors -mx-1 px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#78a71b]"
                 >
-                  <span className="wmg-rail" />
-                  <span className="wmg-node" />
-                  <span className="wmg-dayname">
-                    {day.day || `${t("day") || "Day"} ${dayIdx + 1}`}
+                  {/* Timeline Node */}
+                  <span className="flex items-center justify-center">
+                    <motion.span
+                      animate={
+                        isOpen
+                          ? { scale: 1.15 }
+                          : { scale: 1 }
+                      }
+                      transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                      className={`h-3.5 w-3.5 rounded-full border-2 border-[#111827] dark:border-[#78a71b] transition-colors ${
+                        isOpen
+                          ? "bg-[#78a71b] shadow-[1.5px_1.5px_0_#111827] ring-2 ring-[#78a71b]/35"
+                          : "bg-[#F3F8E6] dark:bg-secondary"
+                      }`}
+                    />
                   </span>
-                  <span className="wmg-right">
+
+                  {/* Day Name + Collapsed Desktop Preview */}
+                  <div className="min-w-0 flex items-baseline gap-2.5">
+                    <span className="font-heading font-black text-xs sm:text-sm uppercase tracking-wider text-foreground shrink-0">
+                      {day.day || `${t("day") || "Day"} ${dayIdx + 1}`}
+                    </span>
+                    {!isOpen && dayPreview && (
+                      <span className="hidden sm:inline-block text-xs font-medium text-muted-foreground truncate">
+                        {dayPreview}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Right Chips & Chevron */}
+                  <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
                     {onToggleCookingDay && (
-                      <span
-                        role="button"
-                        tabIndex={0}
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.92, x: 1, y: 1 }}
                         onClick={(e) => {
-                          e.preventDefault();
                           e.stopPropagation();
                           onToggleCookingDay(weekIndex, dayIdx);
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onToggleCookingDay(weekIndex, dayIdx);
-                          }
-                        }}
-                        className="wmg-chip wmg-state"
+                        className={`font-heading font-black text-[10px] sm:text-[11px] leading-none capitalize px-2.5 py-1.5 rounded-full border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] whitespace-nowrap transition-colors ${
+                          cooking
+                            ? "bg-[#78a71b] text-[#111827] hover:bg-[#8bc121]"
+                            : "bg-[#F3F8E6] dark:bg-secondary text-[#111827]/85 dark:text-foreground dark:border-[#78a71b]/70 hover:bg-[#FFB020] hover:text-[#111827]"
+                        }`}
                         title={
                           cooking
                             ? t("cookingDay") || "Cooking day"
@@ -98,166 +163,62 @@ export default function WeekMealGrid({
                         }
                       >
                         {cooking ? t("cook") || "Cook" : t("rest") || "Rest"}
-                      </span>
+                      </motion.button>
                     )}
+
                     {dayTotal > 0 && (
-                      <span className="wmg-chip wmg-cal">
+                      <span className="font-heading font-black text-[10px] sm:text-[11px] leading-none tabular-nums bg-[#FFB020] text-[#111827] border-[1.5px] border-[#111827] shadow-[1.5px_1.5px_0_#111827] px-2.5 py-1.5 rounded-full whitespace-nowrap">
                         {dayTotal.toLocaleString()} kcal
                       </span>
                     )}
-                  </span>
-                </summary>
 
-                {isOpen && (
-                  <div className="wmg-meals">
-                    {MEAL_TYPES.map(({ type, labelKey }) => {
-                      const name = day[type];
-                      const cal = day[`${type}_calories`];
-                      const ings = day[`${type}_ingredients`];
-                      const locked = isLocked(dayIdx, type);
-
-                      if (!name) {
-                        return (
-                          <div key={type} className="wmg-meal">
-                            <div className="wmg-meta" style={{ marginBottom: 0 }}>
-                              <span className="wmg-kind">{t(labelKey)}</span>
-                              {onEdit && (
-                                <button
-                                  type="button"
-                                  className="wmg-act"
-                                  onClick={() =>
-                                    onEdit(weekIndex, dayIdx, type, {
-                                      name: "",
-                                      calories: 0,
-                                      ingredients: [],
-                                      mealType: type,
-                                    })
-                                  }
-                                  title={t("editMeal") || "Add meal"}
-                                  aria-label={t("editMeal") || "Add meal"}
-                                >
-                                  <Plus />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      const ingText =
-                        Array.isArray(ings) && ings.length > 0
-                          ? ings.map((i) => i.name).join(", ")
-                          : "";
-
-                      const mealObj = {
-                        name,
-                        calories: cal,
-                        ingredients: ings,
-                        mealType: type,
-                      };
-
-                      return (
-                        <div key={type} className="wmg-meal">
-                          <div className="wmg-meta">
-                            <span className="wmg-kind">{t(labelKey)}</span>
-                            {cal ? (
-                              <span className="wmg-mealcal">{cal} kcal</span>
-                            ) : null}
-                          </div>
-                          <div className="wmg-name">{name}</div>
-                          {ingText && (
-                            <div className="wmg-ingredients">{ingText}</div>
-                          )}
-                          <div className="wmg-actions">
-                            {onToggleLock && (
-                              <button
-                                type="button"
-                                className="wmg-act"
-                                aria-pressed={!!locked}
-                                onClick={() => onToggleLock(weekIndex, dayIdx, type)}
-                                title={
-                                  locked
-                                    ? t("unlockMeal") || "Unlock meal"
-                                    : t("lockMeal") || "Lock meal"
-                                }
-                                aria-label={
-                                  locked
-                                    ? t("unlockMeal") || "Unlock meal"
-                                    : t("lockMeal") || "Lock meal"
-                                }
-                              >
-                                <svg viewBox="0 0 16 16">
-                                  <rect x="3" y="7" width="10" height="7" rx="1.5" />
-                                  <path d="M5 7V5a3 3 0 0 1 6 0v2" />
-                                </svg>
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              className="wmg-act"
-                              onClick={() => onEdit(weekIndex, dayIdx, type, mealObj)}
-                              title={t("editMeal") || "Edit meal"}
-                              aria-label={t("editMeal") || "Edit meal"}
-                            >
-                              <svg viewBox="0 0 16 16">
-                                <path d="m3 11.5-.5 2 2-.5L13 4.5 11.5 3z" />
-                                <path d="m10.5 4 1.5 1.5" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              className="wmg-act"
-                              onClick={() => onSwap(weekIndex, dayIdx, type, mealObj)}
-                              title={t("aiSwap") || "AI Swap"}
-                              aria-label={t("aiSwap") || "AI Swap"}
-                            >
-                              <svg viewBox="0 0 16 16">
-                                <path d="M3 5h9l-2-2M13 11H4l2 2" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              className="wmg-act"
-                              onClick={() => onRecipe(weekIndex, dayIdx, type, mealObj)}
-                              title={
-                                isPro
-                                  ? t("recipe") || "Recipe"
-                                  : t("recipePro") || "Unlock AI Recipe — Pro"
-                              }
-                              aria-label={
-                                isPro
-                                  ? t("recipe") || "Recipe"
-                                  : t("recipePro") || "Recipe PRO"
-                              }
-                            >
-                              <svg viewBox="0 0 16 16">
-                                <path d="M3 7h10a5 5 0 0 1-10 0ZM8 2v5M5 2v2M11 2v2" />
-                              </svg>
-                            </button>
-                            {!isPro && (
-                              <span
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => onRecipe(weekIndex, dayIdx, type, mealObj)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    onRecipe(weekIndex, dayIdx, type, mealObj);
-                                  }
-                                }}
-                                className="wmg-chip wmg-cal"
-                                style={{ cursor: "pointer" }}
-                              >
-                                PRO
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <motion.span
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ type: "spring", stiffness: 360, damping: 26 }}
+                      className="h-6 w-6 rounded-full bg-[#F3F8E6] dark:bg-secondary border-[1.5px] border-[#111827] dark:border-[#78a71b]/70 grid place-items-center text-[#111827] dark:text-foreground shrink-0"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5 stroke-[2.6]" />
+                    </motion.span>
                   </div>
-                )}
-              </details>
+                </div>
+
+                {/* Smooth Animated Accordion Body */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key="meals"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="ml-6 sm:ml-7 mb-3 pl-3 border-l-[2.5px] border-[#78a71b] flex flex-col md:border-l-0 md:pl-0 md:pt-1 md:grid md:grid-cols-3 md:gap-2.5">
+                        {MEAL_TYPES.map(({ type, labelKey }, mIdx) => (
+                          <WeekMealRow
+                            key={type}
+                            index={mIdx}
+                            type={type}
+                            label={t(labelKey)}
+                            name={day[type]}
+                            cal={day[`${type}_calories`]}
+                            ings={day[`${type}_ingredients`]}
+                            locked={isLocked(dayIdx, type)}
+                            isPro={isPro}
+                            weekIndex={weekIndex}
+                            dayIdx={dayIdx}
+                            t={t}
+                            onToggleLock={onToggleLock}
+                            onEdit={onEdit}
+                            onSwap={onSwap}
+                            onRecipe={onRecipe}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.article>
             );
           }}
         />
