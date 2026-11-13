@@ -12,6 +12,7 @@ const MODELS = [
   { id: "openai/gpt-5-nano", label: "GPT-5 Nano", color: "bg-emerald-500" },
   { id: "openai/gpt-4o-mini", label: "GPT-4o mini", color: "bg-violet-500" },
   { id: "deepseek/deepseek-v4-flash-0731", label: "DeepSeek V4 Flash", color: "bg-amber-500" },
+  { id: "deepseek/deepseek-v4.1-flash", label: "DeepSeek V4.1 Flash", color: "bg-rose-500" },
 ];
 
 function scoreColor(s) {
@@ -61,7 +62,7 @@ function ModelPanel({ model, state, isWinner }) {
             </div>
             <div className="bg-muted rounded-lg px-2.5 py-1.5">
               <p className="text-[10px] text-muted-foreground uppercase">Items</p>
-              <p className="font-heading font-bold text-lg">{state.result.categories?.reduce((n, c) => n + (c.items?.length || 0), 0) || 0}</p>
+              <p className="font-heading font-bold text-lg">{Array.isArray(state.result.categories) ? state.result.categories.reduce((n, c) => n + (Array.isArray(c?.items) ? c.items.length : 0), 0) : 0}</p>
             </div>
           </div>
 
@@ -97,10 +98,10 @@ function ModelPanel({ model, state, isWinner }) {
           <details className="text-[10px]">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Items</summary>
             <div className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-border">
-              {(state.result.categories || []).map((cat) => (
+              {(Array.isArray(state.result.categories) ? state.result.categories : []).map((cat) => (
                 <div key={cat.name} className="border-b border-border last:border-0">
                   <p className="font-semibold px-2 py-1 bg-muted/50 text-[10px] uppercase">{cat.name}</p>
-                  {(cat.items || []).map((item, i) => (
+                  {(Array.isArray(cat.items) ? cat.items : []).map((item, i) => (
                     <div key={i} className="px-2 py-1 flex items-center justify-between gap-2 text-[10px]">
                       <span className="truncate">{item.name} <span className="text-muted-foreground">({item.quantity})</span></span>
                       <span className="font-medium shrink-0">€{(Number(item.price) || 0).toFixed(2)}</span>

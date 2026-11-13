@@ -13,6 +13,7 @@ const DEFAULT_CANDIDATES = [
   "openai/gpt-4o-mini",
   "openai/gpt-oss-20b",
   "deepseek/deepseek-v4-flash-0731",
+  "deepseek/deepseek-v4.1-flash",
 ];
 
 // "aldi,tegut" or "Aldi (Street 1, City), Tegut" → ["Aldi", "Tegut"]
@@ -29,7 +30,7 @@ function normalizeTotal(result: any): any {
   if (!result || !Array.isArray(result.categories)) return result;
   const sum = result.categories.reduce(
     (acc: number, cat: any) =>
-      acc + (cat.items || []).reduce((s: number, i: any) => s + (Number(i.price) || 0), 0),
+      acc + (Array.isArray(cat?.items) ? cat.items : []).reduce((s: number, i: any) => s + (Number(i?.price) || 0), 0),
     0
   );
   return { ...result, total_estimated_cost: Math.round(sum * 100) / 100 };
@@ -42,7 +43,8 @@ function normalizeTotal(result: any): any {
 function scoreGroceryQuality(result: any, config: any): { score: number; issues: string[] } {
   const issues: string[] = [];
   let score = 100;
-  const items = (result?.categories || []).flatMap((c: any) => c.items || []);
+  const categories = Array.isArray(result?.categories) ? result.categories : [];
+  const items = categories.flatMap((c: any) => (Array.isArray(c?.items) ? c.items : []));
   if (!items.length) return { score: 0, issues: ["Empty list"] };
 
   // Item count — enough variety for the period
@@ -146,16 +148,23 @@ export default async function (req: Request): Promise<Response> {
     for (let i = 0; i < runCount; i++) tasks.push({ model, run: i });
   }
 
-  const settled = await Promise.allSettled(
-    tasks.map((t) =>
-      callOpenRouterWithUsage({
-        prompt,
-        response_json_schema: safeSchema,
-        model: t.model,
-        add_context_from_internet: false,
-      })
-    )
-  );
+  // Run in batches of 5 to stay within the Worker's 6-connection ceiling
+  const BATCH_SIZE = 5;
+  const settled: PromiseSettledResult<any>[] = [];
+  for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
+    const chunk = tasks.slice(i, i + BATCH_SIZE);
+    const batchSettled = await Promise.allSettled(
+      chunk.map((t) =>
+        callOpenRouterWithUsage({
+          prompt,
+          response_json_schema: safeSchema,
+          model: t.model,
+          add_context_from_internet: false,
+        })
+      )
+    );
+    settled.push(...batchSettled);
+  }
 
   // ── Group results by model ──────────────────────────────────────────────
   const byModel: Record<string, any[]> = {};
@@ -199,12 +208,16 @@ export default async function (req: Request): Promise<Response> {
       totalInput += inT;
       totalOutput += outT;
       const p = pricing[model];
-      if (p) totalCost += inT * p.prompt + outT * p.completion;
+      if (Number.isFinite(Number(u.cost)) && Number(u.cost) > 0) {
+        totalCost += Number(u.cost);
+      } else if (p) {
+        totalCost += inT * p.prompt + outT * p.completion;
+      }
     }
 
     const avgScore = scoreSum / okRuns.length;
     const costPerRun = okRuns.length ? totalCost / okRuns.length : 0;
-    const costAvailable = pricingAvailable && !!pricing[model] && (totalInput > 0 || totalOutput > 0);
+    const costAvailable = totalCost > 0 || (pricingAvailable && !!pricing[model] && (totalInput > 0 || totalOutput > 0));
 
     return {
       model,

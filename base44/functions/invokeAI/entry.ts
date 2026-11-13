@@ -7,6 +7,7 @@ const GEMINI_25_FLASH = "google/gemini-2.5-flash";
 const ALLOWED_MODELS: Record<string, string> = {
   [GEMINI_25_FLASH]: GEMINI_25_FLASH,
   "deepseek/deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
+  "deepseek/deepseek-v4.1-flash": "deepseek/deepseek-v4.1-flash",
   "google/gemini-2.5-pro": GEMINI_25_FLASH,
   "openai/gpt-4o-mini": "openai/gpt-4o-mini",
   "google/gemini-2.0-flash-001": GEMINI_25_FLASH,

@@ -77,6 +77,7 @@ export async function callOpenRouter({
   // Enforce strict allowlist of low-cost models to prevent cost abuse
   const ALLOWED_OPENROUTER_MODELS = new Set([
     "deepseek/deepseek-v4-flash-0731",
+    "deepseek/deepseek-v4.1-flash",
     "google/gemini-2.5-pro",
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
@@ -117,12 +118,16 @@ export async function callOpenRouter({
     max_tokens: 16000,
   };
 
-  // Constrain routing to DeepInfra for DeepSeek (lowest-cost provider)
+  // Prefer DeepInfra for DeepSeek (lowest-cost provider) and disable reasoning
+  // on structured JSON calls so thinking tokens don't truncate JSON output.
   if (selectedModel.startsWith("deepseek/")) {
     payload.provider = {
       order: ["DeepInfra"],
-      allow_fallbacks: false,
+      allow_fallbacks: true,
     };
+    if (response_json_schema) {
+      payload.reasoning = { effort: "none" };
+    }
   }
   // Gemini 2.5 Flash: let OpenRouter pick the best available provider
   if (selectedModel.startsWith("google/gemini-2.5-flash")) {
