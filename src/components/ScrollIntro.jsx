@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Wallet, Sparkles, ShoppingBasket, ArrowRight, CheckCircle2, ChevronDown, X, Flame, Leaf } from "lucide-react";
 
@@ -63,19 +63,30 @@ export default function ScrollIntro({ open, onComplete }) {
   const [activeStage, setActiveStage] = useState(0);
   const c = COPY[currentLanguage?.code] || COPY.en;
 
-  const { scrollYProgress } = useScroll({ container: scrollerRef });
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 120, damping: 24 });
+  // Native scroll listener instead of useScroll({ container }) — the latter
+  // fails to track when the scroller mounts conditionally (we return null
+  // until `open`), leaving the progress bar stuck empty.
+  const rawProgress = useMotionValue(0);
+  const smoothProgress = useSpring(rawProgress, { stiffness: 120, damping: 24 });
 
   // Track which stage (0, 1, 2, 3) is active based on scroll progress
   useEffect(() => {
-    const unsub = scrollYProgress.on("change", (v) => {
+    if (!open) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const max = el.scrollHeight - el.clientHeight;
+      const v = max > 0 ? el.scrollTop / max : 0;
+      rawProgress.set(v);
       if (v < 0.22) setActiveStage(0);
       else if (v < 0.52) setActiveStage(1);
       else if (v < 0.82) setActiveStage(2);
       else setActiveStage(3);
-    });
-    return () => unsub();
-  }, [scrollYProgress]);
+    };
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [open, rawProgress]);
 
   // Prevent body scroll while fullscreen intro is open
   useEffect(() => {
