@@ -148,11 +148,11 @@ export default function Community() {
       </div>
 
       {/* Diet filter chips */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => { setDietFilter(""); loadPlans(""); }}
-          className={`shrink-0 px-3.5 py-2 rounded-full text-xs font-heading font-black border-[2.5px] border-[#111827] transition-all ${
+          className={`px-3.5 py-2 rounded-full text-xs font-heading font-black border-[2.5px] border-[#111827] transition-all ${
             dietFilter === "" ? "bg-[#78a71b] text-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5" : "bg-card text-foreground hover:bg-secondary/70 shadow-[2px_2px_0_#111827]"
           }`}
         >
@@ -165,7 +165,7 @@ export default function Community() {
               key={d.id}
               type="button"
               onClick={() => { setDietFilter(d.id); loadPlans(d.id); }}
-              className={`shrink-0 px-3.5 py-2 rounded-full text-xs font-heading font-black border-[2.5px] border-[#111827] transition-all ${
+              className={`px-3.5 py-2 rounded-full text-xs font-heading font-black border-[2.5px] border-[#111827] transition-all ${
                 sel ? "bg-[#78a71b] text-[#111827] shadow-[3px_3px_0_#111827] -translate-y-0.5" : "bg-card text-foreground hover:bg-secondary/70 shadow-[2px_2px_0_#111827]"
               }`}
             >
