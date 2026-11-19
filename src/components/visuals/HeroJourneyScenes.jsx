@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-function ShopperCharacter({ mood = "happy", hat = false }) {
+export function ShopperCharacter({ mood = "happy", hat = false }) {
   return (
     <g>
       {/* Torso */}
