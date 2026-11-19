@@ -86,7 +86,7 @@ export default function Layout() {
 
   const secondaryNavItems = [
     { path: "/dashboard", label: t("dashboardNav") || "Dashboard", icon: LayoutDashboard, badgeBg: "bg-[#78a71b]" },
-    { path: "/community", label: t("communityNav") || "Community", icon: Users, badgeBg: "bg-[#7DD3FC]", proOnly: true },
+    { path: "/community", label: t("communityNav") || "Community", icon: Users, badgeBg: "bg-[#7DD3FC]", proOnly: true, promote: true },
     { path: "/recipes", label: t("recipesTitle") || "Recipes", icon: ChefHat, badgeBg: "bg-[#FF8FB5]" },
     { path: "/pantry", label: "Pantry", icon: Package, badgeBg: "bg-[#FFB020]" },
     { path: "/profile", label: t("profileNav") || "Profile", icon: User, badgeBg: "bg-[#C084FC]" },
@@ -152,6 +152,7 @@ export default function Layout() {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               const isLocked = item.proOnly && !isPro;
+              const promoted = item.promote;
               return (
                 <Link
                   key={item.path}
@@ -161,19 +162,32 @@ export default function Layout() {
                       ? "bg-[#FFB020] text-[#111827] border-[2.5px] border-[#111827] shadow-[3px_3px_0_#111827]"
                       : isLocked
                       ? "bba-locked-arcade text-[#F3F8E6]/80 hover:text-white border-[2px] border-[#111827] dark:border-[#FFB020]/50 shadow-[2px_2px_0_#111827]"
+                      : promoted
+                      ? "text-[#111827] bg-[#7DD3FC]/25 hover:bg-[#7DD3FC]/40 border-[2.5px] border-[#111827] shadow-[2px_2px_0_#111827]"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/70 border-[2.5px] border-transparent"
                   }`}
                 >
                   <span
-                    className={`h-7 w-7 rounded-lg border-2 flex items-center justify-center shrink-0 ${
+                    className={`relative h-7 w-7 rounded-lg border-2 flex items-center justify-center shrink-0 ${
                       isLocked && !isActive
                         ? "bg-[#111827] border-[#FFB020]/80 text-[#FFB020]"
                         : `${item.badgeBg} border-[#111827] text-[#111827]`
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
+                    {promoted && (
+                      <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF3E7F] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF3E7F] border border-[#111827]" />
+                      </span>
+                    )}
                   </span>
                   <span className="truncate flex-1">{item.label}</span>
+                  {promoted && !isLocked && (
+                    <span className="text-[8px] font-heading font-black uppercase tracking-wider text-[#FF3E7F] bg-[#FF3E7F]/15 border border-[#FF3E7F]/40 rounded-full px-1.5 py-0.5 shrink-0">
+                      Live
+                    </span>
+                  )}
                   {isLocked && <ProLockBadge size="xs" />}
                 </Link>
               );
@@ -402,21 +416,35 @@ export default function Layout() {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path;
                     const isLocked = item.proOnly && !isPro;
+                    const promoted = item.promote;
                     return (
                       <Link
                         key={item.path}
                         to={item.path}
                         onClick={() => setMoreOpen(false)}
                         className={`relative flex flex-col items-center gap-2 p-3.5 rounded-2xl border-[2.5px] shadow-[3px_3px_0_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${
+                          promoted ? "col-span-2 sm:col-span-1" : ""
+                        } ${
                           isActive
                             ? "bg-[#78a71b] text-[#111827] border-[#111827]"
                             : isLocked
                             ? "bba-locked-arcade text-[#F3F8E6]/85 border-[#111827] dark:border-[#FFB020]/70"
+                            : promoted
+                            ? "bg-[#7DD3FC]/30 text-[#111827] border-[#111827]"
                             : "bg-card text-foreground border-[#111827] dark:border-[#78a71b]"
                         }`}
                       >
                         {isLocked && (
                           <ProLockBadge size="xs" className="absolute -top-2 -right-1.5" />
+                        )}
+                        {promoted && (
+                          <span className="absolute top-1.5 left-2 flex items-center gap-1">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF3E7F] opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF3E7F] border border-[#111827]" />
+                            </span>
+                            <span className="text-[7px] font-heading font-black uppercase tracking-wider text-[#FF3E7F]">Live</span>
+                          </span>
                         )}
                         <span
                           className={`h-9 w-9 rounded-xl border-2 flex items-center justify-center ${
