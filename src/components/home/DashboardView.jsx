@@ -181,39 +181,39 @@ export default function DashboardView() {
       </div>
 
       {/* Two Bento HUD Chart Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Meal plans + bar chart */}
         <motion.article whileHover={{ y: -3 }} className="bba-t bg-[#FF8FB5] flex flex-col gap-3">
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
               <h3 className="text-xs font-heading font-black tracking-wider uppercase text-[#111827]">
                 {t("mealPlans") || "Meal plans"}
               </h3>
               <p className="text-xs font-bold text-[#111827]/75 mt-0.5">{t("allTime") || "All time"}</p>
             </div>
-            <span className="font-heading text-2xl font-black tabular-nums bg-white border-2 border-[#111827] rounded-xl px-2.5 py-0.5 shadow-[2px_2px_0_#111827] text-[#111827]">
+            <span className="font-heading text-xl sm:text-2xl font-black tabular-nums bg-white border-2 border-[#111827] rounded-xl px-2.5 py-0.5 shadow-[2px_2px_0_#111827] text-[#111827] shrink-0">
               {stats.count}
             </span>
           </div>
-          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-3 shadow-[2px_2px_0_#111827]">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-3 sm:p-4 shadow-[2px_2px_0_#111827]">
             <BarChart data={stats.dietCounts} />
           </div>
         </motion.article>
 
         {/* Avg budget + line chart */}
         <motion.article whileHover={{ y: -3 }} className="bba-t bg-[#7DD3FC] flex flex-col gap-3">
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
               <h3 className="text-xs font-heading font-black tracking-wider uppercase text-[#111827]">
                 {t("avgBudget") || "Avg budget"}
               </h3>
               <p className="text-xs font-bold text-[#111827]/75 mt-0.5">{t("perPlan") || "Per plan"}</p>
             </div>
-            <span className="font-heading text-2xl font-black tabular-nums bg-white border-2 border-[#111827] rounded-xl px-2.5 py-0.5 shadow-[2px_2px_0_#111827] text-[#111827]">
+            <span className="font-heading text-xl sm:text-2xl font-black tabular-nums bg-white border-2 border-[#111827] rounded-xl px-2.5 py-0.5 shadow-[2px_2px_0_#111827] text-[#111827] shrink-0">
               €{formatNumber(avgBudget, 0)}
             </span>
           </div>
-          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-3 shadow-[2px_2px_0_#111827]">
+          <div className="bg-white border-[2.5px] border-[#111827] rounded-2xl p-3 sm:p-4 shadow-[2px_2px_0_#111827]">
             <LineChart data={stats.budgetSeries} />
           </div>
         </motion.article>
