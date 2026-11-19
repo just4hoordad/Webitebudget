@@ -22,6 +22,7 @@ import StickyGenerateBar from "@/components/StickyGenerateBar";
 import useGuidedAccordion from "@/components/forms/useGuidedAccordion";
 import EasyModeToggle from "@/components/EasyModeToggle";
 import BudgetEasyEssentials from "@/components/builder/BudgetEasyEssentials";
+import BudgetLiveReactor from "@/components/visuals/BudgetLiveReactor";
 import { MAX_PLAN_DAYS } from "@/lib/freeTier";
 
 
@@ -268,8 +269,24 @@ export default function BudgetForm() {
     onOpen: (key) => setVisited((previous) => ({ ...previous, [key]: true })),
   });
 
+  const activeStoreLabels = easyMode
+    ? selectedStores.map((id) => ALL_STORES.find((s) => s.id === id)?.name || id)
+    : selectedStoreLocations.length > 0
+      ? selectedStoreLocations.map((s) => s.name)
+      : selectedStores.map((id) => ALL_STORES.find((s) => s.id === id)?.name || id);
+
   return (
     <div ref={formRef} className="space-y-5">
+      <BudgetLiveReactor
+        budget={budget[0] || 0}
+        days={days}
+        people={people}
+        diet={selectedDiet}
+        storeNames={activeStoreLabels}
+        saleHunt={!easyMode && saleHunt}
+        bio={!easyMode && bio}
+        canGenerate={canGenerate}
+      />
       <div className="flex justify-center pb-1">
         <EasyModeToggle mode={easyMode ? "easy" : "detailed"} onChange={handleEasyChange} />
       </div>

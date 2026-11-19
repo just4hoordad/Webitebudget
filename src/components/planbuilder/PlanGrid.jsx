@@ -12,6 +12,7 @@ import ListView from "@/components/planbuilder/ListView";
 import WeekView from "@/components/planbuilder/WeekView";
 import MonthView from "@/components/planbuilder/MonthView";
 import StickyGenerateBar from "@/components/StickyGenerateBar";
+import PlanDeckReactor from "@/components/visuals/PlanDeckReactor";
 import { planStartDate, dateForIndex, WD } from "@/lib/planDates";
 import { dishList, mealFilled } from "@/lib/planDishes";
 
@@ -130,6 +131,18 @@ export default function PlanGrid({ days, plan, setSlot, addDish, updateDish, rem
             style={{ width: `${Math.max(comboPct, 4)}%` }}
           />
         </div>
+
+        <PlanDeckReactor
+          plan={plan}
+          activeDay={activeDay}
+          slotType={slotType}
+          onSelectSlot={(k) => setSlotType(k)}
+          slotLabels={{
+            breakfast: t("breakfast") || "Breakfast",
+            lunch: t("lunch") || "Lunch",
+            dinner: t("dinner") || "Dinner",
+          }}
+        />
 
         <p className="text-[#111827]/85 text-xs font-semibold flex items-start gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-[#111827] shrink-0 mt-0.5" />
