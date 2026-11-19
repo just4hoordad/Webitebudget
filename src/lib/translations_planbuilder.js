@@ -4,9 +4,9 @@
 
 export const planBuilderTranslations = {
   en: {
-    planBuilderNav: "Plan Your Meals & Get Grocery List + Cooking Recipes",
+    planBuilderNav: "Plan Your Meals",
     planBuilderShortNav: "Plan Meals",
-    planBuilderBadge: "Meals → Grocery List & Cooking Recipes",
+    planBuilderBadge: "Plan Your Meals",
     pbViewList: "List",
     pbViewWeek: "Week",
     pbViewMonth: "Month",
@@ -95,9 +95,9 @@ export const planBuilderTranslations = {
     mapPickerHelper: "Tip: pick your preferred supermarket on the map — we'll pull prices from that exact store, which is more accurate and makes the search faster and easier.",
   },
   de: {
-    planBuilderNav: "Mahlzeiten planen & Einkaufsliste + Kochrezepte",
+    planBuilderNav: "Mahlzeiten planen",
     planBuilderShortNav: "Mahlzeiten",
-    planBuilderBadge: "Mahlzeiten → Einkaufsliste & Kochrezepte",
+    planBuilderBadge: "Mahlzeiten planen",
     pbViewList: "Liste",
     pbViewWeek: "Woche",
     pbViewMonth: "Monat",
