@@ -64,7 +64,7 @@ export const VISUAL_COPY = {
         pill: "🍲 Full Week Ready",
       },
     ],
-    planBadge: "How Plan Builder Works",
+    planBadge: "Plan Your Meals · Grocery List & Cooking Recipes",
     planStages: [
       {
         short: "Pick Meals",
@@ -197,7 +197,7 @@ export const VISUAL_COPY = {
         pill: "🍲 Woche startklar",
       },
     ],
-    planBadge: "So funktioniert der Plan-Baukasten",
+    planBadge: "Mahlzeiten planen · Einkaufsliste & Kochrezepte",
     planStages: [
       {
         short: "Gerichte",

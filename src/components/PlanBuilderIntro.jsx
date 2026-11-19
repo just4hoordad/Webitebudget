@@ -1,12 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Utensils, CalendarDays, ShoppingBasket, ChevronDown, X, Sparkles, CheckCircle2, Flame, ArrowRight } from "lucide-react";
+import { Utensils, CalendarDays, ShoppingBasket, ChefHat, Clock, ChevronDown, X, Sparkles, CheckCircle2, Flame, ArrowRight } from "lucide-react";
 
 const COPY = {
   en: {
     skip: "Skip intro",
     scrollHint: "Scroll to see how it works",
+    finalHint: "Final step ↓",
     step1Badge: "STEP 01 · SET UP",
     step1Title: "Pick your diet, days & stores",
     step1Desc: "Choose a diet (Balanced, High-Protein, Vegan…), set how many days and people, and tap your German supermarkets. Easy mode keeps it to one tap.",
@@ -15,14 +16,26 @@ const COPY = {
     step2Desc: "Add dishes to breakfast, lunch and dinner for each day. Use Suggest for ideas, or Autofill the whole week from your diet's library in one tap.",
     step3Badge: "STEP 03 · SMART GROCERY LIST",
     step3Title: "Get one list, cheapest store per item",
-    step3Desc: "We match every ingredient to real German shelf prices and weekly flyers, consolidate repeats, and total your basket — with a cook-along prep guide.",
+    step3Desc: "We match every ingredient to real German shelf prices and weekly flyers, consolidate repeats, and total your basket.",
+    step4Badge: "STEP 04 · COOKING RECIPES",
+    step4Title: "Get cooking recipes for your plan",
+    step4Desc: "Tap any meal in your plan to get step-by-step cooking instructions, prep & cook times, and exact portions — saved straight to your recipe library.",
+    recipeDish: "Creamy Salmon Pasta",
+    recipeTime: "20 min · 2 servings",
+    recipeSaved: "Saved ✓",
+    recipeSteps: [
+      "Boil pasta in salted water until al dente (9 min).",
+      "Sear salmon fillet & stir in skyr, garlic, and herbs.",
+      "Toss together & plate — uses 100% of your bought packs!",
+    ],
     readyBadge: "LET'S BUILD!",
-    startBtn: "Start building",
+    startBtn: "Start planning meals",
     exploreBtn: "Got it",
   },
   de: {
     skip: "Intro überspringen",
     scrollHint: "Scrollen & entdecken, wie es funktioniert",
+    finalHint: "Letzter Schritt ↓",
     step1Badge: "SCHRITT 01 · EINSTELLEN",
     step1Title: "Diät, Tage & Märkte wählen",
     step1Desc: "Wähle eine Ernährungsweise, lege Tage und Personen fest und tippe deine Supermärkte. Im Easy-Modus reicht ein einziger Tap.",
@@ -31,9 +44,20 @@ const COPY = {
     step2Desc: "Trage Gerichte für Frühstück, Mittag- und Abendessen ein — pro Vorschlag oder mit einem Tap die ganze Woche aus deiner Bibliothek befüllen.",
     step3Badge: "SCHRITT 03 · SMARTE EINKAUFSLISTE",
     step3Title: "Eine Liste, pro Produkt der billigste Markt",
-    step3Desc: "Wir vergleichen echte deutsche Preise und Angebote, fassen alles zusammen und liefern einen Koch-Leitfaden für jeden Tag.",
+    step3Desc: "Wir vergleichen echte deutsche Preise und Angebote, fassen gleiche Zutaten zusammen und berechnen deinen Warenkorb.",
+    step4Badge: "SCHRITT 04 · KOCHREZEPTE",
+    step4Title: "Kochrezepte passend zu deinem Plan",
+    step4Desc: "Tippe auf jedes Gericht in deinem Plan für Schritt-für-Schritt-Anleitungen, Zubereitungszeiten und genaue Portionen — direkt gespeichert.",
+    recipeDish: "Cremige Lachs-Pasta",
+    recipeTime: "20 Min. · 2 Portionen",
+    recipeSaved: "Gespeichert ✓",
+    recipeSteps: [
+      "Pasta in Salzwasser bissfest kochen (9 Min.).",
+      "Lachs anbraten & mit Skyr, Knoblauch und Kräutern verrühren.",
+      "Vermengen & anrichten — verbraucht genau deinen Einkauf!",
+    ],
     readyBadge: "LOS GEHT'S!",
-    startBtn: "Jetzt starten",
+    startBtn: "Jetzt Mahlzeiten planen",
     exploreBtn: "Verstanden",
   },
 };
@@ -73,10 +97,11 @@ export default function PlanBuilderIntro({ open, onComplete }) {
       const max = el.scrollHeight - el.clientHeight;
       const v = max > 0 ? el.scrollTop / max : 0;
       rawProgress.set(v);
-      if (v < 0.22) setActiveStage(0);
-      else if (v < 0.52) setActiveStage(1);
-      else if (v < 0.82) setActiveStage(2);
-      else setActiveStage(3);
+      if (v < 0.14) setActiveStage(0);
+      else if (v < 0.38) setActiveStage(1);
+      else if (v < 0.62) setActiveStage(2);
+      else if (v < 0.86) setActiveStage(3);
+      else setActiveStage(4);
     };
     el.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -98,7 +123,7 @@ export default function PlanBuilderIntro({ open, onComplete }) {
     const el = scrollerRef.current;
     if (!el) return;
     const maxScroll = el.scrollHeight - el.clientHeight;
-    const targets = [0, 0.35, 0.68, 1];
+    const targets = [0, 0.25, 0.5, 0.75, 1];
     el.scrollTo({ top: maxScroll * targets[idx], behavior: "smooth" });
   };
 
@@ -125,10 +150,10 @@ export default function PlanBuilderIntro({ open, onComplete }) {
           <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-xl bg-[#78a71b] border-2 border-[#111827] shadow-[2px_2px_0_#111827] flex items-center justify-center font-heading font-black text-xs text-[#111827]">
-                {activeStage + 1}/4
+                {activeStage + 1}/5
               </div>
               <div className="flex items-center gap-1">
-                {[0, 1, 2, 3].map((idx) => (
+                {[0, 1, 2, 3, 4].map((idx) => (
                   <button key={idx} type="button" onClick={() => scrollToStage(idx)} aria-label={`Step ${idx + 1}`} className={`h-2.5 rounded-full border border-[#111827] transition-all ${activeStage === idx ? "w-7 bg-[#FF3E7F]" : idx < activeStage ? "w-2.5 bg-[#78a71b]" : "w-2.5 bg-[#F3F8E6]"}`} />
                 ))}
               </div>
@@ -235,11 +260,53 @@ export default function PlanBuilderIntro({ open, onComplete }) {
                 </div>
               </div>
 
-              <ScrollCue onClick={() => scrollToStage(3)} label="Final step ↓" />
+              <ScrollCue onClick={() => scrollToStage(3)} label={c.scrollHint} />
             </motion.div>
           </section>
 
-          {/* SCENE 4: CTA */}
+          {/* SCENE 4: Cooking recipes */}
+          <section className="min-h-full snap-start flex flex-col justify-center px-4 py-8 max-w-lg mx-auto">
+            <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: false, amount: 0.45 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="bba-t bg-[#C084FC] text-[#111827] space-y-4">
+              <span className="bba-sticker"><ChefHat className="h-3.5 w-3.5" /> {c.step4Badge}</span>
+              <h2 className="font-heading text-3xl font-black tracking-tight leading-[1.05] text-[#111827]">{c.step4Title}</h2>
+              <p className="text-sm font-medium text-[#111827]/90 leading-relaxed">{c.step4Desc}</p>
+
+              <div className="rounded-2xl bg-white border-[3px] border-[#111827] shadow-[4px_4px_0_#111827] overflow-hidden text-[#111827]">
+                <div className="p-3.5 bg-[#FFB020] border-b-2 border-[#111827] flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-heading font-black text-sm truncate">🍝 {c.recipeDish}</p>
+                    <p className="text-[11px] font-bold flex items-center gap-1 mt-0.5">
+                      <Clock className="h-3 w-3" /> {c.recipeTime}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[10px] font-heading font-black bg-[#78a71b] text-[#111827] border-2 border-[#111827] px-2.5 py-0.5 rounded-full shadow-[1.5px_1.5px_0_#111827]">
+                    {c.recipeSaved}
+                  </span>
+                </div>
+                <div className="p-3.5 space-y-2.5">
+                  {c.recipeSteps.map((step, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: false, amount: 0.5 }}
+                      transition={{ delay: idx * 0.12, type: "spring" }}
+                      className="flex items-start gap-2.5"
+                    >
+                      <span className="h-6 w-6 rounded-lg bg-[#78a71b] text-[#111827] border-2 border-[#111827] font-heading font-black text-xs flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0_#111827]">
+                        {idx + 1}
+                      </span>
+                      <p className="text-xs font-semibold leading-snug pt-0.5">{step}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              <ScrollCue onClick={() => scrollToStage(4)} label={c.finalHint} />
+            </motion.div>
+          </section>
+
+          {/* SCENE 5: CTA */}
           <section className="min-h-full snap-start flex flex-col justify-center px-4 py-8 max-w-lg mx-auto">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: false, amount: 0.45 }} transition={{ type: "spring", stiffness: 280, damping: 20 }} className="bba-t bg-[#FFB020] text-[#111827] space-y-5 text-center py-7">
               <span className="bba-sticker mx-auto"><Sparkles className="h-3.5 w-3.5" /> {c.readyBadge}</span>

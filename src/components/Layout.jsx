@@ -80,7 +80,7 @@ export default function Layout() {
   const navItems = [
     { path: "/", label: t("home"), icon: Home, accent: "bg-[#78a71b]" },
     { path: "/budget", label: budgetLabel, icon: Wallet, accent: "bg-[#FF3E7F] text-white" },
-    { path: "/plan-builder", label: t("planBuilderNav"), icon: Utensils, accent: "bg-[#FFB020]" },
+    { path: "/plan-builder", label: t("planBuilderNav"), shortLabel: t("planBuilderShortNav") || "Plan Meals", icon: Utensils, accent: "bg-[#FFB020]" },
     { path: "/saved-plans", label: t("savedPlans"), icon: BookMarked, accent: "bg-[#7DD3FC]" },
   ];
 
@@ -131,7 +131,7 @@ export default function Layout() {
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="truncate">{item.label}</span>
+                <span className="leading-snug line-clamp-2">{item.label}</span>
               </Link>
             );
           })}
@@ -327,7 +327,7 @@ export default function Layout() {
                   }`}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="truncate max-w-full text-center leading-none">{item.label}</span>
+                  <span className="truncate max-w-full text-center leading-none">{item.shortLabel || item.label}</span>
                 </Link>
               );
             })}

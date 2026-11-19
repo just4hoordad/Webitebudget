@@ -37,7 +37,7 @@ a.bba-t,.bba-btn{cursor:pointer;text-decoration:none;color:inherit}
 .bba-cart-t{display:flex;flex-direction:column;gap:12px;min-height:100%;padding:20px}
 .bba-cr1{background:#FF3E7F;color:#fff}.bba-cr2{background:#78a71b;color:#111827}
 .bba-cart-t img{width:86px;height:86px;object-fit:cover;border:3px solid #111827;border-radius:20px;background:#F3F8E6;transform:rotate(-4deg);box-shadow:3px 3px 0 #111827}
-.bba-cart-t h3{font-size:25px}
+.bba-cart-t h3{font-size:22px;line-height:1.18}
 .bba-cart-t p{margin:0;font-size:14px;line-height:1.5}
 .bba-pro{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800}
 .bba-pro svg{width:14px;height:14px;flex:none}
