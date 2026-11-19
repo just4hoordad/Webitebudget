@@ -1,19 +1,9 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Dices, Sparkles, Trophy } from "lucide-react";
-
-const CART_IMG = "https://media.base44.com/images/public/69d66c6fdbba74a7439efa90/bb9cbb17d_generated_50e6f515.jpg";
-
-const STORE_LOOT = [
-  { name: "Aldi", perk: "🔥 -22% Staple Basket!", bg: "bg-[#7DD3FC]" },
-  { name: "Lidl", perk: "⚡ Milbona Protein Jackpot!", bg: "bg-[#FFB020]" },
-  { name: "REWE", perk: "🎯 Ja! Value Combo Unlocked!", bg: "bg-[#FF8FB5]" },
-  { name: "Edeka", perk: "🌿 Gut & Günstig Saver!", bg: "bg-[#78a71b]" },
-  { name: "Penny", perk: "💥 Weekly Flyer Bonus!", bg: "bg-[#C084FC]" },
-  { name: "Netto", perk: "🏆 Marken-Discount Crit!", bg: "bg-[#FACC15]" },
-];
+import HeroJourneyAnimation from "./visuals/HeroJourneyAnimation";
+import { Trophy } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,17 +29,9 @@ const itemVariants = {
 export default function HeroSection({ onOpenIntro }) {
   const { t } = useLanguage();
   const heroRef = useRef(null);
-  const [spinDeg, setSpinDeg] = useState(0);
-  const [lootIndex, setLootIndex] = useState(null);
-  const [spinCount, setSpinCount] = useState(0);
+  const [interactionCount, setInteractionCount] = useState(0);
 
-  const handleSpinWheel = () => {
-    const nextIdx = Math.floor(Math.random() * STORE_LOOT.length);
-    const extraTurns = 360 * 2 + Math.floor(Math.random() * 180) + 90;
-    setSpinDeg((prev) => prev + extraTurns);
-    setSpinCount((c) => c + 1);
-    setLootIndex(nextIdx);
-  };
+  const handleInteract = () => setInteractionCount(c => c + 1);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -65,11 +47,6 @@ export default function HeroSection({ onOpenIntro }) {
   const cardScale = useTransform(smoothProgress, [0, 1], [1, 0.97]);
   const headlineY = useTransform(smoothProgress, [0, 1], [0, -10]);
   const badgeRotate = useTransform(smoothProgress, [0, 0.6, 1], [-2, 4, -4]);
-  const wheelScrollRotate = useTransform(smoothProgress, [0, 1], [0, 140]);
-  const chipLeftY = useTransform(smoothProgress, [0, 1], [0, -24]);
-  const chipRightY = useTransform(smoothProgress, [0, 1], [0, 22]);
-
-  const activeLoot = lootIndex !== null ? STORE_LOOT[lootIndex] : null;
 
   return (
     <motion.div
@@ -92,13 +69,13 @@ export default function HeroSection({ onOpenIntro }) {
             <span className="inline-block h-2 w-2 rounded-full bg-[#78a71b] animate-pulse" />
             Smart Grocery Arcade
           </span>
-          {spinCount > 0 && (
+          {interactionCount > 0 && (
             <motion.span
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="inline-flex items-center gap-1 rounded-full bg-[#C084FC] text-[#111827] border-2 border-[#111827] px-2.5 py-0.5 text-[11px] font-heading font-black shadow-[2px_2px_0_#111827]"
             >
-              <Trophy className="h-3 w-3" /> +{spinCount * 10} XP
+              <Trophy className="h-3 w-3" /> +{interactionCount * 10} XP
             </motion.span>
           )}
         </div>
@@ -165,84 +142,9 @@ export default function HeroSection({ onOpenIntro }) {
           </motion.div>
         </div>
 
-        {/* Interactive Spin-the-Store Arcade Wheel */}
-        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3">
-          <div className="bba-vis w-full" aria-label="Interactive store wheel">
-            <motion.div
-              style={{ y: chipLeftY }}
-              className="absolute left-1 top-2 z-10 bg-[#78a71b] text-[#111827] border-2 border-[#111827] rounded-full px-2.5 py-1 text-[11px] font-heading font-black shadow-[2px_2px_0_#111827] -rotate-6 pointer-events-none"
-            >
-              ⚡ Live Flyers
-            </motion.div>
-
-            <motion.div
-              style={{ y: chipRightY }}
-              className="absolute right-1 bottom-2 z-10 bg-[#FFB020] text-[#111827] border-2 border-[#111827] rounded-full px-2.5 py-1 text-[11px] font-heading font-black shadow-[2px_2px_0_#111827] rotate-6 pointer-events-none"
-            >
-              🏷️ Best Deal
-            </motion.div>
-
-            <motion.div
-              style={{ rotate: wheelScrollRotate }}
-              className="flex items-center justify-center cursor-pointer"
-              onClick={handleSpinWheel}
-              title="Tap to spin the store wheel!"
-            >
-              <motion.div
-                animate={{ rotate: spinDeg }}
-                transition={{ type: "spring", stiffness: 65, damping: 14 }}
-                className="flex items-center justify-center"
-              >
-                <div className="bba-wheel">
-                  <span className="bba-s1">Aldi</span>
-                  <span className="bba-s2">Lidl</span>
-                  <span className="bba-s3">REWE</span>
-                  <span className="bba-s4">Edeka</span>
-                  <span className="bba-s5">Penny</span>
-                  <span className="bba-s6">Netto</span>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            <motion.img
-              whileHover={{ scale: 1.12, rotate: 6 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={handleSpinWheel}
-              className="bba-cart cursor-pointer"
-              src={CART_IMG}
-              alt="Miniature shopping cart racing through fresh vegetables"
-            />
-          </div>
-
-          {/* Interactive Spin button + loot reveal */}
-          <div className="flex flex-wrap items-center justify-center gap-2 w-full">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.93 }}
-              onClick={handleSpinWheel}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#111827] text-[#F3F8E6] dark:bg-[#FFB020] dark:text-[#111827] border-2 border-[#111827] px-3.5 py-1.5 text-xs font-heading font-black shadow-[2.5px_2.5px_0_#FF3E7F] cursor-pointer"
-            >
-              <Dices className="h-3.5 w-3.5" />
-              Spin Store Wheel!
-            </motion.button>
-
-            <AnimatePresence mode="wait">
-              {activeLoot && (
-                <motion.span
-                  key={`${activeLoot.name}-${spinCount}`}
-                  initial={{ opacity: 0, y: 8, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85 }}
-                  transition={{ type: "spring", stiffness: 380, damping: 20 }}
-                  className={`inline-flex items-center gap-1.5 rounded-full ${activeLoot.bg} text-[#111827] border-2 border-[#111827] px-3 py-1 text-xs font-heading font-black shadow-[2px_2px_0_#111827]`}
-                >
-                  <Sparkles className="h-3 w-3" />
-                  {activeLoot.name}: {activeLoot.perk}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
+        {/* Animated Story Walkthrough */}
+        <motion.div variants={itemVariants} className="flex flex-col items-center justify-center pt-2 sm:pt-0">
+          <HeroJourneyAnimation onInteract={handleInteract} />
         </motion.div>
       </div>
     </motion.div>

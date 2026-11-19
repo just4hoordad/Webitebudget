@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Leaf, Euro, ShoppingBasket, Users } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { pageTranslations } from "@/lib/translations_pages";
+import AboutProcessStepper from "@/components/visuals/AboutProcessStepper";
 
 export default function About() {
   const { currentLanguage } = useLanguage();
@@ -34,6 +35,8 @@ export default function About() {
           <a href="mailto:Hoordad.sedaghat@gmail.com" className="text-primary font-heading font-bold hover:underline">Hoordad.sedaghat@gmail.com</a>
         </p>
       </div>
+
+      <AboutProcessStepper />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {features.map(({ icon: Icon, title, desc, bg }) => (

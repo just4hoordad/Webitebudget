@@ -20,6 +20,7 @@ import { useMonetization } from "@/lib/MonetizationContext";
 import { groceryDaysForUser, isGroceryCapped } from "@/lib/freeTier";
 import FreeGroceryCapNotice from "@/components/FreeGroceryCapNotice";
 import PlanBuilderIntro from "@/components/PlanBuilderIntro";
+import PlanBuilderFlowVisual from "@/components/visuals/PlanBuilderFlowVisual";
 import { ArrowLeft, Share2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LastResultButton from "@/components/LastResultButton";
@@ -508,6 +509,7 @@ PREP GUIDE: In the same response, under "prep", write a short cooking guide for 
           ▶ How it works
         </button>
       </div>
+      <PlanBuilderFlowVisual />
       <LastResultButton kind="plan" className="w-full" />
       <PlanSetup diet={diet} setDiet={setDiet} days={days} setDays={setDays} people={people} setPeople={setPeople} stores={stores} toggleStore={toggleStore} macros={macros} setMacros={setMacros} macrosSet={macrosSet} enabled={enabled} toggleSetting={toggleSetting} onBuild={startPlan} loading={false} postalCode={postalCode} setPostalCode={setPostalCode} selectedStoreLocations={selectedStoreLocations} onChangeStoreLocations={setSelectedStoreLocations} cityCoords={cityCoords} onCityCoordsUsed={() => setCityCoords(null)} easyMode={easyMode} onEasyModeChange={handleEasyChange} />
     </div>

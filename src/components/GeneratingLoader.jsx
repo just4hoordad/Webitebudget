@@ -6,6 +6,7 @@ import {
   Flame, RefreshCw, ShoppingCart, Loader2,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import LoaderMiniScene from "./visuals/LoaderMiniScene";
 
 const GROCERY_STEPS = [
   { icon: Database, key: "gen_step_g1" },
@@ -109,6 +110,9 @@ export default function GeneratingLoader({ type = "grocery", stores }) {
           <Loader2 className="h-4 w-4 text-[#111827] animate-spin" />
         </div>
       </div>
+
+      {/* Animated 4-stage pipeline */}
+      <LoaderMiniScene progress={progress} />
 
       {/* Live feed */}
       <div ref={feedRef} className="px-5 py-4 space-y-3 h-[220px] overflow-y-auto scrollbar-hide scroll-smooth">
