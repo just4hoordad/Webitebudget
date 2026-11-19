@@ -12,8 +12,6 @@ import usePlanSetupGuidance from "@/components/planbuilder/usePlanSetupGuidance"
 import { Users, CalendarDays, Scale, ArrowRight, Sparkles, ShoppingCart } from "lucide-react";
 import EasyModeToggle from "@/components/EasyModeToggle";
 import PlanEasyEssentials from "@/components/builder/PlanEasyEssentials";
-import PlanSetupReactor from "@/components/visuals/PlanSetupReactor";
-import { storeNameFromId } from "@/lib/groceryStores";
 import { MAX_PLAN_DAYS } from "@/lib/freeTier";
 
 export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeople, stores, toggleStore, macros, setMacros, macrosSet, enabled, toggleSetting, onBuild, loading, postalCode, setPostalCode, selectedStoreLocations, onChangeStoreLocations, cityCoords, onCityCoordsUsed, easyMode, onEasyModeChange }) {
@@ -74,26 +72,6 @@ export default function PlanSetup({ diet, setDiet, days, setDays, people, setPeo
         <h1 className="font-heading font-black text-2xl sm:text-3xl text-balance text-[#111827]">{t("planBuilderTitle")}</h1>
         <p className="text-[#111827]/85 font-medium text-sm text-balance">{t("planBuilderSubtitle")}</p>
       </div>
-
-      <PlanSetupReactor
-        diet={diet}
-        days={days}
-        people={people}
-        storeNames={
-          easyMode
-            ? stores.map(storeNameFromId)
-            : selectedStoreLocations && selectedStoreLocations.length > 0
-              ? selectedStoreLocations.map((s) => s.name)
-              : stores.map(storeNameFromId)
-        }
-        macros={macros}
-        showMacros={!easyMode && enabled.macros}
-        ready={
-          easyMode
-            ? !!diet && people > 0 && days >= 1 && stores.length > 0
-            : !buildDisabled
-        }
-      />
 
       <div className="flex justify-center">
         <EasyModeToggle mode={easyMode ? "easy" : "detailed"} onChange={onEasyModeChange} />
